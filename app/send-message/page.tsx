@@ -12,7 +12,20 @@ export default function SendMessagePage() {
   const [mode, setMode] = useState<"location" | "individual">("location"); const [regionId, setRegionId] = useState(""); const [constituencyId, setConstituencyId] = useState(""); const [electoralAreaId, setElectoralAreaId] = useState(""); const [pollingStationId, setPollingStationId] = useState(""); const [contactId, setContactId] = useState("");
   const [name, setName] = useState(""); const [message, setMessage] = useState(""); const [sendLater, setSendLater] = useState(false); const [scheduledAt, setScheduledAt] = useState(""); const [notice, setNotice] = useState(""); const [sending, setSending] = useState(false);
   const [estimated, setEstimated] = useState(0);
-  useEffect(() => { Promise.all([fetch("/api/locations").then((r) => r.json()), fetch("/api/contacts").then((r) => r.json())]).then(([l, c]) => { setLocations(l); setContacts(c.contacts ?? []); }); }, []);
+  useEffect(() => {
+    Promise.all([fetch("/api/locations"), fetch("/api/contacts")])
+      .then(async ([locationResponse, contactResponse]) => {
+        const [locationData, contactData] = await Promise.all([locationResponse.json(), contactResponse.json()]);
+        if (!locationResponse.ok) throw new Error(locationData.error ?? "Could not load locations.");
+        if (!contactResponse.ok) throw new Error(contactData.error ?? "Could not load contacts.");
+        setLocations({
+          regions: locationData.regions ?? [], constituencies: locationData.constituencies ?? [],
+          electoralAreas: locationData.electoralAreas ?? [], pollingStations: locationData.pollingStations ?? [],
+        });
+        setContacts(contactData.contacts ?? []);
+      })
+      .catch((error) => { setNotice(error instanceof Error ? error.message : "Could not load messaging data."); setLocations({ regions: [], constituencies: [], electoralAreas: [], pollingStations: [] }); });
+  }, []);
   const constituencies = useMemo(() => locations?.constituencies.filter((x) => !regionId || x.regionId === regionId) ?? [], [locations, regionId]);
   const electoralAreas = useMemo(() => locations?.electoralAreas.filter((x) => !constituencyId || x.constituencyId === constituencyId) ?? [], [locations, constituencyId]);
   const stations = useMemo(() => locations?.pollingStations.filter((x) => !electoralAreaId || x.electoralAreaId === electoralAreaId) ?? [], [locations, electoralAreaId]);
