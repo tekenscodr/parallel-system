@@ -9,6 +9,7 @@ type Contact = { id: string; firstName: string; lastName: string; phoneNumber: s
 
 export default function SendMessagePage() {
   const [locations, setLocations] = useState<Locations | null>(null); const [contacts, setContacts] = useState<Contact[]>([]);
+  const [stationOptions, setStationOptions] = useState<Location[]>([]);
   const [mode, setMode] = useState<"location" | "individual">("location"); const [regionId, setRegionId] = useState(""); const [constituencyId, setConstituencyId] = useState(""); const [electoralAreaId, setElectoralAreaId] = useState(""); const [pollingStationId, setPollingStationId] = useState(""); const [contactId, setContactId] = useState("");
   const [name, setName] = useState(""); const [message, setMessage] = useState(""); const [sendLater, setSendLater] = useState(false); const [scheduledAt, setScheduledAt] = useState(""); const [notice, setNotice] = useState(""); const [sending, setSending] = useState(false);
   const [estimated, setEstimated] = useState(0);
@@ -28,7 +29,7 @@ export default function SendMessagePage() {
   }, []);
   const constituencies = useMemo(() => locations?.constituencies.filter((x) => !regionId || x.regionId === regionId) ?? [], [locations, regionId]);
   const electoralAreas = useMemo(() => locations?.electoralAreas.filter((x) => !constituencyId || x.constituencyId === constituencyId) ?? [], [locations, constituencyId]);
-  const stations = useMemo(() => locations?.pollingStations.filter((x) => !electoralAreaId || x.electoralAreaId === electoralAreaId) ?? [], [locations, electoralAreaId]);
+  const stations = stationOptions;
   const selectedContact = contacts.find((x) => x.id === contactId); const parts = Math.max(1, Math.ceil(message.length / 160));
   useEffect(() => {
     const params = new URLSearchParams();
@@ -39,6 +40,11 @@ export default function SendMessagePage() {
     else if (regionId) params.set("regionId", regionId);
     fetch(`/api/audience-count?${params}`).then((r) => r.json()).then((d) => setEstimated(Number(d.count ?? 0)));
   }, [mode, contactId, regionId, constituencyId, electoralAreaId, pollingStationId]);
+  useEffect(() => {
+    const parentKey = electoralAreaId ? `electoralAreaId=${encodeURIComponent(electoralAreaId)}` : constituencyId ? `constituencyId=${encodeURIComponent(constituencyId)}` : "";
+    if (!parentKey) { setStationOptions([]); return; }
+    fetch(`/api/locations?${parentKey}`).then((r) => r.json()).then((d) => setStationOptions(d.pollingStations ?? [])).catch(() => setStationOptions([]));
+  }, [constituencyId, electoralAreaId]);
 
   async function submit(event: FormEvent) {
     event.preventDefault(); setSending(true); setNotice("");

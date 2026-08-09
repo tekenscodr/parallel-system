@@ -15,6 +15,20 @@
       "when": 1786237155262,
       "tag": "0001_absurd_rockslide",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786239933648,
+      "tag": "0002_known_swordsman",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786240800000,
+      "tag": "0003_ghana_2024_electoral_geography",
+      "breakpoints": true
     }
   ]
 }

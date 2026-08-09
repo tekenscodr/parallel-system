@@ -15,7 +15,7 @@ export async function GET(request: Request) {
       FROM contacts c
       LEFT JOIN polling_stations ps ON ps.id = c.polling_station_id
       LEFT JOIN electoral_areas ea ON ea.id = ps.electoral_area_id
-      LEFT JOIN constituencies co ON co.id = ea.constituency_id
+      LEFT JOIN constituencies co ON co.id = COALESCE(ps.constituency_id, ea.constituency_id)
       LEFT JOIN regions r ON r.id = co.region_id
       WHERE (c.first_name || ' ' || c.last_name LIKE ?1 OR c.phone_number LIKE ?1)
         AND (?2 IS NULL OR c.polling_station_id = ?2)

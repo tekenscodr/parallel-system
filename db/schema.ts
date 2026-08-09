@@ -69,9 +69,12 @@ export const pollingStations = sqliteTable(
   "polling_stations",
   {
     id: text("id").primaryKey(),
-    electoralAreaId: text("electoral_area_id")
-      .notNull()
-      .references(() => electoralAreas.id, { onDelete: "restrict" }),
+    constituencyId: text("constituency_id").references(() => constituencies.id, {
+      onDelete: "restrict",
+    }),
+    electoralAreaId: text("electoral_area_id").references(() => electoralAreas.id, {
+      onDelete: "restrict",
+    }),
     name: text("name").notNull(),
     code: text("code").notNull(),
     address: text("address"),
@@ -80,6 +83,7 @@ export const pollingStations = sqliteTable(
   },
   (table) => [
     uniqueIndex("polling_stations_code_unique").on(table.code),
+    index("polling_stations_constituency_idx").on(table.constituencyId),
     index("polling_stations_electoral_area_idx").on(table.electoralAreaId),
   ],
 );

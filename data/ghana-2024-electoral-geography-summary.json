@@ -1,0 +1,9 @@
+{
+  "source": "https://ec.gov.gh/wp-content/uploads/2024/10/Polling_stations.pdf",
+  "electionYear": 2024,
+  "regions": 16,
+  "constituencies": 276,
+  "pollingStations": 40648,
+  "firstStationCode": "A010101",
+  "lastStationCode": "R151204"
+}
