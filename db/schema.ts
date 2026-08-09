@@ -289,6 +289,12 @@ export const smsCreditTransactions = sqliteTable(
   ],
 );
 
+export const systemSettings = sqliteTable("system_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
 export type Region = typeof regions.$inferSelect;
 export type Constituency = typeof constituencies.$inferSelect;
 export type ElectoralArea = typeof electoralAreas.$inferSelect;

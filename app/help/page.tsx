@@ -1,0 +1,6 @@
+import Link from "next/link";
+import { AppShell } from "@/app/components/AppShell";
+
+export default function HelpPage() {
+  return <AppShell eyebrow="SUPPORT" title="Help & support"><div className="page-content"><section className="help-hero"><small>QUICK START</small><h2>From contacts to delivery in four steps.</h2><p>Reach keeps consent, geographic targeting, campaigns, and delivery records together.</p></section><div className="help-grid"><article><span>1</span><h3>Add opted-in contacts</h3><p>Store a valid phone number and assign a polling station when available.</p><Link href="/contacts">Open contacts →</Link></article><article><span>2</span><h3>Choose an audience</h3><p>Target one contact or filter from region down to polling station.</p><Link href="/send-message">Compose message →</Link></article><article><span>3</span><h3>Create the campaign</h3><p>Personalise the message, review the count and schedule delivery.</p><Link href="/send-message">Start campaign →</Link></article><article><span>4</span><h3>Monitor outcomes</h3><p>Use history and reports to follow queued, delivered and failed messages.</p><Link href="/reports">View reports →</Link></article></div></div></AppShell>;
+}
