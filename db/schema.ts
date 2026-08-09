@@ -114,6 +114,17 @@ export const contacts = sqliteTable(
     firstName: text("first_name").notNull(),
     lastName: text("last_name").notNull().default(""),
     phoneNumber: text("phone_number").notNull(),
+    email: text("email"),
+    dateOfBirth: text("date_of_birth"),
+    voterId: text("voter_id"),
+    ghanaCardNumber: text("ghana_card_number"),
+    source: text("source", { enum: ["platform", "user_upload"] })
+      .notNull()
+      .default("platform"),
+    uploadedById: text("uploaded_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    uploadBatchId: text("upload_batch_id"),
     preferredLanguage: text("preferred_language").notNull().default("en"),
     consentStatus: text("consent_status", {
       enum: ["pending", "opted_in", "opted_out"],
@@ -128,10 +139,61 @@ export const contacts = sqliteTable(
     ...timestamps,
   },
   (table) => [
-    uniqueIndex("contacts_phone_number_unique").on(table.phoneNumber),
+    index("contacts_phone_number_idx").on(table.phoneNumber),
+    uniqueIndex("contacts_owner_phone_unique").on(
+      table.source,
+      table.uploadedById,
+      table.phoneNumber,
+    ),
     index("contacts_polling_station_idx").on(table.pollingStationId),
     index("contacts_consent_active_idx").on(table.consentStatus, table.isActive),
     index("contacts_name_idx").on(table.lastName, table.firstName),
+    index("contacts_source_uploader_idx").on(table.source, table.uploadedById),
+    index("contacts_upload_batch_idx").on(table.uploadBatchId),
+  ],
+);
+
+export const contactUploads = sqliteTable(
+  "contact_uploads",
+  {
+    id: text("id").primaryKey(),
+    uploadedById: text("uploaded_by_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    fileName: text("file_name").notNull(),
+    importedCount: integer("imported_count").notNull().default(0),
+    skippedCount: integer("skipped_count").notNull().default(0),
+    ...timestamps,
+  },
+  (table) => [index("contact_uploads_user_idx").on(table.uploadedById)],
+);
+
+export const contactAccessPurchases = sqliteTable(
+  "contact_access_purchases",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    scopeType: text("scope_type", {
+      enum: ["all", "region", "constituency", "polling_station"],
+    }).notNull(),
+    scopeId: text("scope_id"),
+    amountPesewas: integer("amount_pesewas").notNull(),
+    status: text("status", {
+      enum: ["pending", "paid", "cancelled", "refunded"],
+    })
+      .notNull()
+      .default("pending"),
+    paymentProvider: text("payment_provider"),
+    providerReference: text("provider_reference"),
+    paidAt: text("paid_at"),
+    expiresAt: text("expires_at"),
+    ...timestamps,
+  },
+  (table) => [
+    index("contact_access_user_status_idx").on(table.userId, table.status),
+    index("contact_access_scope_idx").on(table.scopeType, table.scopeId),
   ],
 );
 

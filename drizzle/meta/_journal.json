@@ -29,6 +29,20 @@
       "when": 1786240800000,
       "tag": "0003_ghana_2024_electoral_geography",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1786281512640,
+      "tag": "0004_magical_living_tribunal",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786284001630,
+      "tag": "0005_clammy_cargill",
+      "breakpoints": true
     }
   ]
 }
