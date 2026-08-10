@@ -3,10 +3,10 @@ import { apiError, getD1 } from "@/db/runtime";
 export async function GET() {
   try {
     const result = await getD1().prepare(`
-      SELECT c.id, c.name, c.message, c.status, c.audience_type AS audienceType,
-        c.estimated_recipients AS recipients, c.sms_parts AS smsParts,
-        c.estimated_cost_pesewas AS costPesewas, c.scheduled_at AS scheduledAt,
-        c.created_at AS createdAt,
+      SELECT c.id, c.name, c.message, c.status, c.audience_type AS "audienceType",
+        c.estimated_recipients AS recipients, c.sms_parts AS "smsParts",
+        c.estimated_cost_pesewas AS "costPesewas", c.scheduled_at AS "scheduledAt",
+        c.created_at AS "createdAt",
         SUM(CASE WHEN cr.delivery_status = 'delivered' THEN 1 ELSE 0 END) AS delivered,
         SUM(CASE WHEN cr.delivery_status = 'failed' THEN 1 ELSE 0 END) AS failed
       FROM campaigns c
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     if (!message) return Response.json({ error: "A message is required." }, { status: 400 });
 
     const db = getD1();
-    let query = `SELECT c.id, c.phone_number AS phoneNumber, c.first_name AS firstName, ps.name AS pollingStation
+    let query = `SELECT c.id, c.phone_number AS "phoneNumber", c.first_name AS "firstName", ps.name AS "pollingStation"
       FROM contacts c
       LEFT JOIN polling_stations ps ON ps.id = c.polling_station_id
       LEFT JOIN electoral_areas ea ON ea.id = ps.electoral_area_id

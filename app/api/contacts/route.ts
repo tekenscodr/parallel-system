@@ -9,13 +9,13 @@ export async function GET(request: Request) {
     const source = url.searchParams.get("source") || null;
     const currentUser = await getOrCreateRequestUser(request);
     const statement = db.prepare(`
-      SELECT c.id, c.first_name AS firstName, c.last_name AS lastName,
-        c.phone_number AS phoneNumber, c.consent_status AS consentStatus,
-        c.email, c.date_of_birth AS dateOfBirth, c.voter_id AS voterId,
-        c.ghana_card_number AS ghanaCardNumber, c.source,
-        u.full_name AS uploadedByName, u.email AS uploadedByEmail,
-        c.is_active AS isActive, ps.id AS pollingStationId,
-        ps.name AS pollingStation, ea.name AS electoralArea,
+      SELECT c.id, c.first_name AS "firstName", c.last_name AS "lastName",
+        c.phone_number AS "phoneNumber", c.consent_status AS "consentStatus",
+        c.email, c.date_of_birth AS "dateOfBirth", c.voter_id AS "voterId",
+        c.ghana_card_number AS "ghanaCardNumber", c.source,
+        u.full_name AS "uploadedByName", u.email AS "uploadedByEmail",
+        c.is_active AS "isActive", ps.id AS "pollingStationId",
+        ps.name AS "pollingStation", ea.name AS "electoralArea",
         co.name AS constituency, r.name AS region
       FROM contacts c
       LEFT JOIN polling_stations ps ON ps.id = c.polling_station_id

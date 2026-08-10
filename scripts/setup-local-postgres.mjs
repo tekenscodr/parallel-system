@@ -3,8 +3,15 @@ import path from "node:path";
 import postgres from "postgres";
 
 const databaseUrl = process.env.LOCAL_DATABASE_URL;
-if (!databaseUrl) throw new Error("LOCAL_DATABASE_URL is required.");
-const sql = postgres(databaseUrl, { max: 1 });
+const connection = databaseUrl || {
+  host: process.env.PGHOST || "localhost",
+  port: Number(process.env.PGPORT || 5432),
+  database: process.env.PGDATABASE || "reach_sms",
+  username: process.env.PGUSER || "postgres",
+  password: process.env.PGPASSWORD,
+};
+if (!databaseUrl && !connection.password) throw new Error("PostgreSQL credentials are required.");
+const sql = postgres(connection, { max: 1 });
 const root = process.cwd();
 
 function statements(file) {

@@ -7,8 +7,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = requestHeaders.get("host") ?? "localhost:3000";
   const protocol = host.includes("localhost") ? "http" : "https";
   const image = `${protocol}://${host}/og.png`;
-  const title = "Reach — Targeted SMS Messaging";
-  const description = "Send timely SMS messages to individuals or location-based groups.";
+  const title = "Reach — Campaign Command Centre";
+  const description = "Verified contacts, geographic campaign intelligence, and consent-safe SMS mobilisation in one command centre.";
 
   return {
     title,

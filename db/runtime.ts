@@ -16,16 +16,26 @@ type PreparedDatabase = {
 };
 
 export function getD1(): D1Database | PreparedDatabase {
-  const workerUrl = (env as unknown as Record<string, unknown>).LOCAL_DATABASE_URL;
+  const workerEnv = env as unknown as Record<string, unknown>;
+  const workerUrl = workerEnv.LOCAL_DATABASE_URL;
   const localUrl = typeof workerUrl === "string" ? workerUrl
     : typeof process !== "undefined" ? process.env.LOCAL_DATABASE_URL : undefined;
   if (localUrl) return createPostgresAdapter(localUrl);
+  const password = typeof workerEnv.PGPASSWORD === "string" ? workerEnv.PGPASSWORD
+    : typeof process !== "undefined" ? process.env.PGPASSWORD : undefined;
+  if (password) return createPostgresAdapter({
+    host: String(workerEnv.PGHOST || process.env.PGHOST || "localhost"),
+    port: Number(workerEnv.PGPORT || process.env.PGPORT || 5432),
+    database: String(workerEnv.PGDATABASE || process.env.PGDATABASE || "reach_sms"),
+    username: String(workerEnv.PGUSER || process.env.PGUSER || "postgres"),
+    password,
+  });
   if (!env.DB) throw new Error("Database binding DB is not available.");
   return env.DB;
 }
 
-function createPostgresAdapter(url: string): PreparedDatabase {
-  const clientPromise = import("postgres").then(({ default: postgres }) => postgres(url, { max: 5 }));
+function createPostgresAdapter(connection: string | { host: string; port: number; database: string; username: string; password: string }): PreparedDatabase {
+  const clientPromise = import("postgres").then(({ default: postgres }) => postgres(connection, { max: 5 }));
   const prepare = (query: string) => {
     const execute = async (values: unknown[]) => {
       const client = await clientPromise;

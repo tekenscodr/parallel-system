@@ -12,7 +12,7 @@ export async function GET() {
         LEFT JOIN regions r ON r.id = co.region_id GROUP BY r.name ORDER BY value DESC LIMIT 8`),
       db.prepare(`SELECT COUNT(*) AS campaigns,
         COALESCE(SUM(estimated_recipients), 0) AS recipients,
-        COALESCE(SUM(estimated_cost_pesewas), 0) AS costPesewas FROM campaigns`),
+        COALESCE(SUM(estimated_cost_pesewas), 0) AS "costPesewas" FROM campaigns`),
     ]);
     return Response.json({ deliveryStatus: status.results, contactsByRegion: regions.results, totals: totals.results[0] });
   } catch (error) {

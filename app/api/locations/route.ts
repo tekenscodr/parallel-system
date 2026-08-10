@@ -7,16 +7,16 @@ export async function GET(request: Request) {
     const constituencyId = url.searchParams.get("constituencyId");
     const electoralAreaId = url.searchParams.get("electoralAreaId");
     const pollingStationQuery = constituencyId
-      ? db.prepare(`SELECT id, constituency_id AS constituencyId, electoral_area_id AS electoralAreaId, name, code, address
+      ? db.prepare(`SELECT id, constituency_id AS "constituencyId", electoral_area_id AS "electoralAreaId", name, code, address
           FROM polling_stations WHERE is_active = 1 AND constituency_id = ?1 ORDER BY name`).bind(constituencyId)
       : electoralAreaId
-        ? db.prepare(`SELECT id, constituency_id AS constituencyId, electoral_area_id AS electoralAreaId, name, code, address
+        ? db.prepare(`SELECT id, constituency_id AS "constituencyId", electoral_area_id AS "electoralAreaId", name, code, address
             FROM polling_stations WHERE is_active = 1 AND electoral_area_id = ?1 ORDER BY name`).bind(electoralAreaId)
-        : db.prepare("SELECT id, constituency_id AS constituencyId, electoral_area_id AS electoralAreaId, name, code, address FROM polling_stations WHERE 1 = 0");
+        : db.prepare('SELECT id, constituency_id AS "constituencyId", electoral_area_id AS "electoralAreaId", name, code, address FROM polling_stations WHERE 1 = 0');
     const [regions, constituencies, electoralAreas, pollingStations, regionTotal, constituencyTotal, pollingStationTotal] = await db.batch([
       db.prepare("SELECT id, name, code FROM regions ORDER BY name"),
-      db.prepare("SELECT id, region_id AS regionId, name, code FROM constituencies ORDER BY name"),
-      db.prepare("SELECT id, constituency_id AS constituencyId, name, code FROM electoral_areas ORDER BY name"),
+      db.prepare('SELECT id, region_id AS "regionId", name, code FROM constituencies ORDER BY name'),
+      db.prepare('SELECT id, constituency_id AS "constituencyId", name, code FROM electoral_areas ORDER BY name'),
       pollingStationQuery,
       db.prepare("SELECT COUNT(*) AS value FROM regions"),
       db.prepare("SELECT COUNT(*) AS value FROM constituencies"),
