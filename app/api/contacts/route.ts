@@ -26,9 +26,9 @@ export async function GET(request: Request) {
       WHERE (c.first_name || ' ' || c.last_name LIKE ?1 OR c.phone_number LIKE ?1
         OR COALESCE(c.email, '') LIKE ?1 OR COALESCE(c.voter_id, '') LIKE ?1
         OR COALESCE(c.ghana_card_number, '') LIKE ?1)
-        AND (?2 IS NULL OR c.polling_station_id = ?2)
-        AND (?3 IS NULL OR c.source = ?3)
-        AND (c.source = 'platform' OR ?4 IS NULL OR c.uploaded_by_id = ?4)
+        AND (CAST(?2 AS text) IS NULL OR c.polling_station_id = ?2)
+        AND (CAST(?3 AS text) IS NULL OR c.source = ?3)
+        AND (c.source = 'platform' OR CAST(?4 AS text) IS NULL OR c.uploaded_by_id = ?4)
       ORDER BY c.created_at DESC
       LIMIT 250
     `).bind(search, pollingStationId, source, currentUser?.id ?? null);

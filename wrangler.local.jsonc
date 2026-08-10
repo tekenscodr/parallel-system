@@ -3,9 +3,6 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
-  "vars": {
-    "LOCAL_DATABASE_URL": "postgresql://THINKPAD@localhost:5433/reach_sms"
-  },
   "d1_databases": [
     {
       "binding": "DB",
