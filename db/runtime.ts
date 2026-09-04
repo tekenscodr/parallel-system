@@ -1,4 +1,10 @@
-import { env } from "cloudflare:workers";
+function getCloudflareEnv(): Record<string, unknown> {
+  try {
+    return eval('require("cloudflare:workers")')?.env || {};
+  } catch {
+    return ((globalThis as any)?.__CLOUDFLARE_ENV__ || {}) as Record<string, unknown>;
+  }
+}
 
 type QueryResult<T> = { results: T[]; meta: { changes: number } };
 type PreparedDatabase = {
@@ -15,8 +21,8 @@ type PreparedDatabase = {
   batch(statements: Array<{ run(): Promise<QueryResult<Record<string, unknown>>> }>): Promise<Array<QueryResult<Record<string, unknown>>>>;
 };
 
-export function getD1(): D1Database | PreparedDatabase {
-  const workerEnv = env as unknown as Record<string, unknown>;
+export function getD1(): PreparedDatabase {
+  const workerEnv = getCloudflareEnv();
   const workerUrl = workerEnv.LOCAL_DATABASE_URL;
   const localUrl = typeof workerUrl === "string" ? workerUrl
     : typeof process !== "undefined" ? process.env.LOCAL_DATABASE_URL : undefined;
@@ -30,12 +36,13 @@ export function getD1(): D1Database | PreparedDatabase {
     username: String(workerEnv.PGUSER || process.env.PGUSER || "postgres"),
     password,
   });
-  if (!env.DB) throw new Error("Database binding DB is not available.");
-  return env.DB;
+  const dbBinding = (workerEnv as any).DB;
+  if (!dbBinding) throw new Error("Database binding DB is not available.");
+  return dbBinding;
 }
 
 function createPostgresAdapter(connection: string | { host: string; port: number; database: string; username: string; password: string }): PreparedDatabase {
-  const clientPromise = import("postgres").then(({ default: postgres }) => postgres(connection, { max: 5 }));
+  const clientPromise = import("postgres").then(({ default: postgres }) => postgres(connection as any, { max: 5 }));
   const prepare = (query: string) => {
     const execute = async (values: unknown[]) => {
       const client = await clientPromise;

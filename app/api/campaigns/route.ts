@@ -68,7 +68,7 @@ export async function POST(request: Request) {
         .bind(id, name, message, status, audienceType, body.contactId ?? null, body.groupId ?? null,
           body.regionId ?? null, body.constituencyId ?? null, body.electoralAreaId ?? null,
           body.pollingStationId ?? null, scheduledAt, audience.results.length, parts, costPesewas),
-      ...audience.results.map((contact) => {
+      ...audience.results.map((contact: any) => {
         const personalized = message
           .replaceAll("{first_name}", contact.firstName)
           .replaceAll("{polling_station}", contact.pollingStation ?? "your polling station");

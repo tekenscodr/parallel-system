@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const batchId = crypto.randomUUID();
     let imported = 0;
     let skipped = 0;
-    const statements: D1PreparedStatement[] = [];
+    const statements: any[] = [];
 
     for (const row of rows) {
       const firstName = row.firstName?.trim();

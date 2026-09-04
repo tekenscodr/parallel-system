@@ -8,17 +8,21 @@
   "scripts": {
     "predev": "npm run db:local:migrate",
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log node node_modules/vinext/dist/cli.js dev --force",
-    "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log node node_modules/vinext/dist/cli.js build",
-    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log node node_modules/vinext/dist/cli.js start",
+    "build": "next build --webpack",
+    "build:vercel": "next build --webpack",
+    "build:cf": "WRANGLER_LOG_PATH=.wrangler/wrangler.log node node_modules/vinext/dist/cli.js build",
+    "start": "next start",
+    "start:cf": "WRANGLER_LOG_PATH=.wrangler/wrangler.log node node_modules/vinext/dist/cli.js start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
-    "db:local:migrate": "CI=1 WRANGLER_LOG_PATH=.wrangler/wrangler.log node node_modules/wrangler/bin/wrangler.js d1 migrations apply DB --local --config wrangler.local.jsonc --persist-to .wrangler/state"
-    ,"db:pg:setup": "node --env-file=.env.local scripts/setup-local-postgres.mjs"
-    ,"dev:pg": "WRANGLER_LOG_PATH=.wrangler/wrangler.log node --env-file=.env.local node_modules/vinext/dist/cli.js dev --force"
+    "db:local:migrate": "CI=1 WRANGLER_LOG_PATH=.wrangler/wrangler.log node node_modules/wrangler/bin/wrangler.js d1 migrations apply DB --local --config wrangler.local.jsonc --persist-to .wrangler/state",
+    "db:pg:setup": "node --env-file=.env.local scripts/setup-local-postgres.mjs",
+    "dev:pg": "WRANGLER_LOG_PATH=.wrangler/wrangler.log node --env-file=.env.local node_modules/vinext/dist/cli.js dev --force"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
+    "lucide-react": "^1.40.0",
     "next": "16.2.6",
     "postgres": "^3.4.9",
     "react": "19.2.6",

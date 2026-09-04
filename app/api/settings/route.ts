@@ -3,7 +3,7 @@ import { apiError, getD1 } from "@/db/runtime";
 export async function GET() {
   try {
     const result = await getD1().prepare("SELECT key, value FROM system_settings").all<{ key: string; value: string }>();
-    return Response.json({ settings: Object.fromEntries(result.results.map((row) => [row.key, row.value])) });
+    return Response.json({ settings: Object.fromEntries(result.results.map((row: any) => [row.key, row.value])) });
   } catch (error) {
     return apiError(error);
   }

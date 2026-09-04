@@ -43,3 +43,11 @@ next-env.d.ts
 /tmp/
 __pycache__/
 *.py[cod]
+
+/executives/
+/scripts/
+/dob_workbook_edit/
+/photo_workbook_edit/
+/workbook_edit/
+/workbook-build/
+/docs/

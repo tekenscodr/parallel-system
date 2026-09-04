@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { Landmark } from "lucide-react";
 
 const navigation = [
   { href: "/dashboard", icon: "⌂", label: "Dashboard" },
@@ -39,6 +40,7 @@ export function AppShell({
           ))}
         </nav>
         <div className="sidebar-bottom">
+          <Link href="/admin/dashboard" style={{ color: "#10b981", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}><Landmark size={15} color="#94a3b8" />National Directorate</Link>
           <Link href="/help"><span className="icon">?</span>Help & support</Link>
           <Link className={pathname === "/settings" ? "active" : ""} href="/settings"><span className="icon">⚙</span>Settings</Link>
           <div className="profile"><div className="avatar">KM</div><div><strong>Kofi Mensah</strong><small>Administrator</small></div></div>
