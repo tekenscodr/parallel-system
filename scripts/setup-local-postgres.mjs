@@ -1,4 +1,4 @@
-console.error("⚠️ Operation aborted: Local DB setup is disabled. There is no local database; all systems use the live database on 72.61.17.76.");
+console.error("⚠️ Operation aborted: Local DB setup is disabled. There is no local database; all systems use the remote database configured via environment variables.");
 process.exit(1);
 
 import fs from "node:fs/promises";

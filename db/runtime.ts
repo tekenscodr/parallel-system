@@ -31,16 +31,22 @@ export function getD1(): PreparedDatabase {
     return createPostgresAdapter(cleanUrl);
   }
   const password = typeof workerEnv.PGPASSWORD === "string" ? workerEnv.PGPASSWORD
-    : typeof process !== "undefined" ? (process.env.PGPASSWORD || "Jalabia123++") : "Jalabia123++";
-  return createPostgresAdapter({
-    host: String(workerEnv.PGHOST || process.env.PGHOST || "72.61.17.76"),
-    port: Number(workerEnv.PGPORT || process.env.PGPORT || 5432),
-    database: String(workerEnv.PGDATABASE || process.env.PGDATABASE || "ec-data"),
-    username: String(workerEnv.PGUSER || process.env.PGUSER || "postgres"),
-    password,
-  });
+    : typeof process !== "undefined" ? process.env.PGPASSWORD : undefined;
+  const host = typeof workerEnv.PGHOST === "string" ? workerEnv.PGHOST
+    : typeof process !== "undefined" ? process.env.PGHOST : undefined;
+
+  if (password && host) {
+    return createPostgresAdapter({
+      host,
+      port: Number(workerEnv.PGPORT || (typeof process !== "undefined" ? process.env.PGPORT : null) || 5432),
+      database: String(workerEnv.PGDATABASE || (typeof process !== "undefined" ? process.env.PGDATABASE : null) || "ec-data"),
+      username: String(workerEnv.PGUSER || (typeof process !== "undefined" ? process.env.PGUSER : null) || "postgres"),
+      password,
+    });
+  }
+
   const dbBinding = (workerEnv as any).DB;
-  if (!dbBinding) throw new Error("Database binding DB is not available.");
+  if (!dbBinding) throw new Error("Database credentials missing: Please configure DATABASE_URL or PGHOST and PGPASSWORD in environment variables.");
   return dbBinding;
 }
 
