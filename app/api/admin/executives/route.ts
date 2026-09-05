@@ -56,6 +56,64 @@ export async function GET(req: Request) {
         ? sql`WHERE ${conditions.reduce((prev, curr) => sql`${prev} AND ${curr}`)}`
         : sql``;
 
+      // Position hierarchy ranking based on the official 19-position executive slots
+      const positionRankSql = sql`
+        CASE 
+          WHEN position ILIKE '%1st Vice%' OR position ILIKE '%First Vice%' THEN 2
+          WHEN position ILIKE '%2nd Vice%' OR position ILIKE '%Second Vice%' THEN 3
+          WHEN position ILIKE '%3rd Vice%' OR position ILIKE '%Third Vice%' THEN 4
+          WHEN position ILIKE '%Vice%' THEN 3
+          WHEN position ILIKE '%Chair%' THEN 1
+          WHEN position ILIKE '%Deputy Secretary%' OR position ILIKE '%Assistant Secretary%' THEN 5
+          WHEN position ILIKE '%Financial Secretary%' THEN 12
+          WHEN position ILIKE '%General Secretary%' OR position ILIKE '%Secretary%' THEN 4
+          WHEN position ILIKE '%Treasurer%' THEN 6
+          WHEN position ILIKE '%Deputy Women%' OR position ILIKE '%Assistant Women%' THEN 17
+          WHEN position ILIKE '%Deputy Youth%' OR position ILIKE '%Assistant Youth%' THEN 18
+          WHEN position ILIKE '%Deputy Nasara%' OR position ILIKE '%Assistant Nasara%' THEN 19
+          WHEN position ILIKE '%Deputy Organi%' OR position ILIKE '%Assistant Organi%' THEN 16
+          WHEN position ILIKE '%Women Organi%' OR position ILIKE '%Women%' THEN 8
+          WHEN position ILIKE '%Youth Organi%' OR position ILIKE '%Youth%' THEN 9
+          WHEN position ILIKE '%Nasara%' THEN 10
+          WHEN position ILIKE '%Communication%' THEN 11
+          WHEN position ILIKE '%Electoral%' THEN 13
+          WHEN position ILIKE '%Research%' THEN 14
+          WHEN position ILIKE '%PWD%' OR position ILIKE '%Disabil%' THEN 15
+          WHEN position ILIKE '%Organi%' THEN 7
+          WHEN position ILIKE '%Coordinator%' THEN 20
+          WHEN position ILIKE '%Officer%' THEN 21
+          ELSE 30
+        END
+      `;
+
+      const levelRankSql = sql`
+        CASE
+          WHEN executive_level ILIKE '%National%' THEN 1
+          WHEN executive_level ILIKE '%Region%' THEN 2
+          WHEN executive_level ILIKE '%Constituency%' THEN 3
+          WHEN executive_level ILIKE '%Electoral Area%' THEN 4
+          WHEN executive_level ILIKE '%Polling Station%' THEN 5
+          WHEN executive_level ILIKE '%TESCON%' THEN 6
+          ELSE 7
+        END
+      `;
+
+      let orderBySql;
+      const lowerLevel = level.toLowerCase();
+      if (lowerLevel === "constituency") {
+        orderBySql = sql`ORDER BY region ASC, constituency ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+      } else if (lowerLevel === "region" || lowerLevel === "regional") {
+        orderBySql = sql`ORDER BY region ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+      } else if (lowerLevel === "national") {
+        orderBySql = sql`ORDER BY ${positionRankSql} ASC, position ASC, id ASC`;
+      } else if (lowerLevel === "electoral area") {
+        orderBySql = sql`ORDER BY region ASC, constituency ASC, electoral_area ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+      } else if (lowerLevel === "polling station") {
+        orderBySql = sql`ORDER BY region ASC, constituency ASC, electoral_area ASC, polling_station ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+      } else {
+        orderBySql = sql`ORDER BY ${levelRankSql} ASC, region ASC, constituency ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+      }
+
       const [countRes, rowsRes] = await Promise.all([
         sql`SELECT COUNT(*)::int as total FROM executives_all ${whereClause}`,
         sql`
@@ -80,7 +138,7 @@ export async function GET(req: Request) {
             status
           FROM executives_all
           ${whereClause}
-          ORDER BY id ASC
+          ${orderBySql}
           LIMIT ${limit} OFFSET ${offset}
         `
       ]);

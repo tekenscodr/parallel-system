@@ -38,9 +38,7 @@ export default function AdminLoginPage() {
         document.cookie = `admin_session=${data.token}; path=/; max-age=86400; SameSite=Lax`;
       }
 
-      // Stash current password in sessionStorage temporarily to prefill Change Password page
       try {
-        sessionStorage.setItem("admin_login_pw", password);
         sessionStorage.setItem("admin_login_time", String(Date.now()));
         localStorage.setItem("admin_password_updated", "false");
         sessionStorage.removeItem("admin_password_dismissed");
@@ -165,7 +163,7 @@ export default function AdminLoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="officer@ec-data.gov.gh"
+              placeholder="admin@domain.com"
               style={{
                 width: "100%",
                 padding: "12px 14px",
@@ -239,50 +237,6 @@ export default function AdminLoginPage() {
             <ArrowRight size={15} />
           </button>
         </form>
-
-        <div
-          style={{
-            marginTop: "24px",
-            padding: "12px",
-            background: "rgba(255, 255, 255, 0.03)",
-            borderRadius: "8px",
-            border: "1px solid rgba(255, 255, 255, 0.06)",
-            fontSize: "12px",
-            color: "#94a3b8",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "4px",
-            }}
-          >
-            <span style={{ fontWeight: "600", color: "#cbd5e1" }}>Quick Fill Credentials:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail("national.admin@ec-data.gov.gh");
-                setPassword("AdminNational2026!");
-              }}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#34d399",
-                fontSize: "11px",
-                cursor: "pointer",
-                padding: 0,
-                textDecoration: "underline",
-              }}
-            >
-              Fill Defaults
-            </button>
-          </div>
-          Email: <code style={{ color: "#38bdf8" }}>national.admin@ec-data.gov.gh</code>
-          <br />
-          Password: <code style={{ color: "#38bdf8" }}>AdminNational2026!</code>
-        </div>
       </div>
     </div>
   );

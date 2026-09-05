@@ -59,18 +59,6 @@ export default function AdminChangePasswordPage() {
           setEmail(data.user.email);
         }
 
-        // Try prefilling current password if user just came from the login form
-        try {
-          const stashedPw = sessionStorage.getItem("admin_login_pw");
-          if (stashedPw) {
-            setCurrentPassword(stashedPw);
-            // Remove after retrieving
-            sessionStorage.removeItem("admin_login_pw");
-          }
-        } catch {
-          // ignore
-        }
-
         setCheckingAuth(false);
       })
       .catch(() => {
@@ -146,7 +134,6 @@ export default function AdminChangePasswordPage() {
 
       try {
         localStorage.setItem("admin_password_updated", "true");
-        sessionStorage.removeItem("admin_login_pw");
       } catch {
         // ignore
       }
