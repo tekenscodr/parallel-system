@@ -125,16 +125,19 @@ export async function GET(req: Request) {
 
       return await sql`
         SELECT 
-          executive_level,
-          slot_status,
+          voter_id,
+          executive_name,
+          age,
+          date_of_birth,
+          phone,
           region,
           constituency,
+          position,
+          executive_level,
+          slot_status,
           electoral_area,
           polling_station,
-          position,
-          executive_name,
           gender,
-          voter_id,
           membership_id,
           status
         FROM executives_all
@@ -145,9 +148,10 @@ export async function GET(req: Request) {
     });
 
     const headers = [
-      "Executive Level", "Slot Status", "Region", "Constituency", "Electoral Area",
-      "Polling Station / Institution", "Position", "Executive Name", "Gender",
-      "Voter ID", "Membership ID", "Status"
+      "Voter ID", "Executive Name", "Age", "Date of Birth", "Phone",
+      "Region", "Constituency", "Position", "Executive Level", "Slot Status",
+      "Electoral Area", "Polling Station / Institution", "Gender",
+      "Membership ID", "Status"
     ];
 
     const escapeCsv = (val: unknown) => {
@@ -159,16 +163,19 @@ export async function GET(req: Request) {
     let csvContent = headers.map(escapeCsv).join(",") + "\n";
     for (const r of rows) {
       csvContent += [
-        r.executive_level,
-        r.slot_status,
+        r.voter_id,
+        r.executive_name,
+        r.age,
+        r.date_of_birth,
+        r.phone,
         r.region,
         r.constituency,
+        r.position,
+        r.executive_level,
+        r.slot_status,
         r.electoral_area,
         r.polling_station,
-        r.position,
-        r.executive_name,
         r.gender,
-        r.voter_id,
         r.membership_id,
         r.status
       ].map(escapeCsv).join(",") + "\n";

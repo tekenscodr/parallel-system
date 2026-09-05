@@ -31,6 +31,7 @@ import {
   UserCheck,
   Compass,
   LogOut,
+  Phone,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 
@@ -105,6 +106,105 @@ const TIERS = [
   { id: "Polling Station", label: "Polling Station", icon: Vote },
   { id: "TESCON", label: "TESCON", icon: GraduationCap },
 ];
+
+const POSITIONS_BY_LEVEL: Record<string, string[]> = {
+  National: [
+    "National Chairman",
+    "1st Vice-Chairperson",
+    "2nd Vice-Chairperson",
+    "3rd Vice-Chairperson",
+    "General Secretary",
+    "Deputy General Secretary",
+    "National Organiser",
+    "Deputy National Organiser",
+    "National Treasurer",
+    "Deputy National Treasurer",
+    "National Women Organiser",
+    "Deputy National Women Organiser",
+    "National Youth Organiser",
+    "Deputy National Youth Organiser",
+    "National Nasara Organiser",
+    "Deputy National Nasara Organiser",
+    "National Communication Director",
+    "Deputy Communication Director",
+    "Director of Research and Elections",
+  ],
+  Region: [
+    "Regional Chairman",
+    "1st Regional Vice-Chairperson",
+    "2nd Regional Vice-Chairperson",
+    "Regional Secretary",
+    "Assistant Regional Secretary",
+    "Regional Organiser",
+    "Deputy Regional Organiser",
+    "Regional Treasurer",
+    "Deputy Regional Treasurer",
+    "Regional Women Organiser",
+    "Deputy Regional Women Organiser",
+    "Regional Youth Organiser",
+    "Deputy Regional Youth Organiser",
+    "Regional Nasara Organiser",
+    "Deputy Regional Nasara Organiser",
+    "Regional Communication Officer",
+    "Regional Research & Elections Officer",
+  ],
+  Constituency: [
+    "Chairperson",
+    "1st Vice-Chairperson",
+    "2nd Vice-Chairperson",
+    "Secretary",
+    "Deputy Secretary",
+    "Organiser",
+    "Deputy Organiser",
+    "Treasurer",
+    "Financial Secretary",
+    "Women Organiser",
+    "Deputy Women Organiser",
+    "Youth Organiser",
+    "Deputy Youth Organiser",
+    "Nasara Organiser",
+    "Deputy Nasara Organiser",
+    "Communication Officer",
+    "Electoral Affairs Officer",
+    "Research Officer",
+    "Pwd Coordinator",
+    "Patron",
+    "Council of Elders",
+  ],
+  "Electoral Area": [
+    "Chairperson",
+    "Secretary",
+    "Organiser",
+    "Women Organiser",
+    "Youth Organiser",
+    "Communication Officer",
+    "Electoral Affairs Officer",
+  ],
+  "Polling Station": [
+    "Chairperson",
+    "Secretary",
+    "Organiser",
+    "Women Organiser",
+    "Youth Organiser",
+    "Communication Officer",
+    "Electoral Affairs Officer",
+  ],
+  TESCON: [
+    "President",
+    "Vice President",
+    "General Secretary",
+    "Deputy General Secretary",
+    "Organiser",
+    "Deputy Organiser",
+    "Treasurer",
+    "Financial Secretary",
+    "Women Commissioner",
+    "Deputy Women Commissioner",
+    "Communication Officer",
+    "Research & Elections Officer",
+    "Nasara Coordinator",
+  ],
+};
 
 function getAuthHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
@@ -182,6 +282,7 @@ export default function NationalAdminDashboard() {
   const [newExecElectoralArea, setNewExecElectoralArea] = useState("");
   const [newExecPollingStation, setNewExecPollingStation] = useState("");
   const [newExecPosition, setNewExecPosition] = useState("");
+  const [isCustomPosition, setIsCustomPosition] = useState(false);
   const [newExecGender, setNewExecGender] = useState("Male");
   const [newExecPhone, setNewExecPhone] = useState("");
   const [newExecEmail, setNewExecEmail] = useState("");
@@ -564,6 +665,8 @@ export default function NationalAdminDashboard() {
     setAddSuccess("");
     setSearchVoterId("");
     setVoterSearchStatus(null);
+    setIsCustomPosition(false);
+    setNewExecPosition("");
   };
 
   const handleCreateExecutive = async (e: React.FormEvent) => {
@@ -1182,15 +1285,15 @@ export default function NationalAdminDashboard() {
                   textTransform: "uppercase",
                   letterSpacing: "0.5px"
                 }}>
-                  <th style={{ padding: "12px 16px" }}>Executive Name</th>
-                  <th style={{ padding: "12px 16px" }}>Age</th>
                   <th style={{ padding: "12px 16px" }}>Voter ID</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Level</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Position</th>
+                  <th style={{ padding: "12px 16px" }}>Name</th>
+                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Age</th>
+                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Date of Birth</th>
+                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Phone</th>
                   <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Region</th>
                   <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Constituency</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Gender</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Slot Type</th>
+                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Position</th>
+                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Level</th>
                   <th style={{ padding: "12px 16px", textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
@@ -1212,7 +1315,6 @@ export default function NationalAdminDashboard() {
                   </tr>
                 ) : (
                   rows.map((row) => {
-                    const isAppointed = row.slotStatus?.toLowerCase().includes("appointed");
                     const unitDetail = row.pollingStation || row.electoralArea;
 
                     return (
@@ -1231,39 +1333,7 @@ export default function NationalAdminDashboard() {
                           e.currentTarget.style.backgroundColor = "transparent";
                         }}
                       >
-                        {/* Executive Name (Always visible) */}
-                        <td style={{ padding: "12px 16px", color: "#ffffff", fontWeight: "600" }}>
-                          <div style={{ display: "flex", flexDirection: "column" }}>
-                            <span>{row.executiveName}</span>
-                            {/* Minimised screen context subtitle */}
-                            <div className="exec-mobile-details" style={{ display: "none", fontSize: "11px", color: "#94a3b8", marginTop: "2px", fontWeight: "normal" }}>
-                              <span style={{ color: "#60a5fa", fontWeight: "600" }}>{row.position}</span>
-                              {(row.region || row.executiveLevel) && (
-                                <span style={{ marginLeft: "4px" }}>• {[row.executiveLevel, row.region, row.constituency].filter(Boolean).join(" / ")}</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Age (Always visible) */}
-                        <td style={{ padding: "12px 16px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
-                          {row.age != null && row.age > 0 ? (
-                            <span style={{
-                              padding: "2px 7px",
-                              borderRadius: "4px",
-                              background: "rgba(255, 255, 255, 0.06)",
-                              fontSize: "12px",
-                              fontWeight: "600",
-                              color: "#e2e8f0"
-                            }}>
-                              {row.age} yrs
-                            </span>
-                          ) : (
-                            <span style={{ color: "#64748b" }}>—</span>
-                          )}
-                        </td>
-
-                        {/* Voter ID (Always visible) */}
+                        {/* 1. Voter ID */}
                         <td style={{ padding: "12px 16px", fontFamily: "monospace", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.voterId ? (
                             <span style={{
@@ -1281,7 +1351,91 @@ export default function NationalAdminDashboard() {
                           )}
                         </td>
 
-                        {/* Level (Secondary: hidden on minimised screens) */}
+                        {/* 2. Name */}
+                        <td style={{ padding: "12px 16px", color: "#ffffff", fontWeight: "600" }}>
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span>{row.executiveName}</span>
+                            {/* Minimised screen context subtitle */}
+                            <div className="exec-mobile-details" style={{ display: "none", fontSize: "11px", color: "#94a3b8", marginTop: "2px", fontWeight: "normal" }}>
+                              <span style={{ color: "#60a5fa", fontWeight: "600" }}>{row.position}</span>
+                              {(row.region || row.executiveLevel) && (
+                                <span style={{ marginLeft: "4px" }}>• {[row.executiveLevel, row.region, row.constituency].filter(Boolean).join(" / ")}</span>
+                              )}
+                              {row.phone && (
+                                <span style={{ marginLeft: "4px" }}>• {row.phone}</span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 3. Age */}
+                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                          {row.age != null && row.age > 0 ? (
+                            <span style={{
+                              padding: "2px 7px",
+                              borderRadius: "4px",
+                              background: "rgba(255, 255, 255, 0.06)",
+                              fontSize: "12px",
+                              fontWeight: "600",
+                              color: "#e2e8f0"
+                            }}>
+                              {row.age} yrs
+                            </span>
+                          ) : (
+                            <span style={{ color: "#64748b" }}>—</span>
+                          )}
+                        </td>
+
+                        {/* 4. Date of Birth */}
+                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1", whiteSpace: "nowrap", fontSize: "12px" }}>
+                          {row.dateOfBirth ? (
+                            <span>{row.dateOfBirth}</span>
+                          ) : (
+                            <span style={{ color: "#64748b" }}>—</span>
+                          )}
+                        </td>
+
+                        {/* 5. Phone */}
+                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                          {row.phone ? (
+                            <a
+                              href={`tel:${row.phone}`}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{
+                                color: "#38bdf8",
+                                textDecoration: "none",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                fontSize: "12px"
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                            >
+                              <Phone size={12} style={{ opacity: 0.8 }} />
+                              <span>{row.phone}</span>
+                            </a>
+                          ) : (
+                            <span style={{ color: "#64748b" }}>—</span>
+                          )}
+                        </td>
+
+                        {/* 6. Region */}
+                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1" }}>
+                          {row.region || "—"}
+                        </td>
+
+                        {/* 7. Constituency */}
+                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1", fontWeight: "500" }}>
+                          {row.constituency || "—"}
+                        </td>
+
+                        {/* 8. Position */}
+                        <td className="exec-col-secondary" style={{ padding: "12px 16px", fontWeight: "600", color: "#f8fafc" }}>
+                          {row.position}
+                        </td>
+
+                        {/* 9. Level */}
                         <td className="exec-col-secondary" style={{ padding: "12px 16px" }}>
                           <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
                             <span style={{
@@ -1307,44 +1461,6 @@ export default function NationalAdminDashboard() {
                               </span>
                             )}
                           </div>
-                        </td>
-
-                        {/* Position (Secondary) */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px", fontWeight: "600", color: "#f8fafc" }}>
-                          {row.position}
-                        </td>
-
-                        {/* Region (Secondary) */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1" }}>
-                          {row.region || "—"}
-                        </td>
-
-                        {/* Constituency (Secondary) */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1", fontWeight: "500" }}>
-                          {row.constituency || "—"}
-                        </td>
-
-                        {/* Gender (Secondary) */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px" }}>
-                          <span style={{
-                            fontSize: "11px",
-                            color: row.gender?.toLowerCase() === "female" ? "#f472b6" : "#94a3b8"
-                          }}>
-                            {row.gender || "—"}
-                          </span>
-                        </td>
-
-                        {/* Slot Type (Secondary) */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px", whiteSpace: "nowrap" }}>
-                          <span style={{
-                            fontSize: "11px",
-                            padding: "2px 6px",
-                            borderRadius: "4px",
-                            background: isAppointed ? "rgba(251, 191, 36, 0.15)" : "rgba(16, 185, 129, 0.12)",
-                            color: isAppointed ? "#fbbf24" : "#34d399"
-                          }}>
-                            {isAppointed ? "Appointed" : "Elected"}
-                          </span>
                         </td>
 
                         {/* Actions (Always visible: View/Edit + Delete) */}
@@ -2579,34 +2695,20 @@ export default function NationalAdminDashboard() {
 
                   <div>
                     <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                      Position Title <span style={{ color: "#ef4444" }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={newExecPosition}
-                      onChange={(e) => setNewExecPosition(e.target.value)}
-                      placeholder="e.g. Constituency Chairman"
-                      style={{
-                        width: "100%",
-                        padding: "9px 12px",
-                        borderRadius: "6px",
-                        background: "rgba(2, 6, 23, 0.8)",
-                        border: "1px solid rgba(255, 255, 255, 0.15)",
-                        color: "#ffffff",
-                        fontSize: "13px",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                      Executive Level
+                      Executive Level <span style={{ color: "#ef4444" }}>*</span>
                     </label>
                     <select
                       value={newExecLevel}
-                      onChange={(e) => setNewExecLevel(e.target.value)}
+                      onChange={(e) => {
+                        const newLevel = e.target.value;
+                        setNewExecLevel(newLevel);
+                        if (!isCustomPosition) {
+                          const validPositions = POSITIONS_BY_LEVEL[newLevel] || [];
+                          if (!validPositions.includes(newExecPosition)) {
+                            setNewExecPosition(validPositions[0] || "");
+                          }
+                        }
+                      }}
                       style={{
                         width: "100%",
                         padding: "9px 12px",
@@ -2625,6 +2727,87 @@ export default function NationalAdminDashboard() {
                       <option value="Electoral Area">Electoral Area</option>
                       <option value="Polling Station">Polling Station</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
+                      <label style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: "600" }}>
+                        Position ({newExecLevel}) <span style={{ color: "#ef4444" }}>*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextState = !isCustomPosition;
+                          setIsCustomPosition(nextState);
+                          if (!nextState) {
+                            const validPositions = POSITIONS_BY_LEVEL[newExecLevel] || [];
+                            setNewExecPosition(validPositions[0] || "");
+                          }
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#60a5fa",
+                          fontSize: "11px",
+                          cursor: "pointer",
+                          padding: 0,
+                          textDecoration: "underline",
+                        }}
+                      >
+                        {isCustomPosition ? "← Select standard position" : "+ Other position"}
+                      </button>
+                    </div>
+
+                    {isCustomPosition ? (
+                      <input
+                        type="text"
+                        required
+                        value={newExecPosition}
+                        onChange={(e) => setNewExecPosition(e.target.value)}
+                        placeholder={`Enter custom ${newExecLevel} position…`}
+                        style={{
+                          width: "100%",
+                          padding: "9px 12px",
+                          borderRadius: "6px",
+                          background: "rgba(2, 6, 23, 0.8)",
+                          border: "1px solid rgba(59, 130, 246, 0.4)",
+                          color: "#ffffff",
+                          fontSize: "13px",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    ) : (
+                      <select
+                        required
+                        value={newExecPosition}
+                        onChange={(e) => {
+                          if (e.target.value === "__custom__") {
+                            setIsCustomPosition(true);
+                            setNewExecPosition("");
+                          } else {
+                            setNewExecPosition(e.target.value);
+                          }
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "9px 12px",
+                          borderRadius: "6px",
+                          background: "rgba(2, 6, 23, 0.8)",
+                          border: "1px solid rgba(255, 255, 255, 0.15)",
+                          color: "#ffffff",
+                          fontSize: "13px",
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        <option value="">-- Select {newExecLevel} Position --</option>
+                        {(POSITIONS_BY_LEVEL[newExecLevel] || []).map((pos) => (
+                          <option key={pos} value={pos}>
+                            {pos}
+                          </option>
+                        ))}
+                        <option value="__custom__">+ Other / Enter Custom Position…</option>
+                      </select>
+                    )}
                   </div>
 
                   <div>
