@@ -23,16 +23,19 @@ type PreparedDatabase = {
 
 export function getD1(): PreparedDatabase {
   const workerEnv = getCloudflareEnv();
-  const workerUrl = workerEnv.LOCAL_DATABASE_URL;
-  const localUrl = typeof workerUrl === "string" ? workerUrl
-    : typeof process !== "undefined" ? process.env.LOCAL_DATABASE_URL : undefined;
-  if (localUrl) return createPostgresAdapter(localUrl);
+  const rawUrl = (workerEnv.DATABASE_URL || workerEnv.POSTGRES_URL || workerEnv.LOCAL_DATABASE_URL) as string | undefined;
+  const dbUrl = typeof rawUrl === "string" ? rawUrl
+    : typeof process !== "undefined" ? (process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.LOCAL_DATABASE_URL) : undefined;
+  if (dbUrl) {
+    const cleanUrl = dbUrl.replace(/\?.*$/, "");
+    return createPostgresAdapter(cleanUrl);
+  }
   const password = typeof workerEnv.PGPASSWORD === "string" ? workerEnv.PGPASSWORD
-    : typeof process !== "undefined" ? process.env.PGPASSWORD : undefined;
-  if (password) return createPostgresAdapter({
-    host: String(workerEnv.PGHOST || process.env.PGHOST || "localhost"),
+    : typeof process !== "undefined" ? (process.env.PGPASSWORD || "Jalabia123++") : "Jalabia123++";
+  return createPostgresAdapter({
+    host: String(workerEnv.PGHOST || process.env.PGHOST || "72.61.17.76"),
     port: Number(workerEnv.PGPORT || process.env.PGPORT || 5432),
-    database: String(workerEnv.PGDATABASE || process.env.PGDATABASE || "reach_sms"),
+    database: String(workerEnv.PGDATABASE || process.env.PGDATABASE || "ec-data"),
     username: String(workerEnv.PGUSER || process.env.PGUSER || "postgres"),
     password,
   });

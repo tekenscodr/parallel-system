@@ -65,12 +65,19 @@ export function getEcSql(): ReturnType<typeof postgres> {
       },
     });
   } else {
+    if (!process.env.PGPASSWORD) {
+      throw new Error(
+        "PostgreSQL password is required. Set DATABASE_URL or PGPASSWORD in your environment or .env.local file."
+      );
+    }
+
     client = postgres({
-      host: process.env.PGHOST || "localhost",
+      host: process.env.PGHOST || "72.61.17.76",
       port: Number(process.env.PGPORT || 5432),
-      database: process.env.EC_DATABASE_NAME || "ec-data",
+      database: process.env.EC_DATABASE_NAME || process.env.PGDATABASE || "ec-data",
       username: process.env.PGUSER || "postgres",
-      password: process.env.PGPASSWORD || "B@nku%%St3w",
+      password: process.env.PGPASSWORD || "Jalabia123++",
+      ssl: "prefer",
       max: 10,
       idle_timeout: 30,
       connect_timeout: 10,

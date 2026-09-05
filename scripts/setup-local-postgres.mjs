@@ -1,17 +1,9 @@
+console.error("⚠️ Operation aborted: Local DB setup is disabled. There is no local database; all systems use the live database on 72.61.17.76.");
+process.exit(1);
+
 import fs from "node:fs/promises";
 import path from "node:path";
 import postgres from "postgres";
-
-const databaseUrl = process.env.LOCAL_DATABASE_URL;
-const connection = databaseUrl || {
-  host: process.env.PGHOST || "localhost",
-  port: Number(process.env.PGPORT || 5432),
-  database: process.env.PGDATABASE || "reach_sms",
-  username: process.env.PGUSER || "postgres",
-  password: process.env.PGPASSWORD,
-};
-if (!databaseUrl && !connection.password) throw new Error("PostgreSQL credentials are required.");
-const sql = postgres(connection, { max: 1 });
 const root = process.cwd();
 
 function statements(file) {
