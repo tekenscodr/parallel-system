@@ -49,6 +49,7 @@ export function AdminShell({
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window !== "undefined") {
       try {
+        if (window.innerWidth < 1024) return false;
         const savedSidebar = localStorage.getItem("admin_sidebar_open");
         if (savedSidebar !== null) return savedSidebar === "true";
       } catch {
@@ -57,6 +58,12 @@ export function AdminShell({
     }
     return true;
   });
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
+  }, [pathname]);
 
   const [cachedRole] = useState(() => {
     if (typeof window !== "undefined") {
@@ -255,22 +262,63 @@ export function AdminShell({
       */}
       {isAdminNational ? (
         <div style={{ display: "flex", flex: 1, position: "relative" }}>
+          <style>{`
+            @media (max-width: 1023px) {
+              .admin-desktop-sidebar {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                height: 100vh !important;
+                width: 280px !important;
+                z-index: 100 !important;
+                box-shadow: 0 0 50px rgba(0, 0, 0, 0.8) !important;
+              }
+              .admin-mobile-backdrop {
+                display: block !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                background: rgba(0, 0, 0, 0.65) !important;
+                backdrop-filter: blur(4px) !important;
+                z-index: 99 !important;
+              }
+              .admin-header {
+                padding: 0 16px !important;
+              }
+              .admin-header-badges {
+                display: none !important;
+              }
+              .admin-mobile-menu-btn {
+                display: inline-flex !important;
+              }
+            }
+            @media (min-width: 1024px) {
+              .admin-mobile-backdrop {
+                display: none !important;
+              }
+            }
+          `}</style>
           {/* Desktop Left Sidebar */}
           {sidebarOpen && (
-            <aside
-            style={{
-              width: "264px",
-              background: "#0F172A",
-              borderRight: "1px solid rgba(255, 255, 255, 0.08)",
-              display: "flex",
-              flexDirection: "column",
-              position: "sticky",
-              top: 0,
-              height: "100vh",
-              zIndex: 50,
-              flexShrink: 0,
-            }}
-          >
+            <>
+              <div className="admin-mobile-backdrop" onClick={toggleSidebar} />
+              <aside
+                className="admin-desktop-sidebar"
+                style={{
+                  width: "264px",
+                  background: "#0F172A",
+                  borderRight: "1px solid rgba(255, 255, 255, 0.08)",
+                  display: "flex",
+                  flexDirection: "column",
+                  position: "sticky",
+                  top: 0,
+                  height: "100vh",
+                  zIndex: 50,
+                  flexShrink: 0,
+                }}
+              >
             {/* Directorate Branding */}
             <div style={{ padding: "18px 20px", borderBottom: "1px solid rgba(255, 255, 255, 0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -497,12 +545,14 @@ export function AdminShell({
               </div>
             </div>
           </aside>
+          </>
           )}
 
           {/* Main Content Area */}
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
             {/* Top Bar for Desktop */}
             <header
+              className="admin-header"
               style={{
                 height: "64px",
                 background: "rgba(15, 23, 42, 0.95)",
@@ -518,31 +568,30 @@ export function AdminShell({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                {!sidebarOpen && (
-                  <button
-                    type="button"
-                    onClick={toggleSidebar}
-                    title="Open sidebar navigation"
-                    aria-label="Open sidebar navigation"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      padding: "6px 12px",
-                      borderRadius: "6px",
-                      background: "rgba(30, 41, 59, 0.9)",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      color: "#cbd5e1",
-                      fontSize: "12px",
-                      fontWeight: "600",
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    <Menu size={15} />
-                    <span>Sidebar</span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className={!sidebarOpen ? undefined : "admin-mobile-menu-btn"}
+                  onClick={toggleSidebar}
+                  title="Toggle sidebar navigation"
+                  aria-label="Toggle sidebar navigation"
+                  style={{
+                    display: !sidebarOpen ? "inline-flex" : "none",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    background: "rgba(30, 41, 59, 0.9)",
+                    border: "1px solid rgba(255, 255, 255, 0.15)",
+                    color: "#cbd5e1",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <Menu size={15} />
+                  <span>Menu</span>
+                </button>
                 <div>
                   <h1 style={{ fontSize: "16px", fontWeight: "700", margin: 0, letterSpacing: "-0.3px", color: "#f8fafc" }}>
                     {title}
@@ -553,7 +602,7 @@ export function AdminShell({
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div className="admin-header-badges" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <span
                   style={{
                     background: "rgba(16, 185, 129, 0.15)",

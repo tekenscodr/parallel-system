@@ -16,9 +16,22 @@ export async function GET(req: Request) {
           SELECT 
             COUNT(*)::int as total,
             COUNT(CASE WHEN date_of_birth IS NOT NULL AND date_of_birth != '' THEN 1 END)::int as with_dob,
-            COUNT(CASE WHEN age < 40 THEN 1 END)::int as under_40,
-            COUNT(CASE WHEN age = 40 THEN 1 END)::int as equal_40,
-            COUNT(CASE WHEN is_age_adjusted = TRUE THEN 1 END)::int as youth_adjusted,
+            COUNT(CASE 
+              WHEN position ILIKE '%youth%' AND (date_of_birth IS NOT NULL OR age IS NOT NULL) THEN 1
+              WHEN date_of_birth ~ '[0-9]{4}' AND (2026 - substring(date_of_birth from '([0-9]{4})')::int) < 40 THEN 1
+              WHEN date_of_birth IS NULL AND (age + 2) < 40 THEN 1
+            END)::int as under_40,
+            COUNT(CASE 
+              WHEN position ILIKE '%youth%' THEN NULL
+              WHEN date_of_birth ~ '[0-9]{4}' AND (2026 - substring(date_of_birth from '([0-9]{4})')::int) = 40 THEN 1
+              WHEN date_of_birth IS NULL AND (age + 2) = 40 THEN 1
+            END)::int as equal_40,
+            COUNT(CASE 
+              WHEN position ILIKE '%youth%' AND (
+                (date_of_birth ~ '[0-9]{4}' AND (2026 - substring(date_of_birth from '([0-9]{4})')::int) > 39)
+                OR (age IS NOT NULL AND (age + 2) > 39)
+              ) THEN 1 
+            END)::int as youth_adjusted,
             COUNT(CASE WHEN gender = 'Female' THEN 1 END)::int as women,
             COUNT(CASE WHEN position ILIKE '%nasara%' THEN 1 END)::int as nasara,
             COUNT(CASE WHEN slot_status ILIKE '%Appointed%' OR status ILIKE '%Appointed%' THEN 1 END)::int as appointed,

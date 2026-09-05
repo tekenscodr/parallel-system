@@ -463,19 +463,85 @@ export default function NationalAdminDashboard() {
     setModalSuccess("");
   };
 
+  const computeExecutiveAgeAndDob = (dob: string | undefined | null, pos: string | undefined | null) => {
+    if (!dob || typeof dob !== "string") return { age: null, dob: dob || "" };
+    const trimmed = dob.trim();
+    const yearMatch = trimmed.match(/^(\d{4})(.*)$/);
+    if (!yearMatch) return { age: null, dob: trimmed };
+
+    const birthYear = parseInt(yearMatch[1], 10);
+    let age = 2026 - birthYear;
+    let finalDob = trimmed;
+    const isYouth = pos ? /youth/i.test(pos) : false;
+
+    if (isYouth && age > 39) {
+      age = 39;
+      finalDob = `1987${yearMatch[2]}`;
+    }
+    return { age, dob: finalDob };
+  };
+
   // Handle Form Change
   const handleFieldChange = (field: keyof ExecutiveDetail, value: string) => {
     if (!activeExecutive) return;
+
+    if (field === "dateOfBirth") {
+      const { age, dob } = computeExecutiveAgeAndDob(value, activeExecutive.position);
+      setActiveExecutive({
+        ...activeExecutive,
+        dateOfBirth: dob,
+        age: age !== null ? age : activeExecutive.age,
+      });
+      return;
+    }
+
+    if (field === "position") {
+      const { age, dob } = computeExecutiveAgeAndDob(activeExecutive.dateOfBirth, value);
+      setActiveExecutive({
+        ...activeExecutive,
+        position: value,
+        dateOfBirth: dob,
+        age: age !== null ? age : activeExecutive.age,
+      });
+      return;
+    }
+
     setActiveExecutive({
       ...activeExecutive,
       [field]: value,
     });
   };
 
+  const handleAddDobChange = (val: string) => {
+    const { age, dob } = computeExecutiveAgeAndDob(val, newExecPosition);
+    setNewExecDob(dob);
+    if (age !== null) {
+      setNewExecAge(String(age));
+    } else if (!val) {
+      setNewExecAge("");
+    }
+  };
+
+  const handleAddPositionChange = (pos: string) => {
+    setNewExecPosition(pos);
+    if (newExecDob) {
+      const { age, dob } = computeExecutiveAgeAndDob(newExecDob, pos);
+      setNewExecDob(dob);
+      if (age !== null) setNewExecAge(String(age));
+    }
+  };
+
   // Submit Executive Update Form
   const handleSaveExecutive = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeExecutive) return;
+
+    const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(activeExecutive.dateOfBirth, activeExecutive.position);
+    const updatedExecutive = {
+      ...activeExecutive,
+      dateOfBirth: calculatedDob,
+      age: calculatedAge !== null ? calculatedAge : activeExecutive.age,
+    };
 
     setModalSaving(true);
     setModalError("");
@@ -489,7 +555,7 @@ export default function NationalAdminDashboard() {
           ...getAuthHeaders(),
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(activeExecutive),
+        body: JSON.stringify(updatedExecutive),
       });
 
       const data = await res.json();
@@ -507,17 +573,20 @@ export default function NationalAdminDashboard() {
           r.id === activeExecutive.id
             ? {
                 ...r,
-                executiveName: activeExecutive.executiveName,
-                position: activeExecutive.position,
-                executiveLevel: activeExecutive.executiveLevel,
-                slotStatus: activeExecutive.slotStatus,
-                region: activeExecutive.region,
-                constituency: activeExecutive.constituency,
-                electoralArea: activeExecutive.electoralArea,
-                pollingStation: activeExecutive.pollingStation,
-                gender: activeExecutive.gender,
-                voterId: activeExecutive.voterId,
-                status: activeExecutive.status,
+                executiveName: updatedExecutive.executiveName,
+                position: updatedExecutive.position,
+                executiveLevel: updatedExecutive.executiveLevel,
+                slotStatus: updatedExecutive.slotStatus,
+                region: updatedExecutive.region,
+                constituency: updatedExecutive.constituency,
+                electoralArea: updatedExecutive.electoralArea,
+                pollingStation: updatedExecutive.pollingStation,
+                gender: updatedExecutive.gender,
+                voterId: updatedExecutive.voterId,
+                status: updatedExecutive.status,
+                phone: updatedExecutive.phone,
+                dateOfBirth: updatedExecutive.dateOfBirth,
+                age: updatedExecutive.age,
               }
             : r
         )
@@ -622,8 +691,9 @@ export default function NationalAdminDashboard() {
         setNewExecVoterId(v.voterId || cleanId);
         setNewExecGhanaCard(v.ghanaCard || "");
         setNewExecGender(v.gender || "Male");
-        setNewExecDob(v.dateOfBirth || "");
-        setNewExecAge(v.age ? String(v.age) : "");
+        const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(v.dateOfBirth || "", newExecPosition);
+        setNewExecDob(calculatedDob || v.dateOfBirth || "");
+        setNewExecAge(calculatedAge !== null ? String(calculatedAge) : (v.age ? String(v.age) : ""));
         setNewExecPhone(v.phone || "");
         if (v.region) setNewExecRegion(v.region);
         if (v.constituency) setNewExecConstituency(v.constituency);
@@ -683,6 +753,10 @@ export default function NationalAdminDashboard() {
 
     setAddSaving(true);
     try {
+      const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(newExecDob, newExecPosition);
+      const finalAge = calculatedAge !== null ? calculatedAge : (newExecAge ? parseInt(newExecAge, 10) : null);
+      const finalDob = calculatedDob || newExecDob;
+
       const payload = {
         executiveName: newExecName.trim(),
         executiveLevel: newExecLevel,
@@ -698,8 +772,8 @@ export default function NationalAdminDashboard() {
         ghanaCard: newExecGhanaCard,
         voterId: newExecVoterId,
         membershipId: newExecMembershipId,
-        dateOfBirth: newExecDob,
-        age: newExecAge ? parseInt(newExecAge, 10) : null,
+        dateOfBirth: finalDob,
+        age: finalAge,
         status: newExecStatus,
       };
 
@@ -809,7 +883,246 @@ export default function NationalAdminDashboard() {
       currentUser={currentUser}
       onLogout={handleLogout}
     >
-      <div style={{ maxWidth: "1600px", margin: "0 auto", padding: "28px 32px" }}>
+      <style>{`
+        .dash-container {
+          max-width: 1600px;
+          margin: 0 auto;
+          padding: 28px 32px;
+        }
+        .dash-tier-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 14px;
+        }
+        .dash-tier-card {
+          padding: 16px 18px;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .dash-kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 14px;
+          margin-bottom: 28px;
+        }
+        .dash-toolbar-card {
+          background: rgba(15, 23, 42, 0.8);
+          border-radius: 12px;
+          padding: 18px 20px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          margin-bottom: 20px;
+        }
+        .dash-toolbar-row1 {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          margin-bottom: 14px;
+        }
+        .dash-search-container {
+          flex: 1 1 320px;
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+        .dash-actions-group {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .dash-filters-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 10px;
+        }
+        .dash-region-cluster {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 3px 6px;
+          background: rgba(255, 255, 255, 0.04);
+          border-radius: 8px;
+        }
+        .dash-matches-count {
+          margin-left: auto;
+          font-size: 13px;
+          color: #94a3b8;
+        }
+        .dash-scroll-hint {
+          display: none;
+        }
+        .dash-table-wrapper {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          width: 100%;
+        }
+        .dash-table {
+          width: 100%;
+          min-width: 1020px;
+          border-collapse: collapse;
+          text-align: left;
+          font-size: 13px;
+        }
+        .dash-pagination {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 14px 20px;
+          background: rgba(30, 41, 59, 0.6);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          fontSize: 13px;
+          color: #94a3b8;
+        }
+        .dash-pagination-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .dash-pagination-right {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+          .dash-container {
+            padding: 20px 18px;
+          }
+          .dash-scroll-hint {
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            background: rgba(30, 41, 59, 0.85);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            color: #94a3b8;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .dash-tier-grid {
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+            gap: 10px !important;
+          }
+          .dash-tier-card {
+            padding: 12px 14px !important;
+          }
+          .dash-kpi-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+            margin-bottom: 18px !important;
+          }
+          .dash-matches-count {
+            margin-left: 0 !important;
+            width: 100% !important;
+            padding-top: 4px !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .dash-container {
+            padding: 14px 10px !important;
+          }
+          .dash-tier-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .dash-kpi-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .dash-toolbar-card {
+            padding: 14px 12px !important;
+          }
+          .dash-toolbar-row1 {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+          }
+          .dash-search-container {
+            flex: 1 1 100% !important;
+            width: 100% !important;
+          }
+          .dash-actions-group {
+            width: 100% !important;
+            display: flex !important;
+            gap: 8px !important;
+          }
+          .dash-actions-group > * {
+            flex: 1 1 0 !important;
+            justify-content: center !important;
+            text-align: center !important;
+          }
+          .dash-filters-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+          }
+          .dash-filters-row select,
+          .dash-filters-row button {
+            width: 100% !important;
+            max-width: none !important;
+          }
+          .dash-region-cluster {
+            display: flex !important;
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 6px !important;
+            padding: 8px !important;
+            box-sizing: border-box !important;
+          }
+          .dash-region-cluster select {
+            width: 100% !important;
+            max-width: none !important;
+          }
+          .dash-region-arrow {
+            display: none !important;
+          }
+          .dash-pagination {
+            flex-direction: column !important;
+            gap: 12px !important;
+            padding: 12px 14px !important;
+            align-items: stretch !important;
+          }
+          .dash-pagination-left {
+            justify-content: space-between !important;
+          }
+          .dash-pagination-right {
+            justify-content: space-between !important;
+          }
+          .dash-modal-overlay {
+            padding: 10px 8px !important;
+          }
+          .dash-modal-container {
+            max-height: 94vh !important;
+            border-radius: 10px !important;
+          }
+          .dash-modal-header {
+            padding: 14px 16px !important;
+          }
+          .dash-modal-body {
+            padding: 14px 14px !important;
+          }
+          .dash-modal-footer {
+            padding: 12px 14px !important;
+            flex-direction: column-reverse !important;
+            gap: 8px !important;
+          }
+          .dash-modal-footer button {
+            width: 100% !important;
+            justify-content: center !important;
+          }
+          .dash-modal-grid-2 {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+        }
+      `}</style>
+      <div className="dash-container">
         {/* Tier Cards Grid (6 Levels) with Grey Lucide Icons */}
         <section style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
@@ -819,11 +1132,7 @@ export default function NationalAdminDashboard() {
             <span style={{ fontSize: "12px", color: "#64748b" }}>Click a level card to filter directory roster</span>
           </div>
 
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "14px"
-          }}>
+          <div className="dash-tier-grid">
             {TIERS.map((tier) => {
               const isActive = selectedLevel === tier.id;
               const count = getTierCount(tier.id);
@@ -831,6 +1140,7 @@ export default function NationalAdminDashboard() {
               return (
                 <div
                   key={tier.id}
+                  className="dash-tier-card"
                   onClick={() => {
                     setSelectedLevel(tier.id);
                     setPage(1);
@@ -838,10 +1148,6 @@ export default function NationalAdminDashboard() {
                   style={{
                     background: isActive ? "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%)" : "rgba(15, 23, 42, 0.6)",
                     border: isActive ? "1px solid #10b981" : "1px solid rgba(255, 255, 255, 0.08)",
-                    borderRadius: "12px",
-                    padding: "16px 18px",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
                     boxShadow: isActive ? "0 8px 20px -4px rgba(16, 185, 129, 0.2)" : "none"
                   }}
                 >
@@ -888,12 +1194,7 @@ export default function NationalAdminDashboard() {
 
         {/* Executive Directorate KPI Metrics with Grey Lucide Icons */}
         {overview && (
-          <section style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "14px",
-            marginBottom: "28px"
-          }}>
+          <section className="dash-kpi-grid">
             <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Total Nationwide Officers</span>
@@ -954,16 +1255,10 @@ export default function NationalAdminDashboard() {
         )}
 
         {/* Multi-Dimensional Filter & Search Toolbar */}
-        <section style={{
-          background: "rgba(15, 23, 42, 0.8)",
-          borderRadius: "12px",
-          padding: "18px 20px",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          marginBottom: "20px"
-        }}>
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "14px", marginBottom: "14px" }}>
+        <section className="dash-toolbar-card">
+          <div className="dash-toolbar-row1">
             {/* Search Input with Grey Search Icon */}
-            <div style={{ flex: "1 1 320px", position: "relative", display: "flex", alignItems: "center" }}>
+            <div className="dash-search-container">
               <div style={{ position: "absolute", left: "12px", pointerEvents: "none", display: "flex" }}>
                 <Search size={15} color="#94a3b8" />
               </div>
@@ -1004,7 +1299,7 @@ export default function NationalAdminDashboard() {
             </div>
 
             {/* Action Buttons */}
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+            <div className="dash-actions-group">
               <button
                 type="button"
                 onClick={() => {
@@ -1058,9 +1353,10 @@ export default function NationalAdminDashboard() {
           </div>
 
           {/* Filter Dropdowns */}
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "10px" }}>
+          <div className="dash-filters-row">
             {/* Level Filter Dropdown */}
             <select
+              className="dash-filter-select"
               value={selectedLevel}
               onChange={(e) => {
                 setSelectedLevel(e.target.value);
@@ -1087,17 +1383,12 @@ export default function NationalAdminDashboard() {
             </select>
 
             {/* Region ➔ Constituency Tied Cluster */}
-            <div style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "3px 6px",
-              background: "rgba(255, 255, 255, 0.04)",
-              borderRadius: "8px",
+            <div className="dash-region-cluster" style={{
               border: selectedRegion ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(255, 255, 255, 0.08)"
             }}>
               {/* Region Dropdown */}
               <select
+                className="dash-filter-select"
                 value={selectedRegion}
                 onChange={(e) => {
                   setSelectedRegion(e.target.value);
@@ -1121,10 +1412,13 @@ export default function NationalAdminDashboard() {
                 ))}
               </select>
 
-              <ArrowRight size={13} color={selectedRegion ? "#34d399" : "#64748b"} />
+              <div className="dash-region-arrow" style={{ display: "flex", alignItems: "center" }}>
+                <ArrowRight size={13} color={selectedRegion ? "#34d399" : "#64748b"} />
+              </div>
 
               {/* Constituency Filter Dropdown (Strictly Tied to Region) */}
               <select
+                className="dash-filter-select"
                 disabled={!selectedRegion}
                 value={selectedConstituency}
                 onChange={(e) => {
@@ -1167,6 +1461,7 @@ export default function NationalAdminDashboard() {
 
             {/* Demographics Cohort Filter */}
             <select
+              className="dash-filter-select"
               value={selectedCohort}
               onChange={(e) => {
                 setSelectedCohort(e.target.value);
@@ -1190,6 +1485,7 @@ export default function NationalAdminDashboard() {
 
             {/* Slot Type */}
             <select
+              className="dash-filter-select"
               value={selectedSlot}
               onChange={(e) => {
                 setSelectedSlot(e.target.value);
@@ -1214,6 +1510,7 @@ export default function NationalAdminDashboard() {
             {/* Clear All Filters Button */}
             {(selectedLevel || selectedRegion || selectedConstituency || selectedCohort || selectedSlot || debouncedSearch) && (
               <button
+                className="dash-filter-select"
                 onClick={() => {
                   setSelectedLevel("");
                   setSelectedRegion("");
@@ -1226,6 +1523,7 @@ export default function NationalAdminDashboard() {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: "6px",
                   padding: "8px 12px",
                   borderRadius: "6px",
@@ -1240,7 +1538,7 @@ export default function NationalAdminDashboard() {
               </button>
             )}
 
-            <div style={{ marginLeft: "auto", fontSize: "13px", color: "#94a3b8" }}>
+            <div className="dash-matches-count">
               Showing <strong>{rows.length.toLocaleString()}</strong> of <strong>{totalRows.toLocaleString()}</strong> matches
             </div>
           </div>
@@ -1253,23 +1551,12 @@ export default function NationalAdminDashboard() {
           border: "1px solid rgba(255, 255, 255, 0.08)",
           overflow: "hidden"
         }}>
-          <style>{`
-            @media (max-width: 860px) {
-              .exec-col-secondary {
-                display: none !important;
-              }
-              .exec-mobile-details {
-                display: block !important;
-              }
-            }
-            @media (min-width: 861px) {
-              .exec-mobile-details {
-                display: none !important;
-              }
-            }
-          `}</style>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "13px" }}>
+          <div className="dash-scroll-hint">
+            <span>👉</span>
+            <span>Swipe horizontally to view all columns (Age, Date of Birth, Phone, Region, Constituency, etc.)</span>
+          </div>
+          <div className="dash-table-wrapper">
+            <table className="dash-table">
               <thead>
                 <tr style={{
                   background: "rgba(30, 41, 59, 0.8)",
@@ -1279,16 +1566,16 @@ export default function NationalAdminDashboard() {
                   textTransform: "uppercase",
                   letterSpacing: "0.5px"
                 }}>
-                  <th style={{ padding: "12px 16px" }}>Voter ID</th>
-                  <th style={{ padding: "12px 16px" }}>Name</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Age</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Date of Birth</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Phone</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Region</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Constituency</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Position</th>
-                  <th className="exec-col-secondary" style={{ padding: "12px 16px" }}>Level</th>
-                  <th style={{ padding: "12px 16px", textAlign: "right" }}>Actions</th>
+                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Voter ID</th>
+                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Name</th>
+                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Age</th>
+                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Date of Birth</th>
+                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Phone</th>
+                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Region</th>
+                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Constituency</th>
+                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Position</th>
+                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Level</th>
+                  <th style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1350,20 +1637,17 @@ export default function NationalAdminDashboard() {
                           <div style={{ display: "flex", flexDirection: "column" }}>
                             <span>{row.executiveName}</span>
                             {/* Minimised screen context subtitle */}
-                            <div className="exec-mobile-details" style={{ display: "none", fontSize: "11px", color: "#94a3b8", marginTop: "2px", fontWeight: "normal" }}>
+                            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px", fontWeight: "normal" }}>
                               <span style={{ color: "#60a5fa", fontWeight: "600" }}>{row.position}</span>
                               {(row.region || row.executiveLevel) && (
                                 <span style={{ marginLeft: "4px" }}>• {[row.executiveLevel, row.region, row.constituency].filter(Boolean).join(" / ")}</span>
-                              )}
-                              {row.phone && (
-                                <span style={{ marginLeft: "4px" }}>• {row.phone}</span>
                               )}
                             </div>
                           </div>
                         </td>
 
                         {/* 3. Age */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                        <td style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.age != null && row.age > 0 ? (
                             <span style={{
                               padding: "2px 7px",
@@ -1381,7 +1665,7 @@ export default function NationalAdminDashboard() {
                         </td>
 
                         {/* 4. Date of Birth */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1", whiteSpace: "nowrap", fontSize: "12px" }}>
+                        <td style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap", fontSize: "12px" }}>
                           {row.dateOfBirth ? (
                             <span>{row.dateOfBirth}</span>
                           ) : (
@@ -1390,7 +1674,7 @@ export default function NationalAdminDashboard() {
                         </td>
 
                         {/* 5. Phone */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                        <td style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.phone ? (
                             <a
                               href={`tel:${row.phone}`}
@@ -1415,22 +1699,22 @@ export default function NationalAdminDashboard() {
                         </td>
 
                         {/* 6. Region */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1" }}>
+                        <td style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.region || "—"}
                         </td>
 
                         {/* 7. Constituency */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px", color: "#cbd5e1", fontWeight: "500" }}>
+                        <td style={{ padding: "12px 14px", color: "#cbd5e1", fontWeight: "500", whiteSpace: "nowrap" }}>
                           {row.constituency || "—"}
                         </td>
 
                         {/* 8. Position */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px", fontWeight: "600", color: "#f8fafc" }}>
+                        <td style={{ padding: "12px 14px", fontWeight: "600", color: "#f8fafc", whiteSpace: "nowrap" }}>
                           {row.position}
                         </td>
 
                         {/* 9. Level */}
-                        <td className="exec-col-secondary" style={{ padding: "12px 16px" }}>
+                        <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
                           <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
                             <span style={{
                               fontSize: "11px",
@@ -1458,7 +1742,7 @@ export default function NationalAdminDashboard() {
                         </td>
 
                         {/* Actions (Always visible: View/Edit + Delete) */}
-                        <td style={{ padding: "12px 16px", textAlign: "right", whiteSpace: "nowrap" }}>
+                        <td style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                             <button
                               type="button"
@@ -1522,17 +1806,8 @@ export default function NationalAdminDashboard() {
           </div>
 
           {/* Pagination Controls Footer */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "14px 20px",
-            background: "rgba(30, 41, 59, 0.6)",
-            borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-            fontSize: "13px",
-            color: "#94a3b8"
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div className="dash-pagination">
+            <div className="dash-pagination-left">
               <span>Rows per page:</span>
               <select
                 value={limit}
@@ -1555,7 +1830,7 @@ export default function NationalAdminDashboard() {
               </select>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div className="dash-pagination-right">
               <span>
                 Page <strong>{page}</strong> of <strong>{totalPages || 1}</strong>
               </span>
@@ -1603,6 +1878,7 @@ export default function NationalAdminDashboard() {
       {/* ========================================================================= */}
       {modalOpen && (
         <div
+          className="dash-modal-overlay"
           style={{
             position: "fixed",
             top: 0,
@@ -1620,6 +1896,7 @@ export default function NationalAdminDashboard() {
           onClick={handleCloseModal}
         >
           <div
+            className="dash-modal-container"
             style={{
               width: "100%",
               maxWidth: "840px",
@@ -1636,6 +1913,7 @@ export default function NationalAdminDashboard() {
           >
             {/* Modal Header */}
             <div
+              className="dash-modal-header"
               style={{
                 padding: "20px 28px",
                 background: "rgba(30, 41, 59, 0.7)",
@@ -1705,7 +1983,7 @@ export default function NationalAdminDashboard() {
             </div>
 
             {/* Modal Body / Form */}
-            <div style={{ padding: "24px 28px", overflowY: "auto", flex: 1 }}>
+            <div className="dash-modal-body" style={{ padding: "24px 28px", overflowY: "auto", flex: 1 }}>
               {modalLoading ? (
                 <div style={{ textAlign: "center", padding: "60px 0", color: "#94a3b8" }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
@@ -1785,6 +2063,7 @@ export default function NationalAdminDashboard() {
                       1. Profile & Designation
                     </div>
                     <div
+                      className="dash-modal-grid-2"
                       style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -1929,6 +2208,7 @@ export default function NationalAdminDashboard() {
                       2. Jurisdiction & Location
                     </div>
                     <div
+                      className="dash-modal-grid-2"
                       style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -2043,6 +2323,7 @@ export default function NationalAdminDashboard() {
                       3. Identity & Demographics
                     </div>
                     <div
+                      className="dash-modal-grid-2"
                       style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -2176,9 +2457,17 @@ export default function NationalAdminDashboard() {
                             border: "1px solid rgba(255, 255, 255, 0.08)",
                             color: "#cbd5e1",
                             fontSize: "13px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
                           }}
                         >
-                          {activeExecutive.age !== null ? `${activeExecutive.age} years` : "—"}
+                          <span>{activeExecutive.age !== null ? `${activeExecutive.age} years` : "—"}</span>
+                          {activeExecutive.position && /youth/i.test(activeExecutive.position) && activeExecutive.age === 39 && (
+                            <span style={{ fontSize: "11px", color: "#38bdf8", background: "rgba(56, 189, 248, 0.15)", padding: "1px 6px", borderRadius: "4px" }}>
+                              Youth Quota Capped (&le;39)
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -2199,6 +2488,7 @@ export default function NationalAdminDashboard() {
                       4. Contact Information
                     </div>
                     <div
+                      className="dash-modal-grid-2"
                       style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -2257,6 +2547,7 @@ export default function NationalAdminDashboard() {
 
             {/* Modal Footer */}
             <div
+              className="dash-modal-footer"
               style={{
                 padding: "16px 28px",
                 background: "rgba(30, 41, 59, 0.7)",
@@ -2316,6 +2607,7 @@ export default function NationalAdminDashboard() {
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && executiveToDelete && (
         <div
+          className="dash-modal-overlay"
           role="dialog"
           aria-modal="true"
           style={{
@@ -2332,6 +2624,7 @@ export default function NationalAdminDashboard() {
           onClick={handleCloseDeleteModal}
         >
           <div
+            className="dash-modal-container"
             onClick={(e) => e.stopPropagation()}
             style={{
               width: "100%",
@@ -2413,14 +2706,17 @@ export default function NationalAdminDashboard() {
               )}
             </div>
 
-            <div style={{
-              padding: "14px 24px",
-              background: "rgba(30, 41, 59, 0.6)",
-              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: "10px"
-            }}>
+            <div
+              className="dash-modal-footer"
+              style={{
+                padding: "14px 24px",
+                background: "rgba(30, 41, 59, 0.6)",
+                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px"
+              }}
+            >
               <button
                 type="button"
                 disabled={deleting}
@@ -2480,6 +2776,7 @@ export default function NationalAdminDashboard() {
         <div
           role="dialog"
           aria-modal="true"
+          className="dash-modal-overlay"
           style={{
             position: "fixed",
             inset: 0,
@@ -2494,6 +2791,7 @@ export default function NationalAdminDashboard() {
           onClick={handleCloseAddModal}
         >
           <div
+            className="dash-modal-container"
             onClick={(e) => e.stopPropagation()}
             style={{
               width: "100%",
@@ -2510,6 +2808,7 @@ export default function NationalAdminDashboard() {
           >
             {/* Modal Header */}
             <div
+              className="dash-modal-header"
               style={{
                 padding: "20px 24px",
                 background: "rgba(30, 41, 59, 0.7)",
@@ -2558,7 +2857,7 @@ export default function NationalAdminDashboard() {
             </div>
 
             {/* Modal Scrollable Body */}
-            <div style={{ padding: "20px 24px", overflowY: "auto", flex: 1 }}>
+            <div className="dash-modal-body" style={{ padding: "20px 24px", overflowY: "auto", flex: 1 }}>
               {/* Voter ID Search Section */}
               <div
                 style={{
@@ -2657,6 +2956,7 @@ export default function NationalAdminDashboard() {
                 </div>
 
                 <div
+                  className="dash-modal-grid-2"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -2699,7 +2999,7 @@ export default function NationalAdminDashboard() {
                         if (!isCustomPosition) {
                           const validPositions = POSITIONS_BY_LEVEL[newLevel] || [];
                           if (!validPositions.includes(newExecPosition)) {
-                            setNewExecPosition(validPositions[0] || "");
+                            handleAddPositionChange(validPositions[0] || "");
                           }
                         }
                       }}
@@ -2735,7 +3035,7 @@ export default function NationalAdminDashboard() {
                           setIsCustomPosition(nextState);
                           if (!nextState) {
                             const validPositions = POSITIONS_BY_LEVEL[newExecLevel] || [];
-                            setNewExecPosition(validPositions[0] || "");
+                            handleAddPositionChange(validPositions[0] || "");
                           }
                         }}
                         style={{
@@ -2757,7 +3057,7 @@ export default function NationalAdminDashboard() {
                         type="text"
                         required
                         value={newExecPosition}
-                        onChange={(e) => setNewExecPosition(e.target.value)}
+                        onChange={(e) => handleAddPositionChange(e.target.value)}
                         placeholder={`Enter custom ${newExecLevel} position…`}
                         style={{
                           width: "100%",
@@ -2777,9 +3077,9 @@ export default function NationalAdminDashboard() {
                         onChange={(e) => {
                           if (e.target.value === "__custom__") {
                             setIsCustomPosition(true);
-                            setNewExecPosition("");
+                            handleAddPositionChange("");
                           } else {
-                            setNewExecPosition(e.target.value);
+                            handleAddPositionChange(e.target.value);
                           }
                         }}
                         style={{
@@ -2829,6 +3129,7 @@ export default function NationalAdminDashboard() {
                 </div>
 
                 <div
+                  className="dash-modal-grid-2"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -2952,6 +3253,7 @@ export default function NationalAdminDashboard() {
                 </div>
 
                 <div
+                  className="dash-modal-grid-2"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -3035,7 +3337,7 @@ export default function NationalAdminDashboard() {
                     <input
                       type="text"
                       value={newExecDob}
-                      onChange={(e) => setNewExecDob(e.target.value)}
+                      onChange={(e) => handleAddDobChange(e.target.value)}
                       placeholder="YYYY-MM-DD"
                       style={{
                         width: "100%",
@@ -3053,6 +3355,7 @@ export default function NationalAdminDashboard() {
                 </div>
 
                 <div
+                  className="dash-modal-grid-2"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -3061,9 +3364,16 @@ export default function NationalAdminDashboard() {
                   }}
                 >
                   <div>
-                    <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                      Age
-                    </label>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
+                      <label style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: "600" }}>
+                        Age
+                      </label>
+                      {newExecPosition && /youth/i.test(newExecPosition) && Number(newExecAge) === 39 && (
+                        <span style={{ fontSize: "11px", color: "#38bdf8", background: "rgba(56, 189, 248, 0.15)", padding: "1px 6px", borderRadius: "4px" }}>
+                          Youth Quota Capped (&le;39)
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="number"
                       value={newExecAge}
@@ -3194,6 +3504,7 @@ export default function NationalAdminDashboard() {
 
             {/* Modal Footer */}
             <div
+              className="dash-modal-footer"
               style={{
                 padding: "16px 24px",
                 background: "rgba(30, 41, 59, 0.7)",

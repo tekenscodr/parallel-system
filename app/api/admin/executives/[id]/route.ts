@@ -38,8 +38,26 @@ export async function GET(req: Request, { params }: RouteParams) {
           ghana_card as "ghanaCard",
           voter_id as "voterId",
           gender,
-          date_of_birth as "dateOfBirth",
-          age,
+          CASE
+            WHEN position ILIKE '%youth%' 
+                 AND date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' 
+                 AND (2026 - substring(date_of_birth from '^[0-9]{4}')::int) > 39 
+            THEN '1987' || substring(date_of_birth from 5)
+            ELSE date_of_birth
+          END as "dateOfBirth",
+          CASE
+            WHEN position ILIKE '%youth%' 
+                 AND (
+                   (date_of_birth ~ '[0-9]{4}' AND (2026 - substring(date_of_birth from '([0-9]{4})')::int) > 39)
+                   OR (age IS NOT NULL AND (age + 2) > 39)
+                 )
+            THEN 39
+            WHEN date_of_birth ~ '[0-9]{4}'
+            THEN (2026 - substring(date_of_birth from '([0-9]{4})')::int)
+            WHEN age IS NOT NULL
+            THEN (age + 2)
+            ELSE NULL
+          END as age,
           is_youth_organiser as "isYouthOrganiser",
           is_age_adjusted as "isAgeAdjusted",
           status,
@@ -98,21 +116,35 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       status,
     } = body;
 
-    // Optional age calculation if DOB changed
+    const isYouth = position && typeof position === "string" 
+      ? /youth/i.test(position) 
+      : false;
+
+    // Calculate age using current year 2026 and date of birth
     let calculatedAge: number | null = null;
-    if (dateOfBirth && typeof dateOfBirth === "string") {
-      const parts = dateOfBirth.split("-");
-      if (parts.length === 3) {
-        const year = parseInt(parts[0], 10);
+    let adjustedDob: string | null = (dateOfBirth && typeof dateOfBirth === "string") ? dateOfBirth.trim() : null;
+
+    if (adjustedDob) {
+      const yearMatch = adjustedDob.match(/(\d{4})/);
+      if (yearMatch) {
+        const year = parseInt(yearMatch[1], 10);
         if (!isNaN(year) && year > 1920 && year <= 2026) {
-          calculatedAge = 2024 - year;
+          calculatedAge = 2026 - year;
         }
       }
     }
 
-    const isYouth = position && typeof position === "string" 
-      ? /youth\s*organi[sz]er/i.test(position) 
-      : false;
+    let isAgeAdjusted = false;
+    if (isYouth && calculatedAge !== null && calculatedAge > 39) {
+      calculatedAge = 39;
+      isAgeAdjusted = true;
+      if (adjustedDob) {
+        // Change only the year to 1987 (2026 - 39 = 1987), keeping month and day intact
+        adjustedDob = adjustedDob.replace(/^(\d{4})/, "1987");
+      } else {
+        adjustedDob = "1987-01-01";
+      }
+    }
 
     // 1. Fetch previous state before updating
     const previousRow = await withEcSql(async (sql) => {
@@ -166,9 +198,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           ghana_card = COALESCE(${ghanaCard ?? null}, ghana_card),
           voter_id = COALESCE(${voterId ?? null}, voter_id),
           membership_id = COALESCE(${membershipId ?? null}, membership_id),
-          date_of_birth = COALESCE(${dateOfBirth ?? null}, date_of_birth),
+          date_of_birth = COALESCE(${adjustedDob ?? null}, date_of_birth),
           age = COALESCE(${calculatedAge ?? null}, age),
           is_youth_organiser = ${isYouth},
+          is_age_adjusted = ${isAgeAdjusted},
           status = COALESCE(${status ?? null}, status)
         WHERE id = ${id}
         RETURNING 
@@ -187,8 +220,26 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           ghana_card as "ghanaCard",
           voter_id as "voterId",
           gender,
-          date_of_birth as "dateOfBirth",
-          age,
+          CASE
+            WHEN position ILIKE '%youth%' 
+                 AND date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' 
+                 AND (2026 - substring(date_of_birth from '^[0-9]{4}')::int) > 39 
+            THEN '1987' || substring(date_of_birth from 5)
+            ELSE date_of_birth
+          END as "dateOfBirth",
+          CASE
+            WHEN position ILIKE '%youth%' 
+                 AND (
+                   (date_of_birth ~ '[0-9]{4}' AND (2026 - substring(date_of_birth from '([0-9]{4})')::int) > 39)
+                   OR (age IS NOT NULL AND (age + 2) > 39)
+                 )
+            THEN 39
+            WHEN date_of_birth ~ '[0-9]{4}'
+            THEN (2026 - substring(date_of_birth from '([0-9]{4})')::int)
+            WHEN age IS NOT NULL
+            THEN (age + 2)
+            ELSE NULL
+          END as age,
           is_youth_organiser as "isYouthOrganiser",
           is_age_adjusted as "isAgeAdjusted",
           status

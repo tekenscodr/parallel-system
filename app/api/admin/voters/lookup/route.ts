@@ -59,10 +59,17 @@ export async function GET(req: Request) {
       `;
 
       if (execRows.length > 0 && execRows[0].name) {
+        const v = execRows[0];
+        if (v.dateOfBirth) {
+          const m = String(v.dateOfBirth).match(/(\d{4})/);
+          if (m) v.age = 2026 - parseInt(m[1], 10);
+        } else if (v.age != null) {
+          v.age = v.age + 2;
+        }
         return {
           found: true,
           source: "executives_registry",
-          voter: execRows[0],
+          voter: v,
         };
       }
 
@@ -98,6 +105,12 @@ export async function GET(req: Request) {
       const matched = matchedRows.find((row) => row !== null);
 
       if (matched) {
+        if (matched.dateOfBirth) {
+          const m = String(matched.dateOfBirth).match(/(\d{4})/);
+          if (m) matched.age = 2026 - parseInt(m[1], 10);
+        } else if (matched.age != null) {
+          matched.age = matched.age + 2;
+        }
         return {
           found: true,
           source: "voter_registry",

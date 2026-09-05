@@ -139,8 +139,26 @@ export async function GET(req: Request) {
             ghana_card as "ghanaCard",
             voter_id as "voterId",
             gender,
-            date_of_birth as "dateOfBirth",
-            age,
+            CASE
+              WHEN position ILIKE '%youth%' 
+                   AND date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' 
+                   AND (2026 - substring(date_of_birth from '^[0-9]{4}')::int) > 39 
+              THEN '1987' || substring(date_of_birth from 5)
+              ELSE date_of_birth
+            END as "dateOfBirth",
+            CASE
+              WHEN position ILIKE '%youth%' 
+                   AND (
+                     (date_of_birth ~ '[0-9]{4}' AND (2026 - substring(date_of_birth from '([0-9]{4})')::int) > 39)
+                     OR (age IS NOT NULL AND (age + 2) > 39)
+                   )
+              THEN 39
+              WHEN date_of_birth ~ '[0-9]{4}'
+              THEN (2026 - substring(date_of_birth from '([0-9]{4})')::int)
+              WHEN age IS NOT NULL
+              THEN (age + 2)
+              ELSE NULL
+            END as age,
             status
           FROM executives_all
           ${whereClause}
@@ -213,23 +231,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Region is required." }, { status: 400 });
     }
 
-    // Calculate age if dateOfBirth provided or age passed
+    // Calculate age using current year 2026 and date of birth
     let parsedAge: number | null = null;
-    if (age !== undefined && age !== null && age !== "") {
+    let finalDob = dateOfBirth ? String(dateOfBirth).trim() : null;
+
+    if (finalDob) {
+      const yearMatch = finalDob.match(/(\d{4})/);
+      if (yearMatch) {
+        parsedAge = 2026 - parseInt(yearMatch[1], 10);
+      }
+    } else if (age !== undefined && age !== null && age !== "") {
       parsedAge = parseInt(String(age), 10);
       if (isNaN(parsedAge)) parsedAge = null;
-    } else if (dateOfBirth && dateOfBirth.trim()) {
-      const yearMatch = dateOfBirth.match(/(\d{4})/);
-      if (yearMatch) {
-        parsedAge = new Date().getFullYear() - parseInt(yearMatch[1], 10);
-      }
     }
 
     const isYouth = position.toLowerCase().includes("youth");
     let isAgeAdjusted = false;
-    if (isYouth && parsedAge !== null && parsedAge > 40) {
+    if (isYouth && parsedAge !== null && parsedAge > 39) {
       parsedAge = 39;
       isAgeAdjusted = true;
+      if (finalDob) {
+        // Change only the year to 1987 (2026 - 39 = 1987), keeping month and day intact
+        finalDob = finalDob.replace(/^(\d{4})/, "1987");
+      } else {
+        finalDob = "1987-01-01";
+      }
     }
 
     const newExecutive = await withEcSql(async (sql) => {
@@ -270,7 +296,7 @@ export async function POST(req: Request) {
           ${ghanaCard.trim() || null},
           ${voterId.trim() || null},
           ${membershipId.trim() || null},
-          ${dateOfBirth.trim() || null},
+          ${finalDob || null},
           ${parsedAge},
           ${isYouth},
           ${isAgeAdjusted},
