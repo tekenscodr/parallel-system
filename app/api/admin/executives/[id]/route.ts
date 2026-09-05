@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
+import { logAuditEvent, getClientIp, diffExecutiveRecords } from "@/lib/audit-logger";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -113,6 +114,40 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       ? /youth\s*organi[sz]er/i.test(position) 
       : false;
 
+    // 1. Fetch previous state before updating
+    const previousRow = await withEcSql(async (sql) => {
+      const res = await sql`
+        SELECT 
+          id,
+          executive_level as "executiveLevel",
+          slot_status as "slotStatus",
+          region,
+          constituency,
+          electoral_area as "electoralArea",
+          polling_station as "pollingStation",
+          position,
+          executive_name as "executiveName",
+          membership_id as "membershipId",
+          phone,
+          email,
+          ghana_card as "ghanaCard",
+          voter_id as "voterId",
+          gender,
+          date_of_birth as "dateOfBirth",
+          age,
+          status
+        FROM executives_all
+        WHERE id = ${id}
+        LIMIT 1
+      `;
+      return res[0] || null;
+    });
+
+    if (!previousRow) {
+      return NextResponse.json({ error: "Executive record not found" }, { status: 404 });
+    }
+
+    // 2. Perform update
     const updatedRow = await withEcSql(async (sql) => {
       const res = await sql`
         UPDATE executives_all
@@ -165,10 +200,36 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Executive record not found" }, { status: 404 });
     }
 
+    // 3. Compute field-level change diff
+    const diff = diffExecutiveRecords(previousRow, updatedRow);
+
+    // 4. Log AuditEvent with IP Sync
+    const clientIp = getClientIp(req);
+    await logAuditEvent({
+      actorId: session.user.id,
+      action: "EXECUTIVE_UPDATE",
+      resource: "executives_all",
+      resourceId: String(id),
+      ipAddress: clientIp,
+      userAgent: req.headers.get("user-agent"),
+      metadata: {
+        executiveName: updatedRow.executiveName,
+        position: updatedRow.position,
+        region: updatedRow.region,
+        constituency: updatedRow.constituency,
+        userEmail: session.user.email,
+        userName: session.user.name,
+        userRole: session.user.role,
+        changedFields: Object.keys(diff),
+        diff,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       message: "Executive details updated successfully.",
       executive: updatedRow,
+      diff,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Error updating executive";

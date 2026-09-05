@@ -30,6 +30,7 @@ import {
   Compass,
   LogOut,
 } from "lucide-react";
+import { AdminShell } from "@/app/admin/components/AdminShell";
 
 type OverviewData = {
   totals: {
@@ -432,119 +433,13 @@ export default function NationalAdminDashboard() {
   }
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#090d16",
-      color: "#f1f5f9",
-      fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
-    }}>
-      {/* Top Directorate Header Bar */}
-      <header style={{
-        background: "rgba(15, 23, 42, 0.95)",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-        padding: "16px 32px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        backdropFilter: "blur(12px)",
-        position: "sticky",
-        top: 0,
-        zIndex: 40
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{
-            width: "42px",
-            height: "42px",
-            borderRadius: "10px",
-            background: "rgba(255, 255, 255, 0.05)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-            <Landmark size={20} color="#94a3b8" />
-          </div>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <h1 style={{ fontSize: "17px", fontWeight: "700", margin: 0, letterSpacing: "-0.3px" }}>
-                National Executive Directorate
-              </h1>
-              <span style={{
-                background: "rgba(16, 185, 129, 0.15)",
-                color: "#34d399",
-                border: "1px solid rgba(16, 185, 129, 0.3)",
-                borderRadius: "999px",
-                padding: "2px 9px",
-                fontSize: "11px",
-                fontWeight: "600",
-                textTransform: "uppercase"
-              }}>
-                Role: admin_national
-              </span>
-              <span style={{
-                background: "rgba(56, 189, 248, 0.1)",
-                color: "#38bdf8",
-                border: "1px solid rgba(56, 189, 248, 0.25)",
-                borderRadius: "999px",
-                padding: "2px 8px",
-                fontSize: "11px"
-              }}>
-                ec-data PostgreSQL
-              </span>
-            </div>
-            <p style={{ fontSize: "12px", color: "#94a3b8", margin: "2px 0 0 0" }}>
-              Full nationwide command access: National • Region • Constituency • Electoral Area • Polling Station • TESCON
-            </p>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <Link
-            href="/dashboard"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              color: "#94a3b8",
-              fontSize: "13px",
-              textDecoration: "none",
-              padding: "6px 12px",
-              borderRadius: "6px",
-              border: "1px solid rgba(255, 255, 255, 0.1)"
-            }}
-          >
-            <ArrowLeft size={14} color="#94a3b8" /> Standard App
-          </Link>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "13px", fontWeight: "600", color: "#f8fafc" }}>
-              {currentUser?.name || "National Administrator"}
-            </div>
-            <div style={{ fontSize: "11px", color: "#64748b" }}>
-              {currentUser?.email || "admin@ec-data.gov.gh"}
-            </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "7px 14px",
-              borderRadius: "8px",
-              background: "rgba(239, 68, 68, 0.15)",
-              color: "#f87171",
-              border: "1px solid rgba(239, 68, 68, 0.3)",
-              fontSize: "12px",
-              fontWeight: "600",
-              cursor: "pointer"
-            }}
-          >
-            <LogOut size={13} color="#94a3b8" /> Logout
-          </button>
-        </div>
-      </header>
-
-      <main style={{ maxWidth: "1600px", margin: "0 auto", padding: "28px 32px" }}>
+    <AdminShell
+      title="Executives Directory & Command Centre"
+      subtitle="Comprehensive nationwide registry of all 261,553 party executives across all 6 administrative tiers"
+      currentUser={currentUser}
+      onLogout={handleLogout}
+    >
+      <div style={{ maxWidth: "1600px", margin: "0 auto", padding: "28px 32px" }}>
         {/* Tier Cards Grid (6 Levels) with Grey Lucide Icons */}
         <section style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
@@ -1186,7 +1081,7 @@ export default function NationalAdminDashboard() {
             </div>
           </div>
         </section>
-      </main>
+      </div>
 
       {/* ========================================================================= */}
       {/* EDIT & VIEW MODAL DIALOG WITH GREY LUCIDE ICONS */}
@@ -1902,6 +1797,6 @@ export default function NationalAdminDashboard() {
           </div>
         </div>
       )}
-    </div>
+    </AdminShell>
   );
 }

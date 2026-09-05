@@ -5,6 +5,7 @@ import {
   createSession,
   buildSessionCookie,
 } from "@/lib/admin-auth";
+import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
 
 export async function POST(req: Request) {
   try {
@@ -46,11 +47,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verify role is admin_national or ADMIN
+    // Verify role is admin_national, ADMIN, or NATIONAL
     const roleUpper = String(user.role).toUpperCase();
-    if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN") {
+    if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN" && roleUpper !== "NATIONAL") {
       return NextResponse.json(
-        { error: "Access restricted: This dashboard requires national administrator privileges (admin_national)." },
+        { error: "Access restricted: This dashboard requires national administrator or officer privileges." },
         { status: 403 }
       );
     }
@@ -67,6 +68,23 @@ export async function POST(req: Request) {
     // Create session in ec-data
     const { token, expiresAt } = await createSession(user.id, req);
     const cookieHeader = buildSessionCookie(token, expiresAt);
+
+    // Audit log successful login with IP sync
+    const clientIp = getClientIp(req);
+    await logAuditEvent({
+      actorId: user.id,
+      action: "LOGIN",
+      resource: "User",
+      resourceId: user.id,
+      ipAddress: clientIp,
+      userAgent: req.headers.get("user-agent"),
+      metadata: {
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        authMethod: "PASSWORD_PBKDF2",
+      },
+    });
 
     const response = NextResponse.json({
       success: true,

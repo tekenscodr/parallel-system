@@ -3,11 +3,32 @@ import {
   parseCookies,
   revokeSession,
   clearSessionCookie,
+  getAuthenticatedAdmin,
   SESSION_COOKIE_NAME,
 } from "@/lib/admin-auth";
+import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
 
 export async function POST(req: Request) {
   try {
+    const session = await getAuthenticatedAdmin(req);
+    const clientIp = getClientIp(req);
+
+    if (session) {
+      await logAuditEvent({
+        actorId: session.user.id,
+        action: "LOGOUT",
+        resource: "User",
+        resourceId: session.user.id,
+        ipAddress: clientIp,
+        userAgent: req.headers.get("user-agent"),
+        metadata: {
+          email: session.user.email,
+          name: session.user.name,
+          role: session.user.role,
+        },
+      });
+    }
+
     const cookies = parseCookies(req.headers.get("cookie"));
     const token = cookies[SESSION_COOKIE_NAME];
     if (token) {

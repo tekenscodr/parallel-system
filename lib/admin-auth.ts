@@ -135,12 +135,22 @@ export async function getAuthenticatedAdmin(
     }
 
     const roleUpper = String(row.role).toUpperCase();
-    if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN") {
+    if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN" && roleUpper !== "NATIONAL") {
       return null;
     }
 
-    // Await last seen update cleanly in the same connection context
-    await sql`UPDATE "Session" SET "lastSeenAt" = NOW() WHERE id = ${row.sessionId}`;
+    // Extract real IP and update lastSeenAt + ipAddress cleanly in the same connection context
+    let currentIp = "127.0.0.1";
+    if (req) {
+      currentIp =
+        req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+        req.headers.get("x-real-ip")?.trim() ||
+        req.headers.get("cf-connecting-ip")?.trim() ||
+        "127.0.0.1";
+      await sql`UPDATE "Session" SET "lastSeenAt" = NOW(), "ipAddress" = ${currentIp} WHERE id = ${row.sessionId}`;
+    } else {
+      await sql`UPDATE "Session" SET "lastSeenAt" = NOW() WHERE id = ${row.sessionId}`;
+    }
 
     return {
       sessionId: row.sessionId,
@@ -154,6 +164,18 @@ export async function getAuthenticatedAdmin(
       },
     };
   });
+}
+
+export function isAdminNational(user: AdminUser | { role: string } | null | undefined): boolean {
+  if (!user || !user.role) return false;
+  const r = String(user.role).toUpperCase();
+  return r === "ADMIN_NATIONAL" || r === "ADMIN";
+}
+
+export function isNationalUser(user: AdminUser | { role: string } | null | undefined): boolean {
+  if (!user || !user.role) return false;
+  const r = String(user.role).toUpperCase();
+  return r === "NATIONAL";
 }
 
 export async function revokeSession(rawToken: string): Promise<void> {
