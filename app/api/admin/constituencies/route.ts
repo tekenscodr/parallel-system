@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
+import { normalizeConstituency } from "@/lib/constituency-normalizer";
 
 export async function GET(req: Request) {
   try {
@@ -28,9 +29,16 @@ export async function GET(req: Request) {
       `;
     });
 
+    const set = new Set<string>();
+    for (const r of rows) {
+      const norm = normalizeConstituency(r.name);
+      if (norm) set.add(norm);
+    }
+    const constituencies = Array.from(set).sort((a, b) => a.localeCompare(b));
+
     return NextResponse.json({
       region,
-      constituencies: rows.map((r) => r.name),
+      constituencies,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Failed to load constituencies";

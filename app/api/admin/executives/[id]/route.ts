@@ -206,6 +206,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     // 4. Log AuditEvent with IP Sync
     const clientIp = getClientIp(req);
     await logAuditEvent({
+      req,
       actorId: session.user.id,
       action: "EXECUTIVE_UPDATE",
       resource: "executives_all",
@@ -284,6 +285,7 @@ export async function DELETE(req: Request, { params }: RouteParams) {
     // 3. Log AuditEvent
     const clientIp = getClientIp(req);
     await logAuditEvent({
+      req,
       actorId: session.user.id,
       action: "EXECUTIVE_DELETE",
       resource: "executives_all",

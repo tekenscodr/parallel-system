@@ -10,6 +10,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { getClientHeaders } from "@/lib/client-device";
 
 export default function AdminChangePasswordPage() {
   const [email, setEmail] = useState("");
@@ -27,20 +28,9 @@ export default function AdminChangePasswordPage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    // Check authentication
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("admin_session_token")
-        : null;
-
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
     fetch("/api/admin/auth/me", {
       credentials: "include",
-      headers,
+      headers: getClientHeaders(),
     })
       .then((res) => {
         if (!res.ok) {
@@ -89,21 +79,9 @@ export default function AdminChangePasswordPage() {
     setLoading(true);
 
     try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("admin_session_token")
-          : null;
-
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
       const res = await fetch("/api/admin/auth/change-password", {
         method: "POST",
-        headers,
+        headers: getClientHeaders({ "Content-Type": "application/json" }),
         credentials: "include",
         body: JSON.stringify({
           email,

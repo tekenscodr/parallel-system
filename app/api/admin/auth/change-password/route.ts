@@ -147,6 +147,7 @@ export async function POST(req: Request) {
 
     // Record audit event with verified IP sync
     await logAuditEvent({
+      req,
       actorId: targetUserId,
       action: "PASSWORD_CHANGE",
       resource: "User",

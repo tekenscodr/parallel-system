@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { withEcSql } from "./db-ec";
+import { getClientIp } from "./audit-logger";
 
 export type AdminUser = {
   id: string;
@@ -55,11 +56,12 @@ export async function createSession(
   let deviceId = "browser_" + crypto.randomBytes(8).toString("hex");
 
   if (req) {
-    ipAddress =
-      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-      req.headers.get("cf-connecting-ip") ||
-      "127.0.0.1";
+    ipAddress = getClientIp(req);
     userAgent = req.headers.get("user-agent") || "Unknown";
+    const clientDevId = req.headers.get("x-device-id");
+    if (clientDevId) {
+      deviceId = clientDevId.slice(0, 64);
+    }
   }
 
   await withEcSql(async (sql) => {
@@ -140,13 +142,8 @@ export async function getAuthenticatedAdmin(
     }
 
     // Extract real IP and update lastSeenAt + ipAddress cleanly in the same connection context
-    let currentIp = "127.0.0.1";
     if (req) {
-      currentIp =
-        req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-        req.headers.get("x-real-ip")?.trim() ||
-        req.headers.get("cf-connecting-ip")?.trim() ||
-        "127.0.0.1";
+      const currentIp = getClientIp(req);
       await sql`UPDATE "Session" SET "lastSeenAt" = NOW(), "ipAddress" = ${currentIp} WHERE id = ${row.sessionId}`;
     } else {
       await sql`UPDATE "Session" SET "lastSeenAt" = NOW() WHERE id = ${row.sessionId}`;

@@ -15,6 +15,7 @@ export async function POST(req: Request) {
 
     if (session) {
       await logAuditEvent({
+        req,
         actorId: session.user.id,
         action: "LOGOUT",
         resource: "User",

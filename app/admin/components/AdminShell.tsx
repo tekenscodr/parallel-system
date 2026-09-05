@@ -20,6 +20,7 @@ import {
   EyeOff,
   ArrowRight,
 } from "lucide-react";
+import { initClientIpDetection } from "@/lib/client-device";
 
 interface AdminUser {
   id: string;
@@ -117,6 +118,10 @@ export function AdminShell({
     } catch {
       // ignore
     }
+  }, []);
+
+  useEffect(() => {
+    initClientIpDetection().catch(() => {});
   }, []);
 
   // Update cached role whenever currentUser is received

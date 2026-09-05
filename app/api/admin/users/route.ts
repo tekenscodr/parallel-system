@@ -124,6 +124,7 @@ export async function POST(req: Request) {
 
     // Audit log user creation with IP sync
     await logAuditEvent({
+      req,
       actorId: session.user.id,
       action: "USER_CREATE",
       resource: "User",

@@ -19,7 +19,9 @@ import {
   ChevronRight,
   FileText,
   Activity,
+  Laptop,
 } from "lucide-react";
+import { getClientHeaders } from "@/lib/client-device";
 
 interface AuditEvent {
   id: string;
@@ -79,7 +81,7 @@ export default function AuditLogsPage() {
 
   // Auth check
   useEffect(() => {
-    fetch("/api/admin/auth/me", { credentials: "include" })
+    fetch("/api/admin/auth/me", { headers: getClientHeaders(), credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data || !data.authenticated) {
@@ -113,7 +115,7 @@ export default function AuditLogsPage() {
       q: debouncedSearch,
     });
 
-    fetch(`/api/admin/audit-logs?${params.toString()}`, { credentials: "include" })
+    fetch(`/api/admin/audit-logs?${params.toString()}`, { headers: getClientHeaders(), credentials: "include" })
       .then((res) => (res.ok ? res.json() : { events: [], pagination: { total: 0, totalPages: 1 } }))
       .then((data) => {
         setEvents(data.events || []);
@@ -315,7 +317,7 @@ export default function AuditLogsPage() {
                 <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>Actor (User)</th>
                 <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>Action</th>
                 <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>Target Resource</th>
-                <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>Client IP Address</th>
+                <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>Client IP & Device</th>
                 <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600", textAlign: "right" }}>Details / Diff</th>
               </tr>
             </thead>
@@ -404,11 +406,35 @@ export default function AuditLogsPage() {
                       </td>
 
                       <td style={{ padding: "14px 18px" }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.25)", borderRadius: "6px", padding: "3px 8px" }}>
-                          <Globe size={12} color="#38bdf8" />
-                          <span style={{ fontFamily: "monospace", color: "#38bdf8", fontSize: "12px", fontWeight: "600" }}>
-                            {evt.ipAddress}
-                          </span>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.25)", borderRadius: "6px", padding: "3px 8px", width: "fit-content" }}>
+                            <Globe size={12} color="#38bdf8" />
+                            <span style={{ fontFamily: "monospace", color: "#38bdf8", fontSize: "12px", fontWeight: "600" }}>
+                              {evt.ipAddress}
+                            </span>
+                          </div>
+                          {evt.deviceId && evt.deviceId !== "web" && (
+                            <div
+                              title={`Hardware/Browser Device Identifier: ${evt.deviceId}`}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontSize: "10px",
+                                color: "#94a3b8",
+                                background: "rgba(255, 255, 255, 0.04)",
+                                padding: "2px 6px",
+                                borderRadius: "4px",
+                                width: "fit-content",
+                                border: "1px solid rgba(255, 255, 255, 0.08)",
+                              }}
+                            >
+                              <Laptop size={11} color="#64748b" />
+                              <span style={{ fontFamily: "monospace", color: "#cbd5e1" }}>
+                                {evt.deviceId.length > 18 ? evt.deviceId.slice(0, 16) + "…" : evt.deviceId}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </td>
 
@@ -586,6 +612,11 @@ export default function AuditLogsPage() {
                   <p style={{ fontSize: "11px", color: "#94a3b8", margin: "4px 0 0 0" }}>
                     Event ID: <code style={{ color: "#38bdf8" }}>{selectedEvent.id}</code> • Synced Client IP:{" "}
                     <code style={{ color: "#34d399" }}>{selectedEvent.ipAddress}</code>
+                    {selectedEvent.deviceId && selectedEvent.deviceId !== "web" && (
+                      <>
+                        {" "}• Device: <code style={{ color: "#fbbf24" }}>{selectedEvent.deviceId}</code>
+                      </>
+                    )}
                   </p>
                 </div>
                 <button

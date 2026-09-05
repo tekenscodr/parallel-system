@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AdminShell } from "@/app/admin/components/AdminShell";
+import { getClientHeaders } from "@/lib/client-device";
 import {
   Users,
   UserPlus,
@@ -73,7 +74,7 @@ export default function UsersManagementPage() {
 
   // Fetch current session
   useEffect(() => {
-    fetch("/api/admin/auth/me", { credentials: "include" })
+    fetch("/api/admin/auth/me", { headers: getClientHeaders(), credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data || !data.authenticated) {
@@ -100,7 +101,7 @@ export default function UsersManagementPage() {
   // Fetch users list
   const loadUsers = useCallback(() => {
     setLoadingUsers(true);
-    fetch("/api/admin/users", { credentials: "include" })
+    fetch("/api/admin/users", { headers: getClientHeaders(), credentials: "include" })
       .then((res) => (res.ok ? res.json() : { users: [] }))
       .then((data) => {
         setUsers(data.users || []);
@@ -129,7 +130,7 @@ export default function UsersManagementPage() {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getClientHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           name: createName,
           email: createEmail,
@@ -175,7 +176,7 @@ export default function UsersManagementPage() {
       const res = await fetch(`/api/admin/users/${user.id}`, {
         method: "PATCH",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getClientHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ status: nextStatus }),
       });
 
@@ -207,7 +208,7 @@ export default function UsersManagementPage() {
       const res = await fetch(`/api/admin/users/${resetModalUser.id}`, {
         method: "PATCH",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getClientHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ password: newPassword }),
       });
 

@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Landmark, AlertCircle, ArrowRight } from "lucide-react";
+import { initClientIpDetection, getClientHeaders } from "@/lib/client-device";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    initClientIpDetection().catch(() => {});
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +22,7 @@ export default function AdminLoginPage() {
     try {
       const res = await fetch("/api/admin/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getClientHeaders({ "Content-Type": "application/json" }),
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });

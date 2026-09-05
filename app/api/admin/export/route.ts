@@ -13,6 +13,7 @@ export async function GET(req: Request) {
     if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN") {
       const clientIp = getClientIp(req);
       await logAuditEvent({
+        req,
         actorId: session.user.id,
         action: "EXPORT_REJECTED",
         resource: "executives_all",
@@ -185,6 +186,7 @@ export async function GET(req: Request) {
 
     const clientIp = getClientIp(req);
     await logAuditEvent({
+      req,
       actorId: session.user.id,
       action: "EXPORT_CSV",
       resource: "executives_all",

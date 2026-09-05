@@ -34,6 +34,7 @@ import {
   Phone,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
+import { getClientHeaders } from "@/lib/client-device";
 
 type OverviewData = {
   totals: {
@@ -206,15 +207,8 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
   ],
 };
 
-function getAuthHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {};
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("admin_session_token");
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-  }
-  return headers;
+function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
+  return getClientHeaders(extra);
 }
 
 export default function NationalAdminDashboard() {

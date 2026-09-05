@@ -72,6 +72,7 @@ export async function POST(req: Request) {
     // Audit log successful login with IP sync
     const clientIp = getClientIp(req);
     await logAuditEvent({
+      req,
       actorId: user.id,
       action: "LOGIN",
       resource: "User",

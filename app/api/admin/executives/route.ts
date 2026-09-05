@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
+import { normalizeConstituency } from "@/lib/constituency-normalizer";
 
 export async function GET(req: Request) {
   try {
@@ -32,7 +33,12 @@ export async function GET(req: Request) {
         conditions.push(sql`region ILIKE ${region}`);
       }
       if (constituency) {
-        conditions.push(sql`constituency ILIKE ${constituency}`);
+        const norm = normalizeConstituency(constituency);
+        if (norm && norm !== constituency) {
+          conditions.push(sql`(constituency ILIKE ${constituency} OR constituency ILIKE ${norm})`);
+        } else {
+          conditions.push(sql`constituency ILIKE ${constituency}`);
+        }
       }
       if (search) {
         const s = `%${search}%`;
@@ -254,7 +260,7 @@ export async function POST(req: Request) {
           ${executiveLevel.trim()},
           ${slotStatus.trim()},
           ${region.trim()},
-          ${constituency.trim() || null},
+          ${normalizeConstituency(constituency) || null},
           ${electoralArea.trim() || null},
           ${pollingStation.trim() || null},
           ${position.trim()},
@@ -301,6 +307,7 @@ export async function POST(req: Request) {
     // Log AuditEvent
     const clientIp = getClientIp(req);
     await logAuditEvent({
+      req,
       actorId: session.user.id,
       action: "EXECUTIVE_CREATE",
       resource: "executives_all",

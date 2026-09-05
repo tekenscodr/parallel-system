@@ -81,6 +81,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     // Audit log user modification with IP sync
     await logAuditEvent({
+      req,
       actorId: session.user.id,
       action: "USER_UPDATE",
       resource: "User",
