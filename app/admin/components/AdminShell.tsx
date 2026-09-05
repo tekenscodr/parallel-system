@@ -10,16 +10,15 @@ import {
   Layers,
   LogOut,
   ArrowLeft,
-  Activity,
-  CheckCircle2,
-  Lock,
   ChevronLeft,
   ChevronRight,
   Menu,
   X,
-  UserCheck,
   ShieldCheck,
   KeyRound,
+  Eye,
+  EyeOff,
+  ArrowRight,
 } from "lucide-react";
 
 interface AdminUser {
@@ -46,33 +45,77 @@ export function AdminShell({
 }: AdminShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [hasMounted, setHasMounted] = useState(false);
-  const [cachedRole, setCachedRole] = useState("");
-  const [clientIp, setClientIp] = useState<string>("127.0.0.1");
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedSidebar = localStorage.getItem("admin_sidebar_open");
+        if (savedSidebar !== null) return savedSidebar === "true";
+      } catch {
+        // ignore
+      }
+    }
+    return true;
+  });
+
+  const [cachedRole] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem("admin_user_role") || "";
+      } catch {
+        // ignore
+      }
+    }
+    return "";
+  });
+
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [modalStep, setModalStep] = useState<"prompt" | "form">("prompt");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
   const [pwError, setPwError] = useState("");
   const [pwSuccess, setPwSuccess] = useState("");
 
-  // Persist sidebar preference & restore cached role immediately to prevent flicker on refresh
+  // 5-minute reminder to confirm whether to change or keep password if not changed after login
   useEffect(() => {
-    setHasMounted(true);
+    if (typeof window === "undefined") return;
+
     try {
-      const savedSidebar = localStorage.getItem("admin_sidebar_open");
-      if (savedSidebar !== null) {
-        setSidebarOpen(savedSidebar === "true");
+      const isUpdated = localStorage.getItem("admin_password_updated") === "true";
+      const isDismissed = sessionStorage.getItem("admin_password_dismissed") === "true";
+
+      if (isUpdated || isDismissed) {
+        return;
       }
-      const savedRole = localStorage.getItem("admin_user_role");
-      if (savedRole) {
-        setCachedRole(savedRole);
+
+      const loginTimeStr = sessionStorage.getItem("admin_login_time");
+      const loginTime = loginTimeStr ? parseInt(loginTimeStr, 10) : Date.now();
+      if (!loginTimeStr) {
+        sessionStorage.setItem("admin_login_time", String(loginTime));
       }
+
+      const FIVE_MINUTES_MS = 5 * 60 * 1000;
+      const elapsed = Date.now() - loginTime;
+      const remaining = Math.max(0, FIVE_MINUTES_MS - elapsed);
+
+      const timer = setTimeout(() => {
+        const currentUpdated = localStorage.getItem("admin_password_updated") === "true";
+        const currentDismissed = sessionStorage.getItem("admin_password_dismissed") === "true";
+        if (!currentUpdated && !currentDismissed) {
+          setModalStep("prompt");
+          setPwError("");
+          setPwSuccess("");
+          setPasswordModalOpen(true);
+        }
+      }, remaining);
+
+      return () => clearTimeout(timer);
     } catch {
-      // localStorage may be blocked in some private browsing contexts
+      // ignore
     }
   }, []);
 
@@ -80,7 +123,6 @@ export function AdminShell({
   useEffect(() => {
     if (currentUser?.role) {
       const upper = String(currentUser.role).toUpperCase();
-      setCachedRole(upper);
       try {
         localStorage.setItem("admin_user_role", upper);
       } catch {
@@ -121,9 +163,13 @@ export function AdminShell({
 
     setPwLoading(true);
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("admin_session_token") : null;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/admin/auth/change-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         credentials: "include",
         body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
       });
@@ -137,6 +183,11 @@ export function AdminShell({
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      try {
+        localStorage.setItem("admin_password_updated", "true");
+      } catch {
+        // ignore
+      }
       setTimeout(() => {
         setPasswordModalOpen(false);
         setPwSuccess("");
@@ -151,7 +202,6 @@ export function AdminShell({
 
   const roleUpper = String(currentUser?.role || cachedRole || "").toUpperCase();
   const isAdminNational = roleUpper === "ADMIN_NATIONAL" || roleUpper === "ADMIN";
-  const isNationalOfficer = roleUpper === "NATIONAL";
 
   // Navigation tabs visible only for Admin_national
   const navItems = [
@@ -527,6 +577,7 @@ export function AdminShell({
                 <button
                   type="button"
                   onClick={() => {
+                    setModalStep("form");
                     setPasswordModalOpen(true);
                     setPwError("");
                     setPwSuccess("");
@@ -634,6 +685,7 @@ export function AdminShell({
               <button
                 type="button"
                 onClick={() => {
+                  setModalStep("form");
                   setPasswordModalOpen(true);
                   setPwError("");
                   setPwSuccess("");
@@ -744,21 +796,27 @@ export function AdminShell({
                     width: "36px",
                     height: "36px",
                     borderRadius: "8px",
-                    background: "rgba(59, 130, 246, 0.15)",
-                    border: "1px solid rgba(59, 130, 246, 0.3)",
+                    background: modalStep === "prompt" ? "rgba(56, 189, 248, 0.15)" : "rgba(59, 130, 246, 0.15)",
+                    border: modalStep === "prompt" ? "1px solid rgba(56, 189, 248, 0.3)" : "1px solid rgba(59, 130, 246, 0.3)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <KeyRound size={18} color="#60a5fa" />
+                  {modalStep === "prompt" ? (
+                    <ShieldAlert size={18} color="#38bdf8" />
+                  ) : (
+                    <KeyRound size={18} color="#60a5fa" />
+                  )}
                 </div>
                 <div>
                   <h3 style={{ fontSize: "16px", fontWeight: "700", margin: 0, color: "#f8fafc" }}>
-                    Change Password
+                    {modalStep === "prompt" ? "Security Confirmation" : "Change Password"}
                   </h3>
                   <p style={{ fontSize: "11px", color: "#94a3b8", margin: "2px 0 0 0" }}>
-                    Update your account access credentials
+                    {modalStep === "prompt"
+                      ? "Confirm whether to change or keep your password"
+                      : "Update your account access credentials"}
                   </p>
                 </div>
               </div>
@@ -810,116 +868,263 @@ export function AdminShell({
               </div>
             )}
 
-            <form onSubmit={handleChangePassword}>
-              <div style={{ marginBottom: "14px" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#cbd5e1", marginBottom: "5px" }}>
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="••••••••••••"
+            {modalStep === "prompt" ? (
+              /* ================= STAGE 1: PROMPT ================= */
+              <div>
+                <div
                   style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: "6px",
-                    background: "rgba(2, 6, 23, 0.7)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    color: "#ffffff",
-                    fontSize: "13px",
-                    outline: "none",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              <div style={{ marginBottom: "14px" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#cbd5e1", marginBottom: "5px" }}>
-                  New Password (min 8 characters)
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: "6px",
-                    background: "rgba(2, 6, 23, 0.7)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    color: "#ffffff",
-                    fontSize: "13px",
-                    outline: "none",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              <div style={{ marginBottom: "20px" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#cbd5e1", marginBottom: "5px" }}>
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: "6px",
-                    background: "rgba(2, 6, 23, 0.7)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    color: "#ffffff",
-                    fontSize: "13px",
-                    outline: "none",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                <button
-                  type="button"
-                  onClick={() => setPasswordModalOpen(false)}
-                  disabled={pwLoading}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    background: "transparent",
-                    color: "#cbd5e1",
-                    fontSize: "13px",
-                    cursor: "pointer",
+                    padding: "14px 16px",
+                    background: "rgba(56, 189, 248, 0.08)",
+                    border: "1px solid rgba(56, 189, 248, 0.2)",
+                    borderRadius: "10px",
+                    marginBottom: "20px",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "12px",
                   }}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={pwLoading}
-                  style={{
-                    padding: "8px 18px",
-                    borderRadius: "6px",
-                    border: "none",
-                    background: pwLoading ? "#334155" : "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
-                    color: "#ffffff",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    cursor: pwLoading ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {pwLoading ? "Updating…" : "Update Password"}
-                </button>
+                  <ShieldAlert size={20} color="#38bdf8" style={{ flexShrink: 0, marginTop: "2px" }} />
+                  <div>
+                    <h4 style={{ fontSize: "13px", fontWeight: "700", color: "#f8fafc", margin: "0 0 4px 0" }}>
+                      Password Update Notice
+                    </h4>
+                    <p style={{ fontSize: "12px", color: "#cbd5e1", margin: 0, lineHeight: 1.5 }}>
+                      You logged in without changing your password. Would you like to set a new password now or keep your current password?
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        sessionStorage.setItem("admin_password_dismissed", "true");
+                      } catch {
+                        // ignore
+                      }
+                      setPasswordModalOpen(false);
+                    }}
+                    style={{
+                      padding: "11px 14px",
+                      borderRadius: "8px",
+                      border: "1px solid rgba(255, 255, 255, 0.15)",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      color: "#cbd5e1",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      textAlign: "center",
+                    }}
+                  >
+                    Keep Password
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModalStep("form");
+                      setPwError("");
+                      setPwSuccess("");
+                    }}
+                    style={{
+                      padding: "11px 14px",
+                      borderRadius: "8px",
+                      border: "none",
+                      background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      boxShadow: "0 4px 12px rgba(2, 132, 199, 0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <span>Change Password</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
               </div>
-            </form>
+            ) : (
+              /* ================= STAGE 2: FORM ================= */
+              <form onSubmit={handleChangePassword}>
+                <div style={{ marginBottom: "14px" }}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#cbd5e1", marginBottom: "5px" }}>
+                    Current Password
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type={showCurrentPw ? "text" : "password"}
+                      required
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      style={{
+                        width: "100%",
+                        padding: "10px 38px 10px 12px",
+                        borderRadius: "6px",
+                        background: "rgba(2, 6, 23, 0.7)",
+                        border: "1px solid rgba(255, 255, 255, 0.15)",
+                        color: "#ffffff",
+                        fontSize: "13px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPw((prev) => !prev)}
+                      style={{
+                        position: "absolute",
+                        right: "8px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "transparent",
+                        border: "none",
+                        color: "#94a3b8",
+                        cursor: "pointer",
+                        padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      {showCurrentPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: "14px" }}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#cbd5e1", marginBottom: "5px" }}>
+                    New Password (min 8 characters)
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type={showNewPw ? "text" : "password"}
+                      required
+                      minLength={8}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      style={{
+                        width: "100%",
+                        padding: "10px 38px 10px 12px",
+                        borderRadius: "6px",
+                        background: "rgba(2, 6, 23, 0.7)",
+                        border: "1px solid rgba(255, 255, 255, 0.15)",
+                        color: "#ffffff",
+                        fontSize: "13px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPw((prev) => !prev)}
+                      style={{
+                        position: "absolute",
+                        right: "8px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "transparent",
+                        border: "none",
+                        color: "#94a3b8",
+                        cursor: "pointer",
+                        padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      {showNewPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: "20px" }}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#cbd5e1", marginBottom: "5px" }}>
+                    Confirm New Password
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type={showConfirmPw ? "text" : "password"}
+                      required
+                      minLength={8}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      style={{
+                        width: "100%",
+                        padding: "10px 38px 10px 12px",
+                        borderRadius: "6px",
+                        background: "rgba(2, 6, 23, 0.7)",
+                        border: "1px solid rgba(255, 255, 255, 0.15)",
+                        color: "#ffffff",
+                        fontSize: "13px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPw((prev) => !prev)}
+                      style={{
+                        position: "absolute",
+                        right: "8px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "transparent",
+                        border: "none",
+                        color: "#94a3b8",
+                        cursor: "pointer",
+                        padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      {showConfirmPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                  <button
+                    type="button"
+                    onClick={() => setPasswordModalOpen(false)}
+                    disabled={pwLoading}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "6px",
+                      border: "1px solid rgba(255, 255, 255, 0.15)",
+                      background: "transparent",
+                      color: "#cbd5e1",
+                      fontSize: "13px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={pwLoading}
+                    style={{
+                      padding: "8px 18px",
+                      borderRadius: "6px",
+                      border: "none",
+                      background: pwLoading ? "#334155" : "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      cursor: pwLoading ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {pwLoading ? "Updating…" : "Update Password"}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

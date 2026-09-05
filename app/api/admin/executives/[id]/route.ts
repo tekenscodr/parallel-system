@@ -237,3 +237,74 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request, { params }: RouteParams) {
+  try {
+    const session = await getAuthenticatedAdmin(req);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id: idStr } = await params;
+    const id = parseInt(idStr, 10);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "Invalid executive ID" }, { status: 400 });
+    }
+
+    // 1. Fetch current record snapshot for audit logging
+    const existingRow = await withEcSql(async (sql) => {
+      const rows = await sql`
+        SELECT 
+          id,
+          executive_name as "executiveName",
+          position,
+          executive_level as "executiveLevel",
+          region,
+          constituency,
+          electoral_area as "electoralArea",
+          polling_station as "pollingStation",
+          voter_id as "voterId",
+          status
+        FROM executives_all
+        WHERE id = ${id}
+        LIMIT 1
+      `;
+      return rows[0] || null;
+    });
+
+    if (!existingRow) {
+      return NextResponse.json({ error: "Executive record not found" }, { status: 404 });
+    }
+
+    // 2. Perform deletion
+    await withEcSql(async (sql) => {
+      await sql`DELETE FROM executives_all WHERE id = ${id}`;
+    });
+
+    // 3. Log AuditEvent
+    const clientIp = getClientIp(req);
+    await logAuditEvent({
+      actorId: session.user.id,
+      action: "EXECUTIVE_DELETE",
+      resource: "executives_all",
+      resourceId: String(id),
+      ipAddress: clientIp,
+      userAgent: req.headers.get("user-agent"),
+      metadata: {
+        deletedExecutive: existingRow,
+        userEmail: session.user.email,
+        userName: session.user.name,
+        userRole: session.user.role,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `Executive "${existingRow.executiveName}" was deleted successfully.`,
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Error deleting executive";
+    console.error("Executive delete error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
