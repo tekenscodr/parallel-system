@@ -1,11 +1,32 @@
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
+import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
 
 export async function GET(req: Request) {
   try {
     const session = await getAuthenticatedAdmin(req);
     if (!session) {
       return new Response("Unauthorized", { status: 401 });
+    }
+
+    const roleUpper = String(session.user?.role || "").toUpperCase();
+    if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN") {
+      const clientIp = getClientIp(req);
+      await logAuditEvent({
+        actorId: session.user.id,
+        action: "EXPORT_REJECTED",
+        resource: "executives_all",
+        ipAddress: clientIp,
+        userAgent: req.headers.get("user-agent"),
+        metadata: {
+          reason: "Role unauthorized for CSV export",
+          attemptedRole: session.user.role,
+        },
+      });
+      return new Response(
+        JSON.stringify({ error: "Access denied. Only national administrators can export filtered CSV data." }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     const url = new URL(req.url);
@@ -96,6 +117,24 @@ export async function GET(req: Request) {
     }
 
     const filename = `national_executives_${level ? level.toLowerCase().replace(/\s+/g, "_") : "all"}_export.csv`;
+
+    const clientIp = getClientIp(req);
+    await logAuditEvent({
+      actorId: session.user.id,
+      action: "EXPORT_CSV",
+      resource: "executives_all",
+      ipAddress: clientIp,
+      userAgent: req.headers.get("user-agent"),
+      metadata: {
+        filterLevel: level || "ALL",
+        filterRegion: region || "ALL",
+        filterConstituency: constituency || "ALL",
+        filterCohort: cohort || "ALL",
+        filterSlot: slot || "ALL",
+        filterSearch: search || null,
+        rowsExported: rows.length,
+      },
+    });
 
     return new Response(csvContent, {
       headers: {

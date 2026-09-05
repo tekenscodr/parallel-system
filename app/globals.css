@@ -8,7 +8,8 @@ button, input, select, textarea { font:inherit; }
 button, a, select { -webkit-tap-highlight-color:transparent; }
 button { cursor:pointer; }
 .app-shell { min-height:100vh; display:flex; }
-.sidebar { width:248px; background:var(--navy); color:#fff; position:fixed; inset:0 auto 0 0; padding:29px 20px 20px; display:flex; flex-direction:column; z-index:5; }
+.sidebar { width:248px; background:var(--navy); color:#fff; position:fixed; inset:0 auto 0 0; padding:29px 20px 20px; display:flex; flex-direction:column; z-index:5; transition: transform 0.2s ease; }
+.app-shell.sidebar-collapsed .sidebar { transform: translateX(-100%); pointer-events: none; }
 .brand { display:flex; align-items:center; gap:11px; color:#fff; text-decoration:none; font-weight:800; font-size:26px; letter-spacing:-1.2px; padding:0 12px 33px; }
 .brand>span:last-child>span { color:var(--orange); }
 .brand-mark,.sender-logo { display:flex; align-items:flex-end; gap:3px; height:25px; }
@@ -23,7 +24,8 @@ button { cursor:pointer; }
 .profile { margin-top:18px; border-top:1px solid #294559; padding:18px 8px 0; display:grid; grid-template-columns:38px 1fr auto; align-items:center; gap:10px; }
 .avatar,.mini-avatar { border-radius:50%; background:#e4bda5; color:#6c3a28; display:grid; place-items:center; font-weight:800; }
 .avatar { width:38px;height:38px;font-size:12px }.profile strong{display:block;font-size:12px}.profile small{display:block;color:#8195a1;font-size:10px;margin-top:3px}.profile button{background:none;border:0;color:#8fa0aa}
-.workspace { margin-left:248px; width:calc(100% - 248px); }
+.workspace { margin-left:248px; width:calc(100% - 248px); transition: margin-left 0.2s ease, width 0.2s ease; }
+.app-shell.sidebar-collapsed .workspace { margin-left:0; width:100%; }
 .topbar { height:94px; background:#fff; border-bottom:1px solid var(--line); padding:21px 38px; display:flex; align-items:center; justify-content:space-between; }
 .topbar small,.preview-heading small { color:#8b969c; font-size:10px; letter-spacing:1.7px; font-weight:800; }
 .topbar h1 { font-family:Georgia,serif; font-size:26px; line-height:1; margin:7px 0 0; letter-spacing:-.6px; }

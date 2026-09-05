@@ -92,6 +92,9 @@ export default function AuditLogsPage() {
           return;
         }
         setCurrentUser(data.user);
+        if (typeof window !== "undefined" && data.user?.role) {
+          localStorage.setItem("admin_user_role", String(data.user.role).toUpperCase());
+        }
         setLoadingUser(false);
       })
       .catch(() => {

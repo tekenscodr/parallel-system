@@ -204,6 +204,9 @@ export default function NationalAdminDashboard() {
           return;
         }
         setCurrentUser(authData.user);
+        if (typeof window !== "undefined" && authData.user?.role) {
+          localStorage.setItem("admin_user_role", String(authData.user.role).toUpperCase());
+        }
 
         // Load overview analytics
         fetch("/api/admin/overview", {
@@ -266,6 +269,7 @@ export default function NationalAdminDashboard() {
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("admin_session_token");
+      localStorage.removeItem("admin_user_role");
       document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     }
     await fetch("/api/admin/auth/logout", { method: "POST", credentials: "include" });
@@ -383,6 +387,13 @@ export default function NationalAdminDashboard() {
       setModalError(err instanceof Error ? err.message : "Failed to save updates.");
     }
   };
+
+  const userRole = String(
+    currentUser?.role ||
+    (typeof window !== "undefined" ? localStorage.getItem("admin_user_role") : "") ||
+    ""
+  ).toUpperCase();
+  const isAdminNational = userRole === "ADMIN_NATIONAL" || userRole === "ADMIN";
 
   const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}`;
 
@@ -633,28 +644,30 @@ export default function NationalAdminDashboard() {
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <a
-                href={exportUrl}
-                download
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "7px",
-                  padding: "9px 14px",
-                  borderRadius: "8px",
-                  background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                  color: "#ffffff",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  textDecoration: "none",
-                  boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)"
-                }}
-              >
-                <Download size={14} color="#ffffff" /> Export Filtered CSV
-              </a>
-            </div>
+            {/* Action Buttons: Restricted exclusively to admin_national */}
+            {isAdminNational && (
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <a
+                  href={exportUrl}
+                  download
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    padding: "9px 14px",
+                    borderRadius: "8px",
+                    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                    color: "#ffffff",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    textDecoration: "none",
+                    boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)"
+                  }}
+                >
+                  <Download size={14} color="#ffffff" /> Export Filtered CSV
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Filter Dropdowns */}
