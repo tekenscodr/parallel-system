@@ -46,7 +46,10 @@ export default function AdminChangePasswordPage() {
           return;
         }
 
-        if (data.user?.passwordChanged) {
+        const roleUpper = String(data.user?.role || "").toUpperCase();
+        const isAdmin = roleUpper === "ADMIN_NATIONAL" || roleUpper === "ADMIN";
+
+        if (!isAdmin && data.user?.passwordChanged) {
           try {
             localStorage.setItem("admin_password_updated", "true");
           } catch {

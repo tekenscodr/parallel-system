@@ -226,7 +226,7 @@ export function AdminShell({
 
   const roleUpper = String(currentUser?.role || cachedRole || "").toUpperCase();
   const isAdminNational = roleUpper === "ADMIN_NATIONAL" || roleUpper === "ADMIN";
-  const isPasswordLocked = Boolean(currentUser?.passwordChanged);
+  const isPasswordLocked = !isAdminNational && Boolean(currentUser?.passwordChanged);
 
   // Navigation tabs visible only for Admin_national
   const navItems = [

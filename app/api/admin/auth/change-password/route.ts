@@ -117,11 +117,15 @@ export async function POST(req: Request) {
       passwordAlreadyChanged = Boolean(dbUser.passwordChanged);
     }
 
-    // Database check: Enforce that user can only change password once
-    if (passwordAlreadyChanged) {
+    const targetRoleUpper = String(targetRole || "").toUpperCase();
+    const isTargetAdmin = targetRoleUpper === "ADMIN_NATIONAL" || targetRoleUpper === "ADMIN";
+
+    // Database check: Non-admin users can only change password once.
+    // Administrators (Admin_national / Admin) can update/change their password at any time.
+    if (!isTargetAdmin && passwordAlreadyChanged) {
       return NextResponse.json(
         {
-          error: "You have already changed your password. Under system security policy, passwords can only be changed once.",
+          error: "You have already changed your password. Under system security policy, standard accounts can only change their password once.",
           code: "PASSWORD_ALREADY_CHANGED",
         },
         { status: 403 }
@@ -148,29 +152,46 @@ export async function POST(req: Request) {
     // Compute new PBKDF2 hash
     const newHash = hashPassword(newPassword);
 
-    // Atomic update in ec-data database: only updates if passwordChanged is false
+    // Atomic update in ec-data database:
+    // Administrators can update anytime; standard users only if passwordChanged is false.
     const updateResult = await withEcSql(async (sql) => {
-      const rows = await sql`
-        UPDATE "User"
-        SET 
-          "passwordHash" = ${newHash},
-          "passwordChanged" = true,
-          "passwordChangedAt" = NOW(),
-          "updatedAt" = NOW()
-        WHERE id = ${targetUserId}
-          AND "passwordChanged" = false
-        RETURNING id, "passwordChanged"
-      `;
-      return rows;
+      if (isTargetAdmin) {
+        const rows = await sql`
+          UPDATE "User"
+          SET 
+            "passwordHash" = ${newHash},
+            "passwordChanged" = true,
+            "passwordChangedAt" = NOW(),
+            "updatedAt" = NOW()
+          WHERE id = ${targetUserId}
+          RETURNING id, "passwordChanged"
+        `;
+        return rows;
+      } else {
+        const rows = await sql`
+          UPDATE "User"
+          SET 
+            "passwordHash" = ${newHash},
+            "passwordChanged" = true,
+            "passwordChangedAt" = NOW(),
+            "updatedAt" = NOW()
+          WHERE id = ${targetUserId}
+            AND "passwordChanged" = false
+          RETURNING id, "passwordChanged"
+        `;
+        return rows;
+      }
     });
 
     if (!updateResult || updateResult.length === 0) {
       return NextResponse.json(
         {
-          error: "Password has already been changed. Under system security policy, passwords can only be changed once.",
-          code: "PASSWORD_ALREADY_CHANGED",
+          error: isTargetAdmin
+            ? "Failed to update password."
+            : "Password has already been changed. Under system security policy, passwords can only be changed once.",
+          code: isTargetAdmin ? "UPDATE_FAILED" : "PASSWORD_ALREADY_CHANGED",
         },
-        { status: 403 }
+        { status: isTargetAdmin ? 500 : 403 }
       );
     }
 

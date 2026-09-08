@@ -22,6 +22,11 @@ import {
   Key,
   Globe,
   Clock,
+  Eye,
+  EyeOff,
+  Copy,
+  Check,
+  Sparkles,
 } from "lucide-react";
 
 interface AdminUserRecord {
@@ -62,6 +67,7 @@ export default function UsersManagementPage() {
   const [createName, setCreateName] = useState("");
   const [createEmail, setCreateEmail] = useState("");
   const [createPassword, setCreatePassword] = useState("");
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
   const [createRole, setCreateRole] = useState("NATIONAL");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
@@ -70,9 +76,60 @@ export default function UsersManagementPage() {
   // Reset Password Modal
   const [resetModalUser, setResetModalUser] = useState<AdminUserRecord | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(true);
+  const [completedPassword, setCompletedPassword] = useState("");
+  const [copied, setCopied] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState("");
+
+  const generateTemporaryPassword = () => {
+    const letters = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    const digits = "23456789";
+    let rand = "Temp#";
+    for (let i = 0; i < 4; i++) {
+      rand += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+    for (let i = 0; i < 3; i++) {
+      rand += digits.charAt(Math.floor(Math.random() * digits.length));
+    }
+    rand += "!";
+    return rand;
+  };
+
+  const handleCopyPassword = (textToCopy: string) => {
+    if (!textToCopy) return;
+    navigator.clipboard?.writeText(textToCopy).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Keyboard accessibility and body scroll lock for open modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (resetModalUser) {
+          setResetModalUser(null);
+          setCompletedPassword("");
+        }
+        if (createModalOpen) {
+          setCreateModalOpen(false);
+        }
+      }
+    };
+
+    if (resetModalUser || createModalOpen) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKeyDown);
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [resetModalUser, createModalOpen]);
 
   // Fetch current session
   useEffect(() => {
@@ -211,7 +268,7 @@ export default function UsersManagementPage() {
         method: "PATCH",
         credentials: "include",
         headers: getClientHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ password: newPassword }),
+        body: JSON.stringify({ password: newPassword, resetPassword: true }),
       });
 
       const data = await res.json();
@@ -219,13 +276,10 @@ export default function UsersManagementPage() {
         throw new Error(data.error || "Failed to reset password.");
       }
 
-      setResetSuccess("Password successfully updated. User is now eligible for one-time password update.");
-      setNewPassword("");
+      const finalTempPw = data.temporaryPassword || newPassword;
+      setCompletedPassword(finalTempPw);
+      setResetSuccess("Temporary password generated and saved to database.");
       loadUsers();
-      setTimeout(() => {
-        setResetModalUser(null);
-        setResetSuccess("");
-      }, 1400);
     } catch (err: unknown) {
       setResetError(err instanceof Error ? err.message : "Error resetting password.");
     } finally {
@@ -528,17 +582,33 @@ export default function UsersManagementPage() {
                       <td style={{ padding: "14px 18px" }}>
                         <span
                           title={
-                            u.passwordChanged
-                              ? `Password was changed on ${u.passwordChangedAt ? new Date(u.passwordChangedAt).toLocaleString() : "record"} and is locked against further changes.`
-                              : "User has not changed password yet. One-time change is allowed."
+                            isAdmin
+                              ? u.passwordChanged
+                                ? `Administrator account: Password was updated on ${u.passwordChangedAt ? new Date(u.passwordChangedAt).toLocaleString() : "record"}. Can be updated at any time.`
+                                : "Administrator account: Initial password set. Eligible for updates at any time."
+                              : u.passwordChanged
+                              ? `Standard account: Password was changed on ${u.passwordChangedAt ? new Date(u.passwordChangedAt).toLocaleString() : "record"} and is locked under one-time policy.`
+                              : "Standard account: User has not changed password yet. Eligible for one-time update."
                           }
                           style={{
                             display: "inline-flex",
                             alignItems: "center",
                             gap: "5px",
-                            background: u.passwordChanged ? "rgba(16, 185, 129, 0.12)" : "rgba(234, 179, 8, 0.12)",
-                            color: u.passwordChanged ? "#34d399" : "#fbbf24",
-                            border: u.passwordChanged ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(234, 179, 8, 0.3)",
+                            background: isAdmin
+                              ? "rgba(59, 130, 246, 0.12)"
+                              : u.passwordChanged
+                              ? "rgba(16, 185, 129, 0.12)"
+                              : "rgba(234, 179, 8, 0.12)",
+                            color: isAdmin
+                              ? "#60a5fa"
+                              : u.passwordChanged
+                              ? "#34d399"
+                              : "#fbbf24",
+                            border: isAdmin
+                              ? "1px solid rgba(59, 130, 246, 0.3)"
+                              : u.passwordChanged
+                              ? "1px solid rgba(16, 185, 129, 0.3)"
+                              : "1px solid rgba(234, 179, 8, 0.3)",
                             borderRadius: "999px",
                             padding: "3px 10px",
                             fontSize: "11px",
@@ -550,10 +620,20 @@ export default function UsersManagementPage() {
                               width: "6px",
                               height: "6px",
                               borderRadius: "50%",
-                              background: u.passwordChanged ? "#34d399" : "#fbbf24",
+                              background: isAdmin
+                                ? "#60a5fa"
+                                : u.passwordChanged
+                                ? "#34d399"
+                                : "#fbbf24",
                             }}
                           />
-                          {u.passwordChanged ? "Changed (Locked)" : "Pending First Change"}
+                          {isAdmin
+                            ? u.passwordChanged
+                              ? "Configured (Admin)"
+                              : "Pending Setup"
+                            : u.passwordChanged
+                            ? "Changed (Locked)"
+                            : "Pending First Change"}
                         </span>
                       </td>
 
@@ -587,7 +667,11 @@ export default function UsersManagementPage() {
                             onClick={() => {
                               setResetError("");
                               setResetSuccess("");
-                              setNewPassword("");
+                              setCompletedPassword("");
+                              setCopied(false);
+                              const initialTemp = generateTemporaryPassword();
+                              setNewPassword(initialTemp);
+                              setShowResetPassword(true);
                               setResetModalUser(u);
                             }}
                             title="Reset password"
@@ -640,6 +724,9 @@ export default function UsersManagementPage() {
         {/* MODAL: CREATE USER */}
         {createModalOpen && (
           <div
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setCreateModalOpen(false);
+            }}
             style={{
               position: "fixed",
               inset: 0,
@@ -656,6 +743,8 @@ export default function UsersManagementPage() {
               style={{
                 width: "100%",
                 maxWidth: "480px",
+                maxHeight: "90vh",
+                overflowY: "auto",
                 background: "#0F172A",
                 border: "1px solid rgba(255, 255, 255, 0.12)",
                 borderRadius: "14px",
@@ -746,13 +835,38 @@ export default function UsersManagementPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#94a3b8", marginBottom: "6px" }}>
-                    Initial Password
-                  </label>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                    <label style={{ fontSize: "12px", fontWeight: "600", color: "#94a3b8" }}>
+                      Initial Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const gen = generateTemporaryPassword();
+                        setCreatePassword(gen);
+                        setShowCreatePassword(true);
+                      }}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        background: "transparent",
+                        border: "none",
+                        color: "#38bdf8",
+                        fontSize: "11px",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        padding: 0,
+                      }}
+                    >
+                      <Sparkles size={12} />
+                      <span>Generate Random</span>
+                    </button>
+                  </div>
                   <div style={{ position: "relative" }}>
                     <Lock size={15} color="#64748b" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
                     <input
-                      type="password"
+                      type={showCreatePassword ? "text" : "password"}
                       required
                       minLength={8}
                       placeholder="Min. 8 characters"
@@ -760,15 +874,38 @@ export default function UsersManagementPage() {
                       onChange={(e) => setCreatePassword(e.target.value)}
                       style={{
                         width: "100%",
-                        padding: "10px 12px 10px 36px",
+                        padding: "10px 38px 10px 36px",
                         borderRadius: "8px",
                         background: "#1E293B",
                         border: "1px solid rgba(255, 255, 255, 0.12)",
                         color: "#ffffff",
                         fontSize: "13px",
                         outline: "none",
+                        boxSizing: "border-box",
                       }}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowCreatePassword((prev) => !prev)}
+                      tabIndex={-1}
+                      aria-label={showCreatePassword ? "Hide password" : "Show password"}
+                      style={{
+                        position: "absolute",
+                        right: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "transparent",
+                        border: "none",
+                        color: "#94a3b8",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "4px",
+                      }}
+                    >
+                      {showCreatePassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
                   </div>
                 </div>
 
@@ -840,6 +977,12 @@ export default function UsersManagementPage() {
         {/* MODAL: RESET PASSWORD */}
         {resetModalUser && (
           <div
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setResetModalUser(null);
+                setCompletedPassword("");
+              }
+            }}
             style={{
               position: "fixed",
               inset: 0,
@@ -855,11 +998,14 @@ export default function UsersManagementPage() {
             <div
               style={{
                 width: "100%",
-                maxWidth: "440px",
+                maxWidth: "460px",
+                maxHeight: "90vh",
+                overflowY: "auto",
                 background: "#0F172A",
                 border: "1px solid rgba(255, 255, 255, 0.12)",
                 borderRadius: "14px",
                 padding: "24px",
+                boxShadow: "0 20px 40px rgba(0, 0, 0, 0.5)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
@@ -867,87 +1013,273 @@ export default function UsersManagementPage() {
                   Reset Password: {resetModalUser.name}
                 </h3>
                 <button
-                  onClick={() => setResetModalUser(null)}
+                  onClick={() => {
+                    setResetModalUser(null);
+                    setCompletedPassword("");
+                  }}
                   style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer" }}
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              {resetError && (
-                <div style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "8px", padding: "10px 14px", color: "#f87171", fontSize: "12px", marginBottom: "14px" }}>
-                  {resetError}
-                </div>
-              )}
-
-              {resetSuccess && (
-                <div style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "8px", padding: "10px 14px", color: "#34d399", fontSize: "12px", marginBottom: "14px" }}>
-                  {resetSuccess}
-                </div>
-              )}
-
-              <form onSubmit={handleResetPassword} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "12px", color: "#94a3b8", marginBottom: "6px" }}>
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    minLength={8}
-                    placeholder="Min. 8 characters"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+              {completedPassword ? (
+                <div style={{ textAlign: "center", padding: "10px 0" }}>
+                  <div
                     style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      borderRadius: "8px",
-                      background: "#1E293B",
-                      border: "1px solid rgba(255, 255, 255, 0.12)",
-                      color: "#ffffff",
-                      fontSize: "13px",
-                      outline: "none",
-                    }}
-                  />
-                  <p style={{ fontSize: "11px", color: "#94a3b8", margin: "6px 0 0 0", lineHeight: "1.4" }}>
-                    Resetting will generate a temporary password and grant the user one-time permission to set their personal password upon next login.
-                  </p>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
-                  <button
-                    type="button"
-                    onClick={() => setResetModalUser(null)}
-                    style={{
-                      padding: "8px 14px",
-                      borderRadius: "8px",
-                      background: "rgba(255, 255, 255, 0.05)",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                      color: "#94a3b8",
-                      fontSize: "12px",
-                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "52px",
+                      height: "52px",
+                      borderRadius: "50%",
+                      background: "rgba(16, 185, 129, 0.15)",
+                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                      marginBottom: "16px",
                     }}
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={resetting}
+                    <CheckCircle2 size={26} color="#34d399" />
+                  </div>
+
+                  <h4 style={{ fontSize: "16px", fontWeight: "700", color: "#f8fafc", margin: "0 0 8px 0" }}>
+                    Temporary Password Generated
+                  </h4>
+
+                  <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 16px 0", lineHeight: "1.5" }}>
+                    Account <strong style={{ color: "#f8fafc" }}>{resetModalUser.name}</strong> ({resetModalUser.email}) has been updated. The user has been granted one-time permission to set their personal password upon next login.
+                  </p>
+
+                  <div
                     style={{
-                      padding: "8px 16px",
+                      background: "rgba(2, 6, 23, 0.8)",
+                      border: "1px solid rgba(56, 189, 248, 0.3)",
+                      borderRadius: "10px",
+                      padding: "14px 16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "12px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <span style={{ fontFamily: "monospace", fontSize: "15px", fontWeight: "700", color: "#38bdf8", letterSpacing: "1px" }}>
+                      {completedPassword}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyPassword(completedPassword)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "7px 14px",
+                        borderRadius: "6px",
+                        background: copied ? "rgba(16, 185, 129, 0.2)" : "rgba(59, 130, 246, 0.2)",
+                        color: copied ? "#34d399" : "#60a5fa",
+                        border: copied ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid rgba(59, 130, 246, 0.4)",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {copied ? <Check size={14} /> : <Copy size={14} />}
+                      <span>{copied ? "Copied!" : "Copy"}</span>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetModalUser(null);
+                      setCompletedPassword("");
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 18px",
                       borderRadius: "8px",
                       background: "#2563EB",
                       border: "none",
                       color: "#ffffff",
-                      fontSize: "12px",
+                      fontSize: "13px",
                       fontWeight: "600",
                       cursor: "pointer",
                     }}
                   >
-                    {resetting ? "Resetting…" : "Update Password"}
+                    Done
                   </button>
                 </div>
-              </form>
+              ) : (
+                <>
+                  {resetError && (
+                    <div style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "8px", padding: "10px 14px", color: "#f87171", fontSize: "12px", marginBottom: "14px" }}>
+                      {resetError}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleResetPassword} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                        <label style={{ fontSize: "12px", fontWeight: "600", color: "#94a3b8" }}>
+                          Temporary Password
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const gen = generateTemporaryPassword();
+                            setNewPassword(gen);
+                            setShowResetPassword(true);
+                          }}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            background: "transparent",
+                            border: "none",
+                            color: "#38bdf8",
+                            fontSize: "11px",
+                            fontWeight: "500",
+                            cursor: "pointer",
+                            padding: 0,
+                          }}
+                        >
+                          <Sparkles size={12} />
+                          <span>Generate New</span>
+                        </button>
+                      </div>
+
+                      <div style={{ position: "relative" }}>
+                        <input
+                          type={showResetPassword ? "text" : "password"}
+                          required
+                          minLength={8}
+                          placeholder="Min. 8 characters"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          style={{
+                            width: "100%",
+                            padding: "10px 72px 10px 12px",
+                            borderRadius: "8px",
+                            background: "#1E293B",
+                            border: "1px solid rgba(255, 255, 255, 0.12)",
+                            color: "#ffffff",
+                            fontSize: "13px",
+                            outline: "none",
+                            boxSizing: "border-box",
+                            fontFamily: showResetPassword ? "monospace" : "inherit",
+                          }}
+                        />
+                        <div
+                          style={{
+                            position: "absolute",
+                            right: "8px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "2px",
+                          }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleCopyPassword(newPassword)}
+                            tabIndex={-1}
+                            title="Copy temporary password"
+                            aria-label="Copy password"
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: copied ? "#34d399" : "#94a3b8",
+                              cursor: "pointer",
+                              padding: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {copied ? <Check size={14} /> : <Copy size={14} />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowResetPassword((prev) => !prev)}
+                            tabIndex={-1}
+                            aria-label={showResetPassword ? "Hide password" : "Show password"}
+                            title={showResetPassword ? "Hide password" : "Show password"}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "#94a3b8",
+                              cursor: "pointer",
+                              padding: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {showResetPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: "8px",
+                          padding: "8px 10px",
+                          background: "rgba(56, 189, 248, 0.08)",
+                          border: "1px solid rgba(56, 189, 248, 0.2)",
+                          borderRadius: "6px",
+                          fontSize: "11px",
+                          color: "#94a3b8",
+                          lineHeight: "1.4",
+                        }}
+                      >
+                        Resetting will generate a temporary password and grant the user one-time permission to set their personal password upon next login.
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "8px" }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResetModalUser(null);
+                          setCompletedPassword("");
+                        }}
+                        style={{
+                          padding: "8px 14px",
+                          borderRadius: "8px",
+                          background: "rgba(255, 255, 255, 0.05)",
+                          border: "1px solid rgba(255, 255, 255, 0.1)",
+                          color: "#94a3b8",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={resetting}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "8px 16px",
+                          borderRadius: "8px",
+                          background: "#2563EB",
+                          border: "none",
+                          color: "#ffffff",
+                          fontSize: "12px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {resetting && <Loader2 className="animate-spin" size={13} />}
+                        <span>{resetting ? "Applying Reset…" : "Save & Assign Temporary Password"}</span>
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
             </div>
           </div>
         )}

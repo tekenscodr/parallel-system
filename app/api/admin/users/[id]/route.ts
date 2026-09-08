@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "node:crypto";
 import { getAuthenticatedAdmin, isAdminNational, hashPassword } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
@@ -27,7 +28,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     }
 
     const body = await req.json();
-    const { status, name, password } = body;
+    const { status, name, password, resetPassword } = body;
 
     // Guard: Prevent self-suspension
     if (session.user.id === targetUserId && status === "SUSPENDED") {
@@ -37,12 +38,16 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       );
     }
 
+    let temporaryPasswordGenerated: string | null = null;
     let newPasswordHash: string | null = null;
-    if (password) {
-      if (typeof password !== "string" || password.length < 8) {
-        return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
-      }
-      newPasswordHash = hashPassword(password);
+    if (password || resetPassword) {
+      const pwToUse =
+        typeof password === "string" && password.trim().length >= 8
+          ? password.trim()
+          : "Temp#" + crypto.randomBytes(4).toString("hex") + "!";
+
+      temporaryPasswordGenerated = pwToUse;
+      newPasswordHash = hashPassword(pwToUse);
     }
 
     const updatedUser = await withEcSql(async (sql) => {
@@ -54,15 +59,22 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         throw new Error("Target user not found.");
       }
 
+      const sets = [sql`"updatedAt" = NOW()`];
+      if (status) {
+        sets.push(sql`status = ${status}::"UserStatus"`);
+      }
+      if (name && typeof name === "string" && name.trim()) {
+        sets.push(sql`name = ${name.trim()}`);
+      }
+      if (newPasswordHash) {
+        sets.push(sql`"passwordHash" = ${newPasswordHash}`);
+        sets.push(sql`"passwordChanged" = false`);
+        sets.push(sql`"passwordChangedAt" = NULL`);
+      }
+
       const updated = await sql`
         UPDATE "User"
-        SET
-          status = COALESCE(${status ?? null}, status),
-          name = COALESCE(${name ? name.trim() : null}, name),
-          "passwordHash" = COALESCE(${newPasswordHash}, "passwordHash"),
-          "passwordChanged" = CASE WHEN ${newPasswordHash} IS NOT NULL THEN false ELSE "passwordChanged" END,
-          "passwordChangedAt" = CASE WHEN ${newPasswordHash} IS NOT NULL THEN NULL ELSE "passwordChangedAt" END,
-          "updatedAt" = NOW()
+        SET ${sets.reduce((prev, curr) => sql`${prev}, ${curr}`)}
         WHERE id = ${targetUserId}
         RETURNING id, email, name, role, status, "passwordChanged", "passwordChangedAt", "updatedAt"
       `;
@@ -96,7 +108,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         targetName: updatedUser.curr.name,
         previousStatus: updatedUser.prev.status,
         newStatus: updatedUser.curr.status,
-        passwordReset: !!password,
+        passwordReset: !!(password || resetPassword),
         performedBy: session.user.email,
       },
     });
@@ -105,6 +117,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       success: true,
       message: `User ${updatedUser.curr.name} updated successfully.`,
       user: updatedUser.curr,
+      temporaryPassword: temporaryPasswordGenerated,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Error updating user";

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Landmark, AlertCircle, ArrowRight } from "lucide-react";
+import { Landmark, AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { initClientIpDetection, getClientHeaders } from "@/lib/client-device";
 import { checkClientRateLimit } from "@/lib/client-rate-limit";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [mountTime] = useState(() => Date.now());
   const [loading, setLoading] = useState(false);
@@ -77,8 +78,8 @@ export default function AdminLoginPage() {
         // ignore
       }
 
-      // If user already changed their password in DB, proceed straight to dashboard!
-      // Otherwise, direct them to change their password once.
+      // If user has not changed their password (temporary password after creation or admin reset),
+      // prompt them to set their personal password upon next login!
       if (data.user?.passwordChanged) {
         window.location.href = "/admin/dashboard";
       } else {
@@ -252,24 +253,48 @@ export default function AdminLoginPage() {
             >
               Password
             </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••••"
-              style={{
-                width: "100%",
-                padding: "12px 14px",
-                borderRadius: "8px",
-                background: "rgba(2, 6, 23, 0.7)",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
-                color: "#ffffff",
-                fontSize: "14px",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
-            />
+            <div style={{ position: "relative" }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                style={{
+                  width: "100%",
+                  padding: "12px 42px 12px 14px",
+                  borderRadius: "8px",
+                  background: "rgba(2, 6, 23, 0.7)",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                style={{
+                  position: "absolute",
+                  right: "12px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "transparent",
+                  border: "none",
+                  color: "#94a3b8",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "4px",
+                }}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           <button
