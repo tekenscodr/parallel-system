@@ -55,6 +55,7 @@ export async function POST(req: Request) {
     let targetRole: string;
     let targetStatus: string;
     let currentStoredHash: string;
+    let passwordAlreadyChanged = false;
 
     if (activeSession) {
       // Authenticated user changing their own password
@@ -64,10 +65,10 @@ export async function POST(req: Request) {
       targetRole = activeSession.user.role;
       targetStatus = activeSession.user.status;
 
-      // Fetch stored hash for verification
+      // Fetch stored hash and passwordChanged flag for verification
       const dbUser = await withEcSql(async (sql) => {
         const rows = await sql`
-          SELECT id, email, name, "passwordHash", role, status
+          SELECT id, email, name, "passwordHash", role, status, COALESCE("passwordChanged", false) as "passwordChanged"
           FROM "User"
           WHERE id = ${targetUserId}
           LIMIT 1
@@ -79,6 +80,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "User account not found." }, { status: 404 });
       }
       currentStoredHash = dbUser.passwordHash;
+      passwordAlreadyChanged = Boolean(dbUser.passwordChanged);
     } else {
       // Unauthenticated / Login-time password resubmit
       if (!email || typeof email !== "string") {
@@ -91,7 +93,7 @@ export async function POST(req: Request) {
       const cleanEmail = email.trim().toLowerCase();
       const dbUser = await withEcSql(async (sql) => {
         const rows = await sql`
-          SELECT id, email, name, "passwordHash", role, status
+          SELECT id, email, name, "passwordHash", role, status, COALESCE("passwordChanged", false) as "passwordChanged"
           FROM "User"
           WHERE LOWER(email) = ${cleanEmail}
           LIMIT 1
@@ -112,6 +114,18 @@ export async function POST(req: Request) {
       targetRole = dbUser.role;
       targetStatus = dbUser.status;
       currentStoredHash = dbUser.passwordHash;
+      passwordAlreadyChanged = Boolean(dbUser.passwordChanged);
+    }
+
+    // Database check: Enforce that user can only change password once
+    if (passwordAlreadyChanged) {
+      return NextResponse.json(
+        {
+          error: "You have already changed your password. Under system security policy, passwords can only be changed once.",
+          code: "PASSWORD_ALREADY_CHANGED",
+        },
+        { status: 403 }
+      );
     }
 
     // Verify current password
@@ -134,16 +148,31 @@ export async function POST(req: Request) {
     // Compute new PBKDF2 hash
     const newHash = hashPassword(newPassword);
 
-    // Update passwordHash in ec-data database
-    await withEcSql(async (sql) => {
-      await sql`
+    // Atomic update in ec-data database: only updates if passwordChanged is false
+    const updateResult = await withEcSql(async (sql) => {
+      const rows = await sql`
         UPDATE "User"
         SET 
           "passwordHash" = ${newHash},
+          "passwordChanged" = true,
+          "passwordChangedAt" = NOW(),
           "updatedAt" = NOW()
         WHERE id = ${targetUserId}
+          AND "passwordChanged" = false
+        RETURNING id, "passwordChanged"
       `;
+      return rows;
     });
+
+    if (!updateResult || updateResult.length === 0) {
+      return NextResponse.json(
+        {
+          error: "Password has already been changed. Under system security policy, passwords can only be changed once.",
+          code: "PASSWORD_ALREADY_CHANGED",
+        },
+        { status: 403 }
+      );
+    }
 
     // Record audit event with verified IP sync
     await logAuditEvent({

@@ -60,9 +60,11 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           status = COALESCE(${status ?? null}, status),
           name = COALESCE(${name ? name.trim() : null}, name),
           "passwordHash" = COALESCE(${newPasswordHash}, "passwordHash"),
+          "passwordChanged" = CASE WHEN ${newPasswordHash} IS NOT NULL THEN false ELSE "passwordChanged" END,
+          "passwordChangedAt" = CASE WHEN ${newPasswordHash} IS NOT NULL THEN NULL ELSE "passwordChangedAt" END,
           "updatedAt" = NOW()
         WHERE id = ${targetUserId}
-        RETURNING id, email, name, role, status, "updatedAt"
+        RETURNING id, email, name, role, status, "passwordChanged", "passwordChangedAt", "updatedAt"
       `;
 
       // If suspended, revoke all active sessions for this user

@@ -8,6 +8,8 @@ export type AdminUser = {
   name: string;
   role: string;
   status: string;
+  passwordChanged: boolean;
+  passwordChangedAt?: string | null;
 };
 
 export type AdminSession = {
@@ -117,7 +119,9 @@ export async function getAuthenticatedAdmin(
         u.email,
         u.name,
         u.role,
-        u.status
+        u.status,
+        COALESCE(u."passwordChanged", false) as "passwordChanged",
+        u."passwordChangedAt" as "passwordChangedAt"
       FROM "Session" s
       INNER JOIN "User" u ON u.id = s."userId"
       WHERE s."tokenHash" = ${tokenHash}
@@ -158,6 +162,8 @@ export async function getAuthenticatedAdmin(
         name: row.name,
         role: row.role,
         status: row.status,
+        passwordChanged: Boolean(row.passwordChanged),
+        passwordChangedAt: row.passwordChangedAt ? new Date(row.passwordChangedAt).toISOString() : null,
       },
     };
   });

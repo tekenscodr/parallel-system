@@ -34,7 +34,9 @@ import {
   Phone,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
+import { ExecutiveAvatar } from "@/app/admin/components/ExecutiveAvatar";
 import { getClientHeaders } from "@/lib/client-device";
+import { checkClientRateLimit } from "@/lib/client-rate-limit";
 
 type OverviewData = {
   totals: {
@@ -47,6 +49,23 @@ type OverviewData = {
   tiers: Array<{ level: string; count: number; women: number }>;
   genderDistribution: Array<{ label: string; count: number }>;
   regionalDistribution: Array<{ region: string; count: number }>;
+  electoralCollege?: {
+    total_delegates: number;
+    general_voters: number;
+    youth_voters: number;
+    women_voters: number;
+    nasara_voters: number;
+    tescon_presidents: number;
+    tescon_wocom: number;
+    tescon_nasara: number;
+    constituency_execs: number;
+    external_branch_execs: number;
+  };
+  activeFilter?: {
+    region: string | null;
+    constituency: string | null;
+    level: string | null;
+  };
   user: { id: string; email: string; name: string; role: string };
 };
 
@@ -69,6 +88,7 @@ type ExecutiveRow = {
   age?: number | null;
   phone?: string | null;
   status: string;
+  imageUrl?: string | null;
 };
 
 type ExecutiveDetail = {
@@ -90,12 +110,14 @@ type ExecutiveDetail = {
   dateOfBirth: string;
   age: number | null;
   status: string;
+  imageUrl?: string | null;
 };
 
 const REGIONS = [
   "Ahafo", "Ashanti", "Bono", "Bono East", "Central", "Eastern",
   "Greater Accra", "North East", "Northern", "Oti", "Savannah",
-  "Upper East", "Upper West", "Volta", "Western", "Western North"
+  "Upper East", "Upper West", "Volta", "Western", "Western North",
+  "External Branch"
 ];
 
 const TIERS = [
@@ -286,8 +308,11 @@ export default function NationalAdminDashboard() {
   const [newExecDob, setNewExecDob] = useState("");
   const [newExecAge, setNewExecAge] = useState<string>("");
   const [newExecStatus, setNewExecStatus] = useState("Active");
+  const [newExecImageUrl, setNewExecImageUrl] = useState<string | null>(null);
   const [newExecConstituencyList, setNewExecConstituencyList] = useState<string[]>([]);
   const [loadingNewExecConstituencies, setLoadingNewExecConstituencies] = useState(false);
+  const [addExecHoneypot, setAddExecHoneypot] = useState("");
+  const [exportCooldownSec, setExportCooldownSec] = useState(0);
 
   // Debounce search input
   useEffect(() => {
@@ -357,8 +382,17 @@ export default function NationalAdminDashboard() {
       });
   }, []);
 
-  const loadOverview = useCallback(() => {
-    fetch("/api/admin/overview", {
+  const loadOverview = useCallback((reg?: string, consti?: string, lvl?: string) => {
+    setLoadingOverview(true);
+    const params = new URLSearchParams();
+    const r = reg !== undefined ? reg : selectedRegion;
+    const c = consti !== undefined ? consti : selectedConstituency;
+    const l = lvl !== undefined ? lvl : selectedLevel;
+    if (r) params.set("region", r);
+    if (c) params.set("constituency", c);
+    if (l) params.set("level", l);
+
+    fetch(`/api/admin/overview?${params.toString()}`, {
       credentials: "include",
       headers: getAuthHeaders(),
     })
@@ -370,7 +404,13 @@ export default function NationalAdminDashboard() {
         setLoadingOverview(false);
       })
       .catch(() => setLoadingOverview(false));
-  }, []);
+  }, [selectedRegion, selectedConstituency, selectedLevel]);
+
+  useEffect(() => {
+    if (currentUser) {
+      loadOverview();
+    }
+  }, [currentUser, selectedRegion, selectedConstituency, selectedLevel, loadOverview]);
 
   // Fetch paginated roster
   const fetchRoster = useCallback(() => {
@@ -536,6 +576,12 @@ export default function NationalAdminDashboard() {
     e.preventDefault();
     if (!activeExecutive) return;
 
+    const rateCheck = checkClientRateLimit("MUTATION");
+    if (!rateCheck.allowed) {
+      setModalError(rateCheck.message || "Action throttled. Please wait before saving again.");
+      return;
+    }
+
     const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(activeExecutive.dateOfBirth, activeExecutive.position);
     const updatedExecutive = {
       ...activeExecutive,
@@ -642,6 +688,13 @@ export default function NationalAdminDashboard() {
 
   const handleConfirmDelete = async () => {
     if (!executiveToDelete) return;
+
+    const rateCheck = checkClientRateLimit("MUTATION");
+    if (!rateCheck.allowed) {
+      setDeleteError(rateCheck.message || "Action throttled. Please wait before deleting.");
+      return;
+    }
+
     setDeleting(true);
     setDeleteError("");
 
@@ -674,6 +727,16 @@ export default function NationalAdminDashboard() {
   const handleSearchVoter = async () => {
     const cleanId = searchVoterId.trim();
     if (!cleanId) return;
+
+    const rateCheck = checkClientRateLimit("LOOKUP");
+    if (!rateCheck.allowed) {
+      setVoterSearchStatus({
+        found: false,
+        message: rateCheck.message || "Search rate limit reached. Please wait before searching again.",
+      });
+      return;
+    }
+
     setSearchingVoter(true);
     setVoterSearchStatus(null);
     setAddError("");
@@ -699,6 +762,7 @@ export default function NationalAdminDashboard() {
         if (v.constituency) setNewExecConstituency(v.constituency);
         if (v.electoralArea) setNewExecElectoralArea(v.electoralArea);
         if (v.pollingStation) setNewExecPollingStation(v.pollingStation);
+        setNewExecImageUrl(v.imageUrl || null);
 
         setVoterSearchStatus({
           found: true,
@@ -706,6 +770,7 @@ export default function NationalAdminDashboard() {
         });
       } else {
         setNewExecVoterId(cleanId);
+        setNewExecImageUrl(null);
         setVoterSearchStatus({
           found: false,
           message: data.message || `No voter record found for "${cleanId}". You can enter details manually below.`,
@@ -713,6 +778,7 @@ export default function NationalAdminDashboard() {
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Lookup failed";
+      setNewExecImageUrl(null);
       setVoterSearchStatus({
         found: false,
         message: `Voter registry search error: ${msg}. You can enter details manually.`,
@@ -731,12 +797,26 @@ export default function NationalAdminDashboard() {
     setVoterSearchStatus(null);
     setIsCustomPosition(false);
     setNewExecPosition("");
+    setNewExecImageUrl(null);
   };
 
   const handleCreateExecutive = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddError("");
     setAddSuccess("");
+
+    // Anti-bot honeypot check
+    if (addExecHoneypot.trim() !== "") {
+      setAddError("Automated bot submission detected.");
+      return;
+    }
+
+    // Client rate limit check
+    const rateCheck = checkClientRateLimit("MUTATION");
+    if (!rateCheck.allowed) {
+      setAddError(rateCheck.message || "Action throttled. Please wait before creating another executive.");
+      return;
+    }
 
     if (!newExecName.trim()) {
       setAddError("Executive Name is required.");
@@ -775,6 +855,7 @@ export default function NationalAdminDashboard() {
         dateOfBirth: finalDob,
         age: finalAge,
         status: newExecStatus,
+        imageUrl: newExecImageUrl || undefined,
       };
 
       const res = await fetch("/api/admin/executives", {
@@ -810,6 +891,7 @@ export default function NationalAdminDashboard() {
         setNewExecMembershipId("");
         setNewExecDob("");
         setNewExecAge("");
+        setNewExecImageUrl(null);
         fetchRoster();
         loadOverview();
       }, 1000);
@@ -829,6 +911,29 @@ export default function NationalAdminDashboard() {
   const isAdminNational = userRole === "ADMIN_NATIONAL" || userRole === "ADMIN";
 
   const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}`;
+
+  const handleExportClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (exportCooldownSec > 0) {
+      e.preventDefault();
+      return;
+    }
+    const rateCheck = checkClientRateLimit("EXPORT");
+    if (!rateCheck.allowed) {
+      e.preventDefault();
+      alert(rateCheck.message || "Export rate limit reached. Please wait before exporting again.");
+      return;
+    }
+    setExportCooldownSec(5);
+    const interval = setInterval(() => {
+      setExportCooldownSec((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   if (authError && !currentUser) {
     return (
@@ -1192,18 +1297,89 @@ export default function NationalAdminDashboard() {
           </div>
         </section>
 
-        {/* Executive Directorate KPI Metrics with Grey Lucide Icons */}
+        {/* Executive Directorate & Electoral College KPI Metrics Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", margin: 0 }}>
+              {selectedConstituency ? (
+                <span>Metrics for <strong style={{ color: "#38bdf8" }}>{selectedConstituency}</strong> <span style={{ color: "#64748b" }}>({selectedRegion})</span></span>
+              ) : selectedRegion ? (
+                <span>Metrics for <strong style={{ color: "#38bdf8" }}>{selectedRegion} Region</strong></span>
+              ) : (
+                <span>Nationwide Directorate & Electoral College Metrics</span>
+              )}
+            </h2>
+            {(selectedRegion || selectedConstituency) && (
+              <span style={{ fontSize: "11px", background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", padding: "2px 8px", borderRadius: "4px", border: "1px solid rgba(56, 189, 248, 0.3)", fontWeight: "600" }}>
+                FILTERED
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {(selectedRegion || selectedConstituency) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedRegion("");
+                  setSelectedConstituency("");
+                  setPage(1);
+                }}
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: "#94a3b8",
+                  fontSize: "12px",
+                  padding: "5px 12px",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  transition: "all 0.15s ease"
+                }}
+              >
+                <RotateCcw size={12} /> Reset to Nationwide
+              </button>
+            )}
+            <a
+              href="/exports/national_election_electoral_college_metrics.xlsx"
+              download
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                background: "rgba(30, 41, 59, 0.8)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                color: "#34d399",
+                fontSize: "12px",
+                fontWeight: "600",
+                padding: "5px 12px",
+                borderRadius: "6px",
+                textDecoration: "none"
+              }}
+            >
+              <Download size={13} color="#34d399" />
+              <span>Metrics Excel (.xlsx)</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Executive Directorate KPI Metrics */}
         {overview && (
           <section className="dash-kpi-grid">
             <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Total Nationwide Officers</span>
+                <span style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>
+                  {selectedConstituency ? "Constituency Officers" : selectedRegion ? "Regional Officers" : "Total Nationwide Officers"}
+                </span>
                 <Users size={15} color="#94a3b8" />
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "4px" }}>
                 <span style={{ fontSize: "22px", fontWeight: "700", color: "#ffffff" }}>{overview.totals.total.toLocaleString()}</span>
               </div>
-              <span style={{ fontSize: "11px", color: "#64748b" }}>Across 6 executive levels</span>
+              <span style={{ fontSize: "11px", color: "#64748b" }}>
+                {selectedConstituency ? selectedConstituency : selectedRegion ? `${selectedRegion} Region` : "Across 6 executive levels"}
+              </span>
             </div>
 
             <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
@@ -1213,7 +1389,9 @@ export default function NationalAdminDashboard() {
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "4px" }}>
                 <span style={{ fontSize: "22px", fontWeight: "700", color: "#34d399" }}>{overview.totals.elected.toLocaleString()}</span>
-                <span style={{ fontSize: "12px", color: "#34d399" }}>({Math.round((overview.totals.elected / overview.totals.total) * 100)}%)</span>
+                <span style={{ fontSize: "12px", color: "#34d399" }}>
+                  ({overview.totals.total > 0 ? Math.round((overview.totals.elected / overview.totals.total) * 100) : 0}%)
+                </span>
               </div>
               <span style={{ fontSize: "11px", color: "#64748b" }}>Formally elected slates</span>
             </div>
@@ -1236,7 +1414,9 @@ export default function NationalAdminDashboard() {
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "4px" }}>
                 <span style={{ fontSize: "22px", fontWeight: "700", color: "#f472b6" }}>{overview.totals.women.toLocaleString()}</span>
-                <span style={{ fontSize: "12px", color: "#f472b6" }}>({Math.round((overview.totals.women / overview.totals.total) * 100)}%)</span>
+                <span style={{ fontSize: "12px", color: "#f472b6" }}>
+                  ({overview.totals.total > 0 ? Math.round((overview.totals.women / overview.totals.total) * 100) : 0}%)
+                </span>
               </div>
               <span style={{ fontSize: "11px", color: "#64748b" }}>Female officers in directory</span>
             </div>
@@ -1252,6 +1432,61 @@ export default function NationalAdminDashboard() {
               <span style={{ fontSize: "11px", color: "#64748b" }}>Coordinators & Organisers</span>
             </div>
           </section>
+        )}
+
+        {/* National Election Electoral College Voting Metrics */}
+        {overview?.electoralCollege && (
+          <div style={{ marginTop: "14px", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "#38bdf8", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                National Executives Election — Accredited Voting College ({selectedConstituency || (selectedRegion ? `${selectedRegion} Region` : "Nationwide Pool")})
+              </span>
+              <span style={{ fontSize: "11px", color: "#64748b" }}>
+                Master Pool: <strong style={{ color: "#ffffff" }}>{overview.electoralCollege.total_delegates.toLocaleString()}</strong> delegates
+              </span>
+            </div>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+              gap: "12px"
+            }}>
+              {/* General Positions */}
+              <div style={{ background: "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "700" }}>General Positions</div>
+                <div style={{ fontSize: "20px", fontWeight: "800", color: "#ffffff", marginTop: "4px" }}>
+                  {overview.electoralCollege.general_voters.toLocaleString()}
+                </div>
+                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Chairman, Gen Sec, etc. (No TESCON)</div>
+              </div>
+
+              {/* Youth Organiser */}
+              <div style={{ background: "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                <div style={{ fontSize: "10px", color: "#38bdf8", textTransform: "uppercase", fontWeight: "700" }}>Youth Organiser</div>
+                <div style={{ fontSize: "20px", fontWeight: "800", color: "#38bdf8", marginTop: "4px" }}>
+                  {overview.electoralCollege.youth_voters.toLocaleString()}
+                </div>
+                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Under 40 + All TESCON Pres/Wocom/Nasara</div>
+              </div>
+
+              {/* Women Organiser */}
+              <div style={{ background: "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                <div style={{ fontSize: "10px", color: "#f472b6", textTransform: "uppercase", fontWeight: "700" }}>Women Organiser</div>
+                <div style={{ fontSize: "20px", fontWeight: "800", color: "#f472b6", marginTop: "4px" }}>
+                  {overview.electoralCollege.women_voters.toLocaleString()}
+                </div>
+                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Women Execs + TESCON WOCOM/Pres</div>
+              </div>
+
+              {/* Nasara Coordinator */}
+              <div style={{ background: "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                <div style={{ fontSize: "10px", color: "#fbbf24", textTransform: "uppercase", fontWeight: "700" }}>Nasara Coordinator</div>
+                <div style={{ fontSize: "20px", fontWeight: "800", color: "#fbbf24", marginTop: "4px" }}>
+                  {overview.electoralCollege.nasara_voters.toLocaleString()}
+                </div>
+                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Nasara Execs + TESCON Nasara</div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Multi-Dimensional Filter & Search Toolbar */}
@@ -1331,6 +1566,7 @@ export default function NationalAdminDashboard() {
               {isAdminNational && (
                 <a
                   href={exportUrl}
+                  onClick={handleExportClick}
                   download
                   style={{
                     display: "inline-flex",
@@ -1338,15 +1574,24 @@ export default function NationalAdminDashboard() {
                     gap: "7px",
                     padding: "9px 14px",
                     borderRadius: "8px",
-                    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                    background:
+                      exportCooldownSec > 0
+                        ? "#334155"
+                        : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                     color: "#ffffff",
                     fontSize: "13px",
                     fontWeight: "600",
                     textDecoration: "none",
-                    boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)"
+                    boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
+                    cursor: exportCooldownSec > 0 ? "not-allowed" : "pointer",
+                    pointerEvents: exportCooldownSec > 0 ? "none" : "auto",
+                    opacity: exportCooldownSec > 0 ? 0.7 : 1,
                   }}
                 >
-                  <Download size={14} color="#ffffff" /> Export Filtered CSV
+                  <Download size={14} color="#ffffff" />
+                  {exportCooldownSec > 0
+                    ? `Cooldown (${exportCooldownSec}s)`
+                    : "Export Filtered CSV"}
                 </a>
               )}
             </div>
@@ -1568,12 +1813,10 @@ export default function NationalAdminDashboard() {
                 }}>
                   <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Voter ID</th>
                   <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Name</th>
-                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Age</th>
-                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Date of Birth</th>
+                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Age / DOB</th>
                   <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Phone</th>
                   <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Region</th>
                   <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Constituency</th>
-                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Position</th>
                   <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Level</th>
                   <th style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>Actions</th>
                 </tr>
@@ -1581,7 +1824,7 @@ export default function NationalAdminDashboard() {
               <tbody>
                 {loadingRows ? (
                   <tr>
-                    <td colSpan={10} style={{ textAlign: "center", padding: "48px", color: "#94a3b8" }}>
+                    <td colSpan={8} style={{ textAlign: "center", padding: "48px", color: "#94a3b8" }}>
                       <div style={{ display: "flex", justifyContent: "center", marginBottom: "10px" }}>
                         <Loader2 size={24} color="#94a3b8" style={{ animation: "spin 1s linear infinite" }} />
                       </div>
@@ -1590,7 +1833,7 @@ export default function NationalAdminDashboard() {
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={10} style={{ textAlign: "center", padding: "48px", color: "#64748b" }}>
+                    <td colSpan={8} style={{ textAlign: "center", padding: "48px", color: "#64748b" }}>
                       No executive records found matching your filter criteria.
                     </td>
                   </tr>
@@ -1632,48 +1875,56 @@ export default function NationalAdminDashboard() {
                           )}
                         </td>
 
-                        {/* 2. Name */}
-                        <td style={{ padding: "12px 16px", color: "#ffffff", fontWeight: "600" }}>
-                          <div style={{ display: "flex", flexDirection: "column" }}>
-                            <span>{row.executiveName}</span>
-                            {/* Minimised screen context subtitle */}
-                            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px", fontWeight: "normal" }}>
-                              <span style={{ color: "#60a5fa", fontWeight: "600" }}>{row.position}</span>
-                              {(row.region || row.executiveLevel) && (
-                                <span style={{ marginLeft: "4px" }}>• {[row.executiveLevel, row.region, row.constituency].filter(Boolean).join(" / ")}</span>
+                        {/* 2. Name & Position */}
+                        <td style={{ padding: "10px 16px", color: "#ffffff", fontWeight: "600" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                            <ExecutiveAvatar
+                              imageUrl={row.imageUrl}
+                              name={row.executiveName}
+                              voterId={row.voterId}
+                              region={row.region}
+                              constituency={row.constituency}
+                              size={40}
+                            />
+                            <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                              <span style={{ color: "#ffffff", fontWeight: 600 }}>{row.executiveName}</span>
+                              {row.position && (
+                                <div style={{ fontSize: "11px", color: "#60a5fa", marginTop: "2px", fontWeight: "500" }}>
+                                  {row.position}
+                                </div>
                               )}
                             </div>
                           </div>
                         </td>
 
-                        {/* 3. Age */}
-                        <td style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
-                          {row.age != null && row.age > 0 ? (
-                            <span style={{
-                              padding: "2px 7px",
-                              borderRadius: "4px",
-                              background: "rgba(255, 255, 255, 0.06)",
-                              fontSize: "12px",
-                              fontWeight: "600",
-                              color: "#e2e8f0"
-                            }}>
-                              {row.age} yrs
-                            </span>
-                          ) : (
-                            <span style={{ color: "#64748b" }}>—</span>
-                          )}
+                        {/* 3. Age & Date of Birth */}
+                        <td style={{ padding: "10px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                            <div>
+                              {row.age != null && row.age > 0 ? (
+                                <span style={{
+                                  padding: "2px 7px",
+                                  borderRadius: "4px",
+                                  background: "rgba(255, 255, 255, 0.06)",
+                                  fontSize: "12px",
+                                  fontWeight: "600",
+                                  color: "#e2e8f0"
+                                }}>
+                                  {row.age} yrs
+                                </span>
+                              ) : (
+                                <span style={{ color: "#64748b" }}>—</span>
+                              )}
+                            </div>
+                            {row.dateOfBirth && (
+                              <span style={{ fontSize: "11px", color: "#94a3b8", fontFamily: "monospace" }}>
+                                {row.dateOfBirth}
+                              </span>
+                            )}
+                          </div>
                         </td>
 
-                        {/* 4. Date of Birth */}
-                        <td style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap", fontSize: "12px" }}>
-                          {row.dateOfBirth ? (
-                            <span>{row.dateOfBirth}</span>
-                          ) : (
-                            <span style={{ color: "#64748b" }}>—</span>
-                          )}
-                        </td>
-
-                        {/* 5. Phone */}
+                        {/* 4. Phone */}
                         <td style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.phone ? (
                             <a
@@ -1698,19 +1949,14 @@ export default function NationalAdminDashboard() {
                           )}
                         </td>
 
-                        {/* 6. Region */}
+                        {/* 5. Region */}
                         <td style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.region || "—"}
                         </td>
 
-                        {/* 7. Constituency */}
+                        {/* 6. Constituency */}
                         <td style={{ padding: "12px 14px", color: "#cbd5e1", fontWeight: "500", whiteSpace: "nowrap" }}>
                           {row.constituency || "—"}
-                        </td>
-
-                        {/* 8. Position */}
-                        <td style={{ padding: "12px 14px", fontWeight: "600", color: "#f8fafc", whiteSpace: "nowrap" }}>
-                          {row.position}
                         </td>
 
                         {/* 9. Level */}
@@ -1923,43 +2169,55 @@ export default function NationalAdminDashboard() {
                 justifyContent: "space-between",
               }}
             >
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <h3 style={{ fontSize: "18px", fontWeight: "700", margin: 0, color: "#ffffff" }}>
-                    {activeExecutive ? activeExecutive.executiveName : "Executive Record Details"}
-                  </h3>
-                  {activeExecutive && (
-                    <>
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          fontWeight: "600",
-                          background: "rgba(56, 189, 248, 0.15)",
-                          color: "#38bdf8",
-                        }}
-                      >
-                        ID #{activeExecutive.id}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          fontWeight: "600",
-                          background: "rgba(16, 185, 129, 0.15)",
-                          color: "#34d399",
-                        }}
-                      >
-                        {activeExecutive.executiveLevel}
-                      </span>
-                    </>
-                  )}
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                {activeExecutive && (
+                  <ExecutiveAvatar
+                    imageUrl={activeExecutive.imageUrl}
+                    name={activeExecutive.executiveName}
+                    voterId={activeExecutive.voterId}
+                    region={activeExecutive.region}
+                    constituency={activeExecutive.constituency}
+                    size={48}
+                  />
+                )}
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                    <h3 style={{ fontSize: "18px", fontWeight: "700", margin: 0, color: "#ffffff" }}>
+                      {activeExecutive ? activeExecutive.executiveName : "Executive Record Details"}
+                    </h3>
+                    {activeExecutive && (
+                      <>
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            padding: "2px 8px",
+                            borderRadius: "4px",
+                            fontWeight: "600",
+                            background: "rgba(56, 189, 248, 0.15)",
+                            color: "#38bdf8",
+                          }}
+                        >
+                          ID #{activeExecutive.id}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            padding: "2px 8px",
+                            borderRadius: "4px",
+                            fontWeight: "600",
+                            background: "rgba(16, 185, 129, 0.15)",
+                            color: "#34d399",
+                          }}
+                        >
+                          {activeExecutive.executiveLevel}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <p style={{ fontSize: "12px", color: "#94a3b8", margin: "4px 0 0 0" }}>
+                    View and update complete executive record in PostgreSQL <code>ec-data</code>
+                  </p>
                 </div>
-                <p style={{ fontSize: "12px", color: "#94a3b8", margin: "4px 0 0 0" }}>
-                  View and update complete executive record in PostgreSQL <code>ec-data</code>
-                </p>
               </div>
 
               <button
@@ -2858,6 +3116,32 @@ export default function NationalAdminDashboard() {
 
             {/* Modal Scrollable Body */}
             <div className="dash-modal-body" style={{ padding: "20px 24px", overflowY: "auto", flex: 1 }}>
+              {/* Anti-Bot Honeypot Trap - hidden from human view */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: "-9999px",
+                  top: "-9999px",
+                  opacity: 0,
+                  height: 0,
+                  width: 0,
+                  overflow: "hidden",
+                  pointerEvents: "none",
+                }}
+                aria-hidden="true"
+              >
+                <label htmlFor="modal_bot_trap_check">Security Verification Token</label>
+                <input
+                  type="text"
+                  id="modal_bot_trap_check"
+                  name="modal_bot_trap_check"
+                  value={addExecHoneypot}
+                  onChange={(e) => setAddExecHoneypot(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
+
               {/* Voter ID Search Section */}
               <div
                 style={{
@@ -2945,6 +3229,41 @@ export default function NationalAdminDashboard() {
                   >
                     {voterSearchStatus.found ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
                     <span>{voterSearchStatus.message}</span>
+                  </div>
+                )}
+
+                {voterSearchStatus?.found && newExecName && (
+                  <div
+                    style={{
+                      marginTop: "12px",
+                      padding: "12px 14px",
+                      borderRadius: "8px",
+                      background: "rgba(15, 23, 42, 0.7)",
+                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "14px",
+                    }}
+                  >
+                    <ExecutiveAvatar
+                      imageUrl={newExecImageUrl}
+                      name={newExecName}
+                      voterId={newExecVoterId}
+                      region={newExecRegion}
+                      constituency={newExecConstituency}
+                      size={44}
+                    />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: "14px", fontWeight: "700", color: "#f8fafc" }}>
+                        {newExecName}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>
+                        <span style={{ color: "#38bdf8", fontFamily: "monospace" }}>Voter ID: {newExecVoterId}</span>
+                        {(newExecRegion || newExecConstituency) && (
+                          <span style={{ marginLeft: "6px" }}>• {[newExecRegion, newExecConstituency].filter(Boolean).join(" / ")}</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

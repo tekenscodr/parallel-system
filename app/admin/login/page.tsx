@@ -3,10 +3,13 @@
 import { useState, useEffect } from "react";
 import { Landmark, AlertCircle, ArrowRight } from "lucide-react";
 import { initClientIpDetection, getClientHeaders } from "@/lib/client-device";
+import { checkClientRateLimit } from "@/lib/client-rate-limit";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [mountTime] = useState(() => Date.now());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -17,6 +20,26 @@ export default function AdminLoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // 1. Anti-Bot Honeypot Trap check
+    if (honeypot.trim() !== "") {
+      setError("Automated bot submission detected.");
+      return;
+    }
+
+    // 2. Anti-Script Inhuman Speed check (submitted < 400ms after render)
+    if (Date.now() - mountTime < 400) {
+      setError("Submission too rapid. Please verify credentials manually.");
+      return;
+    }
+
+    // 3. Client-side sliding window rate limit
+    const clientLimit = checkClientRateLimit("LOGIN");
+    if (!clientLimit.allowed) {
+      setError(clientLimit.message || "Too many attempts. Please wait.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -45,14 +68,22 @@ export default function AdminLoginPage() {
 
       try {
         sessionStorage.setItem("admin_login_time", String(Date.now()));
-        localStorage.setItem("admin_password_updated", "false");
+        localStorage.setItem(
+          "admin_password_updated",
+          data.user?.passwordChanged ? "true" : "false"
+        );
         sessionStorage.removeItem("admin_password_dismissed");
       } catch {
         // ignore
       }
 
-      // Next page after login is the Change Password page
-      window.location.href = "/admin/change-password";
+      // If user already changed their password in DB, proceed straight to dashboard!
+      // Otherwise, direct them to change their password once.
+      if (data.user?.passwordChanged) {
+        window.location.href = "/admin/dashboard";
+      } else {
+        window.location.href = "/admin/change-password";
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Network error";
       setError(`Could not connect to authentication server: ${msg}`);
@@ -151,6 +182,32 @@ export default function AdminLoginPage() {
         )}
 
         <form onSubmit={handleLogin}>
+          {/* Honeypot Trap Field - Hidden from humans, targets auto-fill bots */}
+          <div
+            style={{
+              position: "absolute",
+              left: "-9999px",
+              top: "-9999px",
+              opacity: 0,
+              height: 0,
+              width: 0,
+              overflow: "hidden",
+              pointerEvents: "none",
+            }}
+            aria-hidden="true"
+          >
+            <label htmlFor="website_url_check">Security Verification URL</label>
+            <input
+              type="text"
+              id="website_url_check"
+              name="website_url_check"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
+
           <div style={{ marginBottom: "18px" }}>
             <label
               style={{

@@ -51,3 +51,18 @@ __pycache__/
 /workbook_edit/
 /workbook-build/
 /docs/
+
+# Excel spreadsheets, CSVs, and data exports
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb
+*.csv
+*.tsv
+~$*.xlsx
+~$*.xls
+
+# Export folders & sensitive voter/executive data stores
+/public/exports/
+/exports/
+/data/

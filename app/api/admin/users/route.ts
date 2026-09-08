@@ -26,6 +26,8 @@ export async function GET(req: Request) {
           u.name,
           u.role,
           u.status,
+          COALESCE(u."passwordChanged", false) as "passwordChanged",
+          u."passwordChangedAt",
           u."createdAt",
           u."updatedAt",
           (
@@ -46,8 +48,8 @@ export async function GET(req: Request) {
             SELECT COUNT(*)::int
             FROM "Session" s
             WHERE s."userId" = u.id 
-              AND s."expiresAt" > NOW() 
-              AND s."revokedAt" IS NULL
+            AND s."expiresAt" > NOW() 
+            AND s."revokedAt" IS NULL
           ) as "activeSessionsCount"
         FROM "User" u
         ORDER BY 
@@ -116,7 +118,7 @@ export async function POST(req: Request) {
         ) VALUES (
           ${userId}, ${cleanEmail}, ${cleanName}, ${passwordHash}, ${targetRole}, 'ACTIVE', NOW(), NOW()
         )
-        RETURNING id, email, name, role, status, "createdAt"
+        RETURNING id, email, name, role, status, "passwordChanged", "passwordChangedAt", "createdAt"
       `;
 
       return inserted[0];

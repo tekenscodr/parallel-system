@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp, diffExecutiveRecords } from "@/lib/audit-logger";
+import { getVoterPhotoUrl } from "@/lib/voter-photo";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -180,6 +181,11 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     }
 
     // 2. Perform update
+    const effRegion = region !== undefined ? region : previousRow.region;
+    const effConstituency = constituency !== undefined ? constituency : previousRow.constituency;
+    const effVoterId = voterId !== undefined ? voterId : previousRow.voterId;
+    const computedImageUrl = getVoterPhotoUrl(effRegion, effConstituency, effVoterId);
+
     const updatedRow = await withEcSql(async (sql) => {
       const res = await sql`
         UPDATE executives_all
@@ -202,7 +208,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           age = COALESCE(${calculatedAge ?? null}, age),
           is_youth_organiser = ${isYouth},
           is_age_adjusted = ${isAgeAdjusted},
-          status = COALESCE(${status ?? null}, status)
+          status = COALESCE(${status ?? null}, status),
+          image_url = COALESCE(${computedImageUrl ?? null}, image_url)
         WHERE id = ${id}
         RETURNING 
           id,
@@ -242,7 +249,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           END as age,
           is_youth_organiser as "isYouthOrganiser",
           is_age_adjusted as "isAgeAdjusted",
-          status
+          status,
+          image_url as "imageUrl"
       `;
       return res[0] || null;
     });

@@ -1,3 +1,5 @@
+import { getHumanVerificationHeaders } from "./client-rate-limit";
+
 /**
  * Client-side device identification and public IP discovery utility.
  * Helps distinguish distinct client devices even when sharing NAT routers or cellular WAN IPs.
@@ -118,6 +120,12 @@ export function getClientHeaders(extra?: Record<string, string>): Record<string,
   const publicIp = getClientPublicIp();
   if (publicIp) {
     headers["x-client-public-ip"] = publicIp;
+  }
+
+  // Anti-bot & human entropy verification headers
+  const verification = getHumanVerificationHeaders();
+  for (const [k, v] of Object.entries(verification)) {
+    headers[k] = v;
   }
 
   return headers;

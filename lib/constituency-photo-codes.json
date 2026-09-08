@@ -1,0 +1,1760 @@
+{
+  "ashanti|adansiasokwa": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "1",
+    "name": "Adansi-Asokwa"
+  },
+  "ashanti|fomena": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "2",
+    "name": "Fomena"
+  },
+  "ashanti|newedubease": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "3",
+    "name": "New Edubease"
+  },
+  "ashanti|afigyakwabrenorth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "4",
+    "name": "Afigya Kwabre North"
+  },
+  "ashanti|afigyakwabresouth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "5",
+    "name": "Afigya Kwabre South"
+  },
+  "ashanti|ahafoanonorth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "6",
+    "name": "Ahafo Ano North"
+  },
+  "ashanti|ahafoanosoutheast": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "7",
+    "name": "Ahafo Ano South East"
+  },
+  "ashanti|ahafoanosouthwest": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "8",
+    "name": "Ahafo Ano South West"
+  },
+  "ashanti|akrofuom": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "9",
+    "name": "Akrofuom"
+  },
+  "ashanti|odotobri": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "10",
+    "name": "Odotobri"
+  },
+  "ashanti|mansonkwanta": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "11",
+    "name": "Manso Nkwanta"
+  },
+  "ashanti|mansoadubia": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "12",
+    "name": "Manso Adubia"
+  },
+  "ashanti|asanteakimcentral": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "13",
+    "name": "Asante-Akim Central"
+  },
+  "ashanti|asanteakimnorth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "14",
+    "name": "Asante-Akim North"
+  },
+  "ashanti|asanteakimsouth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "15",
+    "name": "Asante-Akim South"
+  },
+  "ashanti|asawase": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "16",
+    "name": "Asawase"
+  },
+  "ashanti|atwimakwanwoma": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "17",
+    "name": "Atwima-Kwanwoma"
+  },
+  "ashanti|atwimamponua": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "18",
+    "name": "Atwima-Mponua"
+  },
+  "ashanti|atwimanwabiagyanorth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "19",
+    "name": "Atwima-Nwabiagya North"
+  },
+  "ashanti|atwimanwabiagyasouth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "20",
+    "name": "Atwima-Nwabiagya South"
+  },
+  "ashanti|bekwai": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "21",
+    "name": "Bekwai"
+  },
+  "ashanti|bosomefreho": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "22",
+    "name": "Bosome-Freho"
+  },
+  "ashanti|bosomtwe": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "23",
+    "name": "Bosomtwe"
+  },
+  "ashanti|ejisu": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "24",
+    "name": "Ejisu"
+  },
+  "ashanti|juaben": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "25",
+    "name": "Juaben"
+  },
+  "ashanti|asokwa": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "26",
+    "name": "Asokwa"
+  },
+  "ashanti|bantama": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "27",
+    "name": "Bantama"
+  },
+  "ashanti|kwadaso": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "28",
+    "name": "Kwadaso"
+  },
+  "ashanti|manhyianorth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "29",
+    "name": "Manhyia North"
+  },
+  "ashanti|manhyiasouth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "30",
+    "name": "Manhyia South"
+  },
+  "ashanti|nhyiaeso": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "31",
+    "name": "Nhyiaeso"
+  },
+  "ashanti|subin": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "32",
+    "name": "Subin"
+  },
+  "ashanti|kwabreeast": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "33",
+    "name": "Kwabre East"
+  },
+  "ashanti|mampong": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "34",
+    "name": "Mampong"
+  },
+  "ashanti|obuasieast": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "35",
+    "name": "Obuasi East"
+  },
+  "ashanti|obuasiwest": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "36",
+    "name": "Obuasi West"
+  },
+  "ashanti|offinsonorth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "37",
+    "name": "Offinso North"
+  },
+  "ashanti|offinsosouth": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "38",
+    "name": "Offinso South"
+  },
+  "ashanti|oforikrom": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "39",
+    "name": "Oforikrom"
+  },
+  "ashanti|oldtafo": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "40",
+    "name": "Old Tafo"
+  },
+  "ashanti|sekyereaframplains": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "41",
+    "name": "Sekyere Afram plains"
+  },
+  "ashanti|kumawu": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "42",
+    "name": "Kumawu"
+  },
+  "ashanti|nsutakwamangbeposo": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "43",
+    "name": "Nsuta-Kwamang-Beposo"
+  },
+  "ashanti|afigyasekyereeast": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "44",
+    "name": "Afigya Sekyere East"
+  },
+  "ashanti|effiduaseasokore": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "45",
+    "name": "Effiduase-Asokore"
+  },
+  "ashanti|ejurasekyedumase": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "46",
+    "name": "Ejura Sekyedumase"
+  },
+  "ashanti|suame": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "47",
+    "name": "Suame"
+  },
+  "ahafo|asunafonorth": {
+    "region": "Ahafo",
+    "regFolder": "Ahafo",
+    "tblid": "48",
+    "name": "Asunafo North"
+  },
+  "ahafo|asunafosouth": {
+    "region": "Ahafo",
+    "regFolder": "Ahafo",
+    "tblid": "49",
+    "name": "Asunafo South"
+  },
+  "ahafo|asutifinorth": {
+    "region": "Ahafo",
+    "regFolder": "Ahafo",
+    "tblid": "50",
+    "name": "Asutifi North"
+  },
+  "ahafo|asutifisouth": {
+    "region": "Ahafo",
+    "regFolder": "Ahafo",
+    "tblid": "51",
+    "name": "Asutifi South"
+  },
+  "ahafo|tanonorth": {
+    "region": "Ahafo",
+    "regFolder": "Ahafo",
+    "tblid": "52",
+    "name": "Tano North"
+  },
+  "ahafo|tanosouth": {
+    "region": "Ahafo",
+    "regFolder": "Ahafo",
+    "tblid": "53",
+    "name": "Tano South"
+  },
+  "bonoeast|atebubuamantin": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "54",
+    "name": "Atebubu-Amantin"
+  },
+  "bonoeast|kintamponorth": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "55",
+    "name": "Kintampo North"
+  },
+  "bonoeast|kintamposouth": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "56",
+    "name": "Kintampo South"
+  },
+  "bonoeast|nkoranzanorth": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "57",
+    "name": "Nkoranza North"
+  },
+  "bonoeast|nkoranzasouth": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "58",
+    "name": "Nkoranza South"
+  },
+  "bonoeast|prueast": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "59",
+    "name": "Pru East"
+  },
+  "bonoeast|pruwest": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "60",
+    "name": "Pru West"
+  },
+  "bonoeast|seneeast": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "61",
+    "name": "Sene East"
+  },
+  "bonoeast|senewest": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "62",
+    "name": "Sene West"
+  },
+  "bonoeast|techimannorth": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "63",
+    "name": "Techiman North"
+  },
+  "bonoeast|techimansouth": {
+    "region": "Bono East",
+    "regFolder": "Bono-East",
+    "tblid": "64",
+    "name": "Techiman South"
+  },
+  "bono|banda": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "65",
+    "name": "Banda"
+  },
+  "bono|berekumeast": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "66",
+    "name": "Berekum East"
+  },
+  "bono|berekumwest": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "67",
+    "name": "Berekum West"
+  },
+  "bono|dormaacentral": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "68",
+    "name": "Dormaa Central"
+  },
+  "bono|dormaaeast": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "69",
+    "name": "Dormaa East"
+  },
+  "bono|dormaawest": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "70",
+    "name": "Dormaa West"
+  },
+  "bono|jamannorth": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "71",
+    "name": "Jaman North"
+  },
+  "bono|jamansouth": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "72",
+    "name": "Jaman South"
+  },
+  "bono|sunyanieast": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "73",
+    "name": "Sunyani East"
+  },
+  "bono|sunyaniwest": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "74",
+    "name": "Sunyani West"
+  },
+  "bono|tain": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "75",
+    "name": "Tain"
+  },
+  "bono|wenchi": {
+    "region": "Bono",
+    "regFolder": "Bono",
+    "tblid": "76",
+    "name": "Wenchi"
+  },
+  "central|aburaasebukwamankese": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "77",
+    "name": "Abura-Asebu-Kwamankese"
+  },
+  "central|agonaeast": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "78",
+    "name": "Agona East"
+  },
+  "central|agonawest": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "79",
+    "name": "Agona West"
+  },
+  "central|ajumakoenyanessiam": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "80",
+    "name": "Ajumako-Enyan-Essiam"
+  },
+  "central|asikumaodobenbrakwa": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "81",
+    "name": "Asikuma-Odoben-Brakwa"
+  },
+  "central|assincentral": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "82",
+    "name": "Assin Central"
+  },
+  "central|assinnorth": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "83",
+    "name": "Assin North"
+  },
+  "central|assinsouth": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "84",
+    "name": "Assin South"
+  },
+  "central|awutusenyaeast": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "85",
+    "name": "Awutu-Senya East"
+  },
+  "central|awutusenyawest": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "86",
+    "name": "Awutu-Senya West"
+  },
+  "central|capecoastnorth": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "87",
+    "name": "Cape Coast North"
+  },
+  "central|capecoastsouth": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "88",
+    "name": "Cape Coast South"
+  },
+  "central|effutu": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "89",
+    "name": "Effutu"
+  },
+  "central|ekumfi": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "90",
+    "name": "Ekumfi"
+  },
+  "central|gomoacentral": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "91",
+    "name": "Gomoa Central"
+  },
+  "central|gomoaeast": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "92",
+    "name": "Gomoa East"
+  },
+  "central|gomoawest": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "93",
+    "name": "Gomoa West"
+  },
+  "central|komendaedinaeguafoabirem": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "94",
+    "name": "Komenda-Edina-Eguafo-Abirem"
+  },
+  "central|mfantseman": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "95",
+    "name": "Mfantseman"
+  },
+  "central|twifoatiimorkwaa": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "96",
+    "name": "Twifo-Atii Morkwaa"
+  },
+  "central|hemanglowerdenkyira": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "97",
+    "name": "Hemang Lower Denkyira"
+  },
+  "central|upperdenkyiraeast": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "98",
+    "name": "Upper Denkyira East"
+  },
+  "central|upperdenkyirawest": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "99",
+    "name": "Upper Denkyira West"
+  },
+  "eastern|abuakwanorth": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "100",
+    "name": "Abuakwa North"
+  },
+  "eastern|abuakwasouth": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "101",
+    "name": "Abuakwa South"
+  },
+  "eastern|aframplainsnorth": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "102",
+    "name": "Afram Plains North"
+  },
+  "eastern|aframplainssouth": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "103",
+    "name": "Afram Plains South"
+  },
+  "eastern|akropong": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "104",
+    "name": "Akropong"
+  },
+  "eastern|akuapemsouth": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "106",
+    "name": "Akuapem South"
+  },
+  "eastern|ofoaseayirebi": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "107",
+    "name": "Ofoase-Ayirebi"
+  },
+  "eastern|asenemansoakroso": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "108",
+    "name": "Asene Manso Akroso"
+  },
+  "eastern|asuogyaman": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "109",
+    "name": "Asuogyaman"
+  },
+  "eastern|atiwaeast": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "110",
+    "name": "Atiwa East"
+  },
+  "eastern|atiwawest": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "111",
+    "name": "Atiwa West"
+  },
+  "eastern|ayensuano": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "112",
+    "name": "Ayensuano"
+  },
+  "eastern|akimoda": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "113",
+    "name": "Akim Oda"
+  },
+  "eastern|abirem": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "114",
+    "name": "Abirem"
+  },
+  "eastern|abetifi": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "115",
+    "name": "Abetifi"
+  },
+  "eastern|achiase": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "116",
+    "name": "Achiase"
+  },
+  "eastern|akwatia": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "117",
+    "name": "Akwatia"
+  },
+  "eastern|fanteakwanorth": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "118",
+    "name": "Fanteakwa North"
+  },
+  "eastern|fanteakwasouth": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "119",
+    "name": "Fanteakwa South"
+  },
+  "eastern|kade": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "120",
+    "name": "Kade"
+  },
+  "eastern|akimswedru": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "121",
+    "name": "Akim Swedru"
+  },
+  "eastern|mpraeso": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "122",
+    "name": "Mpraeso"
+  },
+  "eastern|nkawkaw": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "123",
+    "name": "Nkawkaw"
+  },
+  "eastern|lowermanyakrobo": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "124",
+    "name": "Lower Manya Krobo"
+  },
+  "eastern|newjuabennorth": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "125",
+    "name": "New Juaben North"
+  },
+  "eastern|newjuabensouth": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "126",
+    "name": "New Juaben South"
+  },
+  "eastern|nsawamadoagyiri": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "127",
+    "name": "Nsawam Adoagyiri"
+  },
+  "eastern|okere": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "128",
+    "name": "Okere"
+  },
+  "eastern|suhum": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "129",
+    "name": "Suhum"
+  },
+  "eastern|uppermanyakrobo": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "130",
+    "name": "Upper Manya Krobo"
+  },
+  "eastern|upperwestakim": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "131",
+    "name": "Upper West Akim"
+  },
+  "eastern|lowerwestakim": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "132",
+    "name": "Lower West Akim"
+  },
+  "eastern|yilokrobo": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "133",
+    "name": "Yilo Krobo"
+  },
+  "greateraccra|ablekumanorth": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "134",
+    "name": "Ablekuma North"
+  },
+  "greateraccra|ablekumawest": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "135",
+    "name": "Ablekuma West"
+  },
+  "greateraccra|ablekumacentral": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "136",
+    "name": "Ablekuma Central"
+  },
+  "greateraccra|ablekumasouth": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "137",
+    "name": "Ablekuma South"
+  },
+  "greateraccra|domeabraobom": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "138",
+    "name": "Domeabra-Obom"
+  },
+  "greateraccra|korleklottey": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "139",
+    "name": "Korle Klottey"
+  },
+  "greateraccra|odododiodoo": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "140",
+    "name": "Odododiodoo"
+  },
+  "greateraccra|okaikweinorth": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "141",
+    "name": "Okaikwei North"
+  },
+  "greateraccra|okaikweicentral": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "142",
+    "name": "Okaikwei Central"
+  },
+  "greateraccra|okaikweisouth": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "143",
+    "name": "Okaikwei South"
+  },
+  "greateraccra|ada": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "144",
+    "name": "Ada"
+  },
+  "greateraccra|sege": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "145",
+    "name": "Sege"
+  },
+  "greateraccra|adenta": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "146",
+    "name": "Adenta"
+  },
+  "greateraccra|ashaiman": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "147",
+    "name": "Ashaiman"
+  },
+  "greateraccra|ayawasocentral": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "148",
+    "name": "Ayawaso Central"
+  },
+  "greateraccra|ayawasoeast": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "149",
+    "name": "Ayawaso East"
+  },
+  "greateraccra|ayawasonorth": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "150",
+    "name": "Ayawaso North"
+  },
+  "greateraccra|ayawasowestwuogon": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "151",
+    "name": "Ayawaso West Wuogon"
+  },
+  "greateraccra|domekwabenya": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "152",
+    "name": "Dome-Kwabenya"
+  },
+  "greateraccra|anyaasowutuom": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "153",
+    "name": "Anyaa-Sowutuom"
+  },
+  "greateraccra|trobu": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "154",
+    "name": "Trobu"
+  },
+  "greateraccra|bortianorngleshieamamfro": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "156",
+    "name": "Bortianor Ngleshie Amamfro"
+  },
+  "greateraccra|weijagbawe": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "157",
+    "name": "Weija-Gbawe"
+  },
+  "greateraccra|amasaman": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "15 8",
+    "name": "Amasaman"
+  },
+  "greateraccra|kponekatamanso": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "159",
+    "name": "Kpone-Katamanso"
+  },
+  "greateraccra|krowor": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "160",
+    "name": "Krowor"
+  },
+  "greateraccra|dadekotopon": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "161",
+    "name": "Dade Kotopon"
+  },
+  "greateraccra|madina": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "162",
+    "name": "Madina"
+  },
+  "greateraccra|ledzokuku": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "163",
+    "name": "Ledzokuku"
+  },
+  "greateraccra|ningoprampram": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "164",
+    "name": "Ningo-Prampram"
+  },
+  "greateraccra|shaiosudoku": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "165",
+    "name": "Shai-Osudoku"
+  },
+  "greateraccra|temaeast": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "166",
+    "name": "Tema East"
+  },
+  "greateraccra|temacentral": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "167",
+    "name": "Tema Central"
+  },
+  "greateraccra|temawest": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "168",
+    "name": "Tema West"
+  },
+  "northern|gushegu": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "169",
+    "name": "Gushegu"
+  },
+  "northern|karaga": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "170",
+    "name": "Karaga"
+  },
+  "northern|kpandai": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "171",
+    "name": "Kpandai"
+  },
+  "northern|kumbungu": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "172",
+    "name": "Kumbungu"
+  },
+  "northern|mion": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "173",
+    "name": "Mion"
+  },
+  "northern|nanton": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "174",
+    "name": "Nanton"
+  },
+  "northern|bimbilla": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "175",
+    "name": "Bimbilla"
+  },
+  "northern|wulensi": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "176",
+    "name": "Wulensi"
+  },
+  "northern|saboba": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "177",
+    "name": "Saboba"
+  },
+  "northern|sagnarigu": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "178",
+    "name": "Sagnarigu"
+  },
+  "northern|savelugu": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "179",
+    "name": "Savelugu"
+  },
+  "northern|tamalecentral": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "180",
+    "name": "Tamale Central"
+  },
+  "northern|tamalenorth": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "181",
+    "name": "Tamale North"
+  },
+  "northern|tamalesouth": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "182",
+    "name": "Tamale South"
+  },
+  "northern|tatalesanguli": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "183",
+    "name": "Tatale-Sanguli"
+  },
+  "northern|tolon": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "184",
+    "name": "Tolon"
+  },
+  "northern|yendi": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "186",
+    "name": "Yendi"
+  },
+  "northern|zabzugu": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "187",
+    "name": "Zabzugu"
+  },
+  "northeast|bunkpurugu": {
+    "region": "North East",
+    "regFolder": "North-East",
+    "tblid": "188",
+    "name": "Bunkpurugu"
+  },
+  "northeast|chereponi": {
+    "region": "North East",
+    "regFolder": "North-East",
+    "tblid": "189",
+    "name": "Chereponi"
+  },
+  "northeast|nalerigugambaga": {
+    "region": "North East",
+    "regFolder": "North-East",
+    "tblid": "190",
+    "name": "Nalerigu Gambaga"
+  },
+  "northeast|yagabakubori": {
+    "region": "North East",
+    "regFolder": "North-East",
+    "tblid": "191",
+    "name": "Yagaba-Kubori"
+  },
+  "northeast|walewale": {
+    "region": "North East",
+    "regFolder": "North-East",
+    "tblid": "192",
+    "name": "Walewale"
+  },
+  "northeast|yunyoo": {
+    "region": "North East",
+    "regFolder": "North-East",
+    "tblid": "193",
+    "name": "Yunyoo"
+  },
+  "oti|biakoye": {
+    "region": "Oti",
+    "regFolder": "Oti",
+    "tblid": "194",
+    "name": "Biakoye"
+  },
+  "oti|buem": {
+    "region": "Oti",
+    "regFolder": "Oti",
+    "tblid": "195",
+    "name": "Buem"
+  },
+  "oti|akan": {
+    "region": "Oti",
+    "regFolder": "Oti",
+    "tblid": "196",
+    "name": "Akan"
+  },
+  "oti|krachieast": {
+    "region": "Oti",
+    "regFolder": "Oti",
+    "tblid": "197",
+    "name": "Krachi East"
+  },
+  "oti|krachinchumuru": {
+    "region": "Oti",
+    "regFolder": "Oti",
+    "tblid": "198",
+    "name": "Krachi Nchumuru"
+  },
+  "oti|krachiwest": {
+    "region": "Oti",
+    "regFolder": "Oti",
+    "tblid": "199",
+    "name": "Krachi West"
+  },
+  "oti|nkwantanorth": {
+    "region": "Oti",
+    "regFolder": "Oti",
+    "tblid": "200",
+    "name": "Nkwanta North"
+  },
+  "oti|nkwantasouth": {
+    "region": "Oti",
+    "regFolder": "Oti",
+    "tblid": "201",
+    "name": "Nkwanta South"
+  },
+  "savannah|bolebamboi": {
+    "region": "Savannah",
+    "regFolder": "Savannah",
+    "tblid": "202",
+    "name": "Bole Bamboi"
+  },
+  "savannah|yapeikusawgu": {
+    "region": "Savannah",
+    "regFolder": "Savannah",
+    "tblid": "203",
+    "name": "Yapei-Kusawgu"
+  },
+  "savannah|salagasouth": {
+    "region": "Savannah",
+    "regFolder": "Savannah",
+    "tblid": "204",
+    "name": "Salaga South"
+  },
+  "savannah|salaganorth": {
+    "region": "Savannah",
+    "regFolder": "Savannah",
+    "tblid": "205",
+    "name": "Salaga North"
+  },
+  "savannah|daboyamankarigu": {
+    "region": "Savannah",
+    "regFolder": "Savannah",
+    "tblid": "206",
+    "name": "Daboya-Mankarigu"
+  },
+  "savannah|sawlatunakalba": {
+    "region": "Savannah",
+    "regFolder": "Savannah",
+    "tblid": "207",
+    "name": "Sawla-Tuna-Kalba"
+  },
+  "savannah|damongo": {
+    "region": "Savannah",
+    "regFolder": "Savannah",
+    "tblid": "208",
+    "name": "Damongo"
+  },
+  "uppereast|bawkucentral": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "209",
+    "name": "Bawku Central"
+  },
+  "uppereast|zebilla": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "210",
+    "name": "Zebilla"
+  },
+  "uppereast|binduri": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "211",
+    "name": "Binduri"
+  },
+  "uppereast|bolgatangaeast": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "212",
+    "name": "Bolgatanga East"
+  },
+  "uppereast|bolgatangacentral": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "213",
+    "name": "Bolgatanga Central"
+  },
+  "uppereast|bongo": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "214",
+    "name": "Bongo"
+  },
+  "uppereast|builsanorth": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "215",
+    "name": "Builsa North"
+  },
+  "uppereast|builsasouth": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "216",
+    "name": "Builsa South"
+  },
+  "uppereast|garu": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "217",
+    "name": "Garu"
+  },
+  "uppereast|nabdam": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "218",
+    "name": "Nabdam"
+  },
+  "uppereast|pusiga": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "219",
+    "name": "Pusiga"
+  },
+  "uppereast|tempane": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "220",
+    "name": "Tempane"
+  },
+  "uppereast|navrongocentral": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "221",
+    "name": "Navrongo Central"
+  },
+  "uppereast|chianapaga": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "222",
+    "name": "Chiana-Paga"
+  },
+  "uppereast|talensi": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "223",
+    "name": "Talensi"
+  },
+  "upperwest|daffiamabussieissa": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "224",
+    "name": "Daffiama Bussie Issa"
+  },
+  "upperwest|jirapa": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "225",
+    "name": "Jirapa"
+  },
+  "upperwest|lambussie": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "226",
+    "name": "Lambussie"
+  },
+  "upperwest|lawra": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "227",
+    "name": "Lawra"
+  },
+  "upperwest|nadowlikaleo": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "228",
+    "name": "Nadowli Kaleo"
+  },
+  "upperwest|nandom": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "229",
+    "name": "Nandom"
+  },
+  "upperwest|sissalaeast": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "230",
+    "name": "Sissala East"
+  },
+  "upperwest|sissalawest": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "231",
+    "name": "Sissala West"
+  },
+  "upperwest|waeast": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "232",
+    "name": "Wa East"
+  },
+  "upperwest|wacentral": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "233",
+    "name": "Wa Central"
+  },
+  "upperwest|wawest": {
+    "region": "Upper West",
+    "regFolder": "Upper-West",
+    "tblid": "234",
+    "name": "Wa West"
+  },
+  "volta|adaklu": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "235",
+    "name": "Adaklu"
+  },
+  "volta|afadjatosouth": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "236",
+    "name": "Afadjato South"
+  },
+  "volta|agotimeziope": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "237",
+    "name": "Agotime-Ziope"
+  },
+  "volta|akatsinorth": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "238",
+    "name": "Akatsi North"
+  },
+  "volta|akatsisouth": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "239",
+    "name": "Akatsi South"
+  },
+  "volta|centraltongu": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "240",
+    "name": "Central Tongu"
+  },
+  "volta|hocentral": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "241",
+    "name": "Ho Central"
+  },
+  "volta|howest": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "242",
+    "name": "Ho West"
+  },
+  "volta|hohoe": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "243",
+    "name": "Hohoe"
+  },
+  "volta|anlo": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "244",
+    "name": "Anlo"
+  },
+  "volta|keta": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "245",
+    "name": "Keta"
+  },
+  "volta|ketunorth": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "246",
+    "name": "Ketu North"
+  },
+  "volta|ketusouth": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "247",
+    "name": "Ketu South"
+  },
+  "volta|kpando": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "248",
+    "name": "Kpando"
+  },
+  "volta|northtongu": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "249",
+    "name": "North Tongu"
+  },
+  "volta|northdayi": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "250",
+    "name": "North Dayi"
+  },
+  "volta|southdayi": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "251",
+    "name": "South Dayi"
+  },
+  "volta|southtongu": {
+    "region": "Volta",
+    "regFolder": "Volta",
+    "tblid": "252",
+    "name": "South Tongu"
+  },
+  "western|amenfieast": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "253",
+    "name": "Amenfi East"
+  },
+  "western|amenficentral": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "254",
+    "name": "Amenfi Central"
+  },
+  "western|ahantawest": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "255",
+    "name": "Ahanta West"
+  },
+  "western|effia": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "256",
+    "name": "Effia"
+  },
+  "western|kwesimintsim": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "257",
+    "name": "Kwesimintsim"
+  },
+  "western|ellembele": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "258",
+    "name": "Ellembele"
+  },
+  "western|amenfiwest": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "259",
+    "name": "Amenfi West"
+  },
+  "western|mpohor": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "260",
+    "name": "Mpohor"
+  },
+  "western|wassaeast": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "261",
+    "name": "Wassa East"
+  },
+  "western|evaluegwira": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "262",
+    "name": "Evalue-Gwira"
+  },
+  "western|presteahunivalley": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "263",
+    "name": "Prestea-Huni Valley"
+  },
+  "western|essikadoketan": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "264",
+    "name": "Essikado-Ketan"
+  },
+  "western|sekondi": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "265",
+    "name": "Sekondi"
+  },
+  "western|takoradi": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "266",
+    "name": "Takoradi"
+  },
+  "western|shama": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "267",
+    "name": "Shama"
+  },
+  "western|tarkwansuaem": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "268",
+    "name": "Tarkwa-Nsuaem"
+  },
+  "western|jomoro": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "269",
+    "name": "Jomoro"
+  },
+  "westernnorth|aowin": {
+    "region": "Western North",
+    "regFolder": "Western-North",
+    "tblid": "270",
+    "name": "Aowin"
+  },
+  "westernnorth|biaeast": {
+    "region": "Western North",
+    "regFolder": "Western-North",
+    "tblid": "271",
+    "name": "Bia East"
+  },
+  "westernnorth|biawest": {
+    "region": "Western North",
+    "regFolder": "Western-North",
+    "tblid": "272",
+    "name": "Bia West"
+  },
+  "westernnorth|bibianianhwiasobekwai": {
+    "region": "Western North",
+    "regFolder": "Western-North",
+    "tblid": "273",
+    "name": "Bibiani-Anhwiaso-Bekwai"
+  },
+  "westernnorth|bodi": {
+    "region": "Western North",
+    "regFolder": "Western-North",
+    "tblid": "274",
+    "name": "Bodi"
+  },
+  "westernnorth|juaboso": {
+    "region": "Western North",
+    "regFolder": "Western-North",
+    "tblid": "275",
+    "name": "Juaboso"
+  },
+  "westernnorth|sefwiakontombra": {
+    "region": "Western North",
+    "regFolder": "Western-North",
+    "tblid": "276",
+    "name": "Sefwi-Akontombra"
+  },
+  "westernnorth|sefwiwiawso": {
+    "region": "Western North",
+    "regFolder": "Western-North",
+    "tblid": "277",
+    "name": "Sefwi Wiawso"
+  },
+  "westernnorth|suaman": {
+    "region": "Western North",
+    "regFolder": "Western-North",
+    "tblid": "278",
+    "name": "Suaman"
+  },
+  "ashanti|afigyaseyereeast": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "44",
+    "name": "Afigya Sekyere East"
+  },
+  "ashanti|kwadasomunicipal": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "28",
+    "name": "Kwadaso"
+  },
+  "ashanti|newedubiase": {
+    "region": "Ashanti",
+    "regFolder": "Ashanti",
+    "tblid": "3",
+    "name": "New Edubease"
+  },
+  "central|ajumakoenyanesiam": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "80",
+    "name": "Ajumako-Enyan-Essiam"
+  },
+  "central|komendaedinaeguafoabrem": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "94",
+    "name": "Komenda-Edina-Eguafo-Abirem"
+  },
+  "central|twifoattimorkwa": {
+    "region": "Central",
+    "regFolder": "Central",
+    "tblid": "96",
+    "name": "Twifo-Atii Morkwaa"
+  },
+  "eastern|kwahueast": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "115",
+    "name": "Abetifi"
+  },
+  "eastern|kwahuaframplainsnorth": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "102",
+    "name": "Afram Plains North"
+  },
+  "eastern|aseneakrosomanso": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "108",
+    "name": "Asene Manso Akroso"
+  },
+  "eastern|asene/manso/akroso": {
+    "region": "Eastern",
+    "regFolder": "Eastern",
+    "tblid": "108",
+    "name": "Asene Manso Akroso"
+  },
+  "greateraccra|bortianorngleshieamanfro": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "156",
+    "name": "Bortianor Ngleshie Amamfro"
+  },
+  "greateraccra|adentan": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "146",
+    "name": "Adenta"
+  },
+  "greateraccra|odododiodioo": {
+    "region": "Greater Accra",
+    "regFolder": "Greater-Accra",
+    "tblid": "140",
+    "name": "Odododiodoo"
+  },
+  "northern|wulesnsi": {
+    "region": "Northern",
+    "regFolder": "Northern",
+    "tblid": "176",
+    "name": "Wulensi"
+  },
+  "uppereast|bolgaeast": {
+    "region": "Upper East",
+    "regFolder": "Upper-East",
+    "tblid": "212",
+    "name": "Bolgatanga East"
+  },
+  "western|essikaduketan": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "264",
+    "name": "Essikado-Ketan"
+  },
+  "western|evalueajomorogwira": {
+    "region": "Western",
+    "regFolder": "Western",
+    "tblid": "262",
+    "name": "Evalue-Gwira"
+  },
+  "oti|guan": {
+    "region": "Oti",
+    "regFolder": "Oti",
+    "tblid": "276",
+    "name": "Guan"
+  }
+}

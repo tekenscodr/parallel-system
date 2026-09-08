@@ -3,6 +3,7 @@ import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
 import { normalizeConstituency } from "@/lib/constituency-normalizer";
+import { getVoterPhotoUrl } from "@/lib/voter-photo";
 
 export async function GET(req: Request) {
   try {
@@ -159,7 +160,8 @@ export async function GET(req: Request) {
               THEN (age + 2)
               ELSE NULL
             END as age,
-            status
+            status,
+            image_url as "imageUrl"
           FROM executives_all
           ${whereClause}
           ${orderBySql}
@@ -258,6 +260,8 @@ export async function POST(req: Request) {
       }
     }
 
+    const computedImageUrl = body.imageUrl || body.image_url || getVoterPhotoUrl(region, constituency, voterId);
+
     const newExecutive = await withEcSql(async (sql) => {
       const rows = await sql`
         INSERT INTO executives_all (
@@ -280,7 +284,8 @@ export async function POST(req: Request) {
           is_youth_organiser,
           is_age_adjusted,
           record_entered_by,
-          status
+          status,
+          image_url
         ) VALUES (
           ${executiveName.trim()},
           ${executiveLevel.trim()},
@@ -301,7 +306,8 @@ export async function POST(req: Request) {
           ${isYouth},
           ${isAgeAdjusted},
           ${session.user.name || session.user.email},
-          ${status.trim()}
+          ${status.trim()},
+          ${computedImageUrl || null}
         )
         RETURNING 
           id,
@@ -321,7 +327,8 @@ export async function POST(req: Request) {
           gender,
           date_of_birth as "dateOfBirth",
           age,
-          status
+          status,
+          image_url as "imageUrl"
       `;
       return rows[0] || null;
     });

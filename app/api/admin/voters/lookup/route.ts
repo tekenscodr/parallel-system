@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 
+import { getVoterPhotoUrl } from "@/lib/voter-photo";
+
 const REGIONS = [
   "ahafo",
   "ashanti",
@@ -52,7 +54,8 @@ export async function GET(req: Request) {
           region,
           constituency,
           electoral_area as "electoralArea",
-          polling_station as "pollingStation"
+          polling_station as "pollingStation",
+          image_url as "imageUrl"
         FROM executives_all
         WHERE voter_id = ${voterId}
         LIMIT 1
@@ -65,6 +68,9 @@ export async function GET(req: Request) {
           if (m) v.age = 2026 - parseInt(m[1], 10);
         } else if (v.age != null) {
           v.age = v.age + 2;
+        }
+        if (!v.imageUrl) {
+          v.imageUrl = getVoterPhotoUrl(v.region, v.constituency, v.voterId);
         }
         return {
           found: true,
@@ -111,6 +117,7 @@ export async function GET(req: Request) {
         } else if (matched.age != null) {
           matched.age = matched.age + 2;
         }
+        matched.imageUrl = getVoterPhotoUrl(matched.region, matched.constituency, matched.voterId);
         return {
           found: true,
           source: "voter_registry",

@@ -30,6 +30,8 @@ interface AdminUserRecord {
   name: string;
   role: string;
   status: string;
+  passwordChanged: boolean;
+  passwordChangedAt: string | null;
   createdAt: string;
   updatedAt: string;
   lastSeenAt: string | null;
@@ -217,12 +219,13 @@ export default function UsersManagementPage() {
         throw new Error(data.error || "Failed to reset password.");
       }
 
-      setResetSuccess("Password successfully updated.");
+      setResetSuccess("Password successfully updated. User is now eligible for one-time password update.");
       setNewPassword("");
+      loadUsers();
       setTimeout(() => {
         setResetModalUser(null);
         setResetSuccess("");
-      }, 1200);
+      }, 1400);
     } catch (err: unknown) {
       setResetError(err instanceof Error ? err.message : "Error resetting password.");
     } finally {
@@ -428,6 +431,7 @@ export default function UsersManagementPage() {
                 <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>User Identity</th>
                 <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>Access Role</th>
                 <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>Account Status</th>
+                <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>Password Status</th>
                 <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>Last Verified IP</th>
                 <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600" }}>Last Active</th>
                 <th style={{ padding: "14px 18px", color: "#94a3b8", fontWeight: "600", textAlign: "right" }}>Actions</th>
@@ -436,7 +440,7 @@ export default function UsersManagementPage() {
             <tbody>
               {loadingUsers ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: "40px", textAlign: "center", color: "#94a3b8" }}>
+                  <td colSpan={7} style={{ padding: "40px", textAlign: "center", color: "#94a3b8" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
                       <Loader2 className="animate-spin" size={20} />
                       <span>Loading user accounts from ec-data…</span>
@@ -445,7 +449,7 @@ export default function UsersManagementPage() {
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>
+                  <td colSpan={7} style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>
                     No users matching criteria.
                   </td>
                 </tr>
@@ -518,6 +522,38 @@ export default function UsersManagementPage() {
                         >
                           <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: u.status === "ACTIVE" ? "#34d399" : "#f87171" }} />
                           {u.status}
+                        </span>
+                      </td>
+
+                      <td style={{ padding: "14px 18px" }}>
+                        <span
+                          title={
+                            u.passwordChanged
+                              ? `Password was changed on ${u.passwordChangedAt ? new Date(u.passwordChangedAt).toLocaleString() : "record"} and is locked against further changes.`
+                              : "User has not changed password yet. One-time change is allowed."
+                          }
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "5px",
+                            background: u.passwordChanged ? "rgba(16, 185, 129, 0.12)" : "rgba(234, 179, 8, 0.12)",
+                            color: u.passwordChanged ? "#34d399" : "#fbbf24",
+                            border: u.passwordChanged ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(234, 179, 8, 0.3)",
+                            borderRadius: "999px",
+                            padding: "3px 10px",
+                            fontSize: "11px",
+                            fontWeight: "600",
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: "6px",
+                              height: "6px",
+                              borderRadius: "50%",
+                              background: u.passwordChanged ? "#34d399" : "#fbbf24",
+                            }}
+                          />
+                          {u.passwordChanged ? "Changed (Locked)" : "Pending First Change"}
                         </span>
                       </td>
 
@@ -873,6 +909,9 @@ export default function UsersManagementPage() {
                       outline: "none",
                     }}
                   />
+                  <p style={{ fontSize: "11px", color: "#94a3b8", margin: "6px 0 0 0", lineHeight: "1.4" }}>
+                    Resetting will generate a temporary password and grant the user one-time permission to set their personal password upon next login.
+                  </p>
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>

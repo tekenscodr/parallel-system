@@ -8,6 +8,7 @@ import {
   Users,
   ShieldAlert,
   Layers,
+  FileText,
   LogOut,
   ArrowLeft,
   ChevronLeft,
@@ -16,6 +17,7 @@ import {
   X,
   ShieldCheck,
   KeyRound,
+  CheckCircle2,
   Eye,
   EyeOff,
   ArrowRight,
@@ -27,6 +29,8 @@ interface AdminUser {
   email: string;
   name: string;
   role: string;
+  passwordChanged?: boolean;
+  passwordChangedAt?: string | null;
 }
 
 interface AdminShellProps {
@@ -91,6 +95,7 @@ export function AdminShell({
   // 5-minute reminder to confirm whether to change or keep password if not changed after login
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (currentUser?.passwordChanged) return;
 
     try {
       const isUpdated = localStorage.getItem("admin_password_updated") === "true";
@@ -111,7 +116,7 @@ export function AdminShell({
       const remaining = Math.max(0, FIVE_MINUTES_MS - elapsed);
 
       const timer = setTimeout(() => {
-        const currentUpdated = localStorage.getItem("admin_password_updated") === "true";
+        const currentUpdated = localStorage.getItem("admin_password_updated") === "true" || !!currentUser?.passwordChanged;
         const currentDismissed = sessionStorage.getItem("admin_password_dismissed") === "true";
         if (!currentUpdated && !currentDismissed) {
           setModalStep("prompt");
@@ -125,7 +130,7 @@ export function AdminShell({
     } catch {
       // ignore
     }
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     initClientIpDetection().catch(() => {});
@@ -187,6 +192,13 @@ export function AdminShell({
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.code === "PASSWORD_ALREADY_CHANGED") {
+          try {
+            localStorage.setItem("admin_password_updated", "true");
+          } catch {
+            // ignore
+          }
+        }
         setPwError(data.error || "Failed to update password.");
         setPwLoading(false);
         return;
@@ -214,6 +226,7 @@ export function AdminShell({
 
   const roleUpper = String(currentUser?.role || cachedRole || "").toUpperCase();
   const isAdminNational = roleUpper === "ADMIN_NATIONAL" || roleUpper === "ADMIN";
+  const isPasswordLocked = Boolean(currentUser?.passwordChanged);
 
   // Navigation tabs visible only for Admin_national
   const navItems = [
@@ -222,6 +235,12 @@ export function AdminShell({
       label: "Executives Directory",
       icon: Layers,
       description: "261k+ nationwide executive registry & updates",
+    },
+    {
+      href: "/admin/albums/ahafo",
+      label: "Ahafo Election Album",
+      icon: FileText,
+      description: "Official 19-page electoral college photo album",
     },
     {
       href: "/admin/users",
@@ -628,32 +647,54 @@ export function AdminShell({
                 >
                   ec-data PostgreSQL
                 </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setModalStep("form");
-                    setPasswordModalOpen(true);
-                    setPwError("");
-                    setPwSuccess("");
-                  }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    padding: "5px 12px",
-                    borderRadius: "6px",
-                    background: "rgba(59, 130, 246, 0.12)",
-                    color: "#60a5fa",
-                    border: "1px solid rgba(59, 130, 246, 0.3)",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                  }}
-                >
-                  <KeyRound size={13} />
-                  <span>Change Password</span>
-                </button>
+                {isPasswordLocked ? (
+                  <div
+                    title="Your personal password has already been set and is locked under system security policy."
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "5px 12px",
+                      borderRadius: "6px",
+                      background: "rgba(16, 185, 129, 0.1)",
+                      color: "#34d399",
+                      border: "1px solid rgba(16, 185, 129, 0.25)",
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      cursor: "default",
+                    }}
+                  >
+                    <CheckCircle2 size={13} />
+                    <span>Password Set</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModalStep("form");
+                      setPasswordModalOpen(true);
+                      setPwError("");
+                      setPwSuccess("");
+                    }}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "5px 12px",
+                      borderRadius: "6px",
+                      background: "rgba(59, 130, 246, 0.12)",
+                      color: "#60a5fa",
+                      border: "1px solid rgba(59, 130, 246, 0.3)",
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <KeyRound size={13} />
+                    <span>Change Password</span>
+                  </button>
+                )}
               </div>
             </header>
 
@@ -736,32 +777,54 @@ export function AdminShell({
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setModalStep("form");
-                  setPasswordModalOpen(true);
-                  setPwError("");
-                  setPwSuccess("");
-                }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  background: "rgba(59, 130, 246, 0.12)",
-                  color: "#60a5fa",
-                  border: "1px solid rgba(59, 130, 246, 0.3)",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                <KeyRound size={13} />
-                <span>Change Password</span>
-              </button>
+              {isPasswordLocked ? (
+                <div
+                  title="Your personal password has already been set and is locked under system security policy."
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    background: "rgba(16, 185, 129, 0.1)",
+                    color: "#34d399",
+                    border: "1px solid rgba(16, 185, 129, 0.25)",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    cursor: "default",
+                  }}
+                >
+                  <CheckCircle2 size={13} />
+                  <span>Password Set</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalStep("form");
+                    setPasswordModalOpen(true);
+                    setPwError("");
+                    setPwSuccess("");
+                  }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    background: "rgba(59, 130, 246, 0.12)",
+                    color: "#60a5fa",
+                    border: "1px solid rgba(59, 130, 246, 0.3)",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <KeyRound size={13} />
+                  <span>Change Password</span>
+                </button>
+              )}
               <Link
                 href="/dashboard"
                 style={{

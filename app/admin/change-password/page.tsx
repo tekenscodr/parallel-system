@@ -24,6 +24,7 @@ export default function AdminChangePasswordPage() {
 
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [alreadyChanged, setAlreadyChanged] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -42,6 +43,17 @@ export default function AdminChangePasswordPage() {
       .then((data) => {
         if (!data || !data.authenticated) {
           window.location.href = "/admin/login";
+          return;
+        }
+
+        if (data.user?.passwordChanged) {
+          try {
+            localStorage.setItem("admin_password_updated", "true");
+          } catch {
+            // ignore
+          }
+          setAlreadyChanged(true);
+          setCheckingAuth(false);
           return;
         }
 
@@ -94,6 +106,14 @@ export default function AdminChangePasswordPage() {
       const data = await res.json();
 
       if (!res.ok) {
+        if (data.code === "PASSWORD_ALREADY_CHANGED") {
+          try {
+            localStorage.setItem("admin_password_updated", "true");
+          } catch {
+            // ignore
+          }
+          setAlreadyChanged(true);
+        }
         setError(data.error || "Failed to update password.");
         setLoading(false);
         return;
@@ -155,6 +175,95 @@ export default function AdminChangePasswordPage() {
           />
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           <p style={{ fontSize: "14px", margin: 0 }}>Verifying session…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (alreadyChanged) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "radial-gradient(ellipse at top, #0f172a 0%, #020617 100%)",
+          color: "#f8fafc",
+          fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+          padding: "20px",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "480px",
+            background: "rgba(15, 23, 42, 0.8)",
+            border: "1px solid rgba(56, 189, 248, 0.2)",
+            borderRadius: "16px",
+            padding: "36px",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(16px)",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "60px",
+              height: "60px",
+              borderRadius: "16px",
+              background: "rgba(16, 185, 129, 0.15)",
+              border: "1px solid rgba(16, 185, 129, 0.3)",
+              marginBottom: "20px",
+            }}
+          >
+            <CheckCircle2 size={30} color="#34d399" />
+          </div>
+          <h1 style={{ fontSize: "22px", fontWeight: "700", margin: "0 0 10px 0", color: "#f8fafc" }}>
+            Password Already Configured
+          </h1>
+          <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: "1.6", margin: "0 0 24px 0" }}>
+            Under system security policy, your account password can only be changed once. Your personal password has already been established and cannot be changed again.
+          </p>
+          <div
+            style={{
+              background: "rgba(255, 255, 255, 0.03)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "10px",
+              padding: "14px 16px",
+              marginBottom: "24px",
+              textAlign: "left",
+              fontSize: "12px",
+              color: "#64748b",
+              lineHeight: "1.5",
+            }}
+          >
+            <strong style={{ color: "#cbd5e1" }}>Need a password reset?</strong> If you have lost or forgotten your credentials, please contact a designated <strong style={{ color: "#38bdf8" }}>National Administrator</strong> to issue an administrative credential reset.
+          </div>
+          <Link
+            href="/admin/dashboard"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              width: "100%",
+              padding: "12px 20px",
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+              color: "#ffffff",
+              textDecoration: "none",
+              fontSize: "14px",
+              fontWeight: "600",
+              boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
+            }}
+          >
+            <span>Proceed to Command Dashboard</span>
+            <ArrowRight size={16} />
+          </Link>
         </div>
       </div>
     );

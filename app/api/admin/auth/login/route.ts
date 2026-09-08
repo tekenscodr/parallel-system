@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     // Query user in ec-data using request-scoped client
     const user = await withEcSql(async (sql) => {
       const users = await sql`
-        SELECT id, email, name, "passwordHash", role, status
+        SELECT id, email, name, "passwordHash", role, status, COALESCE("passwordChanged", false) as "passwordChanged"
         FROM "User"
         WHERE LOWER(email) = ${cleanEmail}
         LIMIT 1
@@ -95,6 +95,7 @@ export async function POST(req: Request) {
         email: user.email,
         name: user.name,
         role: user.role,
+        passwordChanged: Boolean(user.passwordChanged),
       },
     });
 
