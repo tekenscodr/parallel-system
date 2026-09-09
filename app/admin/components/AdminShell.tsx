@@ -359,7 +359,7 @@ export function AdminShell({
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                     <span style={{ fontSize: "14px", fontWeight: "800", letterSpacing: "-0.3px", color: "#f8fafc" }}>
-                      REACH
+                      NPP DIRECTORY
                     </span>
                     <span
                       style={{
@@ -373,11 +373,11 @@ export function AdminShell({
                         letterSpacing: "0.5px",
                       }}
                     >
-                      DIRECTORATE
+                      COMMAND
                     </span>
                   </div>
                   <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
-                    ec-data Command Center
+                    Electoral College & Executive Registry
                   </div>
                 </div>
               </div>
