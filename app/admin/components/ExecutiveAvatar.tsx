@@ -28,6 +28,7 @@ export function ExecutiveAvatar({
 }: ExecutiveAvatarProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   // Determine effective photo URL (explicit imageUrl, or derive from region/constituency/voterId)
   const resolvedUrl =
@@ -39,6 +40,7 @@ export function ExecutiveAvatar({
   useEffect(() => {
     setImageError(false);
     setImageLoaded(false);
+    setRetryAttempt(0);
   }, [resolvedUrl]);
 
   const initials = getInitials(name);
@@ -72,6 +74,10 @@ export function ExecutiveAvatar({
   };
 
   const showImage = Boolean(resolvedUrl) && !imageError;
+  const displayUrl =
+    resolvedUrl && retryAttempt > 0
+      ? `${resolvedUrl}${resolvedUrl.includes("?") ? "&" : "?"}retry=${retryAttempt}`
+      : resolvedUrl;
 
   return (
     <div
@@ -97,12 +103,18 @@ export function ExecutiveAvatar({
       {/* Voter Photo */}
       {showImage && (
         <img
-          src={resolvedUrl!}
+          src={displayUrl!}
           alt={name ? `${name}'s photo` : "Voter photo"}
           loading="lazy"
           decoding="async"
-          referrerPolicy="no-referrer"
-          onError={() => setImageError(true)}
+          referrerPolicy="strict-origin-when-cross-origin"
+          onError={() => {
+            if (retryAttempt < 1) {
+              setRetryAttempt(1);
+              return;
+            }
+            setImageError(true);
+          }}
           onLoad={() => setImageLoaded(true)}
           style={{
             position: "absolute",
