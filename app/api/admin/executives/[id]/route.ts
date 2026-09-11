@@ -3,6 +3,7 @@ import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp, diffExecutiveRecords } from "@/lib/audit-logger";
 import { getVoterPhotoUrl } from "@/lib/voter-photo";
+import { saveUploadedExecutiveImage } from "@/lib/image-upload";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -96,7 +97,26 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Invalid executive ID" }, { status: 400 });
     }
 
-    const body = await req.json();
+    const contentType = req.headers.get("content-type") || "";
+    let body: any = {};
+    let uploadedImageUrl: string | null = null;
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const file = formData.get("file") as File | null;
+      const voterIdVal = (formData.get("voterId") as string) || (formData.get("voter_id") as string) || null;
+      if (file && typeof file !== "string" && file.size > 0) {
+        const res = await saveUploadedExecutiveImage(file, voterIdVal);
+        uploadedImageUrl = res.imageUrl;
+      }
+      for (const [key, value] of formData.entries()) {
+        if (key !== "file") {
+          body[key] = value;
+        }
+      }
+    } else {
+      body = await req.json();
+    }
 
     const {
       executiveName,
@@ -186,6 +206,12 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     const effVoterId = voterId !== undefined ? voterId : previousRow.voterId;
     const computedImageUrl = getVoterPhotoUrl(effRegion, effConstituency, effVoterId);
 
+    const hasExplicitImage = uploadedImageUrl !== null || body.imageUrl !== undefined || body.image_url !== undefined;
+    const explicitImageUrl = uploadedImageUrl || (body.imageUrl !== undefined ? body.imageUrl : body.image_url);
+    const finalImageUrl = hasExplicitImage
+      ? (explicitImageUrl && String(explicitImageUrl).trim() ? String(explicitImageUrl).trim() : null)
+      : (computedImageUrl || previousRow.imageUrl || null);
+
     const updatedRow = await withEcSql(async (sql) => {
       const res = await sql`
         UPDATE executives_all
@@ -209,7 +235,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           is_youth_organiser = ${isYouth},
           is_age_adjusted = ${isAgeAdjusted},
           status = COALESCE(${status ?? null}, status),
-          image_url = COALESCE(${computedImageUrl ?? null}, image_url)
+          image_url = ${finalImageUrl}
         WHERE id = ${id}
         RETURNING 
           id,

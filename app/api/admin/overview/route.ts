@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { normalizeConstituency } from "@/lib/constituency-normalizer";
+import { getVotingReport } from '@/lib/voting-data';
+import { buildPositionCondition } from "@/lib/position-matcher";
 
 export async function GET(req: Request) {
   try {
@@ -14,6 +16,7 @@ export async function GET(req: Request) {
     const region = url.searchParams.get("region")?.trim() || "";
     const constituency = url.searchParams.get("constituency")?.trim() || "";
     const level = url.searchParams.get("level")?.trim() || "";
+    const position = url.searchParams.get("position")?.trim() || "";
 
     // Run parallel queries on ec-data in scoped connection
     const result = await withEcSql(async (sql) => {
@@ -33,6 +36,10 @@ export async function GET(req: Request) {
           conditions.push(sql`constituency ILIKE ${constituency}`);
         }
       }
+      if (position) {
+        const pCond = buildPositionCondition(sql, position);
+        if (pCond) conditions.push(pCond);
+      }
 
       const whereClause = conditions.length > 0
         ? sql`WHERE ${conditions.reduce((prev, curr) => sql`${prev} AND ${curr}`)}`
@@ -44,8 +51,8 @@ export async function GET(req: Request) {
           executive_level IN ('Constituency', 'National', 'External Branch')
           OR (executive_level = 'TESCON' AND (
             (position ILIKE '%President%' AND position NOT ILIKE '%Patron%')
-            OR position = 'WOCOM'
-            OR position = 'Nasara Coordinator'
+            OR position IN ('WOCOM', 'Women Commissioner')
+            OR position IN ('Tescon Nasara', 'Nasara Coordinator')
           ))
         )`
       ];
@@ -141,16 +148,16 @@ export async function GET(req: Request) {
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND age < 40 THEN 1
             END)::int as youth_voters,
             COUNT(CASE 
-              WHEN executive_level = 'TESCON' AND (position = 'WOCOM' OR (position ILIKE '%President%' AND gender = 'Female')) THEN 1
+              WHEN executive_level = 'TESCON' AND (position IN ('WOCOM', 'Women Commissioner') OR (position ILIKE '%President%' AND gender = 'Female')) THEN 1
               WHEN executive_level != 'TESCON' AND gender = 'Female' THEN 1
             END)::int as women_voters,
             COUNT(CASE 
-              WHEN executive_level = 'TESCON' AND position = 'Nasara Coordinator' THEN 1
+              WHEN executive_level = 'TESCON' AND position IN ('Tescon Nasara', 'Nasara Coordinator') THEN 1
               WHEN executive_level != 'TESCON' AND position ILIKE '%Nasara%' THEN 1
             END)::int as nasara_voters,
             COUNT(CASE WHEN executive_level = 'TESCON' AND position ILIKE '%President%' AND position NOT ILIKE '%Patron%' THEN 1 END)::int as tescon_presidents,
-            COUNT(CASE WHEN executive_level = 'TESCON' AND position = 'WOCOM' THEN 1 END)::int as tescon_wocom,
-            COUNT(CASE WHEN executive_level = 'TESCON' AND position = 'Nasara Coordinator' THEN 1 END)::int as tescon_nasara,
+            COUNT(CASE WHEN executive_level = 'TESCON' AND position IN ('WOCOM', 'Women Commissioner') THEN 1 END)::int as tescon_wocom,
+            COUNT(CASE WHEN executive_level = 'TESCON' AND position IN ('Tescon Nasara', 'Nasara Coordinator') THEN 1 END)::int as tescon_nasara,
             COUNT(CASE WHEN executive_level = 'Constituency' THEN 1 END)::int as constituency_execs,
             COUNT(CASE WHEN executive_level = 'External Branch' THEN 1 END)::int as external_branch_execs
           FROM executives_all
@@ -173,11 +180,24 @@ export async function GET(req: Request) {
         activeFilter: {
           region: region || null,
           constituency: constituency || null,
-          level: level || null
+          level: level || null,
+          position: position || null
         }
       };
     });
 
+    const voting = await getVotingReport();
+    const electorate = voting.people.filter(p =>
+      (!region || p.region.toLowerCase() === region.toLowerCase()) &&
+      (!constituency || normalizeConstituency(p.constituency).toLowerCase() === normalizeConstituency(constituency).toLowerCase()) &&
+      (!level || p.levels.split('; ').some(l => l.toLowerCase() === level.toLowerCase())) &&
+      (!position || p.positions.toLowerCase().includes(position.toLowerCase())));
+    result.electoralCollege = {...result.electoralCollege,
+      total_delegates: electorate.filter(p=>Object.values(p.flags).some(Boolean)).length,
+      general_voters: electorate.filter(p=>p.flags.general).length,
+      youth_voters: electorate.filter(p=>p.flags.youth).length,
+      women_voters: electorate.filter(p=>p.flags.women).length,
+      nasara_voters: electorate.filter(p=>p.flags.nasara).length};
     return NextResponse.json({
       ...result,
       user: session.user

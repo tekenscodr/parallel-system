@@ -32,6 +32,8 @@ import {
   Compass,
   LogOut,
   Phone,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 import { ExecutiveAvatar } from "@/app/admin/components/ExecutiveAvatar";
@@ -213,7 +215,9 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Electoral Affairs Officer",
   ],
   TESCON: [
-    "President",
+    "Tescon President",
+    "WOCOM",
+    "Tescon Nasara",
     "Vice President",
     "General Secretary",
     "Deputy General Secretary",
@@ -221,13 +225,15 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Deputy Organiser",
     "Treasurer",
     "Financial Secretary",
-    "Women Commissioner",
     "Deputy Women Commissioner",
     "Communication Officer",
     "Research & Elections Officer",
-    "Nasara Coordinator",
   ],
 };
+
+const ALL_CANONICAL_POSITIONS = Array.from(
+  new Set(Object.values(POSITIONS_BY_LEVEL).flat())
+).sort((a, b) => a.localeCompare(b));
 
 function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
   return getClientHeaders(extra);
@@ -248,6 +254,8 @@ export default function NationalAdminDashboard() {
   const [selectedConstituency, setSelectedConstituency] = useState<string>("");
   const [constituencyList, setConstituencyList] = useState<string[]>([]);
   const [loadingConstituencies, setLoadingConstituencies] = useState<boolean>(false);
+  const [selectedPosition, setSelectedPosition] = useState<string>("");
+  const [positionList, setPositionList] = useState<string[]>([]);
   const [selectedCohort, setSelectedCohort] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -268,6 +276,14 @@ export default function NationalAdminDashboard() {
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
   const [activeExecutive, setActiveExecutive] = useState<ExecutiveDetail | null>(null);
+  const [editSearchVoterId, setEditSearchVoterId] = useState("");
+  const [editSearchingVoter, setEditSearchingVoter] = useState(false);
+  const [editVoterSearchStatus, setEditVoterSearchStatus] = useState<{
+    found: boolean;
+    message: string;
+  } | null>(null);
+  const [editUploadingImage, setEditUploadingImage] = useState(false);
+  const [addUploadingImage, setAddUploadingImage] = useState(false);
 
   // Delete Modal State
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -350,6 +366,30 @@ export default function NationalAdminDashboard() {
       });
   }, [selectedRegion]);
 
+  // Load positions tied to selectedLevel
+  useEffect(() => {
+    const initial = selectedLevel && POSITIONS_BY_LEVEL[selectedLevel]
+      ? POSITIONS_BY_LEVEL[selectedLevel]
+      : ALL_CANONICAL_POSITIONS;
+    setPositionList(initial);
+
+    const params = new URLSearchParams();
+    if (selectedLevel) params.set("level", selectedLevel);
+
+    fetch(`/api/admin/positions?${params.toString()}`, {
+      credentials: "include",
+      headers: getAuthHeaders(),
+    })
+      .then((res) => (res.ok ? res.json() : { positions: [] }))
+      .then((data) => {
+        if (data.positions && Array.isArray(data.positions) && data.positions.length > 0) {
+          const merged = Array.from(new Set([...initial, ...data.positions])).sort((a, b) => a.localeCompare(b));
+          setPositionList(merged);
+        }
+      })
+      .catch(() => {});
+  }, [selectedLevel]);
+
   // Auth check & Overview data fetch
   useEffect(() => {
     const headers = getAuthHeaders();
@@ -364,33 +404,32 @@ export default function NationalAdminDashboard() {
         }
         return res.json();
       })
-      .then((authData) => {
-        if (!authData || !authData.authenticated) {
+      .then((data) => {
+        if (!data || !data.authenticated) {
           setAuthError("Session expired or unauthorized. Please login.");
           return;
         }
-        setCurrentUser(authData.user);
-        if (typeof window !== "undefined" && authData.user?.role) {
-          localStorage.setItem("admin_user_role", String(authData.user.role).toUpperCase());
+        setCurrentUser(data.user);
+        if (typeof window !== "undefined" && data.user?.role) {
+          localStorage.setItem("admin_user_role", String(data.user.role).toUpperCase());
         }
-
-        // Load overview analytics
-        loadOverview();
       })
       .catch((err: unknown) => {
         setAuthError(err instanceof Error ? err.message : "Authentication error");
       });
   }, []);
 
-  const loadOverview = useCallback((reg?: string, consti?: string, lvl?: string) => {
+  const loadOverview = useCallback((reg?: string, consti?: string, lvl?: string, pos?: string) => {
     setLoadingOverview(true);
     const params = new URLSearchParams();
     const r = reg !== undefined ? reg : selectedRegion;
     const c = consti !== undefined ? consti : selectedConstituency;
     const l = lvl !== undefined ? lvl : selectedLevel;
+    const p = pos !== undefined ? pos : selectedPosition;
     if (r) params.set("region", r);
     if (c) params.set("constituency", c);
     if (l) params.set("level", l);
+    if (p) params.set("position", p);
 
     fetch(`/api/admin/overview?${params.toString()}`, {
       credentials: "include",
@@ -404,13 +443,13 @@ export default function NationalAdminDashboard() {
         setLoadingOverview(false);
       })
       .catch(() => setLoadingOverview(false));
-  }, [selectedRegion, selectedConstituency, selectedLevel]);
+  }, [selectedRegion, selectedConstituency, selectedLevel, selectedPosition]);
 
   useEffect(() => {
     if (currentUser) {
       loadOverview();
     }
-  }, [currentUser, selectedRegion, selectedConstituency, selectedLevel, loadOverview]);
+  }, [currentUser, selectedRegion, selectedConstituency, selectedLevel, selectedPosition, loadOverview]);
 
   // Fetch paginated roster
   const fetchRoster = useCallback(() => {
@@ -422,6 +461,7 @@ export default function NationalAdminDashboard() {
     if (selectedLevel) params.set("level", selectedLevel);
     if (selectedRegion) params.set("region", selectedRegion);
     if (selectedConstituency) params.set("constituency", selectedConstituency);
+    if (selectedPosition) params.set("position", selectedPosition);
     if (selectedCohort) params.set("cohort", selectedCohort);
     if (selectedSlot) params.set("slot", selectedSlot);
     if (debouncedSearch) params.set("search", debouncedSearch);
@@ -443,7 +483,7 @@ export default function NationalAdminDashboard() {
       .catch(() => {
         setLoadingRows(false);
       });
-  }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedCohort, selectedSlot, debouncedSearch]);
+  }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedPosition, selectedCohort, selectedSlot, debouncedSearch]);
 
   useEffect(() => {
     if (currentUser) {
@@ -487,6 +527,8 @@ export default function NationalAdminDashboard() {
       })
       .then((data) => {
         setActiveExecutive(data.executive);
+        setEditSearchVoterId(data.executive?.voterId || "");
+        setEditVoterSearchStatus(null);
         setModalLoading(false);
       })
       .catch((err: unknown) => {
@@ -499,6 +541,9 @@ export default function NationalAdminDashboard() {
     if (modalSaving) return;
     setModalOpen(false);
     setActiveExecutive(null);
+    setEditSearchVoterId("");
+    setEditVoterSearchStatus(null);
+    setEditUploadingImage(false);
     setModalError("");
     setModalSuccess("");
   };
@@ -633,6 +678,7 @@ export default function NationalAdminDashboard() {
                 phone: updatedExecutive.phone,
                 dateOfBirth: updatedExecutive.dateOfBirth,
                 age: updatedExecutive.age,
+                imageUrl: updatedExecutive.imageUrl,
               }
             : r
         )
@@ -788,6 +834,129 @@ export default function NationalAdminDashboard() {
     }
   };
 
+  // Search Voter by Voter ID in Edit Modal
+  const handleEditSearchVoter = async () => {
+    const cleanId = editSearchVoterId.trim();
+    if (!cleanId || !activeExecutive) return;
+
+    const rateCheck = checkClientRateLimit("LOOKUP");
+    if (!rateCheck.allowed) {
+      setEditVoterSearchStatus({
+        found: false,
+        message: rateCheck.message || "Search rate limit reached. Please wait before searching again.",
+      });
+      return;
+    }
+
+    setEditSearchingVoter(true);
+    setEditVoterSearchStatus(null);
+    setModalError("");
+
+    try {
+      const res = await fetch(`/api/admin/voters/lookup?voterId=${encodeURIComponent(cleanId)}`, {
+        credentials: "include",
+        headers: getAuthHeaders(),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.found && data.voter) {
+        const v = data.voter;
+        const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(v.dateOfBirth || "", activeExecutive.position);
+        setActiveExecutive((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            executiveName: v.name || prev.executiveName,
+            voterId: v.voterId || cleanId,
+            ghanaCard: v.ghanaCard || prev.ghanaCard,
+            gender: v.gender || prev.gender,
+            dateOfBirth: calculatedDob || v.dateOfBirth || prev.dateOfBirth,
+            age: calculatedAge !== null ? calculatedAge : (v.age ? Number(v.age) : prev.age),
+            phone: v.phone || prev.phone,
+            region: v.region || prev.region,
+            constituency: v.constituency || prev.constituency,
+            electoralArea: v.electoralArea || prev.electoralArea,
+            pollingStation: v.pollingStation || prev.pollingStation,
+            imageUrl: v.imageUrl || prev.imageUrl || null,
+          };
+        });
+
+        setEditVoterSearchStatus({
+          found: true,
+          message: `Voter record found for "${v.name}"! Details auto-populated into form.`,
+        });
+      } else {
+        setActiveExecutive((prev) => (prev ? { ...prev, voterId: cleanId } : null));
+        setEditVoterSearchStatus({
+          found: false,
+          message: data.message || `No voter record found for "${cleanId}". You can enter or update details manually.`,
+        });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lookup failed";
+      setEditVoterSearchStatus({
+        found: false,
+        message: `Voter registry search error: ${msg}. You can enter details manually.`,
+      });
+    } finally {
+      setEditSearchingVoter(false);
+    }
+  };
+
+  // Upload image file in Edit Modal
+  const handleEditImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeExecutive) return;
+    setEditUploadingImage(true);
+    setModalError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (activeExecutive.voterId) formData.append("voterId", activeExecutive.voterId);
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        credentials: "include",
+        headers: getAuthHeaders(),
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Image upload failed");
+      handleFieldChange("imageUrl", data.imageUrl);
+    } catch (err: unknown) {
+      setModalError(err instanceof Error ? err.message : "Image upload failed");
+    } finally {
+      setEditUploadingImage(false);
+      e.target.value = "";
+    }
+  };
+
+  // Upload image file in Add Modal
+  const handleAddImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAddUploadingImage(true);
+    setAddError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (newExecVoterId) formData.append("voterId", newExecVoterId);
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        credentials: "include",
+        headers: getAuthHeaders(),
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Image upload failed");
+      setNewExecImageUrl(data.imageUrl);
+    } catch (err: unknown) {
+      setAddError(err instanceof Error ? err.message : "Image upload failed");
+    } finally {
+      setAddUploadingImage(false);
+      e.target.value = "";
+    }
+  };
+
   const handleCloseAddModal = () => {
     if (addSaving) return;
     setAddModalOpen(false);
@@ -910,7 +1079,7 @@ export default function NationalAdminDashboard() {
   ).toUpperCase();
   const isAdminNational = userRole === "ADMIN_NATIONAL" || userRole === "ADMIN";
 
-  const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}`;
+  const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&position=${encodeURIComponent(selectedPosition)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}`;
 
   const handleExportClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (exportCooldownSec > 0) {
@@ -1305,23 +1474,26 @@ export default function NationalAdminDashboard() {
                 <span>Metrics for <strong style={{ color: "#38bdf8" }}>{selectedConstituency}</strong> <span style={{ color: "#64748b" }}>({selectedRegion})</span></span>
               ) : selectedRegion ? (
                 <span>Metrics for <strong style={{ color: "#38bdf8" }}>{selectedRegion} Region</strong></span>
+              ) : selectedPosition ? (
+                <span>Metrics for <strong style={{ color: "#38bdf8" }}>{selectedPosition}</strong></span>
               ) : (
                 <span>Nationwide Directorate & Electoral College Metrics</span>
               )}
             </h2>
-            {(selectedRegion || selectedConstituency) && (
+            {(selectedRegion || selectedConstituency || selectedPosition) && (
               <span style={{ fontSize: "11px", background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", padding: "2px 8px", borderRadius: "4px", border: "1px solid rgba(56, 189, 248, 0.3)", fontWeight: "600" }}>
-                FILTERED
+                FILTERED {selectedPosition ? `· ${selectedPosition}` : ""}
               </span>
             )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            {(selectedRegion || selectedConstituency) && (
+            {(selectedRegion || selectedConstituency || selectedPosition) && (
               <button
                 type="button"
                 onClick={() => {
                   setSelectedRegion("");
                   setSelectedConstituency("");
+                  setSelectedPosition("");
                   setPage(1);
                 }}
                 style={{
@@ -1439,7 +1611,7 @@ export default function NationalAdminDashboard() {
           <div style={{ marginTop: "14px", marginBottom: "20px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
               <span style={{ fontSize: "11px", fontWeight: "700", color: "#38bdf8", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                National Executives Election — Accredited Voting College ({selectedConstituency || (selectedRegion ? `${selectedRegion} Region` : "Nationwide Pool")})
+                National election eligibility ({selectedConstituency || (selectedRegion ? `${selectedRegion} Region` : "Nationwide Pool")})
               </span>
               <span style={{ fontSize: "11px", color: "#64748b" }}>
                 Master Pool: <strong style={{ color: "#ffffff" }}>{overview.electoralCollege.total_delegates.toLocaleString()}</strong> delegates
@@ -1456,7 +1628,7 @@ export default function NationalAdminDashboard() {
                 <div style={{ fontSize: "20px", fontWeight: "800", color: "#ffffff", marginTop: "4px" }}>
                   {overview.electoralCollege.general_voters.toLocaleString()}
                 </div>
-                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Chairman, Gen Sec, etc. (No TESCON)</div>
+                <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>Constituency, regional, national + TESCON Presidents</div>
               </div>
 
               {/* Youth Organiser */}
@@ -1465,7 +1637,7 @@ export default function NationalAdminDashboard() {
                 <div style={{ fontSize: "20px", fontWeight: "800", color: "#38bdf8", marginTop: "4px" }}>
                   {overview.electoralCollege.youth_voters.toLocaleString()}
                 </div>
-                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Under 40 + All TESCON Pres/Wocom/Nasara</div>
+                <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>Below 40 + all TESCON except patrons</div>
               </div>
 
               {/* Women Organiser */}
@@ -1474,12 +1646,12 @@ export default function NationalAdminDashboard() {
                 <div style={{ fontSize: "20px", fontWeight: "800", color: "#f472b6", marginTop: "4px" }}>
                   {overview.electoralCollege.women_voters.toLocaleString()}
                 </div>
-                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Women Execs + TESCON WOCOM/Pres</div>
+                <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>Female constituency, regional, national + TESCON WOCOM</div>
               </div>
 
               {/* Nasara Coordinator */}
               <div style={{ background: "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                <div style={{ fontSize: "10px", color: "#fbbf24", textTransform: "uppercase", fontWeight: "700" }}>Nasara Coordinator</div>
+                <div style={{ fontSize: "10px", color: "#fbbf24", textTransform: "uppercase", fontWeight: "700" }}>Nasara Organiser</div>
                 <div style={{ fontSize: "20px", fontWeight: "800", color: "#fbbf24", marginTop: "4px" }}>
                   {overview.electoralCollege.nasara_voters.toLocaleString()}
                 </div>
@@ -1489,6 +1661,7 @@ export default function NationalAdminDashboard() {
           </div>
         )}
 
+        <p><Link href="/admin/voting">View all nine contests, regional metrics, constituency metrics and electorate details →</Link></p>
         {/* Multi-Dimensional Filter & Search Toolbar */}
         <section className="dash-toolbar-card">
           <div className="dash-toolbar-row1">
@@ -1704,6 +1877,35 @@ export default function NationalAdminDashboard() {
               </select>
             </div>
 
+            {/* Position Filter Dropdown */}
+            <select
+              className="dash-filter-select"
+              value={selectedPosition}
+              onChange={(e) => {
+                setSelectedPosition(e.target.value);
+                setPage(1);
+              }}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "6px",
+                background: selectedPosition ? "rgba(16, 185, 129, 0.15)" : "rgba(2, 6, 23, 0.8)",
+                border: selectedPosition ? "1px solid #10b981" : "1px solid rgba(255, 255, 255, 0.12)",
+                color: selectedPosition ? "#34d399" : "#ffffff",
+                fontSize: "13px",
+                outline: "none",
+                cursor: "pointer",
+                maxWidth: "230px",
+                transition: "all 0.15s ease"
+              }}
+            >
+              <option value="">
+                {selectedPosition ? "All Positions" : `All Positions (${positionList.length})`}
+              </option>
+              {positionList.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+
             {/* Demographics Cohort Filter */}
             <select
               className="dash-filter-select"
@@ -1753,13 +1955,14 @@ export default function NationalAdminDashboard() {
             </select>
 
             {/* Clear All Filters Button */}
-            {(selectedLevel || selectedRegion || selectedConstituency || selectedCohort || selectedSlot || debouncedSearch) && (
+            {(selectedLevel || selectedRegion || selectedConstituency || selectedPosition || selectedCohort || selectedSlot || debouncedSearch) && (
               <button
                 className="dash-filter-select"
                 onClick={() => {
                   setSelectedLevel("");
                   setSelectedRegion("");
                   setSelectedConstituency("");
+                  setSelectedPosition("");
                   setSelectedCohort("");
                   setSelectedSlot("");
                   setSearchQuery("");
@@ -2305,6 +2508,240 @@ export default function NationalAdminDashboard() {
                       <AlertCircle size={16} color="#94a3b8" /> {modalError}
                     </div>
                   )}
+
+                  {/* Voter ID Search Section */}
+                  <div
+                    style={{
+                      background: "rgba(30, 41, 59, 0.4)",
+                      border: "1px solid rgba(59, 130, 246, 0.25)",
+                      borderRadius: "10px",
+                      padding: "16px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <div style={{ fontSize: "12px", fontWeight: "700", color: "#60a5fa", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
+                      Voter ID Search (Auto-Fill & Verification)
+                    </div>
+                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                      <input
+                        type="text"
+                        value={editSearchVoterId}
+                        onChange={(e) => setEditSearchVoterId(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleEditSearchVoter();
+                          }
+                        }}
+                        placeholder="Enter 10-digit Voter ID to search regional registry…"
+                        style={{
+                          flex: 1,
+                          minWidth: "220px",
+                          padding: "9px 12px",
+                          borderRadius: "6px",
+                          background: "rgba(2, 6, 23, 0.8)",
+                          border: "1px solid rgba(255, 255, 255, 0.15)",
+                          color: "#ffffff",
+                          fontSize: "13px",
+                          fontFamily: "monospace",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleEditSearchVoter}
+                        disabled={editSearchingVoter || !editSearchVoterId.trim()}
+                        style={{
+                          padding: "9px 18px",
+                          borderRadius: "6px",
+                          background: editSearchingVoter ? "#1e293b" : "#2563eb",
+                          border: "none",
+                          color: "#ffffff",
+                          fontSize: "13px",
+                          fontWeight: "600",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          cursor: editSearchingVoter || !editSearchVoterId.trim() ? "not-allowed" : "pointer",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        {editSearchingVoter ? (
+                          <>
+                            <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
+                            <span>Searching 16 Regions…</span>
+                          </>
+                        ) : (
+                          <>
+                            <Search size={14} />
+                            <span>Search Voter ID</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {editVoterSearchStatus && (
+                      <div
+                        style={{
+                          marginTop: "10px",
+                          padding: "8px 12px",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          background: editVoterSearchStatus.found ? "rgba(16, 185, 129, 0.15)" : "rgba(234, 179, 8, 0.15)",
+                          border: `1px solid ${editVoterSearchStatus.found ? "rgba(16, 185, 129, 0.3)" : "rgba(234, 179, 8, 0.3)"}`,
+                          color: editVoterSearchStatus.found ? "#34d399" : "#facc15",
+                        }}
+                      >
+                        {editVoterSearchStatus.found ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
+                        <span>{editVoterSearchStatus.message}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Profile Photo (URL or File Upload) */}
+                  <div
+                    style={{
+                      background: "rgba(15, 23, 42, 0.6)",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      borderRadius: "10px",
+                      padding: "16px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: "700",
+                        color: "#38bdf8",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        marginBottom: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <ImageIcon size={15} />
+                      <span>Profile Photo (URL or File Upload)</span>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "16px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {/* Live Avatar Preview */}
+                      <div style={{ position: "relative", flexShrink: 0 }}>
+                        <ExecutiveAvatar
+                          imageUrl={activeExecutive.imageUrl}
+                          name={activeExecutive.executiveName}
+                          voterId={activeExecutive.voterId}
+                          region={activeExecutive.region}
+                          constituency={activeExecutive.constituency}
+                          size={60}
+                        />
+                      </div>
+
+                      {/* Controls: URL and File Upload */}
+                      <div style={{ flex: 1, minWidth: "240px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <div>
+                          <label
+                            style={{
+                              display: "block",
+                              fontSize: "11px",
+                              fontWeight: "600",
+                              color: "#94a3b8",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            Image URL or Public CDN Path
+                          </label>
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <input
+                              type="text"
+                              value={activeExecutive.imageUrl || ""}
+                              onChange={(e) => handleFieldChange("imageUrl", e.target.value)}
+                              placeholder="https://... or /cdn/executives/..."
+                              style={{
+                                flex: 1,
+                                padding: "8px 12px",
+                                borderRadius: "6px",
+                                background: "rgba(2, 6, 23, 0.8)",
+                                border: "1px solid rgba(255, 255, 255, 0.15)",
+                                color: "#ffffff",
+                                fontSize: "12px",
+                              }}
+                            />
+                            {activeExecutive.imageUrl && (
+                              <button
+                                type="button"
+                                onClick={() => handleFieldChange("imageUrl", "")}
+                                title="Remove photo"
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: "6px",
+                                  background: "rgba(239, 68, 68, 0.15)",
+                                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                                  color: "#f87171",
+                                  fontSize: "12px",
+                                  cursor: "pointer",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                Clear
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                          <label
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              padding: "8px 14px",
+                              borderRadius: "6px",
+                              background: editUploadingImage ? "#1e293b" : "#2563eb",
+                              color: "#ffffff",
+                              fontSize: "12px",
+                              fontWeight: "600",
+                              cursor: editUploadingImage ? "not-allowed" : "pointer",
+                              border: "none",
+                              transition: "all 0.15s ease",
+                            }}
+                          >
+                            {editUploadingImage ? (
+                              <>
+                                <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
+                                <span>Uploading Image…</span>
+                              </>
+                            ) : (
+                              <>
+                                <Upload size={14} />
+                                <span>Upload Image File</span>
+                              </>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,image/gif"
+                              disabled={editUploadingImage}
+                              onChange={handleEditImageUpload}
+                              style={{ display: "none" }}
+                            />
+                          </label>
+                          <span style={{ fontSize: "11px", color: "#64748b" }}>
+                            JPEG, PNG, WEBP or GIF (Max 8MB). Auto-stored on CDN.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Group 1: Executive Profile & Designation */}
                   <div style={{ marginBottom: "22px" }}>
@@ -3270,6 +3707,149 @@ export default function NationalAdminDashboard() {
 
               {/* Add Executive Form */}
               <form id="add-executive-form" onSubmit={handleCreateExecutive}>
+                {/* Profile Photo (URL or File Upload) */}
+                <div
+                  style={{
+                    background: "rgba(15, 23, 42, 0.6)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    borderRadius: "10px",
+                    padding: "16px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "700",
+                      color: "#38bdf8",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      marginBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <ImageIcon size={15} />
+                    <span>Profile Photo (URL or File Upload)</span>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "16px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {/* Live Avatar Preview */}
+                    <div style={{ position: "relative", flexShrink: 0 }}>
+                      <ExecutiveAvatar
+                        imageUrl={newExecImageUrl}
+                        name={newExecName}
+                        voterId={newExecVoterId}
+                        region={newExecRegion}
+                        constituency={newExecConstituency}
+                        size={60}
+                      />
+                    </div>
+
+                    {/* Controls: URL and File Upload */}
+                    <div style={{ flex: 1, minWidth: "240px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "11px",
+                            fontWeight: "600",
+                            color: "#94a3b8",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Image URL or Public CDN Path
+                        </label>
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <input
+                            type="text"
+                            value={newExecImageUrl || ""}
+                            onChange={(e) => setNewExecImageUrl(e.target.value)}
+                            placeholder="https://... or /cdn/executives/..."
+                            style={{
+                              flex: 1,
+                              padding: "8px 12px",
+                              borderRadius: "6px",
+                              background: "rgba(2, 6, 23, 0.8)",
+                              border: "1px solid rgba(255, 255, 255, 0.15)",
+                              color: "#ffffff",
+                              fontSize: "12px",
+                            }}
+                          />
+                          {newExecImageUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setNewExecImageUrl(null)}
+                              title="Remove photo"
+                              style={{
+                                padding: "8px 12px",
+                                borderRadius: "6px",
+                                background: "rgba(239, 68, 68, 0.15)",
+                                border: "1px solid rgba(239, 68, 68, 0.3)",
+                                color: "#f87171",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                        <label
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            padding: "8px 14px",
+                            borderRadius: "6px",
+                            background: addUploadingImage ? "#1e293b" : "#2563eb",
+                            color: "#ffffff",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            cursor: addUploadingImage ? "not-allowed" : "pointer",
+                            border: "none",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {addUploadingImage ? (
+                            <>
+                              <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
+                              <span>Uploading Image…</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload size={14} />
+                              <span>Upload Image File</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            disabled={addUploadingImage}
+                            onChange={handleAddImageUpload}
+                            style={{ display: "none" }}
+                          />
+                        </label>
+                        <span style={{ fontSize: "11px", color: "#64748b" }}>
+                          JPEG, PNG, WEBP or GIF (Max 8MB). Auto-stored on CDN.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div style={{ fontSize: "12px", fontWeight: "700", color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "12px" }}>
                   Step 2: Executive Details & Position
                 </div>

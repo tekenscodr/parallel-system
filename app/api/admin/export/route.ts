@@ -1,6 +1,7 @@
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
+import { buildPositionCondition } from "@/lib/position-matcher";
 
 export async function GET(req: Request) {
   try {
@@ -34,6 +35,7 @@ export async function GET(req: Request) {
     const level = url.searchParams.get("level")?.trim() || "";
     const region = url.searchParams.get("region")?.trim() || "";
     const constituency = url.searchParams.get("constituency")?.trim() || "";
+    const position = url.searchParams.get("position")?.trim() || "";
     const search = url.searchParams.get("search")?.trim() || "";
     const cohort = url.searchParams.get("cohort")?.trim() || "";
     const slot = url.searchParams.get("slot")?.trim() || "";
@@ -60,6 +62,11 @@ export async function GET(req: Request) {
         conditions.push(sql`gender = 'Female'`);
       } else if (cohort === "nasara") {
         conditions.push(sql`position ILIKE '%nasara%'`);
+      }
+
+      if (position) {
+        const pCond = buildPositionCondition(sql, position);
+        if (pCond) conditions.push(pCond);
       }
 
       const whereClause = conditions.length > 0

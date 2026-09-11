@@ -1,1 +1,758 @@
-{}
+{
+  "wocom-262094": {
+    "file": "wocom-262094-agartha-apomasu-tweneboah.jpg",
+    "url": "/cdn/delegates/wocom-262094-agartha-apomasu-tweneboah.jpg"
+  },
+  "wocom-262074": {
+    "file": "wocom-262074-thelma-afia-adutwumwaa.jpg",
+    "url": "/cdn/delegates/wocom-262074-thelma-afia-adutwumwaa.jpg"
+  },
+  "wocom-262055": {
+    "file": "wocom-262055-ann-osei-toku.jpg",
+    "url": "/cdn/delegates/wocom-262055-ann-osei-toku.jpg"
+  },
+  "wocom-262088": {
+    "file": "wocom-262088-nimoh-ophelia.jpg",
+    "url": "/cdn/delegates/wocom-262088-nimoh-ophelia.jpg"
+  },
+  "wocom-262093": {
+    "file": "wocom-262093-boakye-yiadom-millicent.jpg",
+    "url": "/cdn/delegates/wocom-262093-boakye-yiadom-millicent.jpg"
+  },
+  "wocom-262078": {
+    "file": "wocom-262078-akorful-nkansah-joycelyn.jpg",
+    "url": "/cdn/delegates/wocom-262078-akorful-nkansah-joycelyn.jpg"
+  },
+  "wocom-262067": {
+    "file": "wocom-262067-ellen-akua-adjapomaa.jpg",
+    "url": "/cdn/delegates/wocom-262067-ellen-akua-adjapomaa.jpg"
+  },
+  "wocom-262068": {
+    "file": "wocom-262068-vanessa-asamoah-nyarko.jpg",
+    "url": "/cdn/delegates/wocom-262068-vanessa-asamoah-nyarko.jpg"
+  },
+  "wocom-262087": {
+    "file": "wocom-262087-cynthia-abbey.jpg",
+    "url": "/cdn/delegates/wocom-262087-cynthia-abbey.jpg"
+  },
+  "wocom-262101": {
+    "file": "wocom-262101-evelyn-owusu-nyantakyiwaa.jpg",
+    "url": "/cdn/delegates/wocom-262101-evelyn-owusu-nyantakyiwaa.jpg"
+  },
+  "wocom-262100": {
+    "file": "wocom-262100-jennifer-akyaa-frimpong.jpg",
+    "url": "/cdn/delegates/wocom-262100-jennifer-akyaa-frimpong.jpg"
+  },
+  "wocom-262084": {
+    "file": "wocom-262084-millicent-gyabea.jpg",
+    "url": "/cdn/delegates/wocom-262084-millicent-gyabea.jpg"
+  },
+  "wocom-262091": {
+    "file": "wocom-262091-sarah-gyapomaa.jpg",
+    "url": "/cdn/delegates/wocom-262091-sarah-gyapomaa.jpg"
+  },
+  "wocom-262077": {
+    "file": "wocom-262077-owusu-amoakoaa-emmanuella.jpg",
+    "url": "/cdn/delegates/wocom-262077-owusu-amoakoaa-emmanuella.jpg"
+  },
+  "wocom-262063": {
+    "file": "wocom-262063-martha-koduah.jpg",
+    "url": "/cdn/delegates/wocom-262063-martha-koduah.jpg"
+  },
+  "wocom-262086": {
+    "file": "wocom-262086-victoria-yeboah.jpg",
+    "url": "/cdn/delegates/wocom-262086-victoria-yeboah.jpg"
+  },
+  "wocom-262069": {
+    "file": "wocom-262069-ama-akomea.jpg",
+    "url": "/cdn/delegates/wocom-262069-ama-akomea.jpg"
+  },
+  "wocom-262064": {
+    "file": "wocom-262064-priscilla-boakye.jpg",
+    "url": "/cdn/delegates/wocom-262064-priscilla-boakye.jpg"
+  },
+  "wocom-262082": {
+    "file": "wocom-262082-annabella-opoku-agyemang.jpg",
+    "url": "/cdn/delegates/wocom-262082-annabella-opoku-agyemang.jpg"
+  },
+  "wocom-262099": {
+    "file": "wocom-262099-martha-asamoah.jpg",
+    "url": "/cdn/delegates/wocom-262099-martha-asamoah.jpg"
+  },
+  "wocom-262076": {
+    "file": "wocom-262076-owusu-sandra.jpg",
+    "url": "/cdn/delegates/wocom-262076-owusu-sandra.jpg"
+  },
+  "wocom-262060": {
+    "file": "wocom-262060-osei-princess-achrampong.jpg",
+    "url": "/cdn/delegates/wocom-262060-osei-princess-achrampong.jpg"
+  },
+  "wocom-262056": {
+    "file": "wocom-262056-ophelia-samaaba-prempeh-kessie.jpg",
+    "url": "/cdn/delegates/wocom-262056-ophelia-samaaba-prempeh-kessie.jpg"
+  },
+  "wocom-262096": {
+    "file": "wocom-262096-abrefa-owusuaa-philipa.jpg",
+    "url": "/cdn/delegates/wocom-262096-abrefa-owusuaa-philipa.jpg"
+  },
+  "wocom-262058": {
+    "file": "wocom-262058-amoah-victoria.jpg",
+    "url": "/cdn/delegates/wocom-262058-amoah-victoria.jpg"
+  },
+  "wocom-262072": {
+    "file": "wocom-262072-dzakpo-jessica-adzo.jpg",
+    "url": "/cdn/delegates/wocom-262072-dzakpo-jessica-adzo.jpg"
+  },
+  "wocom-262092": {
+    "file": "wocom-262092-lydia-brenya.jpg",
+    "url": "/cdn/delegates/wocom-262092-lydia-brenya.jpg"
+  },
+  "wocom-262057": {
+    "file": "wocom-262057-nartey-belinda-badjo.jpg",
+    "url": "/cdn/delegates/wocom-262057-nartey-belinda-badjo.jpg"
+  },
+  "wocom-262090": {
+    "file": "wocom-262090-perpetual-owusu-ansah.jpg",
+    "url": "/cdn/delegates/wocom-262090-perpetual-owusu-ansah.jpg"
+  },
+  "wocom-262089": {
+    "file": "wocom-262089-jennifer-nyantakyiwaah-aning.jpg",
+    "url": "/cdn/delegates/wocom-262089-jennifer-nyantakyiwaah-aning.jpg"
+  },
+  "wocom-262071": {
+    "file": "wocom-262071-hajara-moro.jpg",
+    "url": "/cdn/delegates/wocom-262071-hajara-moro.jpg"
+  },
+  "wocom-262081": {
+    "file": "wocom-262081-christabel-kumesi.jpg",
+    "url": "/cdn/delegates/wocom-262081-christabel-kumesi.jpg"
+  },
+  "wocom-262102": {
+    "file": "wocom-262102-obeng-comfort.jpg",
+    "url": "/cdn/delegates/wocom-262102-obeng-comfort.jpg"
+  },
+  "wocom-262098": {
+    "file": "wocom-262098-ebbatu-yakubu.jpg",
+    "url": "/cdn/delegates/wocom-262098-ebbatu-yakubu.jpg"
+  },
+  "wocom-262059": {
+    "file": "wocom-262059-gloria-quansah.jpg",
+    "url": "/cdn/delegates/wocom-262059-gloria-quansah.jpg"
+  },
+  "wocom-262061": {
+    "file": "wocom-262061-olivia-mensah.jpg",
+    "url": "/cdn/delegates/wocom-262061-olivia-mensah.jpg"
+  },
+  "wocom-262080": {
+    "file": "wocom-262080-afua-mansah-kusi-arhin.jpg",
+    "url": "/cdn/delegates/wocom-262080-afua-mansah-kusi-arhin.jpg"
+  },
+  "wocom-262085": {
+    "file": "wocom-262085-georgina-asare.jpg",
+    "url": "/cdn/delegates/wocom-262085-georgina-asare.jpg"
+  },
+  "wocom-262062": {
+    "file": "wocom-262062-awere-patience.jpg",
+    "url": "/cdn/delegates/wocom-262062-awere-patience.jpg"
+  },
+  "wocom-262095": {
+    "file": "wocom-262095-priscilla-boakyewaah-mensah.jpg",
+    "url": "/cdn/delegates/wocom-262095-priscilla-boakyewaah-mensah.jpg"
+  },
+  "wocom-262097": {
+    "file": "wocom-262097-anim-kodua-owusua-appiah.jpg",
+    "url": "/cdn/delegates/wocom-262097-anim-kodua-owusua-appiah.jpg"
+  },
+  "wocom-262054": {
+    "file": "wocom-262054-christabel-sekyere.jpg",
+    "url": "/cdn/delegates/wocom-262054-christabel-sekyere.jpg"
+  },
+  "wocom-262066": {
+    "file": "wocom-262066-dufie-leticia.jpg",
+    "url": "/cdn/delegates/wocom-262066-dufie-leticia.jpg"
+  },
+  "wocom-262070": {
+    "file": "wocom-262070-charity-yeboah.jpg",
+    "url": "/cdn/delegates/wocom-262070-charity-yeboah.jpg"
+  },
+  "wocom-262073": {
+    "file": "wocom-262073-dorcas-ofori.jpg",
+    "url": "/cdn/delegates/wocom-262073-dorcas-ofori.jpg"
+  },
+  "wocom-262075": {
+    "file": "wocom-262075-christabel-mensah.jpg",
+    "url": "/cdn/delegates/wocom-262075-christabel-mensah.jpg"
+  },
+  "wocom-262083": {
+    "file": "wocom-262083-leticia-awusah.jpg",
+    "url": "/cdn/delegates/wocom-262083-leticia-awusah.jpg"
+  },
+  "wocom-262065": {
+    "file": "wocom-262065-constance-konadu-sarpong.jpg",
+    "url": "/cdn/delegates/wocom-262065-constance-konadu-sarpong.jpg"
+  },
+  "wocom-262079": {
+    "file": "wocom-262079-priscilla-osei-asibey.jpg",
+    "url": "/cdn/delegates/wocom-262079-priscilla-osei-asibey.jpg"
+  },
+  "wocom-262115": {
+    "file": "wocom-262115-eva-mensah.jpg",
+    "url": "/cdn/delegates/wocom-262115-eva-mensah.jpg"
+  },
+  "wocom-262117": {
+    "file": "wocom-262117-agyekum-esther-boakyewah.jpg",
+    "url": "/cdn/delegates/wocom-262117-agyekum-esther-boakyewah.jpg"
+  },
+  "wocom-262107": {
+    "file": "wocom-262107-nti-linda.jpg",
+    "url": "/cdn/delegates/wocom-262107-nti-linda.jpg"
+  },
+  "wocom-262106": {
+    "file": "wocom-262106-agyeiwaa-gladys.jpg",
+    "url": "/cdn/delegates/wocom-262106-agyeiwaa-gladys.jpg"
+  },
+  "wocom-262113": {
+    "file": "wocom-262113-antwi-suzzy.jpg",
+    "url": "/cdn/delegates/wocom-262113-antwi-suzzy.jpg"
+  },
+  "wocom-262112": {
+    "file": "wocom-262112-praah-lawrencia.jpg",
+    "url": "/cdn/delegates/wocom-262112-praah-lawrencia.jpg"
+  },
+  "wocom-262116": {
+    "file": "wocom-262116-abubakari-ayisha.jpg",
+    "url": "/cdn/delegates/wocom-262116-abubakari-ayisha.jpg"
+  },
+  "wocom-262105": {
+    "file": "wocom-262105-asare-freda-siraa.jpg",
+    "url": "/cdn/delegates/wocom-262105-asare-freda-siraa.jpg"
+  },
+  "wocom-262103": {
+    "file": "wocom-262103-konadu-mabel.jpg",
+    "url": "/cdn/delegates/wocom-262103-konadu-mabel.jpg"
+  },
+  "wocom-262104": {
+    "file": "wocom-262104-teye-esther.jpg",
+    "url": "/cdn/delegates/wocom-262104-teye-esther.jpg"
+  },
+  "wocom-262111": {
+    "file": "wocom-262111-adofowaa-clara.jpg",
+    "url": "/cdn/delegates/wocom-262111-adofowaa-clara.jpg"
+  },
+  "wocom-262118": {
+    "file": "wocom-262118-buyeni-naomi-hawa.jpg",
+    "url": "/cdn/delegates/wocom-262118-buyeni-naomi-hawa.jpg"
+  },
+  "wocom-262114": {
+    "file": "wocom-262114-boateng-irene-ampofowaa.jpg",
+    "url": "/cdn/delegates/wocom-262114-boateng-irene-ampofowaa.jpg"
+  },
+  "wocom-262109": {
+    "file": "wocom-262109-beni-wahab-salamatu.jpg",
+    "url": "/cdn/delegates/wocom-262109-beni-wahab-salamatu.jpg"
+  },
+  "wocom-262108": {
+    "file": "wocom-262108-baafi-manu-elizabeth.jpg",
+    "url": "/cdn/delegates/wocom-262108-baafi-manu-elizabeth.jpg"
+  },
+  "wocom-262110": {
+    "file": "wocom-262110-asare-vera.jpg",
+    "url": "/cdn/delegates/wocom-262110-asare-vera.jpg"
+  },
+  "wocom-262134": {
+    "file": "wocom-262134-jessica-addo.jpg",
+    "url": "/cdn/delegates/wocom-262134-jessica-addo.jpg"
+  },
+  "wocom-262133": {
+    "file": "wocom-262133-armoh-bridget.jpg",
+    "url": "/cdn/delegates/wocom-262133-armoh-bridget.jpg"
+  },
+  "wocom-262132": {
+    "file": "wocom-262132-sarah-ama-boateng.jpg",
+    "url": "/cdn/delegates/wocom-262132-sarah-ama-boateng.jpg"
+  },
+  "wocom-262131": {
+    "file": "wocom-262131-emmanuella-e-mensah.jpg",
+    "url": "/cdn/delegates/wocom-262131-emmanuella-e-mensah.jpg"
+  },
+  "wocom-262125": {
+    "file": "wocom-262125-rosemond-borchey.jpg",
+    "url": "/cdn/delegates/wocom-262125-rosemond-borchey.jpg"
+  },
+  "wocom-262122": {
+    "file": "wocom-262122-miriam-ama-obesebea.jpg",
+    "url": "/cdn/delegates/wocom-262122-miriam-ama-obesebea.jpg"
+  },
+  "wocom-262123": {
+    "file": "wocom-262123-abigail-fosu-nyamekye.jpg",
+    "url": "/cdn/delegates/wocom-262123-abigail-fosu-nyamekye.jpg"
+  },
+  "wocom-262130": {
+    "file": "wocom-262130-nora-abena-kwartemaa.jpg",
+    "url": "/cdn/delegates/wocom-262130-nora-abena-kwartemaa.jpg"
+  },
+  "wocom-262124": {
+    "file": "wocom-262124-kate-boateng.jpg",
+    "url": "/cdn/delegates/wocom-262124-kate-boateng.jpg"
+  },
+  "wocom-262126": {
+    "file": "wocom-262126-brooklyn-smith.jpg",
+    "url": "/cdn/delegates/wocom-262126-brooklyn-smith.jpg"
+  },
+  "wocom-262129": {
+    "file": "wocom-262129-halijah-anas.jpg",
+    "url": "/cdn/delegates/wocom-262129-halijah-anas.jpg"
+  },
+  "wocom-262127": {
+    "file": "wocom-262127-princess-adwoa-agyapong.jpg",
+    "url": "/cdn/delegates/wocom-262127-princess-adwoa-agyapong.jpg"
+  },
+  "wocom-262121": {
+    "file": "wocom-262121-joana-a-tandoh.jpg",
+    "url": "/cdn/delegates/wocom-262121-joana-a-tandoh.jpg"
+  },
+  "wocom-262128": {
+    "file": "wocom-262128-rosita-nart-teye.jpg",
+    "url": "/cdn/delegates/wocom-262128-rosita-nart-teye.jpg"
+  },
+  "wocom-262119": {
+    "file": "wocom-262119-theresah-o-amissah.jpg",
+    "url": "/cdn/delegates/wocom-262119-theresah-o-amissah.jpg"
+  },
+  "wocom-262120": {
+    "file": "wocom-262120-chritabel-amoako.jpg",
+    "url": "/cdn/delegates/wocom-262120-chritabel-amoako.jpg"
+  },
+  "wocom-262146": {
+    "file": "wocom-262146-stephany-boakyewaa.jpg",
+    "url": "/cdn/delegates/wocom-262146-stephany-boakyewaa.jpg"
+  },
+  "wocom-262145": {
+    "file": "wocom-262145-larbi-patricia-appaih.jpg",
+    "url": "/cdn/delegates/wocom-262145-larbi-patricia-appaih.jpg"
+  },
+  "wocom-262140": {
+    "file": "wocom-262140-christiana-ahorlu.jpg",
+    "url": "/cdn/delegates/wocom-262140-christiana-ahorlu.jpg"
+  },
+  "wocom-262148": {
+    "file": "wocom-262148-peace-fosuah-sampeney.jpg",
+    "url": "/cdn/delegates/wocom-262148-peace-fosuah-sampeney.jpg"
+  },
+  "wocom-262149": {
+    "file": "wocom-262149-cindy-peprah-asomaning.jpg",
+    "url": "/cdn/delegates/wocom-262149-cindy-peprah-asomaning.jpg"
+  },
+  "wocom-262137": {
+    "file": "wocom-262137-crystabel-asantewaa-kusi-apawu.jpg",
+    "url": "/cdn/delegates/wocom-262137-crystabel-asantewaa-kusi-apawu.jpg"
+  },
+  "wocom-262153": {
+    "file": "wocom-262153-lawrencia-opoku.jpg",
+    "url": "/cdn/delegates/wocom-262153-lawrencia-opoku.jpg"
+  },
+  "wocom-262144": {
+    "file": "wocom-262144-patience-mortey.jpg",
+    "url": "/cdn/delegates/wocom-262144-patience-mortey.jpg"
+  },
+  "wocom-262155": {
+    "file": "wocom-262155-nuriatu-musbawu-ibrahim.jpg",
+    "url": "/cdn/delegates/wocom-262155-nuriatu-musbawu-ibrahim.jpg"
+  },
+  "wocom-262147": {
+    "file": "wocom-262147-cindy-abena-amoah.jpg",
+    "url": "/cdn/delegates/wocom-262147-cindy-abena-amoah.jpg"
+  },
+  "wocom-262135": {
+    "file": "wocom-262135-jennifer-afriyie.jpg",
+    "url": "/cdn/delegates/wocom-262135-jennifer-afriyie.jpg"
+  },
+  "wocom-262156": {
+    "file": "wocom-262156-adisenu-beatrice.jpg",
+    "url": "/cdn/delegates/wocom-262156-adisenu-beatrice.jpg"
+  },
+  "wocom-262152": {
+    "file": "wocom-262152-juliana-kyakyewaa-sasu.jpg",
+    "url": "/cdn/delegates/wocom-262152-juliana-kyakyewaa-sasu.jpg"
+  },
+  "wocom-262151": {
+    "file": "wocom-262151-linda-serwaa-bonsu.jpg",
+    "url": "/cdn/delegates/wocom-262151-linda-serwaa-bonsu.jpg"
+  },
+  "wocom-262142": {
+    "file": "wocom-262142-adarkwa-brianna-boakye-nyarkoe.jpg",
+    "url": "/cdn/delegates/wocom-262142-adarkwa-brianna-boakye-nyarkoe.jpg"
+  },
+  "wocom-262136": {
+    "file": "wocom-262136-daniella-antwiwaa-grant.jpg",
+    "url": "/cdn/delegates/wocom-262136-daniella-antwiwaa-grant.jpg"
+  },
+  "wocom-262139": {
+    "file": "wocom-262139-mary-abena-animah-agyekum.jpg",
+    "url": "/cdn/delegates/wocom-262139-mary-abena-animah-agyekum.jpg"
+  },
+  "wocom-262141": {
+    "file": "wocom-262141-portia-adobea.jpg",
+    "url": "/cdn/delegates/wocom-262141-portia-adobea.jpg"
+  },
+  "wocom-262150": {
+    "file": "wocom-262150-monica-amanyale-afari.jpg",
+    "url": "/cdn/delegates/wocom-262150-monica-amanyale-afari.jpg"
+  },
+  "wocom-262138": {
+    "file": "wocom-262138-eunice-awusi-brako.jpg",
+    "url": "/cdn/delegates/wocom-262138-eunice-awusi-brako.jpg"
+  },
+  "wocom-262154": {
+    "file": "wocom-262154-leticia-tetteh.jpg",
+    "url": "/cdn/delegates/wocom-262154-leticia-tetteh.jpg"
+  },
+  "wocom-262143": {
+    "file": "wocom-262143-dorcas-ohenewaa-budu.jpg",
+    "url": "/cdn/delegates/wocom-262143-dorcas-ohenewaa-budu.jpg"
+  },
+  "wocom-262157": {
+    "file": "wocom-262157-blessing-serwaa-asante.jpg",
+    "url": "/cdn/delegates/wocom-262157-blessing-serwaa-asante.jpg"
+  },
+  "wocom-262160": {
+    "file": "wocom-262160-risikatu-azizi.jpg",
+    "url": "/cdn/delegates/wocom-262160-risikatu-azizi.jpg"
+  },
+  "wocom-262161": {
+    "file": "wocom-262161-ahmed-memuna.jpg",
+    "url": "/cdn/delegates/wocom-262161-ahmed-memuna.jpg"
+  },
+  "wocom-262158": {
+    "file": "wocom-262158-agandaa-abigail.jpg",
+    "url": "/cdn/delegates/wocom-262158-agandaa-abigail.jpg"
+  },
+  "wocom-262159": {
+    "file": "wocom-262159-nakpari-georgina.jpg",
+    "url": "/cdn/delegates/wocom-262159-nakpari-georgina.jpg"
+  },
+  "wocom-262184": {
+    "file": "wocom-262184-osman-shamira.jpg",
+    "url": "/cdn/delegates/wocom-262184-osman-shamira.jpg"
+  },
+  "wocom-262188": {
+    "file": "wocom-262188-ibrahim-ruhaina.jpg",
+    "url": "/cdn/delegates/wocom-262188-ibrahim-ruhaina.jpg"
+  },
+  "wocom-262185": {
+    "file": "wocom-262185-dorzie-bernice.jpg",
+    "url": "/cdn/delegates/wocom-262185-dorzie-bernice.jpg"
+  },
+  "wocom-262186": {
+    "file": "wocom-262186-ibrahim-zulehatu.jpg",
+    "url": "/cdn/delegates/wocom-262186-ibrahim-zulehatu.jpg"
+  },
+  "wocom-262190": {
+    "file": "wocom-262190-abdulai-adijah.jpg",
+    "url": "/cdn/delegates/wocom-262190-abdulai-adijah.jpg"
+  },
+  "wocom-262189": {
+    "file": "wocom-262189-manga-gloria.jpg",
+    "url": "/cdn/delegates/wocom-262189-manga-gloria.jpg"
+  },
+  "wocom-262187": {
+    "file": "wocom-262187-lambilgnan-rebecca-npakmaba.jpg",
+    "url": "/cdn/delegates/wocom-262187-lambilgnan-rebecca-npakmaba.jpg"
+  },
+  "wocom-262199": {
+    "file": "wocom-262199-dorcas-yennukon-sumon.jpg",
+    "url": "/cdn/delegates/wocom-262199-dorcas-yennukon-sumon.jpg"
+  },
+  "wocom-262193": {
+    "file": "wocom-262193-adingchor-lariba.jpg",
+    "url": "/cdn/delegates/wocom-262193-adingchor-lariba.jpg"
+  },
+  "wocom-262198": {
+    "file": "wocom-262198-geam-doris-sateninbia.jpg",
+    "url": "/cdn/delegates/wocom-262198-geam-doris-sateninbia.jpg"
+  },
+  "wocom-262196": {
+    "file": "wocom-262196-salifu-lauratu.jpg",
+    "url": "/cdn/delegates/wocom-262196-salifu-lauratu.jpg"
+  },
+  "wocom-262194": {
+    "file": "wocom-262194-musah-jemilatu.jpg",
+    "url": "/cdn/delegates/wocom-262194-musah-jemilatu.jpg"
+  },
+  "wocom-262195": {
+    "file": "wocom-262195-inusah-nuhu-fa.jpg",
+    "url": "/cdn/delegates/wocom-262195-inusah-nuhu-fa.jpg"
+  },
+  "wocom-262191": {
+    "file": "wocom-262191-adiza-muntari.jpg",
+    "url": "/cdn/delegates/wocom-262191-adiza-muntari.jpg"
+  },
+  "wocom-262200": {
+    "file": "wocom-262200-susana-adompoka-alobiya.jpg",
+    "url": "/cdn/delegates/wocom-262200-susana-adompoka-alobiya.jpg"
+  },
+  "wocom-262192": {
+    "file": "wocom-262192-yennu-abigail.jpg",
+    "url": "/cdn/delegates/wocom-262192-yennu-abigail.jpg"
+  },
+  "wocom-262197": {
+    "file": "wocom-262197-hamidu-ubaida.jpg",
+    "url": "/cdn/delegates/wocom-262197-hamidu-ubaida.jpg"
+  },
+  "wocom-262209": {
+    "file": "wocom-262209-kezia-apewe-kokwagah.jpg",
+    "url": "/cdn/delegates/wocom-262209-kezia-apewe-kokwagah.jpg"
+  },
+  "wocom-262210": {
+    "file": "wocom-262210-danikuu-mary.jpg",
+    "url": "/cdn/delegates/wocom-262210-danikuu-mary.jpg"
+  },
+  "wocom-262213": {
+    "file": "wocom-262213-asare-sandra.jpg",
+    "url": "/cdn/delegates/wocom-262213-asare-sandra.jpg"
+  },
+  "wocom-262212": {
+    "file": "wocom-262212-yakubu-basuglo-abigail.jpg",
+    "url": "/cdn/delegates/wocom-262212-yakubu-basuglo-abigail.jpg"
+  },
+  "wocom-262205": {
+    "file": "wocom-262205-fuseini-zenabu.jpg",
+    "url": "/cdn/delegates/wocom-262205-fuseini-zenabu.jpg"
+  },
+  "wocom-262204": {
+    "file": "wocom-262204-ibrahim-fati.jpg",
+    "url": "/cdn/delegates/wocom-262204-ibrahim-fati.jpg"
+  },
+  "wocom-262208": {
+    "file": "wocom-262208-jakong-sabin.jpg",
+    "url": "/cdn/delegates/wocom-262208-jakong-sabin.jpg"
+  },
+  "wocom-262202": {
+    "file": "wocom-262202-owusuah-amponsah-mensah.jpg",
+    "url": "/cdn/delegates/wocom-262202-owusuah-amponsah-mensah.jpg"
+  },
+  "wocom-262211": {
+    "file": "wocom-262211-agnes-tima-iri.jpg",
+    "url": "/cdn/delegates/wocom-262211-agnes-tima-iri.jpg"
+  },
+  "wocom-262203": {
+    "file": "wocom-262203-luri-esther.jpg",
+    "url": "/cdn/delegates/wocom-262203-luri-esther.jpg"
+  },
+  "wocom-262207": {
+    "file": "wocom-262207-bataanye-josephine.jpg",
+    "url": "/cdn/delegates/wocom-262207-bataanye-josephine.jpg"
+  },
+  "wocom-262206": {
+    "file": "wocom-262206-stephanie-gyasiwah-owusu.jpg",
+    "url": "/cdn/delegates/wocom-262206-stephanie-gyasiwah-owusu.jpg"
+  },
+  "wocom-262201": {
+    "file": "wocom-262201-dery-erin.jpg",
+    "url": "/cdn/delegates/wocom-262201-dery-erin.jpg"
+  },
+  "wocom-262221": {
+    "file": "wocom-262221-amenyah-josephine.jpg",
+    "url": "/cdn/delegates/wocom-262221-amenyah-josephine.jpg"
+  },
+  "wocom-262218": {
+    "file": "wocom-262218-yakubu-ayishetu.jpg",
+    "url": "/cdn/delegates/wocom-262218-yakubu-ayishetu.jpg"
+  },
+  "wocom-262227": {
+    "file": "wocom-262227-appinimah-darkwa-phyllis.jpg",
+    "url": "/cdn/delegates/wocom-262227-appinimah-darkwa-phyllis.jpg"
+  },
+  "wocom-262215": {
+    "file": "wocom-262215-nimoar-njobon-vicentia.jpg",
+    "url": "/cdn/delegates/wocom-262215-nimoar-njobon-vicentia.jpg"
+  },
+  "wocom-262224": {
+    "file": "wocom-262224-prempeh-gifty.jpg",
+    "url": "/cdn/delegates/wocom-262224-prempeh-gifty.jpg"
+  },
+  "wocom-262219": {
+    "file": "wocom-262219-tedeka-thelma.jpg",
+    "url": "/cdn/delegates/wocom-262219-tedeka-thelma.jpg"
+  },
+  "wocom-262225": {
+    "file": "wocom-262225-trale-christine-mawusi-princess.jpg",
+    "url": "/cdn/delegates/wocom-262225-trale-christine-mawusi-princess.jpg"
+  },
+  "wocom-262216": {
+    "file": "wocom-262216-amenuvor-dzifa-dorcas.jpg",
+    "url": "/cdn/delegates/wocom-262216-amenuvor-dzifa-dorcas.jpg"
+  },
+  "wocom-262222": {
+    "file": "wocom-262222-asante-ibrahim-abigail.jpg",
+    "url": "/cdn/delegates/wocom-262222-asante-ibrahim-abigail.jpg"
+  },
+  "wocom-262217": {
+    "file": "wocom-262217-dziwornu-mary.jpg",
+    "url": "/cdn/delegates/wocom-262217-dziwornu-mary.jpg"
+  },
+  "wocom-262220": {
+    "file": "wocom-262220-marfo-ankrah-gloria.jpg",
+    "url": "/cdn/delegates/wocom-262220-marfo-ankrah-gloria.jpg"
+  },
+  "wocom-262226": {
+    "file": "wocom-262226-mensah-rita.jpg",
+    "url": "/cdn/delegates/wocom-262226-mensah-rita.jpg"
+  },
+  "wocom-262214": {
+    "file": "wocom-262214-ahiati-erica.jpg",
+    "url": "/cdn/delegates/wocom-262214-ahiati-erica.jpg"
+  },
+  "wocom-262223": {
+    "file": "wocom-262223-amponsah-betina.jpg",
+    "url": "/cdn/delegates/wocom-262223-amponsah-betina.jpg"
+  },
+  "wocom-262236": {
+    "file": "wocom-262236-francisca-akwandoh.jpg",
+    "url": "/cdn/delegates/wocom-262236-francisca-akwandoh.jpg"
+  },
+  "wocom-262235": {
+    "file": "wocom-262235-stephanie-anokye-donkoh.jpg",
+    "url": "/cdn/delegates/wocom-262235-stephanie-anokye-donkoh.jpg"
+  },
+  "wocom-262230": {
+    "file": "wocom-262230-sandra-akwaboah.jpg",
+    "url": "/cdn/delegates/wocom-262230-sandra-akwaboah.jpg"
+  },
+  "wocom-262232": {
+    "file": "wocom-262232-philomena-agyarkoh.jpg",
+    "url": "/cdn/delegates/wocom-262232-philomena-agyarkoh.jpg"
+  },
+  "wocom-262229": {
+    "file": "wocom-262229-hannah-koomson.jpg",
+    "url": "/cdn/delegates/wocom-262229-hannah-koomson.jpg"
+  },
+  "wocom-262238": {
+    "file": "wocom-262238-emelia-gyanteng.jpg",
+    "url": "/cdn/delegates/wocom-262238-emelia-gyanteng.jpg"
+  },
+  "wocom-262233": {
+    "file": "wocom-262233-sylvia-oppong.jpg",
+    "url": "/cdn/delegates/wocom-262233-sylvia-oppong.jpg"
+  },
+  "wocom-262231": {
+    "file": "wocom-262231-wilson-deborah.jpg",
+    "url": "/cdn/delegates/wocom-262231-wilson-deborah.jpg"
+  },
+  "wocom-262234": {
+    "file": "wocom-262234-bridget-osei-asilbey.jpg",
+    "url": "/cdn/delegates/wocom-262234-bridget-osei-asilbey.jpg"
+  },
+  "wocom-262237": {
+    "file": "wocom-262237-alice-ampomah.jpg",
+    "url": "/cdn/delegates/wocom-262237-alice-ampomah.jpg"
+  },
+  "wocom-262228": {
+    "file": "wocom-262228-fatima-ayamba.jpg",
+    "url": "/cdn/delegates/wocom-262228-fatima-ayamba.jpg"
+  },
+  "wocom-262169": {
+    "file": "wocom-262169-gmakan-esther.jpg",
+    "url": "/cdn/delegates/wocom-262169-gmakan-esther.jpg"
+  },
+  "wocom-262173": {
+    "file": "wocom-262173-issaka-suweibatu.jpg",
+    "url": "/cdn/delegates/wocom-262173-issaka-suweibatu.jpg"
+  },
+  "wocom-262179": {
+    "file": "wocom-262179-niliyemi-vida.jpg",
+    "url": "/cdn/delegates/wocom-262179-niliyemi-vida.jpg"
+  },
+  "wocom-262177": {
+    "file": "wocom-262177-nuru-samiratu.jpg",
+    "url": "/cdn/delegates/wocom-262177-nuru-samiratu.jpg"
+  },
+  "wocom-262180": {
+    "file": "wocom-262180-hafsah-abubakari.jpg",
+    "url": "/cdn/delegates/wocom-262180-hafsah-abubakari.jpg"
+  },
+  "wocom-262162": {
+    "file": "wocom-262162-musah-amina.jpg",
+    "url": "/cdn/delegates/wocom-262162-musah-amina.jpg"
+  },
+  "wocom-262165": {
+    "file": "wocom-262165-eliasu-mariam.jpg",
+    "url": "/cdn/delegates/wocom-262165-eliasu-mariam.jpg"
+  },
+  "wocom-262174": {
+    "file": "wocom-262174-issah-amina.jpg",
+    "url": "/cdn/delegates/wocom-262174-issah-amina.jpg"
+  },
+  "wocom-262167": {
+    "file": "wocom-262167-sualihu-salma-deishina.jpg",
+    "url": "/cdn/delegates/wocom-262167-sualihu-salma-deishina.jpg"
+  },
+  "wocom-262170": {
+    "file": "wocom-262170-banantul-margret-adwoa.jpg",
+    "url": "/cdn/delegates/wocom-262170-banantul-margret-adwoa.jpg"
+  },
+  "wocom-262181": {
+    "file": "wocom-262181-ibrahim-kudiratulai-gunu.jpg",
+    "url": "/cdn/delegates/wocom-262181-ibrahim-kudiratulai-gunu.jpg"
+  },
+  "wocom-262168": {
+    "file": "wocom-262168-adam-ayisha.jpg",
+    "url": "/cdn/delegates/wocom-262168-adam-ayisha.jpg"
+  },
+  "wocom-262178": {
+    "file": "wocom-262178-zakaria-salima.jpg",
+    "url": "/cdn/delegates/wocom-262178-zakaria-salima.jpg"
+  },
+  "wocom-262164": {
+    "file": "wocom-262164-amadu-eklima.jpg",
+    "url": "/cdn/delegates/wocom-262164-amadu-eklima.jpg"
+  },
+  "wocom-262175": {
+    "file": "wocom-262175-sa-eed-muhsina.jpg",
+    "url": "/cdn/delegates/wocom-262175-sa-eed-muhsina.jpg"
+  },
+  "wocom-262171": {
+    "file": "wocom-262171-ziblim-ayisha.jpg",
+    "url": "/cdn/delegates/wocom-262171-ziblim-ayisha.jpg"
+  },
+  "wocom-262166": {
+    "file": "wocom-262166-awaki-janet.jpg",
+    "url": "/cdn/delegates/wocom-262166-awaki-janet.jpg"
+  },
+  "wocom-262163": {
+    "file": "wocom-262163-razak-amama.jpg",
+    "url": "/cdn/delegates/wocom-262163-razak-amama.jpg"
+  },
+  "wocom-262176": {
+    "file": "wocom-262176-gloria-rakia-issah.jpg",
+    "url": "/cdn/delegates/wocom-262176-gloria-rakia-issah.jpg"
+  },
+  "wocom-262172": {
+    "file": "wocom-262172-mohammed-fadila.jpg",
+    "url": "/cdn/delegates/wocom-262172-mohammed-fadila.jpg"
+  },
+  "wocom-262241": {
+    "file": "wocom-262241-priscilla-arthur.jpg",
+    "url": "/cdn/delegates/wocom-262241-priscilla-arthur.jpg"
+  },
+  "wocom-262240": {
+    "file": "wocom-262240-janet-amoah.jpg",
+    "url": "/cdn/delegates/wocom-262240-janet-amoah.jpg"
+  },
+  "wocom-262244": {
+    "file": "wocom-262244-priscilla-mintah.jpg",
+    "url": "/cdn/delegates/wocom-262244-priscilla-mintah.jpg"
+  },
+  "wocom-262239": {
+    "file": "wocom-262239-esther-buoju.jpg",
+    "url": "/cdn/delegates/wocom-262239-esther-buoju.jpg"
+  },
+  "wocom-262242": {
+    "file": "wocom-262242-adomako-yaa-frimpomaa.jpg",
+    "url": "/cdn/delegates/wocom-262242-adomako-yaa-frimpomaa.jpg"
+  },
+  "wocom-262243": {
+    "file": "wocom-262243-mariamah-fofo-armah.jpg",
+    "url": "/cdn/delegates/wocom-262243-mariamah-fofo-armah.jpg"
+  }
+}

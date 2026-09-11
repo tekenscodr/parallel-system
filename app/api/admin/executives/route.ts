@@ -4,6 +4,8 @@ import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
 import { normalizeConstituency } from "@/lib/constituency-normalizer";
 import { getVoterPhotoUrl } from "@/lib/voter-photo";
+import { buildPositionCondition } from "@/lib/position-matcher";
+import { saveUploadedExecutiveImage } from "@/lib/image-upload";
 
 export async function GET(req: Request) {
   try {
@@ -16,6 +18,7 @@ export async function GET(req: Request) {
     const level = url.searchParams.get("level")?.trim() || "";
     const region = url.searchParams.get("region")?.trim() || "";
     const constituency = url.searchParams.get("constituency")?.trim() || "";
+    const position = url.searchParams.get("position")?.trim() || "";
     const search = url.searchParams.get("search")?.trim() || "";
     const cohort = url.searchParams.get("cohort")?.trim() || "";
     const slot = url.searchParams.get("slot")?.trim() || "";
@@ -57,6 +60,11 @@ export async function GET(req: Request) {
         conditions.push(sql`gender = 'Female'`);
       } else if (cohort === "nasara") {
         conditions.push(sql`position ILIKE '%nasara%'`);
+      }
+
+      if (position) {
+        const pCond = buildPositionCondition(sql, position);
+        if (pCond) conditions.push(pCond);
       }
 
       const whereClause = conditions.length > 0
@@ -199,7 +207,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
     }
 
-    const body = await req.json();
+    const contentType = req.headers.get("content-type") || "";
+    let body: any = {};
+    let uploadedImageUrl: string | null = null;
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const file = formData.get("file") as File | null;
+      const voterIdVal = (formData.get("voterId") as string) || (formData.get("voter_id") as string) || null;
+      if (file && typeof file !== "string" && file.size > 0) {
+        const res = await saveUploadedExecutiveImage(file, voterIdVal);
+        uploadedImageUrl = res.imageUrl;
+      }
+      for (const [key, value] of formData.entries()) {
+        if (key !== "file") {
+          body[key] = value;
+        }
+      }
+    } else {
+      body = await req.json();
+    }
+
     const {
       executiveName,
       executiveLevel,
@@ -260,7 +288,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const computedImageUrl = body.imageUrl || body.image_url || getVoterPhotoUrl(region, constituency, voterId);
+    const computedImageUrl = uploadedImageUrl || body.imageUrl || body.image_url || getVoterPhotoUrl(region, constituency, voterId);
 
     const newExecutive = await withEcSql(async (sql) => {
       const rows = await sql`
