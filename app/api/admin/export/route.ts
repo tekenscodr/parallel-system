@@ -76,6 +76,28 @@ export async function GET(req: Request) {
       // Position hierarchy ranking based on official constitutional hierarchy
       const positionRankSql = sql`
         CASE 
+          /* Prescribed Region and Constituency table order */
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%1st%Vice%', '%First%Vice%']) THEN 2
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%2nd%Vice%', '%Second%Vice%']) THEN 3
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE '%Chair%' THEN 1
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%Deputy Secretary%', '%Assistant%Secretary%']) THEN 5
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE '%Secretary%' AND position NOT ILIKE '%Financial%' THEN 4
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE '%Treasur%' THEN 6
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%Deputy%Women%', '%Assistant%Women%']) THEN 16
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%Deputy%Youth%', '%Assistant%Youth%']) THEN 17
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%Deputy%Nasara%', '%Assistant%Nasara%']) THEN 18
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%Deputy%Organi%', '%Assistant%Organi%']) THEN 15
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE '%Women%' THEN 8
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE '%Youth%' THEN 9
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE '%Nasara%' THEN 10
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE '%Financial Secretary%' THEN 11
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE '%Organi%' THEN 7
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%Electoral%', '%Elections%']) THEN 12
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE '%Research%' THEN 13
+          WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%PWD%', '%Disabil%']) THEN 14
+          WHEN executive_level ILIKE 'Region%' AND position ILIKE '%Special Duties%' THEN 19
+          WHEN executive_level ILIKE 'Region%' AND position ILIKE '%Legal%' THEN 20
+
           /* 1. Flagbearer & Running Mate */
           WHEN position ILIKE '%Flagbearer%' OR position ILIKE '%Presidential Candidate%' THEN 1
           WHEN position ILIKE '%Running Mate%' OR position ILIKE '%Vice Presidential%' THEN 2

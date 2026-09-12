@@ -161,13 +161,12 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Foundation Member",
   ],
   Region: [
-    "Chairperson",
-    "1st Vice-Chairperson",
-    "2nd Vice-Chairperson",
+    "Chairman",
+    "1st Vice-Chairman",
+    "2nd Vice-Chairman",
     "Secretary",
     "Assistant Secretary",
     "Treasurer",
-    "Deputy Treasurer",
     "Financial Secretary",
     "Organiser",
     "Deputy Organiser",
@@ -177,7 +176,7 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Deputy Youth Organiser",
     "Nasara Coordinator",
     "Deputy Nasara Coordinator",
-    "Communication Officer",
+    "Communications Officer",
     "Electoral Affairs Officer",
     "Research Officer",
     "PWD Officer",
@@ -186,26 +185,23 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
   ],
   Constituency: [
     "Chairperson",
-    "1st Vice-Chairperson",
-    "2nd Vice-Chairperson",
+    "1st Vice Chairperson",
+    "2nd Vice Chairperson",
     "Secretary",
-    "Deputy Secretary",
+    "Assistant Secretary",
     "Treasurer",
-    "Financial Secretary",
     "Organiser",
-    "Deputy Organiser",
     "Women Organiser",
-    "Deputy Women Organiser",
     "Youth Organiser",
-    "Deputy Youth Organiser",
     "Nasara Organiser",
-    "Deputy Nasara Organiser",
-    "Communication Officer",
+    "Financial Secretary",
     "Electoral Affairs Officer",
     "Research Officer",
-    "PWD Coordinator",
-    "Patron",
-    "Council of Elders",
+    "PWD",
+    "Deputy Organiser",
+    "Deputy Women Organiser",
+    "Deputy Youth Organiser",
+    "Deputy Nasara Organiser",
   ],
   "Electoral Area": [
     "Chairperson",
@@ -433,6 +429,9 @@ export default function NationalAdminDashboard() {
       : ALL_CANONICAL_POSITIONS;
     setPositionList(initial);
 
+    // Region and Constituency use the prescribed hierarchy exactly as listed.
+    if (selectedLevel === "Region" || selectedLevel === "Constituency") return;
+
     const params = new URLSearchParams();
     if (selectedLevel) params.set("level", selectedLevel);
 
@@ -443,7 +442,7 @@ export default function NationalAdminDashboard() {
       .then((res) => (res.ok ? res.json() : { positions: [] }))
       .then((data) => {
         if (data.positions && Array.isArray(data.positions) && data.positions.length > 0) {
-          const merged = Array.from(new Set([...initial, ...data.positions])).sort((a, b) => a.localeCompare(b));
+          const merged = Array.from(new Set([...initial, ...data.positions]));
           setPositionList(merged);
         }
       })
