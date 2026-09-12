@@ -52,6 +52,7 @@ import {
 import { getClientHeaders } from "@/lib/client-device";
 import { checkClientRateLimit } from "@/lib/client-rate-limit";
 import { getPositionRank } from "@/lib/position-matcher";
+import { getConstituenciesForRegion } from "@/lib/constituency-normalizer";
 
 type OverviewData = {
   totals: {
@@ -194,7 +195,7 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "1st Vice Chairperson",
     "2nd Vice Chairperson",
     "Secretary",
-    "Assistant Secretary",
+    "Deputy Secretary",
     "Treasurer",
     "Organiser",
     "Women Organiser",
@@ -217,7 +218,7 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "1st Vice Chairperson",
     "2nd Vice Chairperson",
     "Secretary",
-    "Assistant Secretary",
+    "Deputy Secretary",
     "Treasurer",
     "Organiser",
     "Women Organiser",
@@ -364,6 +365,9 @@ export default function NationalAdminDashboard() {
   } | null>(null);
   const [editUploadingImage, setEditUploadingImage] = useState(false);
   const [editImageSuccess, setEditImageSuccess] = useState("");
+  const [editConstituencyList, setEditConstituencyList] = useState<string[]>([]);
+  const [loadingEditConstituencies, setLoadingEditConstituencies] = useState(false);
+  const [isEditCustomPosition, setIsEditCustomPosition] = useState(false);
   const [addUploadingImage, setAddUploadingImage] = useState(false);
   const [addImageSuccess, setAddImageSuccess] = useState("");
   const [copiedPhotoUrl, setCopiedPhotoUrl] = useState(false);
@@ -641,6 +645,8 @@ export default function NationalAdminDashboard() {
     setCopiedPhotoUrl(false);
     setModalError("");
     setModalSuccess("");
+    setIsEditCustomPosition(false);
+    setEditConstituencyList([]);
   };
 
   const computeExecutiveAgeAndDob = (dob: string | undefined | null, pos: string | undefined | null) => {
@@ -799,6 +805,10 @@ export default function NationalAdminDashboard() {
       setNewExecConstituency("");
       return;
     }
+    const fallbackList = getConstituenciesForRegion(newExecRegion);
+    if (fallbackList.length > 0) {
+      setNewExecConstituencyList(fallbackList);
+    }
     setLoadingNewExecConstituencies(true);
     const params = new URLSearchParams({ region: newExecRegion });
     fetch(`/api/admin/constituencies?${params.toString()}`, {
@@ -807,14 +817,43 @@ export default function NationalAdminDashboard() {
     })
       .then((res) => (res.ok ? res.json() : { constituencies: [] }))
       .then((data) => {
-        setNewExecConstituencyList(data.constituencies || []);
+        if (Array.isArray(data.constituencies) && data.constituencies.length > 0) {
+          setNewExecConstituencyList(data.constituencies);
+        }
         setLoadingNewExecConstituencies(false);
       })
       .catch(() => {
-        setNewExecConstituencyList([]);
         setLoadingNewExecConstituencies(false);
       });
   }, [newExecRegion]);
+
+  // Load constituencies for Edit Executive modal
+  useEffect(() => {
+    if (!activeExecutive?.region) {
+      setEditConstituencyList([]);
+      return;
+    }
+    const fallbackList = getConstituenciesForRegion(activeExecutive.region);
+    if (fallbackList.length > 0) {
+      setEditConstituencyList(fallbackList);
+    }
+    setLoadingEditConstituencies(true);
+    const params = new URLSearchParams({ region: activeExecutive.region });
+    fetch(`/api/admin/constituencies?${params.toString()}`, {
+      credentials: "include",
+      headers: getAuthHeaders(),
+    })
+      .then((res) => (res.ok ? res.json() : { constituencies: [] }))
+      .then((data) => {
+        if (Array.isArray(data.constituencies) && data.constituencies.length > 0) {
+          setEditConstituencyList(data.constituencies);
+        }
+        setLoadingEditConstituencies(false);
+      })
+      .catch(() => {
+        setLoadingEditConstituencies(false);
+      });
+  }, [activeExecutive?.region]);
 
   // Delete Executive Handlers
   const handleOpenDeleteModal = (row: ExecutiveRow) => {
@@ -3064,25 +3103,78 @@ export default function NationalAdminDashboard() {
                       </div>
 
                       <div>
-                        <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                          Position / Role *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={activeExecutive.position || ""}
-                          onChange={(e) => handleFieldChange("position", e.target.value)}
-                          style={{
-                            width: "100%",
-                            padding: "9px 12px",
-                            borderRadius: "6px",
-                            background: "rgba(2, 6, 23, 0.8)",
-                            border: "1px solid rgba(255, 255, 255, 0.15)",
-                            color: "#ffffff",
-                            fontSize: "13px",
-                            boxSizing: "border-box",
-                          }}
-                        />
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
+                          <label style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: "600" }}>
+                            Position / Role *
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setIsEditCustomPosition(!isEditCustomPosition)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: "#60a5fa",
+                              fontSize: "11px",
+                              cursor: "pointer",
+                              padding: 0,
+                              textDecoration: "underline",
+                            }}
+                          >
+                            {isEditCustomPosition ? "← Select standard position" : "+ Other position"}
+                          </button>
+                        </div>
+
+                        {isEditCustomPosition ? (
+                          <input
+                            type="text"
+                            required
+                            value={activeExecutive.position || ""}
+                            onChange={(e) => handleFieldChange("position", e.target.value)}
+                            placeholder={`Enter custom ${activeExecutive.executiveLevel || ""} position…`}
+                            style={{
+                              width: "100%",
+                              padding: "9px 12px",
+                              borderRadius: "6px",
+                              background: "rgba(2, 6, 23, 0.8)",
+                              border: "1px solid rgba(59, 130, 246, 0.4)",
+                              color: "#ffffff",
+                              fontSize: "13px",
+                              boxSizing: "border-box",
+                            }}
+                          />
+                        ) : (
+                          <select
+                            required
+                            value={activeExecutive.position || ""}
+                            onChange={(e) => {
+                              if (e.target.value === "__custom__") {
+                                setIsEditCustomPosition(true);
+                              } else {
+                                handleFieldChange("position", e.target.value);
+                              }
+                            }}
+                            style={{
+                              width: "100%",
+                              padding: "9px 12px",
+                              borderRadius: "6px",
+                              background: "rgba(2, 6, 23, 0.8)",
+                              border: "1px solid rgba(255, 255, 255, 0.15)",
+                              color: "#ffffff",
+                              fontSize: "13px",
+                              boxSizing: "border-box",
+                            }}
+                          >
+                            <option value="">-- Select {activeExecutive.executiveLevel || "Executive"} Position --</option>
+                            {activeExecutive.position &&
+                              !(POSITIONS_BY_LEVEL[activeExecutive.executiveLevel] || []).includes(activeExecutive.position) && (
+                                <option value={activeExecutive.position}>{activeExecutive.position}</option>
+                              )}
+                            {(POSITIONS_BY_LEVEL[activeExecutive.executiveLevel] || []).map((pos) => (
+                              <option key={pos} value={pos}>{pos}</option>
+                            ))}
+                            <option value="__custom__">+ Other / Custom position…</option>
+                          </select>
+                        )}
                       </div>
 
                       <div>
@@ -3213,24 +3305,49 @@ export default function NationalAdminDashboard() {
 
                       <div>
                         <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                          Constituency
+                          Constituency {loadingEditConstituencies ? "(Loading...)" : ""}
                         </label>
-                        <input
-                          type="text"
-                          value={activeExecutive.constituency || ""}
-                          onChange={(e) => handleFieldChange("constituency", e.target.value)}
-                          placeholder="e.g. BANTAMA"
-                          style={{
-                            width: "100%",
-                            padding: "9px 12px",
-                            borderRadius: "6px",
-                            background: "rgba(2, 6, 23, 0.8)",
-                            border: "1px solid rgba(255, 255, 255, 0.15)",
-                            color: "#ffffff",
-                            fontSize: "13px",
-                            boxSizing: "border-box",
-                          }}
-                        />
+                        {editConstituencyList.length > 0 ? (
+                          <select
+                            value={activeExecutive.constituency || ""}
+                            onChange={(e) => handleFieldChange("constituency", e.target.value)}
+                            style={{
+                              width: "100%",
+                              padding: "9px 12px",
+                              borderRadius: "6px",
+                              background: "rgba(2, 6, 23, 0.8)",
+                              border: "1px solid rgba(255, 255, 255, 0.15)",
+                              color: "#ffffff",
+                              fontSize: "13px",
+                              boxSizing: "border-box",
+                            }}
+                          >
+                            <option value="">Select Constituency</option>
+                            {activeExecutive.constituency && !editConstituencyList.includes(activeExecutive.constituency) && (
+                              <option value={activeExecutive.constituency}>{activeExecutive.constituency}</option>
+                            )}
+                            {editConstituencyList.map((c) => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            value={activeExecutive.constituency || ""}
+                            onChange={(e) => handleFieldChange("constituency", e.target.value)}
+                            placeholder="e.g. ABLEKUMA WEST"
+                            style={{
+                              width: "100%",
+                              padding: "9px 12px",
+                              borderRadius: "6px",
+                              background: "rgba(2, 6, 23, 0.8)",
+                              border: "1px solid rgba(255, 255, 255, 0.15)",
+                              color: "#ffffff",
+                              fontSize: "13px",
+                              boxSizing: "border-box",
+                            }}
+                          />
+                        )}
                       </div>
 
                       <div>

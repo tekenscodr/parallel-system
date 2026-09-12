@@ -39,7 +39,7 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   // 5. Secretary
   if (lower === "secretary") return "Secretary";
   if (lower === "deputy secretary" || lower === "assistant secretary") {
-    return "Assistant Secretary";
+    return "Deputy Secretary";
   }
 
   // 6. Financial Secretary
