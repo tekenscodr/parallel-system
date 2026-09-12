@@ -15,26 +15,26 @@ import {
   Building,
   GraduationCap,
   Sparkles,
+  LoaderCircle,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 
 const ALBUM_SECTIONS = [
   { label: "Cover & Certification", page: 1, type: "cover" },
-  { label: "National Executives (1-Sided)", page: 2, type: "national" },
-  { label: "Ahafo Regional Executives (1-Sided)", page: 3, type: "regional" },
-  { label: "Asunafo North (P1)", page: 4, type: "constituency" },
-  { label: "Asunafo North (P2)", page: 5, type: "constituency" },
-  { label: "Asunafo South (P1)", page: 6, type: "constituency" },
-  { label: "Asunafo South (P2)", page: 7, type: "constituency" },
-  { label: "Asutifi North (P1)", page: 8, type: "constituency" },
-  { label: "Asutifi North (P2)", page: 9, type: "constituency" },
-  { label: "Asutifi South (P1)", page: 10, type: "constituency" },
-  { label: "Asutifi South (P2)", page: 11, type: "constituency" },
-  { label: "Tano North (P1)", page: 12, type: "constituency" },
-  { label: "Tano North (P2)", page: 13, type: "constituency" },
-  { label: "Tano South (P1)", page: 14, type: "constituency" },
-  { label: "Tano South (P2)", page: 15, type: "constituency" },
-  { label: "Ahafo TESCON (1-Sided)", page: 16, type: "tescon" },
+  { label: "Ahafo Regional Executives (1-Sided)", page: 2, type: "regional" },
+  { label: "Asunafo North (P1)", page: 3, type: "constituency" },
+  { label: "Asunafo North (P2)", page: 4, type: "constituency" },
+  { label: "Asunafo South (P1)", page: 5, type: "constituency" },
+  { label: "Asunafo South (P2)", page: 6, type: "constituency" },
+  { label: "Asutifi North (P1)", page: 7, type: "constituency" },
+  { label: "Asutifi North (P2)", page: 8, type: "constituency" },
+  { label: "Asutifi South (P1)", page: 9, type: "constituency" },
+  { label: "Asutifi South (P2)", page: 10, type: "constituency" },
+  { label: "Tano North (P1)", page: 11, type: "constituency" },
+  { label: "Tano North (P2)", page: 12, type: "constituency" },
+  { label: "Tano South (P1)", page: 13, type: "constituency" },
+  { label: "Tano South (P2)", page: 14, type: "constituency" },
+  { label: "Ahafo TESCON (1-Sided)", page: 15, type: "tescon" },
 ];
 
 export default function AhafoAlbumPage() {
@@ -48,6 +48,7 @@ export default function AhafoAlbumPage() {
   const [activePage, setActivePage] = useState<number>(1);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [albumVersion, setAlbumVersion] = useState<number>(() => Date.now());
+  const [isAlbumLoading, setIsAlbumLoading] = useState(true);
 
   useEffect(() => {
     // Check current admin auth
@@ -71,7 +72,7 @@ export default function AhafoAlbumPage() {
   return (
     <AdminShell
       title="Ahafo Region · Official Election Album & Directory"
-      subtitle="16-Page Publication Roll: Acknowledgement, 1-Sided National, 1-Sided Regional, 6 Constituencies (2-Sided) & TESCON"
+      subtitle="15-Page Publication Roll: Acknowledgement, Ahafo Regional Executives, 6 Constituencies (2-Sided) & TESCON"
       currentUser={currentUser}
     >
       <div className="space-y-6">
@@ -90,7 +91,7 @@ export default function AhafoAlbumPage() {
                 </span>
               </h2>
               <p className="text-xs text-slate-500">
-                16 Pages · 6 Constituencies · 114 Constituency Executives · 6 Regional · 6 National · 6 TESCON (No Patrons)
+                15 Pages · 6 Constituencies · 114 Constituency Executives · 6 Regional · 6 TESCON (No Patrons)
               </p>
             </div>
           </div>
@@ -102,7 +103,7 @@ export default function AhafoAlbumPage() {
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors"
             >
               <Download className="w-3.5 h-3.5" />
-              Download High-Res PDF (16 Pages)
+              Download High-Res PDF (15 Pages)
             </a>
 
             <button
@@ -194,9 +195,19 @@ export default function AhafoAlbumPage() {
           </div>
 
           <div
-            className="w-full bg-slate-600 p-4 sm:p-8 flex justify-center overflow-auto"
+            className="relative w-full bg-slate-600 p-4 sm:p-8 flex justify-center overflow-auto"
             style={{ minHeight: "850px" }}
           >
+            {isAlbumLoading && (
+              <div
+                className="absolute inset-0 z-10 flex flex-col items-center justify-start gap-3 bg-slate-700/90 pt-32 text-white"
+                role="status"
+                aria-label="Loading voter profile images"
+              >
+                <LoaderCircle className="h-8 w-8 animate-spin text-blue-300" />
+                <span className="text-sm font-semibold">Loading voter profile images...</span>
+              </div>
+            )}
             <div
               style={{
                 transform: `scale(${zoomLevel / 100})`,
@@ -208,10 +219,11 @@ export default function AhafoAlbumPage() {
                 id="album-iframe"
                 src={`/exports/ahafo_election_album.html?v=${albumVersion}`}
                 title="Ahafo Election Album Preview"
+                onLoad={() => setIsAlbumLoading(false)}
                 className="border-0 shadow-2xl rounded"
                 style={{
                   width: "220mm",
-                  height: "5100mm", // renders full scrollable 16-page spread
+                  height: "4800mm", // renders the full scrollable 15-page spread
                   backgroundColor: "#ffffff",
                 }}
               />

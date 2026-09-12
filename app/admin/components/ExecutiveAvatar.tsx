@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getInitials, getAvatarPalette, getVoterPhotoUrl } from "@/lib/voter-photo";
 import { RotateCw } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ExecutiveAvatarProps {
   imageUrl?: string | null;
@@ -111,6 +112,7 @@ export function ExecutiveAvatar({
     : null;
 
   const showImage = Boolean(displayUrl) && (!imageError || isReloading);
+  const isLoading = Boolean(displayUrl) && !imageLoaded && !imageError;
 
   const containerStyle: React.CSSProperties = {
     position: "relative",
@@ -137,7 +139,7 @@ export function ExecutiveAvatar({
   };
 
   return (
-    <div
+    <Avatar
       className={`executive-avatar ${className}`}
       style={containerStyle}
       title={
@@ -148,7 +150,7 @@ export function ExecutiveAvatar({
       onClick={imageError && allowManualReload && resolvedUrl ? handleReload : undefined}
     >
       {/* Fallback Initials / Silhouette */}
-      <span
+      <AvatarFallback
         style={{
           position: "absolute",
           inset: 0,
@@ -160,17 +162,29 @@ export function ExecutiveAvatar({
         }}
       >
         {initials}
-      </span>
+      </AvatarFallback>
 
       {/* Voter Photo */}
       {showImage && (
-        <img
+        <AvatarImage
           key={displayUrl}
           src={displayUrl!}
           alt={name ? `${name}'s photo` : "Voter photo"}
           loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
+          onLoadingStatusChange={(status) => {
+            if (status === "loaded") {
+              setImageLoaded(true);
+              setImageError(false);
+              setIsReloading(false);
+            } else if (status === "error") {
+              if (resolvedUrl) knownBrokenUrls.add(resolvedUrl);
+              setImageLoaded(false);
+              setImageError(true);
+              setIsReloading(false);
+            }
+          }}
           onError={() => {
             if (resolvedUrl) {
               knownBrokenUrls.add(resolvedUrl);
@@ -196,9 +210,11 @@ export function ExecutiveAvatar({
         />
       )}
 
-      {/* Reloading Spinner Overlay */}
-      {isReloading && (
+      {/* Loading Spinner Overlay */}
+      {(isLoading || isReloading) && (
         <div
+          role="status"
+          aria-label="Loading photo"
           style={{
             position: "absolute",
             inset: 0,
@@ -256,6 +272,6 @@ export function ExecutiveAvatar({
           <RotateCw size={Math.max(8, Math.round(size * 0.2))} />
         </button>
       )}
-    </div>
+    </Avatar>
   );
 }

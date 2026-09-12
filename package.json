@@ -22,6 +22,7 @@
     "dev:pg": "WRANGLER_LOG_PATH=.wrangler/wrangler.log node --env-file=.env.local node_modules/vinext/dist/cli.js dev --force"
   },
   "dependencies": {
+    "@radix-ui/react-avatar": "^1.2.6",
     "drizzle-orm": "0.45.2",
     "lucide-react": "^1.40.0",
     "next": "16.2.6",
