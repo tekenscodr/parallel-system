@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { AdminShell } from '@/app/admin/components/AdminShell';
 import { getClientHeaders } from '@/lib/client-device';
 import type { VotingReport, Electorate } from '@/lib/voting-rules';
+import { getPositionRank } from '@/lib/position-matcher';
 
 export default function VotingPage() {
   const [data,setData]=useState<VotingReport|null>(null);
@@ -18,8 +19,10 @@ export default function VotingPage() {
     .then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[]);
   const cell={padding:'12px',textAlign:'left' as const,borderBottom:'1px solid #334155'};
   const control={padding:'10px',background:'#17243b',color:'#fff',border:'1px solid #64748b',borderRadius:6,fontSize:14};
-  const availablePositions = Array.from(new Set(data?.people.flatMap(p => p.positions.split('; ').map(s => s.trim())).filter(Boolean) || [])).sort();
-  const people=data?.people.filter(p=>(!region||p.region===region)&&p.flags[contest]&&(!positionFilter||p.positions.toLowerCase().includes(positionFilter.toLowerCase())))||[];
+  const availablePositions = Array.from(new Set(data?.people.flatMap(p => p.positions.split('; ').map(s => s.trim())).filter(Boolean) || []))
+    .sort((a, b) => getPositionRank(a) - getPositionRank(b) || a.localeCompare(b));
+  const people=(data?.people.filter(p=>(!region||p.region===region)&&p.flags[contest]&&(!positionFilter||p.positions.toLowerCase().includes(positionFilter.toLowerCase())))||[])
+    .sort((a, b) => getPositionRank(a.positions) - getPositionRank(b.positions));
   const metrics=data?.[view].filter(p=>!region||p.region===region)||[];
   return <AdminShell currentUser={null} title="Voting breakdown"><main style={{padding:24,color:'#e2e8f0',fontSize:16,maxWidth:1500,margin:'auto'}}>
     <Link href="/admin/dashboard">Back to executive dashboard</Link>

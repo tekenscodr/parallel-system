@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
-import { normalizePosition } from "@/lib/position-matcher";
+import { normalizePosition, getPositionRank } from "@/lib/position-matcher";
 
 // In-memory cache with 10-minute TTL
 let cachedPositionsByLevel: Record<string, string[]> | null = null;
@@ -47,7 +47,12 @@ export async function GET(req: Request) {
 
       const result: Record<string, string[]> = {};
       for (const key of Object.keys(grouped)) {
-        result[key] = Array.from(grouped[key]).sort((a, b) => a.localeCompare(b));
+        result[key] = Array.from(grouped[key]).sort((a, b) => {
+          const rankA = getPositionRank(a, key);
+          const rankB = getPositionRank(b, key);
+          if (rankA !== rankB) return rankA - rankB;
+          return a.localeCompare(b);
+        });
       }
 
       cachedPositionsByLevel = result;

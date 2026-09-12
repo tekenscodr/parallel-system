@@ -71,33 +71,62 @@ export async function GET(req: Request) {
         ? sql`WHERE ${conditions.reduce((prev, curr) => sql`${prev} AND ${curr}`)}`
         : sql``;
 
-      // Position hierarchy ranking based on the official 19-position executive slots
+      // Position hierarchy ranking based on official constitutional hierarchy
       const positionRankSql = sql`
         CASE 
-          WHEN position ILIKE '%1st Vice%' OR position ILIKE '%First Vice%' THEN 2
-          WHEN position ILIKE '%2nd Vice%' OR position ILIKE '%Second Vice%' THEN 3
-          WHEN position ILIKE '%3rd Vice%' OR position ILIKE '%Third Vice%' THEN 4
-          WHEN position ILIKE '%Vice%' THEN 3
-          WHEN position ILIKE '%Chair%' THEN 1
-          WHEN position ILIKE '%Deputy Secretary%' OR position ILIKE '%Assistant Secretary%' THEN 5
-          WHEN position ILIKE '%Financial Secretary%' THEN 12
-          WHEN position ILIKE '%General Secretary%' OR position ILIKE '%Secretary%' THEN 4
-          WHEN position ILIKE '%Treasurer%' THEN 6
-          WHEN position ILIKE '%Deputy Women%' OR position ILIKE '%Assistant Women%' THEN 17
-          WHEN position ILIKE '%Deputy Youth%' OR position ILIKE '%Assistant Youth%' THEN 18
-          WHEN position ILIKE '%Deputy Nasara%' OR position ILIKE '%Assistant Nasara%' THEN 19
-          WHEN position ILIKE '%Deputy Organi%' OR position ILIKE '%Assistant Organi%' THEN 16
-          WHEN position ILIKE '%Women Organi%' OR position ILIKE '%Women%' THEN 8
-          WHEN position ILIKE '%Youth Organi%' OR position ILIKE '%Youth%' THEN 9
-          WHEN position ILIKE '%Nasara%' THEN 10
-          WHEN position ILIKE '%Communication%' THEN 11
-          WHEN position ILIKE '%Electoral%' THEN 13
-          WHEN position ILIKE '%Research%' THEN 14
-          WHEN position ILIKE '%PWD%' OR position ILIKE '%Disabil%' THEN 15
-          WHEN position ILIKE '%Organi%' THEN 7
-          WHEN position ILIKE '%Coordinator%' THEN 20
-          WHEN position ILIKE '%Officer%' THEN 21
-          ELSE 30
+          /* 1. Flagbearer & Running Mate */
+          WHEN position ILIKE '%Flagbearer%' OR position ILIKE '%Presidential Candidate%' THEN 1
+          WHEN position ILIKE '%Running Mate%' OR position ILIKE '%Vice Presidential%' THEN 2
+
+          /* 2. Chairperson & Vice-Chairpersons */
+          WHEN position ILIKE '%1st%Vice%' OR position ILIKE '%First%Vice%' THEN 11
+          WHEN position ILIKE '%2nd%Vice%' OR position ILIKE '%Second%Vice%' THEN 12
+          WHEN position ILIKE '%3rd%Vice%' OR position ILIKE '%Third%Vice%' THEN 13
+          WHEN position ILIKE '%Vice%Chair%' OR position ILIKE '%Vice-Chair%' OR position ILIKE '%Vice Chair%' THEN 14
+          WHEN position ILIKE '%Chair%' THEN 10
+
+          /* 3. Secretary & Deputy Secretary */
+          WHEN position ILIKE '%Deputy Secretary%' OR position ILIKE '%Assistant%Secretary%' OR position ILIKE '%Deputy General Secretary%' THEN 21
+          WHEN position ILIKE '%Financial Secretary%' THEN 32
+          WHEN position ILIKE '%General Secretary%' OR position ILIKE '%Secretary%' THEN 20
+
+          /* 4. Treasurer & Financial Secretary */
+          WHEN position ILIKE '%Deputy%Treasur%' THEN 31
+          WHEN position ILIKE '%Treasur%' THEN 30
+
+          /* 5. Organisers & Deputies */
+          WHEN position ILIKE '%Deputy%Organi%' OR position ILIKE '%Assistant%Organi%' THEN 41
+          WHEN position ILIKE '%Deputy%Women%' OR position ILIKE '%Assistant%Women%' THEN 51
+          WHEN position ILIKE '%Women%Organi%' OR position ILIKE '%Women%' THEN 50
+          WHEN position ILIKE '%Deputy%Youth%' OR position ILIKE '%Assistant%Youth%' THEN 61
+          WHEN position ILIKE '%Youth%Organi%' OR position ILIKE '%Youth%' THEN 60
+          WHEN position ILIKE '%Deputy%Nasara%' OR position ILIKE '%Assistant%Nasara%' THEN 71
+          WHEN position ILIKE '%Nasara%' THEN 70
+          WHEN position ILIKE '%Organi%' THEN 40
+
+          /* 6. Communication Officers */
+          WHEN position ILIKE '%Deputy%Communication%' THEN 81
+          WHEN position ILIKE '%Communication%' THEN 80
+
+          /* 7. Electoral Affairs, Research & PWD */
+          WHEN position ILIKE '%Electoral%' OR position ILIKE '%Elections%' THEN 90
+          WHEN position ILIKE '%Research%' THEN 100
+          WHEN position ILIKE '%PWD%' OR position ILIKE '%Disabil%' THEN 110
+
+          /* 8. TESCON & Institutional Roles */
+          WHEN position ILIKE '%President%' THEN 120
+          WHEN position ILIKE '%WOCOM%' THEN 125
+
+          /* 9. Specialized & Council Roles */
+          WHEN position ILIKE '%Special Duties%' THEN 130
+          WHEN position ILIKE '%Legal%' THEN 140
+          WHEN position ILIKE '%National Council%' THEN 150
+          WHEN position ILIKE '%Patron%' THEN 160
+          WHEN position ILIKE '%Council of Elders%' OR position ILIKE '%Elders%' THEN 170
+          WHEN position ILIKE '%Foundation Member%' THEN 180
+          WHEN position ILIKE '%Coordinator%' THEN 190
+          WHEN position ILIKE '%Officer%' THEN 200
+          ELSE 300
         END
       `;
 

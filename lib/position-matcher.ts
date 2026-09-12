@@ -9,25 +9,24 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   // Fix known typos
   p = p.replace(/Cooordinator/gi, "Coordinator");
   p = p.replace(/\bTreasure\b(?!r)/gi, "Treasurer");
+  // Remove "Regional" from positions (e.g. Regional Chairman -> Chairman)
+  p = p.replace(/\bregional\s+/gi, "");
 
   const lower = p.toLowerCase();
 
   // 1. Chairperson / Chairman
   if (lower === "chairman" || lower === "chairperson") {
-    if (level === "Region") return "Regional Chairman";
-    if (level === "National") return "National Chairman";
+    if (level === "National") return "National Chairperson";
     return "Chairperson";
   }
 
   // 2. 1st Vice
   if (/^1st\s+(?:regional\s+)?vice[- ]*(?:chairman|chairperson|chair)$/i.test(p)) {
-    if (level === "Region") return "1st Regional Vice-Chairman";
     return "1st Vice-Chairperson";
   }
 
   // 3. 2nd Vice
   if (/^2nd\s+(?:regional\s+)?vice[- ]*(?:chairman|chairperson|chair)$/i.test(p)) {
-    if (level === "Region") return "2nd Regional Vice-Chairman";
     return "2nd Vice-Chairperson";
   }
 
@@ -37,7 +36,6 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   // 5. Secretary
   if (lower === "secretary") return "Secretary";
   if (lower === "deputy secretary" || lower === "assistant secretary") {
-    if (level === "Region") return "Assistant Regional Secretary";
     return "Deputy Secretary";
   }
 
@@ -61,7 +59,6 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
     return /^deputy/i.test(p) ? "Deputy Nasara Organiser" : "Nasara Organiser";
   }
   if (/^(?:deputy\s+)?nasara\s+coordinator$/i.test(p)) {
-    if (level === "Region") return /^deputy/i.test(p) ? "Deputy Regional Nasara Coordinator" : "Regional Nasara Coordinator";
     return /^deputy/i.test(p) ? "Deputy Nasara Coordinator" : "Nasara Coordinator";
   }
 
@@ -76,7 +73,6 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
 
   // 14. PWD
   if (/^pwd\s+(?:coordinator|officer)$/i.test(p)) {
-    if (level === "Region") return "Regional PWD Officer";
     return "PWD Coordinator";
   }
 
@@ -162,4 +158,68 @@ export function buildPositionCondition(sql: any, position: string) {
 
   const conds = Array.from(variants).map((v) => sql`position ILIKE ${v}`);
   return sql`(${conds.reduce((prev: any, curr: any) => sql`${prev} OR ${curr}`)})`;
+}
+
+/**
+ * Returns a numerical rank representing the official constitutional hierarchy
+ * of the position. Lower numbers indicate higher seniority.
+ */
+export function getPositionRank(pos?: string | null, level?: string | null): number {
+  if (!pos) return 999;
+  const p = pos.trim().toLowerCase();
+
+  // 1. Presidential Candidate / Flagbearer
+  if (p.includes("flagbearer") || p.includes("presidential candidate")) return 1;
+  if (p.includes("running mate") || p.includes("vice presidential")) return 2;
+
+  // 2. Chairperson & Vice-Chairpersons
+  if (p.includes("1st vice") || p.includes("first vice")) return 11;
+  if (p.includes("2nd vice") || p.includes("second vice")) return 12;
+  if (p.includes("3rd vice") || p.includes("third vice")) return 13;
+  if (p.includes("vice-chair") || p.includes("vice chair") || p.includes("vice chairperson") || p.includes("vice chairman")) return 14;
+  if (p.includes("chairperson") || p.includes("chairman") || p.includes("chair")) return 10;
+
+  // 3. Secretary & Deputy Secretary
+  if (p.includes("deputy secretary") || p.includes("assistant secretary") || p.includes("deputy general secretary")) return 21;
+  if (p.includes("financial secretary")) return 32;
+  if (p.includes("general secretary") || p.includes("secretary")) return 20;
+
+  // 4. Treasurer & Financial Secretary
+  if (p.includes("deputy treasurer") || p.includes("deputy regional treasurer") || p.includes("deputy national treasurer")) return 31;
+  if (p.includes("treasurer") || p.includes("treasure")) return 30;
+
+  // 5. Organisers & Deputies
+  if (p.includes("deputy organiser") || p.includes("deputy organizer") || p.includes("assistant organiser")) return 41;
+  if (p.includes("deputy women") || p.includes("assistant women")) return 51;
+  if (p.includes("women organiser") || p.includes("women organizer") || p.includes("women's organiser") || p.includes("women")) return 50;
+  if (p.includes("deputy youth") || p.includes("assistant youth")) return 61;
+  if (p.includes("youth organiser") || p.includes("youth organizer") || p.includes("youth")) return 60;
+  if (p.includes("deputy nasara")) return 71;
+  if (p.includes("nasara")) return 70;
+  if (p.includes("organiser") || p.includes("organizer")) return 40;
+
+  // 6. Communication
+  if (p.includes("deputy communication")) return 81;
+  if (p.includes("communication")) return 80;
+
+  // 7. Electoral Affairs, Research & PWD
+  if (p.includes("electoral") || p.includes("elections")) return 90;
+  if (p.includes("research")) return 100;
+  if (p.includes("pwd") || p.includes("disability")) return 110;
+
+  // 8. Institutional & TESCON
+  if (p.includes("president")) return 120;
+  if (p.includes("wocom")) return 125;
+
+  // 9. Special Duties, Legal & Council
+  if (p.includes("special duties")) return 130;
+  if (p.includes("legal")) return 140;
+  if (p.includes("national council")) return 150;
+  if (p.includes("patron")) return 160;
+  if (p.includes("council of elders") || p.includes("elders")) return 170;
+  if (p.includes("foundation member")) return 180;
+  if (p.includes("coordinator")) return 190;
+  if (p.includes("officer")) return 200;
+
+  return 300;
 }
