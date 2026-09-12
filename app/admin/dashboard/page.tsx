@@ -41,6 +41,14 @@ import {
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 import { ExecutiveAvatar } from "@/app/admin/components/ExecutiveAvatar";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { getClientHeaders } from "@/lib/client-device";
 import { checkClientRateLimit } from "@/lib/client-rate-limit";
 import { getPositionRank } from "@/lib/position-matcher";
@@ -182,25 +190,25 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Foundation Member",
   ],
   Region: [
-    "Chairman",
-    "1st Vice-Chairman",
-    "2nd Vice-Chairman",
+    "Chairperson",
+    "1st Vice Chairperson",
+    "2nd Vice Chairperson",
     "Secretary",
     "Assistant Secretary",
     "Treasurer",
-    "Financial Secretary",
     "Organiser",
-    "Deputy Organiser",
     "Women Organiser",
-    "Deputy Women Organiser",
     "Youth Organiser",
-    "Deputy Youth Organiser",
-    "Nasara Coordinator",
-    "Deputy Nasara Coordinator",
-    "Communications Officer",
+    "Nasara Organiser",
+    "Financial Secretary",
     "Electoral Affairs Officer",
+    "Communication Officer",
     "Research Officer",
-    "PWD Officer",
+    "PWD",
+    "Deputy Organiser",
+    "Deputy Women Organiser",
+    "Deputy Youth Organiser",
+    "Deputy Nasara Organiser",
     "Special Duties Officer",
     "Legal Representative Officer",
   ],
@@ -217,6 +225,7 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Nasara Organiser",
     "Financial Secretary",
     "Electoral Affairs Officer",
+    "Communication Officer",
     "Research Officer",
     "PWD",
     "Deputy Organiser",
@@ -2101,9 +2110,9 @@ export default function NationalAdminDashboard() {
             <span>Swipe horizontally to view all columns (Age, Date of Birth, Phone, Region, Constituency, etc.)</span>
           </div>
           <div className="dash-table-wrapper">
-            <table className="dash-table">
-              <thead>
-                <tr style={{
+            <Table className="dash-table w-full">
+              <TableHeader>
+                <TableRow style={{
                   background: "rgba(30, 41, 59, 0.8)",
                   borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
                   color: "#94a3b8",
@@ -2111,38 +2120,38 @@ export default function NationalAdminDashboard() {
                   textTransform: "uppercase",
                   letterSpacing: "0.5px"
                 }}>
-                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Voter ID</th>
-                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Name</th>
-                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Age / DOB</th>
-                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Phone</th>
-                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Region</th>
-                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Constituency</th>
-                  <th style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>Level</th>
-                  <th style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Voter ID</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Name</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Age / DOB</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Phone</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Region</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Constituency</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Level</TableHead>
+                  <TableHead style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap", color: "#94a3b8" }}>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {loadingRows ? (
-                  <tr>
-                    <td colSpan={8} style={{ textAlign: "center", padding: "48px", color: "#94a3b8" }}>
+                  <TableRow>
+                    <TableCell colSpan={8} style={{ textAlign: "center", padding: "48px", color: "#94a3b8" }}>
                       <div style={{ display: "flex", justifyContent: "center", marginBottom: "10px" }}>
                         <Loader2 size={24} color="#94a3b8" style={{ animation: "spin 1s linear infinite" }} />
                       </div>
                       Querying ec-data PostgreSQL database…
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} style={{ textAlign: "center", padding: "48px", color: "#64748b" }}>
+                  <TableRow>
+                    <TableCell colSpan={8} style={{ textAlign: "center", padding: "48px", color: "#64748b" }}>
                       No executive records found matching your filter criteria.
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   rows.map((row) => {
                     const unitDetail = row.pollingStation || row.electoralArea;
 
                     return (
-                      <tr
+                      <TableRow
                         key={row.id}
                         onClick={() => handleOpenModal(row.id)}
                         style={{
@@ -2158,7 +2167,7 @@ export default function NationalAdminDashboard() {
                         }}
                       >
                         {/* 1. Voter ID */}
-                        <td style={{ padding: "12px 16px", fontFamily: "monospace", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "12px 16px", fontFamily: "monospace", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.voterId ? (
                             <span style={{
                               padding: "2px 6px",
@@ -2173,10 +2182,10 @@ export default function NationalAdminDashboard() {
                           ) : (
                             <span style={{ color: "#64748b" }}>—</span>
                           )}
-                        </td>
+                        </TableCell>
 
                         {/* 2. Name & Position */}
-                        <td style={{ padding: "10px 16px", color: "#ffffff", fontWeight: "600" }}>
+                        <TableCell style={{ padding: "10px 16px", color: "#ffffff", fontWeight: "600" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                             <div style={{ position: "relative", flexShrink: 0 }} title="Click row to view or update executive profile & photo">
                               <ExecutiveAvatar
@@ -2197,10 +2206,10 @@ export default function NationalAdminDashboard() {
                               )}
                             </div>
                           </div>
-                        </td>
+                        </TableCell>
 
                         {/* 3. Age & Date of Birth */}
-                        <td style={{ padding: "10px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "10px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                             <div>
                               {row.age != null && row.age > 0 ? (
@@ -2224,10 +2233,10 @@ export default function NationalAdminDashboard() {
                               </span>
                             )}
                           </div>
-                        </td>
+                        </TableCell>
 
                         {/* 4. Phone */}
-                        <td style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.phone ? (
                             <a
                               href={`tel:${row.phone}`}
@@ -2249,20 +2258,20 @@ export default function NationalAdminDashboard() {
                           ) : (
                             <span style={{ color: "#64748b" }}>—</span>
                           )}
-                        </td>
+                        </TableCell>
 
                         {/* 5. Region */}
-                        <td style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.region || "—"}
-                        </td>
+                        </TableCell>
 
                         {/* 6. Constituency */}
-                        <td style={{ padding: "12px 14px", color: "#cbd5e1", fontWeight: "500", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "12px 14px", color: "#cbd5e1", fontWeight: "500", whiteSpace: "nowrap" }}>
                           {row.constituency || "—"}
-                        </td>
+                        </TableCell>
 
                         {/* 9. Level */}
-                        <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
                           <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
                             <span style={{
                               fontSize: "11px",
@@ -2287,10 +2296,10 @@ export default function NationalAdminDashboard() {
                               </span>
                             )}
                           </div>
-                        </td>
+                        </TableCell>
 
                         {/* Actions (Always visible: View/Edit + Delete) */}
-                        <td style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                             <button
                               type="button"
@@ -2344,13 +2353,13 @@ export default function NationalAdminDashboard() {
                               <span>Delete</span>
                             </button>
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {/* Pagination Controls Footer */}

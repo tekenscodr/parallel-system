@@ -136,6 +136,14 @@ export function buildPositionCondition(sql: any, position: string) {
     variants.add(p.replace(/Vice /gi, 'Vice-'));
   }
 
+  // Cross-apply hyphen/space with Chairman/Chairperson
+  for (const v of Array.from(variants)) {
+    if (v.includes('-')) variants.add(v.replace(/-/g, ' '));
+    if (v.includes('Vice ')) variants.add(v.replace(/Vice /gi, 'Vice-'));
+    if (/chairperson/i.test(v)) variants.add(v.replace(/chairperson/gi, 'Chairman'));
+    if (/chairman/i.test(v)) variants.add(v.replace(/chairman/gi, 'Chairperson'));
+  }
+
   // 4. Coordinator vs Organiser for Nasara
   if (/nasara organiser/i.test(p)) {
     variants.add(p.replace(/nasara organiser/gi, 'Nasara Coordinator'));
@@ -147,8 +155,11 @@ export function buildPositionCondition(sql: any, position: string) {
     variants.add(p.replace(/deputy nasara organiser/gi, 'Deputy Nasara Coordinator'));
     variants.add(p.replace(/deputy nasara organiser/gi, 'Deputy Nasara Cooordinator'));
   }
+  if (/deputy nasara coordinator/i.test(p)) {
+    variants.add(p.replace(/deputy nasara coordinator/gi, 'Deputy Nasara Organiser'));
+  }
 
-  // 6. Secretary title used by the Region and Constituency tables.
+  // 5. Secretary title used by the Region and Constituency tables.
   if (/assistant secretary/i.test(p)) {
     variants.add(p.replace(/assistant secretary/gi, "Deputy Secretary"));
   }
@@ -156,18 +167,25 @@ export function buildPositionCondition(sql: any, position: string) {
     variants.add(p.replace(/deputy secretary/gi, "Assistant Secretary"));
   }
 
-  // 5. Women's vs Women
+  // 6. Communications Officer variations
+  if (/communications?\s+officer/i.test(p)) {
+    variants.add(p.replace(/communications?\s+officer/gi, "Communication Officer"));
+    variants.add(p.replace(/communications?\s+officer/gi, "Communications Officer"));
+  }
+
+  // 7. Women's vs Women
   if (/women organiser/i.test(p)) {
     variants.add(p.replace(/women organiser/gi, "Women's Organiser"));
     variants.add(p.replace(/women organiser/gi, "Women's Organizer"));
   }
 
-  // 6. PWD variations
+  // 8. PWD variations
   if (/pwd/i.test(p)) {
-    variants.add(p.replace(/pwd/gi, 'PWD'));
-    variants.add(p.replace(/pwd/gi, 'Pwd'));
+    variants.add("PWD");
     variants.add("PWD Officer");
     variants.add("PWD Coordinator");
+    variants.add("Regional PWD Officer");
+    variants.add("Pwd");
   }
 
   const conds = Array.from(variants).map((v) => sql`position ILIKE ${v}`);
@@ -184,26 +202,57 @@ export function getPositionRank(pos?: string | null, level?: string | null): num
   const tier = String(level || "").trim().toLowerCase();
 
   if (tier === "region" || tier === "regional" || tier === "constituency") {
+    // 1. Chairperson / Chairman
     if (p.includes("1st vice") || p.includes("first vice")) return 2;
     if (p.includes("2nd vice") || p.includes("second vice")) return 3;
     if (p.includes("chairperson") || p.includes("chairman") || p === "chair") return 1;
+
+    // 4. Secretary & 5. Assistant Secretary
     if (p.includes("deputy secretary") || p.includes("assistant secretary")) return 5;
-    if (p === "secretary") return 4;
+    if (p === "secretary" || (p.endsWith(" secretary") && !p.includes("financial"))) return 4;
+
+    // 6. Treasurer
     if (p.includes("treasurer") || p.includes("treasure")) return 6;
-    if (p.includes("deputy women") || p.includes("assistant women")) return 16;
-    if (p.includes("deputy youth") || p.includes("assistant youth")) return 17;
-    if (p.includes("deputy nasara")) return 18;
-    if (p.includes("deputy organiser") || p.includes("deputy organizer") || p.includes("assistant organiser")) return 15;
+
+    // Deputies (16-19) - checked before main roles to avoid greedy substring match
+    if (p.includes("deputy women") || p.includes("assistant women")) return 17;
+    if (p.includes("deputy youth") || p.includes("assistant youth")) return 18;
+    if (p.includes("deputy nasara")) return 19;
+    if (p.includes("deputy organiser") || p.includes("deputy organizer") || p.includes("assistant organiser")) return 16;
+
+    // 8. Women Organiser
     if (p.includes("women organiser") || p.includes("women organizer") || p.includes("women's organiser") || p === "women") return 8;
+
+    // 9. Youth Organiser
     if (p.includes("youth organiser") || p.includes("youth organizer") || p === "youth") return 9;
+
+    // 10. Nasara Organiser
     if (p.includes("nasara")) return 10;
-    if (p.includes("financial secretary")) return 11;
+
+    // 7. Organiser
     if (p.includes("organiser") || p.includes("organizer")) return 7;
+
+    // 11. Financial Secretary
+    if (p.includes("financial secretary")) return 11;
+
+    // 12. Electoral Affairs Officer
     if (p.includes("electoral") || p.includes("elections")) return 12;
-    if (p.includes("research")) return 13;
-    if (p.includes("pwd") || p.includes("disability")) return 14;
-    if (p.includes("special duties")) return 19;
-    if (p.includes("legal")) return 20;
+
+    // 13. Communication Officer
+    if (p.includes("communication")) return 13;
+
+    // 14. Research Officer
+    if (p.includes("research")) return 14;
+
+    // 15. PWD
+    if (p.includes("pwd") || p.includes("disability")) return 15;
+
+    // 20. Special Duties Officer
+    if (p.includes("special duties")) return 20;
+
+    // 21. Legal Representative Officer
+    if (p.includes("legal")) return 21;
+
     return 300;
   }
 
