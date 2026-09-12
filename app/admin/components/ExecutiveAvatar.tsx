@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getInitials, getAvatarPalette, getVoterPhotoUrl } from "@/lib/voter-photo";
+import { RotateCw } from "lucide-react";
 
 interface ExecutiveAvatarProps {
   imageUrl?: string | null;
@@ -13,7 +14,12 @@ interface ExecutiveAvatarProps {
   rounded?: "full" | "md" | "lg";
   className?: string;
   style?: React.CSSProperties;
+  reloadKey?: number | string;
+  allowManualReload?: boolean;
 }
+
+// In-memory set of known dead/0-byte URLs so normal rendering doesn't re-choke the browser pool
+const knownBrokenUrls = new Set<string>();
 
 export function ExecutiveAvatar({
   imageUrl,
@@ -25,23 +31,70 @@ export function ExecutiveAvatar({
   rounded = "full",
   className = "",
   style = {},
+  reloadKey,
+  allowManualReload = true,
 }: ExecutiveAvatarProps) {
-  const [imageError, setImageError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [retryAttempt, setRetryAttempt] = useState(0);
-
   // Determine effective photo URL (explicit imageUrl, or derive from region/constituency/voterId)
   const resolvedUrl =
     imageUrl && imageUrl.trim().length > 0
       ? imageUrl.trim()
       : getVoterPhotoUrl(region, constituency, voterId);
 
-  // Reset error state if the URL changes
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
+  const [reloadTimestamp, setReloadTimestamp] = useState<number | null>(null);
+
+  // Manual reload function to renew the image state
+  const handleReload = useCallback(
+    (e?: React.MouseEvent) => {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      if (!resolvedUrl) return;
+
+      // Clear from broken cache so it is allowed to re-fetch
+      knownBrokenUrls.delete(resolvedUrl);
+
+      // Renew state with fresh cache-busting timestamp
+      setIsReloading(true);
+      setImageError(false);
+      setImageLoaded(false);
+      setReloadTimestamp(Date.now());
+    },
+    [resolvedUrl]
+  );
+
+  // Reset error & reload state when URL or external reloadKey changes
   useEffect(() => {
-    setImageError(false);
-    setImageLoaded(false);
-    setRetryAttempt(0);
-  }, [resolvedUrl]);
+    if (!resolvedUrl) {
+      setImageError(false);
+      setImageLoaded(false);
+      setIsReloading(false);
+      setReloadTimestamp(null);
+      return;
+    }
+
+    if (reloadKey != null && reloadKey !== 0) {
+      // Explicit parent reload requested
+      knownBrokenUrls.delete(resolvedUrl);
+      setIsReloading(true);
+      setImageError(false);
+      setImageLoaded(false);
+      setReloadTimestamp(Date.now());
+    } else if (knownBrokenUrls.has(resolvedUrl)) {
+      setImageError(true);
+      setImageLoaded(false);
+      setIsReloading(false);
+      setReloadTimestamp(null);
+    } else {
+      setImageError(false);
+      setImageLoaded(false);
+      setIsReloading(false);
+      setReloadTimestamp(null);
+    }
+  }, [resolvedUrl, reloadKey]);
 
   const initials = getInitials(name);
   const palette = getAvatarPalette(name);
@@ -49,6 +102,15 @@ export function ExecutiveAvatar({
   const borderRadius =
     rounded === "full" ? "50%" : rounded === "lg" ? "10px" : "6px";
   const fontSize = Math.max(10, Math.round(size * 0.38));
+
+  // Determine effective display URL with cache-busting parameter if reloaded
+  const displayUrl = resolvedUrl
+    ? reloadTimestamp
+      ? `${resolvedUrl}${resolvedUrl.includes("?") ? "&" : "?"}_r=${reloadTimestamp}`
+      : resolvedUrl
+    : null;
+
+  const showImage = Boolean(displayUrl) && (!imageError || isReloading);
 
   const containerStyle: React.CSSProperties = {
     position: "relative",
@@ -70,20 +132,20 @@ export function ExecutiveAvatar({
     letterSpacing: "0.5px",
     userSelect: "none",
     flexShrink: 0,
+    cursor: imageError && allowManualReload && resolvedUrl ? "pointer" : undefined,
     ...style,
   };
-
-  const showImage = Boolean(resolvedUrl) && !imageError;
-  const displayUrl =
-    resolvedUrl && retryAttempt > 0
-      ? `${resolvedUrl}${resolvedUrl.includes("?") ? "&" : "?"}retry=${retryAttempt}`
-      : resolvedUrl;
 
   return (
     <div
       className={`executive-avatar ${className}`}
       style={containerStyle}
-      title={name || undefined}
+      title={
+        imageError && allowManualReload && resolvedUrl
+          ? `${name ? `${name} - ` : ""}Photo failed to load. Click to reload.`
+          : name || undefined
+      }
+      onClick={imageError && allowManualReload && resolvedUrl ? handleReload : undefined}
     >
       {/* Fallback Initials / Silhouette */}
       <span
@@ -93,7 +155,7 @@ export function ExecutiveAvatar({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          opacity: imageLoaded ? 0 : 1,
+          opacity: imageLoaded && !isReloading ? 0 : 1,
           transition: "opacity 0.2s ease-in-out",
         }}
       >
@@ -103,19 +165,24 @@ export function ExecutiveAvatar({
       {/* Voter Photo */}
       {showImage && (
         <img
+          key={displayUrl}
           src={displayUrl!}
           alt={name ? `${name}'s photo` : "Voter photo"}
           loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
           onError={() => {
-            if (retryAttempt < 1) {
-              setRetryAttempt(1);
-              return;
+            if (resolvedUrl) {
+              knownBrokenUrls.add(resolvedUrl);
             }
             setImageError(true);
+            setIsReloading(false);
           }}
-          onLoad={() => setImageLoaded(true)}
+          onLoad={() => {
+            setImageLoaded(true);
+            setImageError(false);
+            setIsReloading(false);
+          }}
           style={{
             position: "absolute",
             inset: 0,
@@ -123,10 +190,71 @@ export function ExecutiveAvatar({
             height: "100%",
             objectFit: "cover",
             borderRadius,
-            opacity: imageLoaded ? 1 : 0,
+            opacity: imageLoaded && !isReloading ? 1 : 0,
             transition: "opacity 0.2s ease-in-out",
           }}
         />
+      )}
+
+      {/* Reloading Spinner Overlay */}
+      {isReloading && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 4,
+          }}
+        >
+          <RotateCw
+            size={Math.max(12, Math.round(size * 0.38))}
+            color="#60a5fa"
+            style={{ animation: "spin 1s linear infinite" }}
+          />
+        </div>
+      )}
+
+      {/* Interactive Reload Badge when image failed to load */}
+      {imageError && Boolean(resolvedUrl) && allowManualReload && !isReloading && (
+        <button
+          type="button"
+          onClick={handleReload}
+          title="Click to reload photo"
+          style={{
+            position: "absolute",
+            bottom: size >= 48 ? "3px" : "1px",
+            right: size >= 48 ? "3px" : "1px",
+            width: Math.max(15, Math.round(size * 0.36)),
+            height: Math.max(15, Math.round(size * 0.36)),
+            borderRadius: "50%",
+            background: "rgba(15, 23, 42, 0.9)",
+            border: "1px solid rgba(255, 255, 255, 0.3)",
+            color: "#93c5fd",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+            padding: 0,
+            zIndex: 5,
+            transition: "all 0.15s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#2563eb";
+            e.currentTarget.style.color = "#ffffff";
+            e.currentTarget.style.transform = "scale(1.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(15, 23, 42, 0.9)";
+            e.currentTarget.style.color = "#93c5fd";
+            e.currentTarget.style.transform = "scale(1)";
+          }}
+        >
+          <RotateCw size={Math.max(8, Math.round(size * 0.2))} />
+        </button>
       )}
     </div>
   );

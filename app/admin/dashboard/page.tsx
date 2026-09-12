@@ -37,6 +37,7 @@ import {
   Copy,
   ExternalLink,
   Camera,
+  RotateCw,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 import { ExecutiveAvatar } from "@/app/admin/components/ExecutiveAvatar";
@@ -320,6 +321,10 @@ export default function NationalAdminDashboard() {
   const [addUploadingImage, setAddUploadingImage] = useState(false);
   const [addImageSuccess, setAddImageSuccess] = useState("");
   const [copiedPhotoUrl, setCopiedPhotoUrl] = useState(false);
+  const [editAvatarReloadKey, setEditAvatarReloadKey] = useState<number>(0);
+  const [addAvatarReloadKey, setAddAvatarReloadKey] = useState<number>(0);
+  const [reloadingEditPhoto, setReloadingEditPhoto] = useState(false);
+  const [reloadingAddPhoto, setReloadingAddPhoto] = useState(false);
 
   // Delete Modal State
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -2755,6 +2760,7 @@ export default function NationalAdminDashboard() {
                           region={activeExecutive.region}
                           constituency={activeExecutive.constituency}
                           size={64}
+                          reloadKey={editAvatarReloadKey}
                         />
                         <div
                           style={{
@@ -2817,6 +2823,34 @@ export default function NationalAdminDashboard() {
                             />
                             {activeExecutive.imageUrl && (
                               <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditAvatarReloadKey(Date.now());
+                                    setReloadingEditPhoto(true);
+                                    setTimeout(() => setReloadingEditPhoto(false), 1200);
+                                  }}
+                                  title="Reload and renew photo from server"
+                                  style={{
+                                    padding: "8px 10px",
+                                    borderRadius: "6px",
+                                    background: "rgba(255, 255, 255, 0.08)",
+                                    border: "1px solid rgba(255, 255, 255, 0.15)",
+                                    color: reloadingEditPhoto ? "#60a5fa" : "#cbd5e1",
+                                    fontSize: "12px",
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  <RotateCw
+                                    size={13}
+                                    style={{ animation: reloadingEditPhoto ? "spin 1s linear infinite" : "none" }}
+                                  />
+                                  <span>{reloadingEditPhoto ? "Reloading…" : "Reload"}</span>
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -4001,6 +4035,7 @@ export default function NationalAdminDashboard() {
                         region={newExecRegion}
                         constituency={newExecConstituency}
                         size={64}
+                        reloadKey={addAvatarReloadKey}
                       />
                       <div
                         style={{
@@ -4063,6 +4098,34 @@ export default function NationalAdminDashboard() {
                           />
                           {newExecImageUrl && (
                             <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setAddAvatarReloadKey(Date.now());
+                                  setReloadingAddPhoto(true);
+                                  setTimeout(() => setReloadingAddPhoto(false), 1200);
+                                }}
+                                title="Reload and renew photo from server"
+                                style={{
+                                  padding: "8px 10px",
+                                  borderRadius: "6px",
+                                  background: "rgba(255, 255, 255, 0.08)",
+                                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                                  color: reloadingAddPhoto ? "#60a5fa" : "#cbd5e1",
+                                  fontSize: "12px",
+                                  cursor: "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                <RotateCw
+                                  size={13}
+                                  style={{ animation: reloadingAddPhoto ? "spin 1s linear infinite" : "none" }}
+                                />
+                                <span>{reloadingAddPhoto ? "Reloading…" : "Reload"}</span>
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => {
