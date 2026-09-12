@@ -96,3 +96,15 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 
 - [vinext Documentation](https://github.com/cloudflare/vinext)
 - [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+
+# WordPress executive image storage
+
+Executive image uploads are stored in the WordPress Media Library by default.
+Configure `WORDPRESS_URL`, `WORDPRESS_USERNAME`, and
+`WORDPRESS_APPLICATION_PASSWORD` in `.env.local` and in the Vercel project
+environment. The WordPress user must be allowed to upload media, and the site
+must expose the HTTPS endpoint `/wp-json/wp/v2/media`.
+
+For local development only, set `EXECUTIVE_IMAGE_STORAGE=local` to write into
+`public/cdn/executives`. Local storage is rejected on Vercel because its deployed
+function filesystem is not persistent.

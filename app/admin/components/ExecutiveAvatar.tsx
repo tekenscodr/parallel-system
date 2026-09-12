@@ -107,7 +107,7 @@ export function ExecutiveAvatar({
           alt={name ? `${name}'s photo` : "Voter photo"}
           loading="lazy"
           decoding="async"
-          referrerPolicy="strict-origin-when-cross-origin"
+          referrerPolicy="no-referrer"
           onError={() => {
             if (retryAttempt < 1) {
               setRetryAttempt(1);

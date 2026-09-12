@@ -34,6 +34,9 @@ import {
   Phone,
   Upload,
   Image as ImageIcon,
+  Copy,
+  ExternalLink,
+  Camera,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 import { ExecutiveAvatar } from "@/app/admin/components/ExecutiveAvatar";
@@ -239,6 +242,36 @@ function getAuthHeaders(extra?: Record<string, string>): Record<string, string> 
   return getClientHeaders(extra);
 }
 
+function getPhotoSourceBadge(url?: string | null) {
+  if (!url || !url.trim()) return null;
+  const clean = url.trim().toLowerCase();
+  if (clean.includes(".webp") || clean.includes("wp-content") || clean.includes("cms.newpatrioticparty.org")) {
+    return {
+      label: "WordPress CDN • WebP",
+      color: "#34d399",
+      bg: "rgba(16, 185, 129, 0.15)",
+      border: "rgba(16, 185, 129, 0.3)",
+      isWp: true,
+    };
+  }
+  if (clean.includes("pass_voterid") || clean.includes("app.newpatrioticparty.org")) {
+    return {
+      label: "Party Photo Registry",
+      color: "#38bdf8",
+      bg: "rgba(56, 189, 248, 0.15)",
+      border: "rgba(56, 189, 248, 0.3)",
+      isWp: false,
+    };
+  }
+  return {
+    label: "Custom Photo URL",
+    color: "#a78bfa",
+    bg: "rgba(167, 139, 250, 0.15)",
+    border: "rgba(167, 139, 250, 0.3)",
+    isWp: false,
+  };
+}
+
 export default function NationalAdminDashboard() {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -283,7 +316,10 @@ export default function NationalAdminDashboard() {
     message: string;
   } | null>(null);
   const [editUploadingImage, setEditUploadingImage] = useState(false);
+  const [editImageSuccess, setEditImageSuccess] = useState("");
   const [addUploadingImage, setAddUploadingImage] = useState(false);
+  const [addImageSuccess, setAddImageSuccess] = useState("");
+  const [copiedPhotoUrl, setCopiedPhotoUrl] = useState(false);
 
   // Delete Modal State
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -544,6 +580,8 @@ export default function NationalAdminDashboard() {
     setEditSearchVoterId("");
     setEditVoterSearchStatus(null);
     setEditUploadingImage(false);
+    setEditImageSuccess("");
+    setCopiedPhotoUrl(false);
     setModalError("");
     setModalSuccess("");
   };
@@ -908,6 +946,7 @@ export default function NationalAdminDashboard() {
     const file = e.target.files?.[0];
     if (!file || !activeExecutive) return;
     setEditUploadingImage(true);
+    setEditImageSuccess("");
     setModalError("");
     try {
       const formData = new FormData();
@@ -922,6 +961,8 @@ export default function NationalAdminDashboard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Image upload failed");
       handleFieldChange("imageUrl", data.imageUrl);
+      const sizeKb = data.size ? `${(data.size / 1024).toFixed(1)} KB` : "";
+      setEditImageSuccess(`Photo converted to .webp & saved to WordPress CDN!${sizeKb ? ` (${sizeKb})` : ""}`);
     } catch (err: unknown) {
       setModalError(err instanceof Error ? err.message : "Image upload failed");
     } finally {
@@ -935,6 +976,7 @@ export default function NationalAdminDashboard() {
     const file = e.target.files?.[0];
     if (!file) return;
     setAddUploadingImage(true);
+    setAddImageSuccess("");
     setAddError("");
     try {
       const formData = new FormData();
@@ -949,6 +991,8 @@ export default function NationalAdminDashboard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Image upload failed");
       setNewExecImageUrl(data.imageUrl);
+      const sizeKb = data.size ? `${(data.size / 1024).toFixed(1)} KB` : "";
+      setAddImageSuccess(`Photo converted to .webp & saved to WordPress CDN!${sizeKb ? ` (${sizeKb})` : ""}`);
     } catch (err: unknown) {
       setAddError(err instanceof Error ? err.message : "Image upload failed");
     } finally {
@@ -962,6 +1006,8 @@ export default function NationalAdminDashboard() {
     setAddModalOpen(false);
     setAddError("");
     setAddSuccess("");
+    setAddImageSuccess("");
+    setCopiedPhotoUrl(false);
     setSearchVoterId("");
     setVoterSearchStatus(null);
     setIsCustomPosition(false);
@@ -2081,14 +2127,16 @@ export default function NationalAdminDashboard() {
                         {/* 2. Name & Position */}
                         <td style={{ padding: "10px 16px", color: "#ffffff", fontWeight: "600" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                            <ExecutiveAvatar
-                              imageUrl={row.imageUrl}
-                              name={row.executiveName}
-                              voterId={row.voterId}
-                              region={row.region}
-                              constituency={row.constituency}
-                              size={40}
-                            />
+                            <div style={{ position: "relative", flexShrink: 0 }} title="Click row to view or update executive profile & photo">
+                              <ExecutiveAvatar
+                                imageUrl={row.imageUrl}
+                                name={row.executiveName}
+                                voterId={row.voterId}
+                                region={row.region}
+                                constituency={row.constituency}
+                                size={40}
+                              />
+                            </div>
                             <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
                               <span style={{ color: "#ffffff", fontWeight: 600 }}>{row.executiveName}</span>
                               {row.position && (
@@ -2612,20 +2660,73 @@ export default function NationalAdminDashboard() {
                   >
                     <div
                       style={{
-                        fontSize: "12px",
-                        fontWeight: "700",
-                        color: "#38bdf8",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        marginBottom: "12px",
                         display: "flex",
                         alignItems: "center",
-                        gap: "6px",
+                        justifyContent: "space-between",
+                        marginBottom: "12px",
+                        flexWrap: "wrap",
+                        gap: "8px",
                       }}
                     >
-                      <ImageIcon size={15} />
-                      <span>Profile Photo (URL or File Upload)</span>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: "700",
+                          color: "#38bdf8",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                        }}
+                      >
+                        <ImageIcon size={15} />
+                        <span>Profile Photo (URL or File Upload)</span>
+                      </div>
+                      {(() => {
+                        const badge = getPhotoSourceBadge(activeExecutive.imageUrl);
+                        if (!badge) return null;
+                        return (
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: "600",
+                              color: badge.color,
+                              background: badge.bg,
+                              border: `1px solid ${badge.border}`,
+                              padding: "2px 8px",
+                              borderRadius: "12px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            <CheckCircle2 size={12} />
+                            {badge.label}
+                          </span>
+                        );
+                      })()}
                     </div>
+
+                    {editImageSuccess && (
+                      <div
+                        style={{
+                          padding: "8px 12px",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          background: "rgba(16, 185, 129, 0.15)",
+                          border: "1px solid rgba(16, 185, 129, 0.3)",
+                          color: "#34d399",
+                          marginBottom: "12px",
+                        }}
+                      >
+                        <CheckCircle2 size={15} />
+                        <span>{editImageSuccess}</span>
+                      </div>
+                    )}
 
                     <div
                       style={{
@@ -2635,17 +2736,53 @@ export default function NationalAdminDashboard() {
                         flexWrap: "wrap",
                       }}
                     >
-                      {/* Live Avatar Preview */}
-                      <div style={{ position: "relative", flexShrink: 0 }}>
+                      {/* Live Avatar Preview with Camera Overlay */}
+                      <label
+                        style={{
+                          position: "relative",
+                          flexShrink: 0,
+                          cursor: editUploadingImage ? "not-allowed" : "pointer",
+                          borderRadius: "50%",
+                          overflow: "hidden",
+                          display: "inline-block",
+                        }}
+                        title="Click to choose a new photo file"
+                      >
                         <ExecutiveAvatar
                           imageUrl={activeExecutive.imageUrl}
                           name={activeExecutive.executiveName}
                           voterId={activeExecutive.voterId}
                           region={activeExecutive.region}
                           constituency={activeExecutive.constituency}
-                          size={60}
+                          size={64}
                         />
-                      </div>
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            background: "rgba(0, 0, 0, 0.45)",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            opacity: 0,
+                            transition: "opacity 0.15s ease",
+                            color: "#ffffff",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0")}
+                        >
+                          <Camera size={18} />
+                          <span style={{ fontSize: "9px", fontWeight: "600", marginTop: "2px" }}>Upload</span>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          disabled={editUploadingImage}
+                          onChange={handleEditImageUpload}
+                          style={{ display: "none" }}
+                        />
+                      </label>
 
                       {/* Controls: URL and File Upload */}
                       <div style={{ flex: 1, minWidth: "240px", display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -2659,16 +2796,17 @@ export default function NationalAdminDashboard() {
                               marginBottom: "4px",
                             }}
                           >
-                            Image URL or Public CDN Path
+                            Image URL or WordPress CDN Address
                           </label>
-                          <div style={{ display: "flex", gap: "8px" }}>
+                          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                             <input
                               type="text"
                               value={activeExecutive.imageUrl || ""}
                               onChange={(e) => handleFieldChange("imageUrl", e.target.value)}
-                              placeholder="https://... or /cdn/executives/..."
+                              placeholder="https://cms.newpatrioticparty.org/... or https://..."
                               style={{
                                 flex: 1,
+                                minWidth: "180px",
                                 padding: "8px 12px",
                                 borderRadius: "6px",
                                 background: "rgba(2, 6, 23, 0.8)",
@@ -2678,23 +2816,72 @@ export default function NationalAdminDashboard() {
                               }}
                             />
                             {activeExecutive.imageUrl && (
-                              <button
-                                type="button"
-                                onClick={() => handleFieldChange("imageUrl", "")}
-                                title="Remove photo"
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: "6px",
-                                  background: "rgba(239, 68, 68, 0.15)",
-                                  border: "1px solid rgba(239, 68, 68, 0.3)",
-                                  color: "#f87171",
-                                  fontSize: "12px",
-                                  cursor: "pointer",
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                Clear
-                              </button>
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(activeExecutive.imageUrl || "");
+                                    setCopiedPhotoUrl(true);
+                                    setTimeout(() => setCopiedPhotoUrl(false), 2000);
+                                  }}
+                                  title="Copy image link"
+                                  style={{
+                                    padding: "8px 10px",
+                                    borderRadius: "6px",
+                                    background: "rgba(255, 255, 255, 0.08)",
+                                    border: "1px solid rgba(255, 255, 255, 0.15)",
+                                    color: copiedPhotoUrl ? "#34d399" : "#cbd5e1",
+                                    fontSize: "12px",
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {copiedPhotoUrl ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                                  <span>{copiedPhotoUrl ? "Copied" : "Copy"}</span>
+                                </button>
+                                <a
+                                  href={activeExecutive.imageUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="View full image in new tab"
+                                  style={{
+                                    padding: "8px 10px",
+                                    borderRadius: "6px",
+                                    background: "rgba(255, 255, 255, 0.08)",
+                                    border: "1px solid rgba(255, 255, 255, 0.15)",
+                                    color: "#cbd5e1",
+                                    fontSize: "12px",
+                                    textDecoration: "none",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  <ExternalLink size={13} />
+                                  <span>View</span>
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => handleFieldChange("imageUrl", "")}
+                                  title="Remove photo"
+                                  style={{
+                                    padding: "8px 10px",
+                                    borderRadius: "6px",
+                                    background: "rgba(239, 68, 68, 0.15)",
+                                    border: "1px solid rgba(239, 68, 68, 0.3)",
+                                    color: "#f87171",
+                                    fontSize: "12px",
+                                    cursor: "pointer",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  Clear
+                                </button>
+                              </>
                             )}
                           </div>
                         </div>
@@ -2719,7 +2906,7 @@ export default function NationalAdminDashboard() {
                             {editUploadingImage ? (
                               <>
                                 <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
-                                <span>Uploading Image…</span>
+                                <span>Converting to WebP & Uploading to WordPress…</span>
                               </>
                             ) : (
                               <>
@@ -2729,14 +2916,14 @@ export default function NationalAdminDashboard() {
                             )}
                             <input
                               type="file"
-                              accept="image/jpeg,image/png,image/webp,image/gif"
+                              accept="image/jpeg,image/png,image/webp"
                               disabled={editUploadingImage}
                               onChange={handleEditImageUpload}
                               style={{ display: "none" }}
                             />
                           </label>
                           <span style={{ fontSize: "11px", color: "#64748b" }}>
-                            JPEG, PNG, WEBP or GIF (Max 8MB). Auto-stored on CDN.
+                            JPEG, PNG or WEBP (Max 8MB). Automatically converted to WebP on WordPress CDN.
                           </span>
                         </div>
                       </div>
@@ -3719,20 +3906,73 @@ export default function NationalAdminDashboard() {
                 >
                   <div
                     style={{
-                      fontSize: "12px",
-                      fontWeight: "700",
-                      color: "#38bdf8",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                      marginBottom: "12px",
                       display: "flex",
                       alignItems: "center",
-                      gap: "6px",
+                      justifyContent: "space-between",
+                      marginBottom: "12px",
+                      flexWrap: "wrap",
+                      gap: "8px",
                     }}
                   >
-                    <ImageIcon size={15} />
-                    <span>Profile Photo (URL or File Upload)</span>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: "700",
+                        color: "#38bdf8",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <ImageIcon size={15} />
+                      <span>Profile Photo (URL or File Upload)</span>
+                    </div>
+                    {(() => {
+                      const badge = getPhotoSourceBadge(newExecImageUrl);
+                      if (!badge) return null;
+                      return (
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            fontWeight: "600",
+                            color: badge.color,
+                            background: badge.bg,
+                            border: `1px solid ${badge.border}`,
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <CheckCircle2 size={12} />
+                          {badge.label}
+                        </span>
+                      );
+                    })()}
                   </div>
+
+                  {addImageSuccess && (
+                    <div
+                      style={{
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        background: "rgba(16, 185, 129, 0.15)",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                        color: "#34d399",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      <CheckCircle2 size={15} />
+                      <span>{addImageSuccess}</span>
+                    </div>
+                  )}
 
                   <div
                     style={{
@@ -3742,17 +3982,53 @@ export default function NationalAdminDashboard() {
                       flexWrap: "wrap",
                     }}
                   >
-                    {/* Live Avatar Preview */}
-                    <div style={{ position: "relative", flexShrink: 0 }}>
+                    {/* Live Avatar Preview with Camera Overlay */}
+                    <label
+                      style={{
+                        position: "relative",
+                        flexShrink: 0,
+                        cursor: addUploadingImage ? "not-allowed" : "pointer",
+                        borderRadius: "50%",
+                        overflow: "hidden",
+                        display: "inline-block",
+                      }}
+                      title="Click to choose a photo file"
+                    >
                       <ExecutiveAvatar
                         imageUrl={newExecImageUrl}
                         name={newExecName}
                         voterId={newExecVoterId}
                         region={newExecRegion}
                         constituency={newExecConstituency}
-                        size={60}
+                        size={64}
                       />
-                    </div>
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "rgba(0, 0, 0, 0.45)",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          opacity: 0,
+                          transition: "opacity 0.15s ease",
+                          color: "#ffffff",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0")}
+                      >
+                        <Camera size={18} />
+                        <span style={{ fontSize: "9px", fontWeight: "600", marginTop: "2px" }}>Upload</span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        disabled={addUploadingImage}
+                        onChange={handleAddImageUpload}
+                        style={{ display: "none" }}
+                      />
+                    </label>
 
                     {/* Controls: URL and File Upload */}
                     <div style={{ flex: 1, minWidth: "240px", display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -3766,16 +4042,17 @@ export default function NationalAdminDashboard() {
                             marginBottom: "4px",
                           }}
                         >
-                          Image URL or Public CDN Path
+                          Image URL or WordPress CDN Address
                         </label>
-                        <div style={{ display: "flex", gap: "8px" }}>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                           <input
                             type="text"
                             value={newExecImageUrl || ""}
                             onChange={(e) => setNewExecImageUrl(e.target.value)}
-                            placeholder="https://... or /cdn/executives/..."
+                            placeholder="https://cms.newpatrioticparty.org/... or https://..."
                             style={{
                               flex: 1,
+                              minWidth: "180px",
                               padding: "8px 12px",
                               borderRadius: "6px",
                               background: "rgba(2, 6, 23, 0.8)",
@@ -3785,23 +4062,72 @@ export default function NationalAdminDashboard() {
                             }}
                           />
                           {newExecImageUrl && (
-                            <button
-                              type="button"
-                              onClick={() => setNewExecImageUrl(null)}
-                              title="Remove photo"
-                              style={{
-                                padding: "8px 12px",
-                                borderRadius: "6px",
-                                background: "rgba(239, 68, 68, 0.15)",
-                                border: "1px solid rgba(239, 68, 68, 0.3)",
-                                color: "#f87171",
-                                fontSize: "12px",
-                                cursor: "pointer",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              Clear
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(newExecImageUrl || "");
+                                  setCopiedPhotoUrl(true);
+                                  setTimeout(() => setCopiedPhotoUrl(false), 2000);
+                                }}
+                                title="Copy image link"
+                                style={{
+                                  padding: "8px 10px",
+                                  borderRadius: "6px",
+                                  background: "rgba(255, 255, 255, 0.08)",
+                                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                                  color: copiedPhotoUrl ? "#34d399" : "#cbd5e1",
+                                  fontSize: "12px",
+                                  cursor: "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {copiedPhotoUrl ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                                <span>{copiedPhotoUrl ? "Copied" : "Copy"}</span>
+                              </button>
+                              <a
+                                href={newExecImageUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="View full image in new tab"
+                                style={{
+                                  padding: "8px 10px",
+                                  borderRadius: "6px",
+                                  background: "rgba(255, 255, 255, 0.08)",
+                                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                                  color: "#cbd5e1",
+                                  fontSize: "12px",
+                                  textDecoration: "none",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                <ExternalLink size={13} />
+                                <span>View</span>
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => setNewExecImageUrl(null)}
+                                title="Remove photo"
+                                style={{
+                                  padding: "8px 10px",
+                                  borderRadius: "6px",
+                                  background: "rgba(239, 68, 68, 0.15)",
+                                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                                  color: "#f87171",
+                                  fontSize: "12px",
+                                  cursor: "pointer",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                Clear
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>
@@ -3826,7 +4152,7 @@ export default function NationalAdminDashboard() {
                           {addUploadingImage ? (
                             <>
                               <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
-                              <span>Uploading Image…</span>
+                              <span>Converting to WebP & Uploading to WordPress…</span>
                             </>
                           ) : (
                             <>
@@ -3836,14 +4162,14 @@ export default function NationalAdminDashboard() {
                           )}
                           <input
                             type="file"
-                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            accept="image/jpeg,image/png,image/webp"
                             disabled={addUploadingImage}
                             onChange={handleAddImageUpload}
                             style={{ display: "none" }}
                           />
                         </label>
                         <span style={{ fontSize: "11px", color: "#64748b" }}>
-                          JPEG, PNG, WEBP or GIF (Max 8MB). Auto-stored on CDN.
+                          JPEG, PNG or WEBP (Max 8MB). Automatically converted to WebP on WordPress CDN.
                         </span>
                       </div>
                     </div>

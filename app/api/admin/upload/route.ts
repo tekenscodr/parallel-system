@@ -28,13 +28,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const { imageUrl, filename, size } = await saveUploadedExecutiveImage(file, voterId);
+    const upload = await saveUploadedExecutiveImage(file, voterId);
 
     return NextResponse.json({
       success: true,
-      imageUrl,
-      filename,
-      size,
+      ...upload,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Image upload failed";
