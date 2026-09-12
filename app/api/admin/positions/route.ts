@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
+import { normalizePosition } from "@/lib/position-matcher";
 
 // In-memory cache with 10-minute TTL
 let cachedPositionsByLevel: Record<string, string[]> | null = null;
@@ -37,8 +38,11 @@ export async function GET(req: Request) {
         if (!grouped[lvl]) {
           grouped[lvl] = new Set<string>();
         }
-        grouped[lvl].add(r.position);
-        grouped.ALL.add(r.position);
+        const canonical = normalizePosition(r.position, lvl);
+        if (canonical) {
+          grouped[lvl].add(canonical);
+          grouped.ALL.add(canonical);
+        }
       }
 
       const result: Record<string, string[]> = {};

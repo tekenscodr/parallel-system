@@ -73,6 +73,73 @@ function getWordPressConfig() {
   return { siteUrl, username, applicationPassword };
 }
 
+type WordPressMediaPayload = {
+  id?: unknown;
+  source_url?: unknown;
+  url?: unknown;
+  message?: unknown;
+  guid?: { rendered?: unknown };
+  media_details?: { sizes?: { full?: { source_url?: unknown } } };
+  data?: unknown;
+};
+
+function unwrapMediaPayload(payload: unknown): WordPressMediaPayload | null {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+  const root = payload as WordPressMediaPayload;
+  if (root.data && typeof root.data === "object" && !Array.isArray(root.data)) {
+    return root.data as WordPressMediaPayload;
+  }
+  return root;
+}
+
+function validPublicUrl(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const parsed = new URL(value.trim());
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+function extractMediaUrl(media: WordPressMediaPayload | null): string | null {
+  if (!media) return null;
+  return (
+    validPublicUrl(media.source_url) ||
+    validPublicUrl(media.media_details?.sizes?.full?.source_url) ||
+    validPublicUrl(media.guid?.rendered) ||
+    validPublicUrl(media.url)
+  );
+}
+
+function extractMediaId(media: WordPressMediaPayload | null, location: string | null): number | null {
+  const parsedId = typeof media?.id === "number" ? media.id : Number(media?.id);
+  if (Number.isSafeInteger(parsedId) && parsedId > 0) return parsedId;
+  const locationMatch = location?.match(/\/media\/(\d+)(?:[/?#]|$)/);
+  return locationMatch ? Number(locationMatch[1]) : null;
+}
+
+async function fetchMediaDetails(
+  endpoint: string,
+  authorization: string
+): Promise<WordPressMediaPayload | null> {
+  try {
+    const separator = endpoint.includes("?") ? "&" : "?";
+    const response = await fetch(
+      `${endpoint}${separator}_fields=id,source_url,guid,media_details`,
+      {
+        headers: { Authorization: `Basic ${authorization}`, Accept: "application/json" },
+        cache: "no-store",
+        signal: AbortSignal.timeout(20_000),
+      }
+    );
+    if (!response.ok) return null;
+    return unwrapMediaPayload(await response.json());
+  } catch {
+    return null;
+  }
+}
+
 async function uploadToWordPress(
   buffer: Buffer,
   filename: string,
@@ -90,6 +157,7 @@ async function uploadToWordPress(
       method: "POST",
       headers: {
         Authorization: `Basic ${authorization}`,
+        Accept: "application/json",
         "Content-Type": mimeType,
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
@@ -109,21 +177,43 @@ async function uploadToWordPress(
     payload = null;
   }
 
-  const media = payload as { id?: unknown; source_url?: unknown; message?: unknown } | null;
+  let media = unwrapMediaPayload(payload);
   if (!response.ok) {
     const detail = typeof media?.message === "string" ? media.message : `HTTP ${response.status}`;
     throw new Error(`WordPress image upload failed: ${detail}`);
   }
-  if (typeof media?.id !== "number" || typeof media.source_url !== "string" || !media.source_url) {
-    throw new Error("WordPress uploaded the file but did not return a valid media ID and source URL.");
+
+  const location = response.headers.get("location");
+  const mediaId = extractMediaId(media, location);
+  let imageUrl = extractMediaUrl(media);
+
+  // Some WordPress hosts and CDN plugins return only an attachment ID or a
+  // Location header from the create request. Fetch the completed attachment
+  // once so its generated source URL can be resolved.
+  if (!imageUrl && (mediaId || location)) {
+    const detailEndpoint = mediaId
+      ? `${siteUrl}/wp-json/wp/v2/media/${mediaId}`
+      : location!;
+    const details = await fetchMediaDetails(detailEndpoint, authorization);
+    if (details) {
+      media = details;
+      imageUrl = extractMediaUrl(details);
+    }
+  }
+
+  if (!imageUrl) {
+    const keys = media ? Object.keys(media).slice(0, 12).join(", ") : "non-JSON response";
+    throw new Error(
+      `WordPress created the media item but no public image URL could be resolved. Response fields: ${keys}. Check that the REST API exposes source_url and that the attachment is public.`
+    );
   }
 
   return {
-    imageUrl: media.source_url,
+    imageUrl,
     filename,
     size: fileSize,
     storage: "wordpress",
-    wordpressMediaId: media.id,
+    ...(mediaId ? { wordpressMediaId: mediaId } : {}),
   };
 }
 
