@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useTransition } from "react";
+import { useEffect, useState, useCallback, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -43,6 +43,7 @@ import { AdminShell } from "@/app/admin/components/AdminShell";
 import { ExecutiveAvatar } from "@/app/admin/components/ExecutiveAvatar";
 import { getClientHeaders } from "@/lib/client-device";
 import { checkClientRateLimit } from "@/lib/client-rate-limit";
+import { getPositionRank } from "@/lib/position-matcher";
 
 type OverviewData = {
   totals: {
@@ -118,6 +119,26 @@ type ExecutiveDetail = {
   status: string;
   imageUrl?: string | null;
 };
+
+function sortRosterRows(rows: ExecutiveRow[], level: string): ExecutiveRow[] {
+  if (level !== "Region" && level !== "Constituency") return rows;
+
+  return [...rows].sort((a, b) => {
+    const regionOrder = String(a.region || "").localeCompare(String(b.region || ""));
+    if (regionOrder !== 0) return regionOrder;
+
+    if (level === "Constituency") {
+      const constituencyOrder = String(a.constituency || "").localeCompare(String(b.constituency || ""));
+      if (constituencyOrder !== 0) return constituencyOrder;
+    }
+
+    const positionOrder = getPositionRank(a.position, level) - getPositionRank(b.position, level);
+    if (positionOrder !== 0) return positionOrder;
+
+    const labelOrder = String(a.position || "").localeCompare(String(b.position || ""));
+    return labelOrder !== 0 ? labelOrder : a.id - b.id;
+  });
+}
 
 const REGIONS = [
   "Ahafo", "Ashanti", "Bono", "Bono East", "Central", "Eastern",
@@ -291,6 +312,7 @@ function getPhotoSourceBadge(url?: string | null) {
 export default function NationalAdminDashboard() {
   const router = useRouter();
   const [, startTransition] = useTransition();
+  const rosterRequestId = useRef(0);
 
   const [currentUser, setCurrentUser] = useState<OverviewData["user"] | null>(null);
   const [authError, setAuthError] = useState<string>("");
@@ -512,6 +534,7 @@ export default function NationalAdminDashboard() {
 
   // Fetch paginated roster
   const fetchRoster = useCallback(() => {
+    const requestId = ++rosterRequestId.current;
     setLoadingRows(true);
     const params = new URLSearchParams({
       page: String(page),
@@ -534,12 +557,14 @@ export default function NationalAdminDashboard() {
         return res.json();
       })
       .then((res) => {
-        setRows(res.data || []);
+        if (requestId !== rosterRequestId.current) return;
+        setRows(sortRosterRows(res.data || [], selectedLevel));
         setTotalRows(res.pagination?.total || 0);
         setTotalPages(res.pagination?.totalPages || 1);
         setLoadingRows(false);
       })
       .catch(() => {
+        if (requestId !== rosterRequestId.current) return;
         setLoadingRows(false);
       });
   }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedPosition, selectedCohort, selectedSlot, debouncedSearch]);
@@ -721,27 +746,30 @@ export default function NationalAdminDashboard() {
 
       // Optimistically update row in table
       setRows((prev) =>
-        prev.map((r) =>
-          r.id === activeExecutive.id
-            ? {
-                ...r,
-                executiveName: updatedExecutive.executiveName,
-                position: updatedExecutive.position,
-                executiveLevel: updatedExecutive.executiveLevel,
-                slotStatus: updatedExecutive.slotStatus,
-                region: updatedExecutive.region,
-                constituency: updatedExecutive.constituency,
-                electoralArea: updatedExecutive.electoralArea,
-                pollingStation: updatedExecutive.pollingStation,
-                gender: updatedExecutive.gender,
-                voterId: updatedExecutive.voterId,
-                status: updatedExecutive.status,
-                phone: updatedExecutive.phone,
-                dateOfBirth: updatedExecutive.dateOfBirth,
-                age: updatedExecutive.age,
-                imageUrl: updatedExecutive.imageUrl,
-              }
-            : r
+        sortRosterRows(
+          prev.map((r) =>
+            r.id === activeExecutive.id
+              ? {
+                  ...r,
+                  executiveName: updatedExecutive.executiveName,
+                  position: updatedExecutive.position,
+                  executiveLevel: updatedExecutive.executiveLevel,
+                  slotStatus: updatedExecutive.slotStatus,
+                  region: updatedExecutive.region,
+                  constituency: updatedExecutive.constituency,
+                  electoralArea: updatedExecutive.electoralArea,
+                  pollingStation: updatedExecutive.pollingStation,
+                  gender: updatedExecutive.gender,
+                  voterId: updatedExecutive.voterId,
+                  status: updatedExecutive.status,
+                  phone: updatedExecutive.phone,
+                  dateOfBirth: updatedExecutive.dateOfBirth,
+                  age: updatedExecutive.age,
+                  imageUrl: updatedExecutive.imageUrl,
+                }
+              : r
+          ),
+          selectedLevel
         )
       );
 
