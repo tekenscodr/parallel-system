@@ -980,10 +980,15 @@ function generateAlbumHtml(
         margin: 0 !important;
         box-shadow: none !important;
         width: 210mm !important;
-        height: 297mm !important;
+        /* Leave room for print-engine sub-pixel rounding at the A4 boundary. */
+        height: 296mm !important;
+        max-height: 296mm !important;
         page-break-after: always !important;
         break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid-page !important;
       }
+      .album-page:last-child { page-break-after: auto !important; break-after: auto !important; }
     }
     .web-nav {
       position: sticky; top: 0; z-index: 1000;
@@ -1238,10 +1243,40 @@ function generateAlbumHtml(
     .header-text h1 { font-size: 14pt; font-weight: 900; color: #003399; }
     .header-text h2 { font-size: 9pt; font-weight: 800; color: #475569; }
     .header-rule { height: 2px; background: #003399; margin-top: 4px; }
-    .page-footer { margin-top: auto; padding-top: 3px; }
+    .page-footer {
+      flex: 0 0 7.5mm;
+      min-height: 7.5mm;
+      margin-top: auto;
+      padding-top: 3px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      overflow: hidden;
+    }
     .footer-rule { height: 1.5px; background: #CBD5E1; margin-bottom: 3px; }
-    .footer-content { display: flex; justify-content: space-between; align-items: center; font-size: 7.5pt; font-weight: 700; color: #475569; }
-    .footer-page-pill { font-size: 9.5pt; font-weight: 900; color: #003399; background: #F1F5F9; padding: 1px 10px; border-radius: 10px; border: 1px solid #CBD5E1; }
+    .footer-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      column-gap: 6mm;
+      font-size: 7.5pt;
+      font-weight: 700;
+      color: #475569;
+      white-space: nowrap;
+    }
+    .footer-content > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+    .footer-content > span:last-child { overflow: hidden; text-overflow: ellipsis; text-align: right; }
+    .footer-page-pill {
+      display: block;
+      font-size: 9.5pt;
+      line-height: 1.2;
+      font-weight: 900;
+      color: #003399;
+      background: #F1F5F9;
+      padding: 1px 10px;
+      border-radius: 10px;
+      border: 1px solid #CBD5E1;
+      break-inside: avoid;
+    }
   </style>
 </head>
 <body>
