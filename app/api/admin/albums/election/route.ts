@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
@@ -5,6 +7,21 @@ import { withEcSql } from "@/lib/db-ec";
 export const dynamic = "force-dynamic";
 
 import { CONTEST_LIST, type ContestType } from "@/lib/election-contests";
+
+let LOGO_DATA_URI = "";
+try {
+  const logoPath = path.join(process.cwd(), "public/npp-logo.png");
+  if (fs.existsSync(logoPath)) {
+    LOGO_DATA_URI = "data:image/png;base64," + fs.readFileSync(logoPath).toString("base64");
+  } else {
+    const altLogoPath = path.join(process.cwd(), "outputs/assets/npp_logo.png");
+    if (fs.existsSync(altLogoPath)) {
+      LOGO_DATA_URI = "data:image/png;base64," + fs.readFileSync(altLogoPath).toString("base64");
+    }
+  }
+} catch (e) {
+  // fallback if file read fails
+}
 
 const CANONICAL_LEVEL_ORDER: Record<string, number> = {
   national: 1,
@@ -132,6 +149,15 @@ export async function GET(req: NextRequest) {
   const admin = await getAuthenticatedAdmin(req);
   if (!admin) {
     return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
+  }
+
+  // Restrict strictly to System Administrators (ADMIN_NATIONAL or ADMIN)
+  const roleUpper = String(admin.user.role).toUpperCase();
+  if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN") {
+    return NextResponse.json(
+      { error: "Access Denied: Election albums and registers are restricted strictly to System Administrators." },
+      { status: 403 }
+    );
   }
 
   const { searchParams } = new URL(req.url);
@@ -447,6 +473,7 @@ function generateAlbumHtml(
   const totalPages = 2 + delegatePages.length + 1; // Page 1: Cover, Page 2: Metrics, Pages 3+: Cards, Final: Stats
 
   const scopeText = region === "all" ? "NATIONWIDE ELECTORAL ROLL" : `${region.toUpperCase()} REGION`;
+  const badgeText = region === "all" ? `${contest.toUpperCase()} ELECTION` : `${region.toUpperCase()} REGION · ${contest.toUpperCase()}`;
 
   const delegatePagesHtml = delegatePages
     .map((group, pageIdx) => {
@@ -481,7 +508,7 @@ function generateAlbumHtml(
       <div class="album-page">
         <header class="page-header">
           <div class="header-content">
-            <div class="party-seal-mini">NPP</div>
+            ${LOGO_DATA_URI ? `<img class="npp-logo header-npp-logo" src="${LOGO_DATA_URI}" alt="NPP" />` : `<div class="party-seal-mini">NPP</div>`}
             <div class="header-text">
               <h1>NEW PATRIOTIC PARTY</h1>
               <h2>${contest.toUpperCase()} ELECTION · ${currentLevel.toUpperCase()} LEVEL (PART ${pageIdx + 1})</h2>
@@ -553,43 +580,197 @@ function generateAlbumHtml(
       position: relative; display: flex; flex-direction: column; justify-content: space-between;
       overflow: hidden;
     }
-    /* Page 1: Cover */
-    .cover-border {
-      border: 3px double #003399; padding: 8mm 10mm;
-      height: 100%; display: flex; flex-direction: column; justify-content: space-between; text-align: center;
+
+    /* Cover Page Styles (Ahafo Master Design Reverted) */
+    .cover-page {
+      padding: 10mm 12mm 8mm 12mm;
     }
-    .party-title { font-size: 22pt; font-weight: 900; color: #003399; letter-spacing: 2px; }
-    .party-sub { font-size: 13pt; font-weight: 800; color: #DC2626; margin-top: 2px; }
-    .tri-bar { display: flex; height: 5px; width: 140px; margin: 8px auto 12px auto; }
-    .bar-r { flex: 1; background: #DC2626; }
-    .bar-w { flex: 1; background: #FFFFFF; border: 1px solid #CBD5E1; }
-    .bar-b { flex: 1; background: #003399; }
-    .doc-type { font-size: 12pt; font-weight: 800; color: #334155; margin-bottom: 8px; }
-    .contest-badge {
-      display: inline-block; background: #003399; color: white;
-      font-size: 14pt; font-weight: 900; padding: 5px 22px; border-radius: 20px;
+
+    .cover-inner-border {
+      border: 3px double #003399;
+      padding: 8mm 10mm;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+      box-sizing: border-box;
     }
-    .status-pill {
-      display: inline-block; background: #FEF08A; color: #854D0E; border: 1px solid #FACC15;
-      font-size: 8.5pt; font-weight: 800; padding: 2px 10px; border-radius: 10px; margin-top: 6px;
+
+    .cover-header {
+      text-align: center;
     }
-    .proclamation-box {
-      background: #F8FAFC; border-left: 4px solid #003399; padding: 12px 16px;
-      border-radius: 0 6px 6px 0; text-align: justify; font-size: 8.8pt; line-height: 1.45; color: #334155;
+
+    .cover-logo-center {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 6px;
     }
-    .proclamation-box h3 { color: #003399; font-size: 10pt; font-weight: 900; margin-bottom: 6px; text-align: left; }
-    .meta-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
-      background: #F1F5F9; padding: 10px 14px; border-radius: 6px; border: 1px solid #CBD5E1; text-align: left;
+
+    .cover-npp-logo {
+      width: 68px;
+      height: 68px;
+      object-fit: contain;
     }
-    .meta-item { display: flex; flex-direction: column; gap: 1px; }
-    .meta-lbl { font-size: 7pt; font-weight: 800; color: #64748B; }
-    .meta-val { font-size: 9.5pt; font-weight: 800; color: #003399; }
-    .sig-row { display: flex; align-items: center; justify-content: space-between; padding: 0 10px; }
-    .sig-block { text-align: right; }
-    .sig-line { width: 170px; height: 1.5px; background: #003399; margin-left: auto; margin-bottom: 4px; }
-    .sig-name { font-size: 10pt; font-weight: 900; color: #003399; }
-    .sig-role { font-size: 7.5pt; font-weight: 700; color: #334155; font-style: italic; }
+
+    .header-npp-logo {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+    }
+
+    .cover-main-title {
+      font-size: 23pt;
+      font-weight: 900;
+      color: #003399;
+      letter-spacing: 2px;
+      margin-bottom: 2px;
+    }
+
+    .cover-sub-title {
+      font-size: 13pt;
+      font-weight: 800;
+      color: #DC2626;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .cover-tri-bar {
+      display: flex;
+      height: 5px;
+      width: 140px;
+      margin: 0 auto 10px auto;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .bar-red { flex: 1; background: #DC2626; }
+    .bar-white { flex: 1; background: #FFFFFF; border-left: 1px solid #E2E8F0; border-right: 1px solid #E2E8F0; }
+    .bar-blue { flex: 1; background: #003399; }
+
+    .cover-doc-title {
+      font-size: 12pt;
+      font-weight: 800;
+      color: #0F172A;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+
+    .cover-region-badge {
+      display: inline-block;
+      background: #003399;
+      color: #FFFFFF;
+      font-size: 14pt;
+      font-weight: 900;
+      padding: 4px 20px;
+      border-radius: 20px;
+      letter-spacing: 1.5px;
+    }
+
+    .cover-body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .formal-proclamation {
+      background: #F8FAFC;
+      border-left: 4px solid #003399;
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .proclamation-title {
+      font-size: 10pt;
+      font-weight: 900;
+      color: #003399;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .proclamation-p {
+      font-size: 8.5pt;
+      line-height: 1.45;
+      color: #334155;
+      margin-bottom: 6px;
+      text-align: justify;
+    }
+
+    .certification-metadata-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      background: #F1F5F9;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #CBD5E1;
+    }
+
+    .meta-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .m-lbl {
+      font-size: 7pt;
+      font-weight: 800;
+      color: #64748B;
+      letter-spacing: 0.5px;
+    }
+
+    .m-val {
+      font-size: 9pt;
+      font-weight: 800;
+      color: #003399;
+    }
+
+    .signature-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 10px 0 10px;
+    }
+
+    .seal-container {
+      flex-shrink: 0;
+    }
+
+    .sig-block {
+      text-align: right;
+    }
+
+    .sig-line-img {
+      display: block;
+    }
+
+    .signature-line {
+      width: 170px;
+      height: 1.5px;
+      background: #003399;
+      margin-left: auto;
+      margin-bottom: 4px;
+    }
+
+    .sig-name {
+      font-size: 10.5pt;
+      font-weight: 900;
+      color: #003399;
+      letter-spacing: 0.4px;
+    }
+
+    .sig-title {
+      font-size: 8pt;
+      font-weight: 800;
+      color: #1E293B;
+      font-style: italic;
+    }
+
+    .sig-org {
+      font-size: 7pt;
+      font-weight: 600;
+      color: #64748B;
+    }
 
     /* Page 2: Metrics */
     .metrics-page { padding: 12mm 12mm 8mm 12mm; }
@@ -647,52 +828,90 @@ function generateAlbumHtml(
     <button class="print-btn" onclick="window.print()">PRINT / SAVE AS PDF</button>
   </div>
 
-  <!-- PAGE 1: COVER -->
-  <div class="album-page">
-    <div class="cover-border">
-      <div>
-        <h1 class="party-title">NEW PATRIOTIC PARTY</h1>
-        <h2 class="party-sub">NATIONAL ELECTIONS COMMITTEE</h2>
-        <div class="tri-bar"><div class="bar-r"></div><div class="bar-w"></div><div class="bar-b"></div></div>
-        <div class="doc-type">OFFICIAL ELECTORAL COLLEGE ALBUM &amp; VOTER DIRECTORY</div>
-        <div class="contest-badge">${contest.toUpperCase()} ELECTION</div>
-        <br/>
-        <div class="status-pill">PROVISIONAL ELECTION ROLL · ARTICLE 10 &amp; 17 GAZETTE</div>
-      </div>
-
-      <div class="proclamation-box">
-        <h3>ACKNOWLEDGEMENT &amp; PROVISIONAL CERTIFICATION</h3>
-        <p>
-          The <strong>National Elections Committee</strong> of the <strong>New Patriotic Party (NPP)</strong>, acting pursuant to Articles 10 and 17 of the Party Constitution, hereby certifies this <strong>Provisional Electoral College Album</strong> for the <strong>${contest}</strong> election.
-        </p>
-        <p style="margin-top: 6px;">
-          This roll is compiled under strict statutory eligibility rules across National, Regional, Constituency, and authorized TESCON tiers. TESCON Patrons are strictly excluded. The directory is structured in a two-stage hierarchy: first by administrative level (National, Regional, Constituency, TESCON), and second by canonical position order.
-        </p>
-      </div>
-
-      <div class="meta-grid">
-        <div class="meta-item"><span class="meta-lbl">CONTEST PORTFOLIO:</span><span class="meta-val">${contest}</span></div>
-        <div class="meta-item"><span class="meta-lbl">ELECTORATE JURISDICTION:</span><span class="meta-val">${scopeText}</span></div>
-        <div class="meta-item"><span class="meta-lbl">CONFIRMED VOTER DELEGATES:</span><span class="meta-val">${metrics.actualFigures.toLocaleString()} Delegates</span></div>
-        <div class="meta-item"><span class="meta-lbl">STATUTORY 2/3 QUORUM:</span><span class="meta-val">${metrics.quorumRequirement.toLocaleString()} Delegates</span></div>
-      </div>
-
-      <div class="sig-row">
-        <div style="font-size: 8pt; font-weight: 800; color: #003399; text-align: left;">
-          <div>OFFICIAL SEAL</div>
-          <div style="font-size: 7pt; color: #64748B;">ELECTIONS 2026</div>
+  <!-- PAGE 1: COVER (Ahafo Master Cover Design Reverted) -->
+  <div class="album-page cover-page">
+    <div class="cover-inner-border">
+      <div class="cover-header">
+        <div class="cover-logo-center">
+          <img class="npp-logo cover-npp-logo" src="${LOGO_DATA_URI}" alt="New Patriotic Party" />
         </div>
-        <div class="sig-block">
-          <div class="sig-line"></div>
-          <div class="sig-name">HON. OPARE ANSAH</div>
-          <div class="sig-role">Chairperson, National Elections Committee</div>
+        <h1 class="cover-main-title">NEW PATRIOTIC PARTY</h1>
+        <h2 class="cover-sub-title">NATIONAL ELECTIONS COMMITTEE</h2>
+        <div class="cover-tri-bar">
+          <div class="bar-red"></div>
+          <div class="bar-white"></div>
+          <div class="bar-blue"></div>
+        </div>
+        <h3 class="cover-doc-title">OFFICIAL ELECTORAL COLLEGE ALBUM &amp; VOTER DIRECTORY</h3>
+        <div class="cover-region-badge">${badgeText}</div>
+      </div>
+
+      <div class="cover-body">
+        <div class="formal-proclamation">
+          <h4 class="proclamation-title">ACKNOWLEDGEMENT &amp; CERTIFICATION</h4>
+          <p class="proclamation-p">
+            The <strong>National Elections Committee</strong> of the <strong>New Patriotic Party (NPP)</strong>, acting in accordance with the powers conferred under Article 10 and Article 17 of the Party's Constitution and the General Regulations governing internal party primaries and elections, hereby officially certifies and promulgates this <strong>Official Electoral College Photo Album and Delegate Register</strong> for the <strong>${scopeText}</strong> (${contest} Election).
+          </p>
+          <p class="proclamation-p">
+            This authoritative publication constitutes the complete photographic and biographical roll of certified party executives and delegates eligible to vote in the election of the <strong>${contest}</strong>. The electoral college is established in accordance with statutory constitutional regulations across National, Regional, Constituency, and accredited TESCON institutions. TESCON Patrons are strictly excluded.
+          </p>
+          <p class="proclamation-p">
+            All executive records contained herein have undergone comprehensive audit, biometric voter ID cross-verification, and official jurisdiction alignment by the National Secretariat. No substitution, omission, or alteration shall be valid without the express written seal of the National Elections Committee.
+          </p>
+        </div>
+
+        <div class="certification-metadata-grid">
+          <div class="meta-cell">
+            <span class="m-lbl">CONTEST PORTFOLIO:</span>
+            <span class="m-val">${contest}</span>
+          </div>
+          <div class="meta-cell">
+            <span class="m-lbl">CANONICAL JURISDICTION:</span>
+            <span class="m-val">${scopeText}</span>
+          </div>
+          <div class="meta-cell">
+            <span class="m-lbl">CONFIRMED VOTER DELEGATES:</span>
+            <span class="m-val">${metrics.actualFigures.toLocaleString()} Delegates</span>
+          </div>
+          <div class="meta-cell">
+            <span class="m-lbl">STATUTORY 2/3 QUORUM:</span>
+            <span class="m-val">${metrics.quorumRequirement.toLocaleString()} Delegates</span>
+          </div>
+        </div>
+
+        <div class="signature-section">
+          <div class="seal-container">
+            <svg width="88" height="88" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="60" cy="60" r="56" fill="#FFFFFF" stroke="#003399" stroke-width="4" stroke-dasharray="6,3"/>
+              <circle cx="60" cy="60" r="48" fill="#F8FAFC" stroke="#DC2626" stroke-width="2"/>
+              <path id="curve-seal" d="M 22 60 A 38 38 0 1 1 98 60" fill="none"/>
+              <text font-size="8" font-weight="900" fill="#003399" letter-spacing="0.5">
+                <textPath href="#curve-seal" startOffset="50%" text-anchor="middle">NATIONAL ELECTIONS COMMITTEE</textPath>
+              </text>
+              <path id="curve-seal2" d="M 22 60 A 38 38 0 0 0 98 60" fill="none"/>
+              <text font-size="7.5" font-weight="800" fill="#DC2626" letter-spacing="0.5">
+                <textPath href="#curve-seal2" startOffset="50%" text-anchor="middle">OFFICIAL SEAL · ELECTIONS 2026</textPath>
+              </text>
+              <polygon points="60,38 63,48 74,48 65,55 69,66 60,59 51,66 55,55 46,48 57,48" fill="#003399"/>
+              <text x="60" y="77" fill="#003399" font-size="7" font-weight="bold" text-anchor="middle">CERTIFIED</text>
+            </svg>
+          </div>
+          <div class="sig-block">
+            <div class="sig-line-img">
+              <div class="signature-line"></div>
+            </div>
+            <div class="sig-name">HON. OPARE ANSAH</div>
+            <div class="sig-title">Chairperson, National Elections Committee</div>
+            <div class="sig-org">New Patriotic Party · Headquarters, Accra</div>
+          </div>
         </div>
       </div>
     </div>
+    
     <footer class="page-footer">
       <div class="footer-rule"></div>
       <div class="footer-content">
-        <span>NPP OFFICIAL ELECTORAL COLLEGE ALBUM</span>
+        <span>NPP OFFICIAL ELECTORAL COLLEGE ALBUM · ${contest.toUpperCase()}</span>
         <span class="footer-page-pill">1</span>
         <span>NATIONAL ELECTIONS COMMITTEE</span>
       </div>

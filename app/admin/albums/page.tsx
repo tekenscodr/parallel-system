@@ -8,6 +8,7 @@ import {
   ExternalLink,
   Download,
   ShieldCheck,
+  ShieldAlert,
   Users,
   Building,
   CheckCircle2,
@@ -121,6 +122,9 @@ export default function PositionAlbumsPage() {
   const metrics = apiData?.metrics;
   const delegates = apiData?.delegates || [];
 
+  const roleUpper = String(currentUser?.role || "").toUpperCase();
+  const isSystemAdmin = roleUpper === "ADMIN_NATIONAL" || roleUpper === "ADMIN";
+
   // Filter delegates for table view
   const filteredDelegates = delegates.filter((d: any) => {
     const matchesSearch =
@@ -138,6 +142,38 @@ export default function PositionAlbumsPage() {
 
   const totalTablePages = Math.max(1, Math.ceil(filteredDelegates.length / pageSize));
   const currentTableRows = filteredDelegates.slice((page - 1) * pageSize, page * pageSize);
+
+  // If user is authenticated but not a System Admin, block access
+  if (currentUser && !isSystemAdmin) {
+    return (
+      <AdminShell
+        title="Election Album Generator · Restricted"
+        subtitle="Confidential Electoral Roll"
+        currentUser={currentUser}
+      >
+        <div className="max-w-md mx-auto my-20 p-8 bg-slate-900 border border-slate-800 rounded-2xl text-center shadow-2xl">
+          <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-4">
+            <ShieldAlert className="w-7 h-7" />
+          </div>
+          <h2 className="text-lg font-bold text-white mb-2">Restricted to System Administrators</h2>
+          <p className="text-xs text-slate-400 leading-relaxed mb-6">
+            The Election Album Generator, voter directory, and PDF export tools are strictly classified and accessible only to authorized <strong>System Administrators</strong> (<code className="text-blue-400">ADMIN_NATIONAL</code>).
+          </p>
+          <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 text-xs text-slate-400 mb-6">
+            Logged in as: <span className="text-slate-200 font-medium">{currentUser.email}</span>
+            <br />
+            Assigned Role: <span className="text-amber-400 font-bold">{currentUser.role}</span>
+          </div>
+          <Link
+            href="/admin/dashboard"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20"
+          >
+            Return to Executive Directory
+          </Link>
+        </div>
+      </AdminShell>
+    );
+  }
 
   return (
     <AdminShell
