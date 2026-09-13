@@ -68,8 +68,12 @@ async function getLogoWebpDataUri(): Promise<string> {
     if (filePath) {
       const rawBuf = fs.readFileSync(filePath);
       const webpBuf = await sharp(rawBuf)
-        .resize(160, 160, { fit: "contain" })
-        .webp({ quality: 90 })
+        .resize(240, 240, {
+          fit: "inside",
+          withoutEnlargement: true,
+          background: { r: 255, g: 255, b: 255, alpha: 0 },
+        })
+        .webp({ quality: 95, alphaQuality: 100 })
         .toBuffer();
       LOGO_WEBP_DATA_URI = "data:image/webp;base64," + webpBuf.toString("base64");
     }
@@ -1045,14 +1049,9 @@ function generateAlbumHtml(
     }
 
     .cover-npp-logo {
-      width: 68px;
-      height: 68px;
-      object-fit: contain;
-    }
-
-    .header-npp-logo {
-      width: 38px;
-      height: 38px;
+      width: auto;
+      height: 56px;
+      max-width: 80px;
       object-fit: contain;
     }
 
@@ -1250,7 +1249,7 @@ function generateAlbumHtml(
     /* Header & Footer */
     .page-header { margin-bottom: 3px; }
     .header-content { display: flex; align-items: center; gap: 8px; }
-    .header-npp-logo { width: 34px; height: 34px; object-fit: contain; }
+    .header-npp-logo { width: auto; height: 32px; max-width: 44px; object-fit: contain; }
     .party-seal-mini { background: #003399; color: white; font-size: 10pt; font-weight: 900; padding: 3px 6px; border-radius: 4px; }
     .header-text h1 { font-size: 13pt; font-weight: 900; color: #003399; line-height: 1.15; }
     .header-text h2 { font-size: 8.5pt; font-weight: 800; color: #475569; line-height: 1.15; }
