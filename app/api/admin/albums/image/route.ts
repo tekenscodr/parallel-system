@@ -3,10 +3,12 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
+import { getAuthenticatedAdmin } from "@/lib/admin-auth";
+import { canAccessAlbums } from "@/lib/album-access";
 
 export const dynamic = "force-dynamic";
 
-const CACHE_DIR = path.join(process.cwd(), "public", "cdn", "cache", "webp");
+const CACHE_DIR = path.join(process.cwd(), ".cache", "albums", "webp");
 
 // Ensure cache directory exists
 try {
@@ -19,6 +21,10 @@ try {
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getAuthenticatedAdmin(request);
+    if (!session) return new NextResponse("Unauthorized", { status: 401 });
+    if (!canAccessAlbums(session.user)) return new NextResponse("Forbidden", { status: 403 });
+
     const { searchParams } = new URL(request.url);
     const imageUrl = searchParams.get("url");
     const width = parseInt(searchParams.get("w") || "240", 10);
@@ -45,7 +51,7 @@ export async function GET(request: NextRequest) {
       return new NextResponse(new Uint8Array(cachedBuffer), {
         headers: {
           "Content-Type": "image/webp",
-          "Cache-Control": "public, max-age=31536000, immutable",
+          "Cache-Control": "private, no-store",
           "X-Album-Image-Cache": "HIT",
         },
       });
@@ -119,7 +125,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(new Uint8Array(webpBuffer), {
       headers: {
         "Content-Type": "image/webp",
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Cache-Control": "private, no-store",
         "X-Album-Image-Cache": "MISS",
       },
     });

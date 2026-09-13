@@ -1,26 +1,92 @@
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
+import sharp from "sharp";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
+import { canAccessAlbums } from "@/lib/album-access";
 import { withEcSql } from "@/lib/db-ec";
 
 export const dynamic = "force-dynamic";
 
 import { CONTEST_LIST, type ContestType } from "@/lib/election-contests";
 
-let LOGO_DATA_URI = "";
+const CACHE_DIR = path.join(process.cwd(), ".cache", "albums", "webp");
 try {
-  const logoPath = path.join(process.cwd(), "public/npp-logo.png");
-  if (fs.existsSync(logoPath)) {
-    LOGO_DATA_URI = "data:image/png;base64," + fs.readFileSync(logoPath).toString("base64");
-  } else {
-    const altLogoPath = path.join(process.cwd(), "outputs/assets/npp_logo.png");
-    if (fs.existsSync(altLogoPath)) {
-      LOGO_DATA_URI = "data:image/png;base64," + fs.readFileSync(altLogoPath).toString("base64");
+  if (!fs.existsSync(CACHE_DIR)) {
+    fs.mkdirSync(CACHE_DIR, { recursive: true });
+  }
+} catch {
+  // Ignore
+}
+
+// In-memory cache for converted WebP Base64 Data URIs
+const webpMemoryCache = new Map<string, string>();
+
+// Pre-indexed WebP photos from Ahafo album (voter_id and executive_name)
+const ahafoPhotosByVoterId = new Map<string, string>();
+const ahafoPhotosByName = new Map<string, string>();
+
+try {
+  const candidatePaths = [
+    path.join(process.cwd(), "exports/albums/ahafo_album_data.json"),
+    path.join(process.cwd(), "public/exports/ahafo_album_data.json"),
+    path.join(process.cwd(), "outputs/albums/ahafo_album_data.json"),
+  ];
+  const ahafoJsonPath = candidatePaths.find((p) => fs.existsSync(p));
+  if (ahafoJsonPath) {
+    const ahafoData = JSON.parse(fs.readFileSync(ahafoJsonPath, "utf8"));
+    const indexDelegate = (d: any) => {
+      if (
+        d &&
+        d.photo_base64 &&
+        typeof d.photo_base64 === "string" &&
+        d.photo_base64.startsWith("data:image/webp")
+      ) {
+        if (d.voter_id && String(d.voter_id).trim().length > 3) {
+          ahafoPhotosByVoterId.set(String(d.voter_id).trim(), d.photo_base64);
+        }
+        if (d.executive_name && String(d.executive_name).trim().length > 2) {
+          const cleanName = String(d.executive_name).trim().toUpperCase();
+          ahafoPhotosByName.set(cleanName, d.photo_base64);
+        }
+      }
+    };
+
+    if (Array.isArray(ahafoData.regionalExecutives)) {
+      ahafoData.regionalExecutives.forEach(indexDelegate);
+    }
+    if (Array.isArray(ahafoData.constituencies)) {
+      ahafoData.constituencies.forEach((c: any) => {
+        if (Array.isArray(c.executives)) {
+          c.executives.forEach(indexDelegate);
+        }
+      });
     }
   }
-} catch (e) {
-  // fallback if file read fails
+} catch {
+  // Non-fatal
+}
+
+let LOGO_WEBP_DATA_URI = "";
+async function getLogoWebpDataUri(): Promise<string> {
+  if (LOGO_WEBP_DATA_URI) return LOGO_WEBP_DATA_URI;
+  try {
+    const logoPath = path.join(process.cwd(), "public/npp-logo.png");
+    const altLogoPath = path.join(process.cwd(), "outputs/assets/npp_logo.png");
+    const filePath = fs.existsSync(logoPath) ? logoPath : fs.existsSync(altLogoPath) ? altLogoPath : null;
+    if (filePath) {
+      const rawBuf = fs.readFileSync(filePath);
+      const webpBuf = await sharp(rawBuf)
+        .resize(160, 160, { fit: "contain" })
+        .webp({ quality: 90 })
+        .toBuffer();
+      LOGO_WEBP_DATA_URI = "data:image/webp;base64," + webpBuf.toString("base64");
+    }
+  } catch {
+    // fallback if file read or conversion fails
+  }
+  return LOGO_WEBP_DATA_URI;
 }
 
 const CANONICAL_LEVEL_ORDER: Record<string, number> = {
@@ -145,17 +211,170 @@ function generateSvgAvatar(name: string, role: string): string {
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
 
+async function resolveDelegateWebpImage(
+  imageUrl: string | null,
+  voterId?: string | null,
+  name?: string | null
+): Promise<string | null> {
+  // 1. Check Ahafo pre-converted index
+  if (voterId && voterId !== "—") {
+    const cachedByVoterId = ahafoPhotosByVoterId.get(voterId.trim());
+    if (cachedByVoterId) return cachedByVoterId;
+  }
+  if (name) {
+    const cleanName = name.trim().toUpperCase();
+    const cachedByName = ahafoPhotosByName.get(cleanName);
+    if (cachedByName) return cachedByName;
+  }
+
+  if (!imageUrl || imageUrl.trim().length < 5) {
+    return null;
+  }
+
+  const cleanUrl = imageUrl.trim();
+
+  // 2. In-memory cache
+  if (webpMemoryCache.has(cleanUrl)) {
+    return webpMemoryCache.get(cleanUrl)!;
+  }
+
+  // 3. Already WebP Data URI
+  if (cleanUrl.startsWith("data:image/webp;base64,")) {
+    webpMemoryCache.set(cleanUrl, cleanUrl);
+    return cleanUrl;
+  }
+
+  // 4. Other Base64 Data URI (e.g. data:image/jpeg or png)
+  if (cleanUrl.startsWith("data:image/")) {
+    try {
+      const commaIdx = cleanUrl.indexOf(",");
+      if (commaIdx !== -1) {
+        const inputBuf = Buffer.from(cleanUrl.slice(commaIdx + 1), "base64");
+        const webpBuf = await sharp(inputBuf)
+          .resize(240, 300, { fit: "cover", position: "top", withoutEnlargement: false })
+          .webp({ quality: 80, effort: 4 })
+          .toBuffer();
+        const uri = "data:image/webp;base64," + webpBuf.toString("base64");
+        webpMemoryCache.set(cleanUrl, uri);
+        return uri;
+      }
+    } catch (err) {
+      console.error("Base64 webp conversion error:", err);
+      return null;
+    }
+  }
+
+  // 5. Check Disk Cache via SHA256
+  const hash = crypto
+    .createHash("sha256")
+    .update(`${cleanUrl}_240_300_80`)
+    .digest("hex");
+  const diskCachePath = path.join(CACHE_DIR, `${hash}.webp`);
+
+  if (fs.existsSync(diskCachePath)) {
+    try {
+      const cachedBuf = fs.readFileSync(diskCachePath);
+      const uri = "data:image/webp;base64," + cachedBuf.toString("base64");
+      webpMemoryCache.set(cleanUrl, uri);
+      return uri;
+    } catch {
+      // fallback to reprocessing
+    }
+  }
+
+  // 6. Source Buffer Resolution (Local vs Remote)
+  let inputBuffer: Buffer | null = null;
+
+  if (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    try {
+      const res = await fetch(cleanUrl, {
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+          Accept: "image/webp,image/apng,image/*,*/*;q=0.8",
+        },
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const ab = await res.arrayBuffer();
+        inputBuffer = Buffer.from(ab);
+      }
+    } catch {
+      clearTimeout(timeoutId);
+    }
+  } else {
+    // Local file path
+    const localPath = cleanUrl.startsWith("/")
+      ? path.join(process.cwd(), "public", cleanUrl.replace(/^\//, ""))
+      : path.join(process.cwd(), cleanUrl);
+
+    if (fs.existsSync(localPath)) {
+      try {
+        inputBuffer = fs.readFileSync(localPath);
+      } catch {
+        inputBuffer = null;
+      }
+    }
+  }
+
+  if (!inputBuffer || inputBuffer.length < 100) {
+    return null;
+  }
+
+  // 7. Convert Source to WebP using Sharp
+  try {
+    const webpBuf = await sharp(inputBuffer)
+      .resize(240, 300, {
+        fit: "cover",
+        position: "top",
+        withoutEnlargement: false,
+      })
+      .webp({
+        quality: 80,
+        effort: 4,
+      })
+      .toBuffer();
+
+    // Save to disk cache
+    try {
+      fs.writeFileSync(diskCachePath, webpBuf);
+    } catch {
+      // Non-fatal
+    }
+
+    const uri = "data:image/webp;base64," + webpBuf.toString("base64");
+    webpMemoryCache.set(cleanUrl, uri);
+    return uri;
+  } catch (err) {
+    console.error("WebP conversion error for:", cleanUrl, err);
+    return null;
+  }
+}
+
+async function convertDelegatesImagesToWebp(delegates: any[]): Promise<void> {
+  const chunkSize = 25;
+  for (let i = 0; i < delegates.length; i += chunkSize) {
+    const chunk = delegates.slice(i, i + chunkSize);
+    await Promise.all(
+      chunk.map(async (d) => {
+        const webpUri = await resolveDelegateWebpImage(d.image_url, d.voter_id, d.executive_name);
+        d.webp_base64 = webpUri || d.avatar_svg;
+      })
+    );
+  }
+}
+
 export async function GET(req: NextRequest) {
   const admin = await getAuthenticatedAdmin(req);
   if (!admin) {
     return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
   }
 
-  // Restrict strictly to System Administrators (ADMIN_NATIONAL or ADMIN)
-  const roleUpper = String(admin.user.role).toUpperCase();
-  if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN") {
+  if (!canAccessAlbums(admin.user)) {
     return NextResponse.json(
-      { error: "Access Denied: Election albums and registers are restricted strictly to System Administrators." },
+      { error: "Access denied: Election albums require ADMIN_NATIONAL." },
       { status: 403 }
     );
   }
@@ -164,6 +383,8 @@ export async function GET(req: NextRequest) {
   const positionQuery = (searchParams.get("position") || "Youth Organiser").trim();
   const regionQuery = (searchParams.get("region") || "all").trim();
   const format = searchParams.get("format") || "json";
+  const isDownload =
+    searchParams.get("download") === "1" || searchParams.get("download") === "true";
 
   // Match valid contest
   const matchedContest =
@@ -444,11 +665,34 @@ export async function GET(req: NextRequest) {
     };
 
     if (format === "html") {
+      // Pre-convert logo to WebP
+      const logoDataUri = await getLogoWebpDataUri();
+
+      // Pre-convert all delegate images to WebP data URIs before rendering
+      await convertDelegatesImagesToWebp(delegates);
+
       // Return renderable HTML directly
-      const html = generateAlbumHtml(matchedContest, regionQuery, metrics, delegates, regionalBreakdown);
-      return new NextResponse(html, {
-        headers: { "Content-Type": "text/html; charset=utf-8" },
-      });
+      const html = generateAlbumHtml(
+        matchedContest,
+        regionQuery,
+        metrics,
+        delegates,
+        regionalBreakdown,
+        logoDataUri
+      );
+
+      const headers: Record<string, string> = {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "private, no-store",
+      };
+
+      if (isDownload) {
+        const safeContest = matchedContest.replace(/\s+/g, "_");
+        const safeRegion = regionQuery !== "all" ? `_${regionQuery.replace(/\s+/g, "_")}` : "";
+        headers["Content-Disposition"] = `attachment; filename="NPP_${safeContest}${safeRegion}_Election_Album_2026.html"`;
+      }
+
+      return new NextResponse(html, { headers });
     }
 
     return NextResponse.json({
@@ -456,7 +700,7 @@ export async function GET(req: NextRequest) {
       regionalBreakdown,
       delegates,
       generatedAt: new Date().toISOString(),
-    });
+    }, { headers: { "Cache-Control": "private, no-store" } });
   });
 }
 
@@ -465,7 +709,8 @@ function generateAlbumHtml(
   region: string,
   metrics: any,
   delegates: any[],
-  regionalBreakdown: any[]
+  regionalBreakdown: any[],
+  logoDataUri?: string
 ): string {
   const cardsPerPage = 10;
   const delegatePages: any[][] = [];
@@ -485,11 +730,7 @@ function generateAlbumHtml(
       const cardsHtml = group
         .map(
           (d) => {
-            const photoSrc = d.image_url
-              ? (d.image_url.startsWith("data:image/webp")
-                  ? d.image_url
-                  : `/api/admin/albums/image?url=${encodeURIComponent(d.image_url)}&w=240&h=300`)
-              : d.avatar_svg;
+            const photoSrc = d.webp_base64 || d.avatar_svg;
             return `
         <div class="voter-card">
           <div class="card-details">
@@ -518,7 +759,7 @@ function generateAlbumHtml(
       <div class="album-page">
         <header class="page-header">
           <div class="header-content">
-            ${LOGO_DATA_URI ? `<img class="npp-logo header-npp-logo" src="${LOGO_DATA_URI}" alt="NPP" />` : `<div class="party-seal-mini">NPP</div>`}
+            ${logoDataUri ? `<img class="npp-logo header-npp-logo" src="${logoDataUri}" alt="NPP" />` : `<div class="party-seal-mini">NPP</div>`}
             <div class="header-text">
               <h1>NEW PATRIOTIC PARTY</h1>
               <h2>${contest.toUpperCase()} ELECTION · ${currentLevel.toUpperCase()} LEVEL (PART ${pageIdx + 1})</h2>
@@ -843,7 +1084,7 @@ function generateAlbumHtml(
     <div class="cover-inner-border">
       <div class="cover-header">
         <div class="cover-logo-center">
-          <img class="npp-logo cover-npp-logo" src="${LOGO_DATA_URI}" alt="New Patriotic Party" />
+          ${logoDataUri ? `<img class="npp-logo cover-npp-logo" src="${logoDataUri}" alt="New Patriotic Party" />` : `<div class="party-seal-mini">NPP</div>`}
         </div>
         <h1 class="cover-main-title">NEW PATRIOTIC PARTY</h1>
         <h2 class="cover-sub-title">NATIONAL ELECTIONS COMMITTEE</h2>

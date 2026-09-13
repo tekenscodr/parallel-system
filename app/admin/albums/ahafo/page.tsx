@@ -1,24 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import {
-  FileText,
-  Download,
-  Printer,
-  ExternalLink,
-  ChevronLeft,
-  ChevronRight,
-  ShieldCheck,
-  ShieldAlert,
-  CheckCircle2,
-  Users,
-  Building,
-  GraduationCap,
-  Sparkles,
-  LoaderCircle,
-} from "lucide-react";
+import { useRef, useState } from "react";
+import { Download, ExternalLink, FileText, LoaderCircle, Minus, Plus, Printer, RefreshCw, ShieldCheck } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
+import { useAlbumUser } from "../session";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ALBUM_SECTIONS = [
   { label: "Cover & Certification", page: 1, type: "cover" },
@@ -39,243 +27,32 @@ const ALBUM_SECTIONS = [
 ];
 
 export default function AhafoAlbumPage() {
-  const [currentUser, setCurrentUser] = useState<{
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-  } | null>(null);
-
-  const [activePage, setActivePage] = useState<number>(1);
-  const [zoomLevel, setZoomLevel] = useState<number>(100);
-  const [albumVersion, setAlbumVersion] = useState<number>(() => Date.now());
-  const [isAlbumLoading, setIsAlbumLoading] = useState(true);
-
-  useEffect(() => {
-    // Check current admin auth
-    fetch("/api/admin/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.user) setCurrentUser(data.user);
-      })
-      .catch(() => {});
-  }, []);
-
-  const handlePrint = () => {
-    const iframe = document.getElementById("album-iframe") as HTMLIFrameElement;
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.print();
-    } else {
-      window.open(`/exports/ahafo_election_album.html?v=${albumVersion}`, "_blank")?.print();
-    }
+  const currentUser = useAlbumUser();
+  const [zoom, setZoom] = useState(100);
+  const [version, setVersion] = useState(0);
+  const [loadedVersion, setLoadedVersion] = useState<number | null>(null);
+  const [activePage, setActivePage] = useState(1);
+  const iframe = useRef<HTMLIFrameElement>(null);
+  const url = `/api/admin/albums/files/ahafo_election_album.html?v=${version}`;
+  const loading = loadedVersion !== version;
+  const goToPage = (page: number) => {
+    setActivePage(page);
+    const pages = iframe.current?.contentDocument?.querySelectorAll(".album-page");
+    pages?.[page - 1]?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const roleUpper = String(currentUser?.role || "").toUpperCase();
-  const isSystemAdmin = roleUpper === "ADMIN_NATIONAL" || roleUpper === "ADMIN";
-
-  if (currentUser && !isSystemAdmin) {
-    return (
-      <AdminShell
-        title="Ahafo Election Album · Restricted"
-        subtitle="Confidential Electoral Roll"
-        currentUser={currentUser}
-      >
-        <div className="max-w-md mx-auto my-20 p-8 bg-slate-900 border border-slate-800 rounded-2xl text-center shadow-2xl">
-          <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-4">
-            <ShieldAlert className="w-7 h-7" />
-          </div>
-          <h2 className="text-lg font-bold text-white mb-2">Restricted to System Administrators</h2>
-          <p className="text-xs text-slate-400 leading-relaxed mb-6">
-            The certified election albums and voter directories are strictly classified and accessible only to authorized <strong>System Administrators</strong> (<code className="text-blue-400">ADMIN_NATIONAL</code>).
-          </p>
-          <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 text-xs text-slate-400 mb-6">
-            Logged in as: <span className="text-slate-200 font-medium">{currentUser.email}</span>
-            <br />
-            Assigned Role: <span className="text-amber-400 font-bold">{currentUser.role}</span>
-          </div>
-          <Link
-            href="/admin/dashboard"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20"
-          >
-            Return to Executive Directory
-          </Link>
-        </div>
-      </AdminShell>
-    );
-  }
-
-  return (
-    <AdminShell
-      title="Ahafo Region · Official Election Album & Directory"
-      subtitle="15-Page Publication Roll: Acknowledgement, Ahafo Regional Executives, 6 Constituencies (2-Sided) & TESCON"
-      currentUser={currentUser}
-    >
-      <div className="space-y-6">
-        {/* Top Control Action Bar */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                NPP Ahafo Region Electoral College Album (2026)
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">
-                  <ShieldCheck className="w-3 h-3 mr-1" />
-                  Verified & Certified
-                </span>
-              </h2>
-              <p className="text-xs text-slate-500">
-                15 Pages · 6 Constituencies · 114 Constituency Executives · 6 Regional · 6 TESCON (No Patrons)
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            <a
-              href={`/exports/NPP_Ahafo_Region_Election_Album_2026.pdf?v=${albumVersion}`}
-              download="NPP_Ahafo_Region_Election_Album_2026.pdf"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Download High-Res PDF (15 Pages)
-            </a>
-
-            <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              Print / Save as PDF
-            </button>
-
-            <a
-              href={`/exports/ahafo_election_album.html?v=${albumVersion}`}
-              download="NPP_Ahafo_Region_Election_Album_2026.html"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors"
-              title="Download lightweight standalone album with compressed WebP images (1.8 MB)"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Download HTML (1.8 MB WebP)
-            </a>
-
-            <a
-              href={`/exports/ahafo_election_album.html?v=${albumVersion}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 transition-colors"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              Open Fullscreen HTML
-            </a>
-          </div>
-        </div>
-
-        {/* Section Quick-Jump Chips */}
-        <div className="bg-slate-50 rounded-xl border border-slate-200 p-3">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">
-            Fast Navigation by Tier / Constituency
-          </div>
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-            {ALBUM_SECTIONS.map((sec) => {
-              const isActive = activePage === sec.page;
-              let badgeColor = "bg-white text-slate-700 border-slate-300";
-              if (sec.type === "cover") badgeColor = "bg-red-50 text-red-800 border-red-300";
-              else if (sec.type === "national") badgeColor = "bg-blue-50 text-blue-800 border-blue-300";
-              else if (sec.type === "regional") badgeColor = "bg-indigo-50 text-indigo-800 border-indigo-300";
-              else if (sec.type === "tescon") badgeColor = "bg-emerald-50 text-emerald-800 border-emerald-300";
-
-              return (
-                <button
-                  key={sec.page}
-                  onClick={() => {
-                    setActivePage(sec.page);
-                    const iframe = document.getElementById("album-iframe") as HTMLIFrameElement;
-                    if (iframe && iframe.contentWindow) {
-                      const el = iframe.contentDocument?.querySelectorAll(".album-page")?.[sec.page - 1];
-                      el?.scrollIntoView({ behavior: "smooth" });
-                    }
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all whitespace-nowrap ${
-                    isActive
-                      ? "ring-2 ring-blue-600 bg-blue-600 text-white border-blue-600 shadow-sm"
-                      : `${badgeColor} hover:border-slate-400`
-                  }`}
-                >
-                  P.{sec.page}: {sec.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Live Interactive Frame Preview */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="bg-slate-800 text-slate-300 px-4 py-2.5 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-3">
-              <span className="font-semibold text-white">Live Publication Preview</span>
-              <span className="text-slate-400">· Standard A4 Portrait</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setZoomLevel((z) => Math.max(50, z - 10))}
-                className="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-white font-mono"
-              >
-                -
-              </button>
-              <span className="font-mono text-slate-200">{zoomLevel}%</span>
-              <button
-                onClick={() => setZoomLevel((z) => Math.min(150, z + 10))}
-                className="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-white font-mono"
-              >
-                +
-              </button>
-              <button
-                onClick={() => setZoomLevel(100)}
-                className="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-xs text-slate-200"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-
-          <div
-            className="relative w-full bg-slate-600 p-4 sm:p-8 flex justify-center overflow-auto"
-            style={{ minHeight: "850px" }}
-          >
-            {isAlbumLoading && (
-              <div
-                className="absolute inset-0 z-10 flex flex-col items-center justify-start gap-3 bg-slate-700/90 pt-32 text-white"
-                role="status"
-                aria-label="Loading voter profile images"
-              >
-                <LoaderCircle className="h-8 w-8 animate-spin text-blue-300" />
-                <span className="text-sm font-semibold">Loading voter profile images...</span>
-              </div>
-            )}
-            <div
-              style={{
-                transform: `scale(${zoomLevel / 100})`,
-                transformOrigin: "top center",
-                transition: "transform 0.15s ease",
-              }}
-            >
-              <iframe
-                id="album-iframe"
-                src={`/exports/ahafo_election_album.html?v=${albumVersion}`}
-                title="Ahafo Election Album Preview"
-                onLoad={() => setIsAlbumLoading(false)}
-                className="border-0 shadow-2xl rounded"
-                style={{
-                  width: "220mm",
-                  height: "4800mm", // renders the full scrollable 15-page spread
-                  backgroundColor: "#ffffff",
-                }}
-              />
-            </div>
-          </div>
-        </div>
+  return <AdminShell title="Ahafo regional album" subtitle="Regional electoral roll · 2026" currentUser={currentUser}>
+    <div className="album-ui space-y-6">
+      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+        <div className="space-y-2"><Badge variant="outline" className="gap-1.5"><ShieldCheck className="size-3.5" /> National administrator</Badge><h1 className="text-2xl font-semibold tracking-tight">Ahafo regional album</h1><p className="text-sm text-muted-foreground">Review the regional publication and download a copy for printing.</p></div>
+        <div className="flex flex-wrap gap-2"><Button asChild variant="outline"><a href={`/api/admin/albums/files/NPP_Ahafo_Region_Election_Album_2026.pdf?v=${version}`} download><Download /> Download PDF</a></Button><Button disabled={loading} onClick={() => iframe.current?.contentWindow?.print()}><Printer /> Print album</Button></div>
       </div>
-    </AdminShell>
-  );
+      <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
+        <Card className="self-start"><CardHeader><CardTitle>Contents</CardTitle><CardDescription>15 pages · A4 portrait</CardDescription></CardHeader><CardContent className="space-y-1"><nav aria-label="Album contents">{ALBUM_SECTIONS.map((section) => <Button key={section.page} variant={activePage === section.page ? "secondary" : "ghost"} disabled={loading} className="h-auto w-full justify-start gap-3 px-2 py-2.5 text-left text-xs whitespace-normal" aria-current={activePage === section.page ? "page" : undefined} onClick={() => goToPage(section.page)}><span className="w-5 shrink-0 text-muted-foreground">{String(section.page).padStart(2, "0")}</span>{section.label}</Button>)}</nav></CardContent></Card>
+        <Card className="min-w-0 overflow-hidden"><CardHeader className="gap-3 border-b"><div className="flex items-center gap-2"><FileText className="size-4 text-muted-foreground" /><CardTitle>Publication preview</CardTitle></div><div className="flex flex-wrap items-center gap-2"><Button variant="outline" size="icon" aria-label="Zoom out" disabled={zoom === 50} onClick={() => setZoom(Math.max(50, zoom - 10))}><Minus /></Button><Button variant="ghost" aria-label="Reset zoom" onClick={() => setZoom(100)}>{zoom}%</Button><Button variant="outline" size="icon" aria-label="Zoom in" disabled={zoom === 150} onClick={() => setZoom(Math.min(150, zoom + 10))}><Plus /></Button><Button variant="outline" size="icon" aria-label="Reload album" onClick={() => setVersion((v) => v + 1)}><RefreshCw /></Button><Button asChild variant="outline"><a href={url} target="_blank" rel="noreferrer"><ExternalLink /> Open album</a></Button><Button asChild variant="outline"><a href={url} download="NPP_Ahafo_Region_Election_Album_2026.html"><Download /> HTML</a></Button></div></CardHeader>
+          <CardContent className="overflow-auto bg-muted/30 p-4">{loading && <div role="status" className="flex items-center gap-2 pb-3 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" /> Loading publication…</div>}<iframe key={version} ref={iframe} src={url} title="Ahafo regional election album" onLoad={() => setLoadedVersion(version)} className="mx-auto h-[850px] min-w-[320px] border bg-white shadow-sm" style={{ width: `${zoom}%` }} /></CardContent>
+        </Card>
+      </div>
+    </div>
+  </AdminShell>;
 }

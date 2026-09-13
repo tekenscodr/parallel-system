@@ -18,6 +18,16 @@ function extractClientIp(req: NextRequest): string {
 
 export function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
+  // Legacy album links must pass through authentication even if a generator
+  // accidentally recreates a file in public/exports.
+  if (/^\/exports\/(?:ahafo_(?:election_album\.html|album_data\.json)|NPP_(?:Ahafo_Region_Election_Album|National_Youth_Organiser_(?:Election_Album|Electorate_Directory))_2026\.pdf)$/.test(pathname)) {
+    const destination = req.nextUrl.clone();
+    destination.pathname = pathname.replace("/exports/", "/api/admin/albums/files/");
+    return NextResponse.rewrite(destination);
+  }
+  if (pathname.startsWith("/cdn/cache/webp/")) {
+    return new NextResponse("Not found", { status: 404 });
+  }
   const userAgent = req.headers.get("user-agent");
 
   // 1. Scraper & automated script bot deterrence
@@ -86,5 +96,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/admin/:path*", "/admin/:path*"],
+  matcher: ["/api/admin/:path*", "/admin/:path*", "/exports/:path*", "/cdn/cache/webp/:path*"],
 };

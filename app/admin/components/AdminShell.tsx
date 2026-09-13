@@ -23,6 +23,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { initClientIpDetection } from "@/lib/client-device";
+import { canAccessAlbums } from "@/lib/album-access";
 
 interface AdminUser {
   id: string;
@@ -260,7 +261,7 @@ export function AdminShell({
       icon: ShieldAlert,
       description: "Real-time security log with IP synchronization",
     },
-  ];
+  ].filter((item) => !item.href.startsWith("/admin/albums") || canAccessAlbums(currentUser));
 
   const handleLogout = async () => {
     if (onLogout) {

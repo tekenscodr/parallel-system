@@ -1,5 +1,49 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--ui-muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+.album-ui {
+  --background: #0b1120;
+  --foreground: #f8fafc;
+  --card: #0f172a;
+  --card-foreground: #f8fafc;
+  --primary: #f8fafc;
+  --primary-foreground: #0f172a;
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  --ui-muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #263449;
+  --input: #334155;
+  --ring: #94a3b8;
+  color: var(--foreground);
+  color-scheme: dark;
+  min-width: 0;
+}
+.album-ui *, .album-ui *::before, .album-ui *::after { border-color: var(--border); }
+
 :root { --navy:#11283a; --navy-2:#183a50; --ink:#172732; --muted:#70808a; --line:#dde5e9; --cream:#f4f3ee; --orange:#f26b3a; --orange-soft:#fff0e8; --green:#21966b; }
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; }
