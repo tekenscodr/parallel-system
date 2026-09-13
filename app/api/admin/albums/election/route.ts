@@ -11,7 +11,12 @@ import { withEcSql } from "@/lib/db-ec";
 
 export const dynamic = "force-dynamic";
 
-import { CONTEST_LIST, type ContestType } from "@/lib/election-contests";
+import {
+  CONTEST_LIST,
+  CUSTOM_CONTEST,
+  getCanonicalPositionsForSelection,
+  type ContestType,
+} from "@/lib/election-contests";
 
 // Pre-indexed WebP photos from Ahafo album (voter_id and executive_name)
 const ahafoPhotosByVoterId = new Map<string, string>();
@@ -259,22 +264,56 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const positionQuery = (searchParams.get("position") || "Youth Organisers & Deputies").trim();
+  const positionsParam = (searchParams.get("positions") || "").trim();
   const regionQuery = (searchParams.get("region") || "all").trim();
   const scopeQuery = (searchParams.get("scope") || "").trim().toLowerCase();
   const format = (searchParams.get("format") || "json").toLowerCase();
   const isDownload =
     searchParams.get("download") === "1" || searchParams.get("download") === "true";
 
+  const customPositionKeys = positionsParam
+    ? positionsParam.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+
+  const isCustomContest =
+    positionQuery.toLowerCase() === "custom" ||
+    customPositionKeys.length > 0;
+
+  const customResolved = isCustomContest
+    ? getCanonicalPositionsForSelection(customPositionKeys)
+    : null;
+
   // Match valid contest
-  const matchedContest =
-    CONTEST_LIST.find((c) => c.toLowerCase() === positionQuery.toLowerCase()) ||
-    "Youth Organisers & Deputies";
+  const matchedContest = isCustomContest
+    ? "Custom"
+    : CONTEST_LIST.find((c) => c.toLowerCase() === positionQuery.toLowerCase()) ||
+      "Youth Organisers & Deputies";
+
+  let effectiveContestName: string = matchedContest;
+  if (isCustomContest) {
+    if (customPositionKeys.length === 0) {
+      effectiveContestName = "Custom Selection";
+    } else {
+      const labels = customResolved?.displayLabels || [];
+      if (labels.length === 1) {
+        effectiveContestName = `${labels[0]} Roll`;
+      } else if (labels.length === 2) {
+        effectiveContestName = `${labels[0]} & ${labels[1]}`;
+      } else if (labels.length === 3) {
+        effectiveContestName = `${labels[0]}, ${labels[1]} & ${labels[2]}`;
+      } else {
+        effectiveContestName = `Custom Selection (${labels.length} Positions)`;
+      }
+    }
+  }
 
   const isWingOrganisers =
-    matchedContest === "Youth Organisers & Deputies" ||
-    matchedContest === "Women Organisers & Deputies" ||
-    matchedContest === "Nasara Coordinators & Deputies" ||
-    scopeQuery === "organisers_only";
+    !isCustomContest &&
+    (matchedContest === "Youth Organisers & Deputies" ||
+      matchedContest === "Women Organisers & Deputies" ||
+      matchedContest === "Nasara Coordinators & Deputies" ||
+      scopeQuery === "organisers_only");
+
 
   return withEcSql(async (sql) => {
     // 1. Fetch certified pool
@@ -324,7 +363,26 @@ export async function GET(req: NextRequest) {
         }
       }
 
+      // Custom Position Filter
+      if (isCustomContest) {
+        if (!customResolved || customResolved.canonicalSet.size === 0) {
+          return false;
+        }
+        const canonPos = normalizeCanonicalPosition(r.position, r.executive_level);
+        if (customResolved.canonicalSet.has(canonPos)) {
+          return true;
+        }
+        if (customResolved.isTesconNasaraIncluded && lvl === "tescon" && /nasara/i.test(posLower)) {
+          return true;
+        }
+        for (const target of customResolved.canonicalSet) {
+          if (posLower === target.toLowerCase()) return true;
+        }
+        return false;
+      }
+
       // Wing-specific extraction (Organisers & Deputies Only):
+
       if (isWingOrganisers) {
         if (
           matchedContest === "Youth Organisers & Deputies" ||
@@ -441,12 +499,14 @@ export async function GET(req: NextRequest) {
     const delegates = contestFiltered
       .map((r) => {
         const lvl = String(r.executive_level || "").toLowerCase().trim();
+        const rawReg = String(r.region || "").toLowerCase().trim();
+        const isExternal = lvl === "external branch" || rawReg.includes("external");
         const levelGroup =
           lvl === "national"
             ? "National"
             : lvl === "region" || lvl === "regional"
             ? "Regional"
-            : lvl === "external branch"
+            : isExternal
             ? "External Branch"
             : lvl === "constituency"
             ? "Constituency"
@@ -454,8 +514,8 @@ export async function GET(req: NextRequest) {
 
         const canonPos = normalizeCanonicalPosition(r.position, r.executive_level);
         const posRank = normalizePositionRank(r.position);
-        const levelRank = CANONICAL_LEVEL_ORDER[lvl] || 99;
-        const regName = String(r.region || "Unassigned").trim();
+        const levelRank = CANONICAL_LEVEL_ORDER[isExternal ? "external branch" : lvl] || 99;
+        const regName = isExternal ? "External Branches" : String(r.region || "Unassigned").trim();
         const conName = String(r.constituency || "").trim();
         const age = calculateAgeIn2026(r.date_of_birth, r.age);
         const hasVoterId = Boolean(r.voter_id && String(r.voter_id).trim().length === 10);
@@ -510,6 +570,9 @@ export async function GET(req: NextRequest) {
     if (regionQuery === "all" || regionQuery === "") {
       if (isWingOrganisers) {
         expectedCount = 663; // 276*2 (constituency) + 16*3 (regional) + 3 (national) + 30*2 (external branches)
+      } else if (isCustomContest) {
+        const numSelected = customPositionKeys.length || 1;
+        expectedCount = numSelected * 322;
       } else if (
         matchedContest === "Chairperson" ||
         matchedContest === "Vice Chairperson" ||
@@ -527,7 +590,12 @@ export async function GET(req: NextRequest) {
         expectedCount = 760;
       }
     } else {
-      expectedCount = isWingOrganisers ? 36 : Math.ceil(totalActual * 1.03); // Approximate for single region
+      if (isCustomContest) {
+        const numSelected = customPositionKeys.length || 1;
+        expectedCount = numSelected * 18;
+      } else {
+        expectedCount = isWingOrganisers ? 36 : Math.ceil(totalActual * 1.03); // Approximate for single region
+      }
     }
 
     const levelCounts = delegates.reduce(
@@ -564,11 +632,13 @@ export async function GET(req: NextRequest) {
     // Regional breakdown table
     const regionalMap = new Map<string, number>();
     for (const d of delegates) {
+      const regLower = String(d.region || "").toLowerCase().trim();
+      const lvlLower = String(d.executive_level || "").toLowerCase().trim();
       const reg =
-        d.executive_level === "National"
+        lvlLower === "national" || regLower === "national"
           ? "National Headquarters"
-          : d.executive_level === "External Branch"
-          ? `External: ${d.region}`
+          : lvlLower === "external branch" || regLower.includes("external")
+          ? "External Branches"
           : d.region;
       regionalMap.set(reg, (regionalMap.get(reg) || 0) + 1);
     }
@@ -577,7 +647,7 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.count - a.count);
 
     const metrics = {
-      contest: matchedContest,
+      contest: effectiveContestName,
       scope:
         regionQuery === "all"
           ? "Nationwide (All 16 Regions + External Branches + National + TESCON)"
@@ -610,14 +680,14 @@ export async function GET(req: NextRequest) {
     // Excel export format
     if (format === "excel" || format === "xlsx") {
       const excelBuffer = await generateAlbumExcel(
-        matchedContest,
+        effectiveContestName,
         regionQuery,
         metrics,
         delegates,
         regionalBreakdown
       );
 
-      const safeContest = matchedContest.replace(/[\s&]+/g, "_");
+      const safeContest = effectiveContestName.replace(/[\s&]+/g, "_");
       const safeRegion = regionQuery !== "all" ? `_${regionQuery.replace(/[\s&]+/g, "_")}` : "";
       const filename = `NPP_${safeContest}${safeRegion}_Voter_Directory_2026.xlsx`;
 
@@ -639,7 +709,7 @@ export async function GET(req: NextRequest) {
 
       // Return renderable HTML directly
       const html = generateAlbumHtml(
-        matchedContest,
+        effectiveContestName,
         regionQuery,
         metrics,
         delegates,
@@ -653,13 +723,14 @@ export async function GET(req: NextRequest) {
       };
 
       if (isDownload) {
-        const safeContest = matchedContest.replace(/[\s&]+/g, "_");
+        const safeContest = effectiveContestName.replace(/[\s&]+/g, "_");
         const safeRegion = regionQuery !== "all" ? `_${regionQuery.replace(/[\s&]+/g, "_")}` : "";
         headers["Content-Disposition"] = `attachment; filename="NPP_${safeContest}${safeRegion}_Election_Album_2026.html"`;
       }
 
       return new NextResponse(html, { headers });
     }
+
 
     return NextResponse.json({
       metrics,
@@ -1435,10 +1506,11 @@ function generateAlbumHtml(
       <table class="stats-table">
         <thead><tr><th>Administrative Level</th><th>Certified Delegates</th><th>Share of Electorate</th><th>Verification Status</th></tr></thead>
         <tbody>
-          <tr><td><strong>National Level</strong></td><td>${metrics.levelBreakdown.National}</td><td>${((metrics.levelBreakdown.National / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>
-          <tr><td><strong>Regional Level (16 Regions)</strong></td><td>${metrics.levelBreakdown.Regional}</td><td>${((metrics.levelBreakdown.Regional / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>
-          <tr><td><strong>Constituency Level (276 Constituencies)</strong></td><td>${metrics.levelBreakdown.Constituency}</td><td>${((metrics.levelBreakdown.Constituency / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>
-          <tr><td><strong>TESCON Level (Accredited Institutions)</strong></td><td>${metrics.levelBreakdown.TESCON}</td><td>${((metrics.levelBreakdown.TESCON / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Patrons Excluded</td></tr>
+          <tr><td><strong>National Level</strong></td><td>${metrics.levelBreakdown.National || 0}</td><td>${(((metrics.levelBreakdown.National || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>
+          <tr><td><strong>Regional Level (16 Regions)</strong></td><td>${metrics.levelBreakdown.Regional || 0}</td><td>${(((metrics.levelBreakdown.Regional || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>
+          <tr><td><strong>Constituency Level (276 Constituencies)</strong></td><td>${metrics.levelBreakdown.Constituency || 0}</td><td>${(((metrics.levelBreakdown.Constituency || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>
+          ${(metrics.levelBreakdown["External Branch"] || 0) > 0 ? `<tr><td><strong>External Branches (Diaspora)</strong></td><td>${metrics.levelBreakdown["External Branch"]}</td><td>${(((metrics.levelBreakdown["External Branch"] || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>` : ""}
+          <tr><td><strong>TESCON Level (Accredited Institutions)</strong></td><td>${metrics.levelBreakdown.TESCON || 0}</td><td>${(((metrics.levelBreakdown.TESCON || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Patrons Excluded</td></tr>
         </tbody>
       </table>
 
