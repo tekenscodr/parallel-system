@@ -237,10 +237,16 @@ export function AdminShell({
       description: "261k+ nationwide executive registry & updates",
     },
     {
-      href: "/admin/albums/ahafo",
-      label: "Ahafo Election Album",
+      href: "/admin/albums",
+      label: "Election Albums",
       icon: FileText,
-      description: "Official 19-page electoral college photo album",
+      description: "Provisional election albums by contest & level",
+    },
+    {
+      href: "/admin/albums/ahafo",
+      label: "Ahafo Regional Album",
+      icon: FileText,
+      description: "Official 15-page regional electoral roll",
     },
     {
       href: "/admin/users",
