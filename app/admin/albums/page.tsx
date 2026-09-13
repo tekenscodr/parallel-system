@@ -218,6 +218,16 @@ export default function PositionAlbumsPage() {
                 Fullscreen Album
               </a>
 
+              <a
+                href={previewUrl}
+                download={`NPP_${selectedContest.replace(/\s+/g, "_")}_Election_Album_2026.html`}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-emerald-300 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-700/80 transition-colors"
+                title="Download lightweight standalone album with compressed WebP images"
+              >
+                <Download className="w-4 h-4" />
+                Download HTML (WebP)
+              </a>
+
               <button
                 onClick={() => {
                   if (!apiData) return;

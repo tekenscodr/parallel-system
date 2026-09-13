@@ -323,6 +323,9 @@ export async function GET(req: NextRequest) {
           age,
           is_under_40: age !== null ? age < 40 : false,
           image_url: photoUrl,
+          webp_image_url: photoUrl
+            ? `/api/admin/albums/image?url=${encodeURIComponent(photoUrl)}&w=240&h=300`
+            : null,
           avatar_svg: avatarSvg,
           level_rank: levelRank,
           position_rank: posRank,
@@ -481,7 +484,13 @@ function generateAlbumHtml(
       const currentLevel = group[0]?.executive_level || "Electorate";
       const cardsHtml = group
         .map(
-          (d) => `
+          (d) => {
+            const photoSrc = d.image_url
+              ? (d.image_url.startsWith("data:image/webp")
+                  ? d.image_url
+                  : `/api/admin/albums/image?url=${encodeURIComponent(d.image_url)}&w=240&h=300`)
+              : d.avatar_svg;
+            return `
         <div class="voter-card">
           <div class="card-details">
             <div class="pos-badge">${d.canonical_position}</div>
@@ -497,10 +506,11 @@ function generateAlbumHtml(
             </div>
           </div>
           <div class="card-photo">
-            <img class="voter-img" src="${d.image_url || d.avatar_svg}" alt="${d.executive_name}" onerror="this.onerror=null; this.src='${d.avatar_svg}';" />
+            <img class="voter-img" src="${photoSrc}" alt="${d.executive_name}" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='${d.avatar_svg}';" />
           </div>
         </div>
-      `
+      `;
+          }
         )
         .join("\n");
 
@@ -842,7 +852,7 @@ function generateAlbumHtml(
           <div class="bar-white"></div>
           <div class="bar-blue"></div>
         </div>
-        <h3 class="cover-doc-title">OFFICIAL ELECTORAL COLLEGE ALBUM &amp; VOTER DIRECTORY</h3>
+        <h3 class="cover-doc-title">PROVISIONAL ELECTORAL COLLEGE ALBUM &amp; VOTER DIRECTORY</h3>
         <div class="cover-region-badge">${badgeText}</div>
       </div>
 
@@ -911,7 +921,7 @@ function generateAlbumHtml(
     <footer class="page-footer">
       <div class="footer-rule"></div>
       <div class="footer-content">
-        <span>NPP OFFICIAL ELECTORAL COLLEGE ALBUM · ${contest.toUpperCase()}</span>
+        <span>NPP PROVISIONAL ELECTORAL COLLEGE ALBUM · ${contest.toUpperCase()}</span>
         <span class="footer-page-pill">1</span>
         <span>NATIONAL ELECTIONS COMMITTEE</span>
       </div>
