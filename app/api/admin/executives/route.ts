@@ -458,7 +458,8 @@ export async function POST(req: Request) {
       executive: newExecutive,
     });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Error creating executive";
+    const rawMsg = err instanceof Error ? err.message : "Error creating executive";
+    const msg = rawMsg.replace(/wordpress/gi, "Party CDN");
     console.error("Executive create error:", msg);
     return NextResponse.json({ error: msg }, { status: 500 });
   }

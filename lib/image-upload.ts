@@ -51,6 +51,10 @@ function buildFilename(voterId: string | null | undefined, extension: string, pr
   return `${baseName}-${uniqueSuffix}.${extension}`;
 }
 
+function sanitizeStorageMessage(msg: string): string {
+  return msg.replace(/wordpress/gi, "Party CDN");
+}
+
 function getWordPressConfig() {
   const siteUrl = process.env.WORDPRESS_URL?.trim().replace(/\/+$/, "");
   const username = process.env.WORDPRESS_USERNAME?.trim();
@@ -58,7 +62,7 @@ function getWordPressConfig() {
 
   if (!siteUrl || !username || !applicationPassword) {
     throw new Error(
-      "WordPress image storage is not configured. Set WORDPRESS_URL, WORDPRESS_USERNAME and WORDPRESS_APPLICATION_PASSWORD."
+      "Party CDN image storage is not configured. Set CDN credentials in environment."
     );
   }
 
@@ -66,9 +70,9 @@ function getWordPressConfig() {
   try {
     parsed = new URL(siteUrl);
   } catch {
-    throw new Error("WORDPRESS_URL must be a valid HTTPS URL.");
+    throw new Error("Party CDN URL must be a valid HTTPS URL.");
   }
-  if (parsed.protocol !== "https:") throw new Error("WORDPRESS_URL must use HTTPS.");
+  if (parsed.protocol !== "https:") throw new Error("Party CDN URL must use HTTPS.");
 
   return { siteUrl, username, applicationPassword };
 }
@@ -166,8 +170,8 @@ async function uploadToWordPress(
       signal: AbortSignal.timeout(45_000),
     });
   } catch (error) {
-    const detail = error instanceof Error ? error.message : "network error";
-    throw new Error(`Unable to reach WordPress media storage: ${detail}`);
+    const detail = sanitizeStorageMessage(error instanceof Error ? error.message : "network error");
+    throw new Error(`Unable to reach Party CDN media storage: ${detail}`);
   }
 
   let payload: unknown;
@@ -179,8 +183,9 @@ async function uploadToWordPress(
 
   let media = unwrapMediaPayload(payload);
   if (!response.ok) {
-    const detail = typeof media?.message === "string" ? media.message : `HTTP ${response.status}`;
-    throw new Error(`WordPress image upload failed: ${detail}`);
+    const rawDetail = typeof media?.message === "string" ? media.message : `HTTP ${response.status}`;
+    const detail = sanitizeStorageMessage(rawDetail);
+    throw new Error(`Party CDN image upload failed: ${detail}`);
   }
 
   const location = response.headers.get("location");
@@ -204,7 +209,7 @@ async function uploadToWordPress(
   if (!imageUrl) {
     const keys = media ? Object.keys(media).slice(0, 12).join(", ") : "non-JSON response";
     throw new Error(
-      `WordPress created the media item but no public image URL could be resolved. Response fields: ${keys}. Check that the REST API exposes source_url and that the attachment is public.`
+      `Party CDN created the media item but no public image URL could be resolved. Response fields: ${keys}. Check that the CDN API exposes source_url and that the attachment is public.`
     );
   }
 
@@ -256,7 +261,7 @@ export async function saveUploadedExecutiveImage(
 
   if (process.env.EXECUTIVE_IMAGE_STORAGE?.toLowerCase() === "local") {
     if (process.env.VERCEL) {
-      throw new Error("Local executive image storage cannot be used on Vercel. Configure WordPress storage instead.");
+      throw new Error("Local executive image storage cannot be used on Vercel. Configure Party CDN storage instead.");
     }
     return saveLocally(webpBuffer, filename, fileSize);
   }

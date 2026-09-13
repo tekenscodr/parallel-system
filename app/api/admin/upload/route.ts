@@ -35,7 +35,8 @@ export async function POST(req: Request) {
       ...upload,
     });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Image upload failed";
+    const rawMsg = err instanceof Error ? err.message : "Image upload failed";
+    const msg = rawMsg.replace(/wordpress/gi, "Party CDN");
     console.error("Upload route error:", msg);
     return NextResponse.json({ error: msg }, { status: 500 });
   }

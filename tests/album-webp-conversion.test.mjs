@@ -59,10 +59,10 @@ test("Route file converts images to WebP before calling generateAlbumHtml", () =
   // Must have provisional cover title
   assert.ok(routeCode.includes("PROVISIONAL ELECTORAL COLLEGE ALBUM &amp; VOTER DIRECTORY"));
 
-  // A4 printing must reserve the footer and allow for browser sub-pixel rounding,
+  // A4 printing must reserve the footer and allow for browser sub-pixel rounding and printer margins,
   // otherwise the page number can be pushed onto the following sheet.
-  assert.ok(routeCode.includes("height: 296mm !important;"));
-  assert.ok(routeCode.includes("flex: 0 0 7.5mm;"));
+  assert.ok(routeCode.includes("height: 268mm !important;"));
+  assert.ok(routeCode.includes("flex: 0 0 7mm;"));
   assert.ok(routeCode.includes("grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);"));
   assert.ok(routeCode.includes(".album-page:last-child { page-break-after: auto !important;"));
 });

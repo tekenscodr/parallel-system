@@ -335,7 +335,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       diff,
     });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Error updating executive";
+    const rawMsg = err instanceof Error ? err.message : "Error updating executive";
+    const msg = rawMsg.replace(/wordpress/gi, "Party CDN");
     console.error("Executive update error:", msg);
     return NextResponse.json({ error: msg }, { status: 500 });
   }

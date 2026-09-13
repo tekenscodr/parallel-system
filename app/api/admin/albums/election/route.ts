@@ -983,21 +983,23 @@ function generateAlbumHtml(
         margin: 0 !important;
         padding: 0 !important;
         width: 210mm !important;
-        height: 100% !important;
+        height: auto !important;
       }
       .no-print { display: none !important; }
       .album-page {
         margin: 0 !important;
         box-shadow: none !important;
         width: 210mm !important;
-        height: 296mm !important;
-        max-height: 296mm !important;
+        max-width: 210mm !important;
+        height: 268mm !important;
+        max-height: 268mm !important;
         page-break-after: always !important;
         break-after: page !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         overflow: hidden !important;
         box-sizing: border-box !important;
+        padding: 5mm 10mm 4mm 10mm !important;
       }
       .album-page:last-child { page-break-after: auto !important; break-after: auto !important; }
     }
@@ -1013,8 +1015,8 @@ function generateAlbumHtml(
       padding: 7px 18px; border-radius: 6px; font-weight: 800; cursor: pointer;
     }
     .album-page {
-      width: 210mm; height: 297mm; max-height: 297mm;
-      margin: 15px auto; padding: 7mm 10mm 5mm 10mm;
+      width: 210mm; height: 285mm; max-height: 297mm;
+      margin: 15px auto; padding: 5mm 10mm 4mm 10mm;
       background: #FFFFFF; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
       position: relative; display: flex; flex-direction: column; justify-content: space-between;
       overflow: hidden; box-sizing: border-box;
@@ -1023,19 +1025,19 @@ function generateAlbumHtml(
 
     /* Cover Page Styles (Ahafo Master Design Reverted) */
     .cover-page {
-      padding: 7mm 10mm 5mm 10mm;
+      padding: 5mm 10mm 4mm 10mm;
     }
 
     .cover-inner-border {
-      border: 3px double #003399;
-      padding: 6mm 8mm;
+      border: 2.5px double #003399;
+      padding: 5mm 8mm;
       display: flex;
       flex-direction: column;
       flex: 1;
       min-height: 0;
       justify-content: space-between;
       box-sizing: border-box;
-      margin-bottom: 2.5mm;
+      margin-bottom: 2mm;
     }
 
     .cover-header {
@@ -1050,33 +1052,35 @@ function generateAlbumHtml(
 
     .cover-npp-logo {
       width: auto;
-      height: 56px;
-      max-width: 80px;
+      height: 48px;
+      max-width: 72px;
       object-fit: contain;
     }
 
     .cover-main-title {
-      font-size: 23pt;
+      font-size: 20pt;
       font-weight: 900;
       color: #003399;
-      letter-spacing: 2px;
-      margin-bottom: 2px;
+      letter-spacing: 1.5px;
+      margin-bottom: 1px;
+      line-height: 1.15;
     }
 
     .cover-sub-title {
-      font-size: 13pt;
+      font-size: 11pt;
       font-weight: 800;
       color: #DC2626;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
+      letter-spacing: 0.8px;
+      margin-bottom: 5px;
+      line-height: 1.15;
     }
 
     .cover-tri-bar {
       display: flex;
-      height: 5px;
-      width: 140px;
-      margin: 0 auto 10px auto;
-      border-radius: 3px;
+      height: 4px;
+      width: 120px;
+      margin: 0 auto 6px auto;
+      border-radius: 2px;
       overflow: hidden;
     }
 
@@ -1085,79 +1089,79 @@ function generateAlbumHtml(
     .bar-blue { flex: 1; background: #003399; }
 
     .cover-doc-title {
-      font-size: 12pt;
+      font-size: 10.5pt;
       font-weight: 800;
       color: #0F172A;
-      letter-spacing: 0.8px;
-      margin-bottom: 8px;
+      letter-spacing: 0.6px;
+      margin-bottom: 5px;
     }
 
     .cover-region-badge {
       display: inline-block;
       background: #003399;
       color: #FFFFFF;
-      font-size: 14pt;
+      font-size: 12pt;
       font-weight: 900;
-      padding: 4px 20px;
-      border-radius: 20px;
-      letter-spacing: 1.5px;
+      padding: 3px 16px;
+      border-radius: 16px;
+      letter-spacing: 1.2px;
     }
 
     .cover-body {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       margin-top: 4px;
     }
 
     .formal-proclamation {
       background: #F8FAFC;
-      border-left: 4px solid #003399;
-      padding: 8px 12px;
-      border-radius: 0 6px 6px 0;
+      border-left: 3.5px solid #003399;
+      padding: 6px 10px;
+      border-radius: 0 5px 5px 0;
     }
 
     .proclamation-title {
-      font-size: 9.5pt;
+      font-size: 8.8pt;
       font-weight: 900;
       color: #003399;
-      margin-bottom: 4px;
-      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+      letter-spacing: 0.4px;
     }
 
     .proclamation-p {
-      font-size: 8pt;
-      line-height: 1.35;
+      font-size: 7.4pt;
+      line-height: 1.3;
       color: #334155;
-      margin-bottom: 4px;
+      margin-bottom: 2.5px;
       text-align: justify;
     }
 
     .certification-metadata-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
+      gap: 4px;
       background: #F1F5F9;
-      padding: 8px 12px;
-      border-radius: 6px;
+      padding: 6px 10px;
+      border-radius: 5px;
       border: 1px solid #CBD5E1;
     }
 
     .meta-cell {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
     }
 
     .m-lbl {
-      font-size: 7pt;
+      font-size: 6.5pt;
       font-weight: 800;
       color: #64748B;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
     }
 
     .m-val {
-      font-size: 8.5pt;
+      font-size: 8pt;
       font-weight: 800;
       color: #003399;
     }
@@ -1166,7 +1170,7 @@ function generateAlbumHtml(
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 2px 10px 0 10px;
+      padding: 2px 8px 0 8px;
     }
 
     .seal-container {
@@ -1182,35 +1186,35 @@ function generateAlbumHtml(
     }
 
     .signature-line {
-      width: 170px;
+      width: 150px;
       height: 1.5px;
       background: #003399;
       margin-left: auto;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .sig-name {
-      font-size: 10pt;
+      font-size: 9.5pt;
       font-weight: 900;
       color: #003399;
       letter-spacing: 0.4px;
     }
 
     .sig-title {
-      font-size: 7.5pt;
+      font-size: 7pt;
       font-weight: 800;
       color: #1E293B;
       font-style: italic;
     }
 
     .sig-org {
-      font-size: 6.8pt;
+      font-size: 6.5pt;
       font-weight: 600;
       color: #64748B;
     }
 
     /* Page 2: Metrics */
-    .metrics-page { padding: 7mm 10mm 5mm 10mm; }
+    .metrics-page { padding: 5mm 10mm 4mm 10mm; }
     .page-title { font-size: 15pt; font-weight: 900; color: #003399; margin-bottom: 2px; }
     .page-sub { font-size: 9pt; font-weight: 700; color: #64748B; margin-bottom: 8px; }
     .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
@@ -1226,50 +1230,51 @@ function generateAlbumHtml(
     /* Cards Grid (Pages 3+) */
     .grid-10 {
       display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(5, 1fr);
-      gap: 5px; flex: 1; min-height: 0; margin: 3px 0;
+      gap: 4px; flex: 1; min-height: 0; margin: 2px 0;
     }
     .voter-card {
       border: 1px solid #E2E8F0; border-radius: 4px; display: flex; justify-content: space-between;
-      overflow: hidden; height: 45.5mm; max-height: 45.5mm; background: white; box-sizing: border-box;
+      overflow: hidden; height: 42.5mm; max-height: 42.5mm; background: white; box-sizing: border-box;
       break-inside: avoid !important; page-break-inside: avoid !important;
     }
-    .card-details { flex: 1; padding: 4px 8px; display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow: hidden; }
+    .card-details { flex: 1; padding: 3px 6px; display: flex; flex-direction: column; justify-content: center; gap: 1.5px; overflow: hidden; }
     .pos-badge {
-      background: #003399; color: white; font-size: 6.8pt; font-weight: 800; padding: 1.5px 5px;
-      border-radius: 3px; display: inline-block; width: fit-content; text-transform: uppercase;
+      background: #003399; color: white; font-size: 6.2pt; font-weight: 800; padding: 1px 4px;
+      border-radius: 2.5px; display: inline-block; width: fit-content; text-transform: uppercase;
+      line-height: 1.1;
     }
-    .exec-name { font-size: 8.8pt; font-weight: 800; color: #0F172A; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .detail-line { font-size: 7pt; color: #334155; }
-    .lbl { font-weight: 800; color: #64748B; font-size: 6.5pt; }
+    .exec-name { font-size: 8.2pt; font-weight: 800; color: #0F172A; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; }
+    .detail-line { font-size: 6.8pt; color: #334155; line-height: 1.15; }
+    .lbl { font-weight: 800; color: #64748B; font-size: 6.2pt; }
     .val { font-weight: 700; color: #0F172A; }
-    .val.mono { font-family: monospace; background: #F1F5F9; padding: 1px 4px; border-radius: 2px; }
-    .card-photo { width: 33mm; min-width: 33mm; height: 100%; background: #F1F5F9; border-left: 1px solid #CBD5E1; }
+    .val.mono { font-family: monospace; background: #F1F5F9; padding: 0.5px 3px; border-radius: 2px; }
+    .card-photo { width: 31mm; min-width: 31mm; height: 100%; background: #F1F5F9; border-left: 1px solid #CBD5E1; }
     .voter-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
 
     /* Header & Footer */
-    .page-header { margin-bottom: 3px; }
+    .page-header { margin-bottom: 2px; }
     .header-content { display: flex; align-items: center; gap: 8px; }
-    .header-npp-logo { width: auto; height: 32px; max-width: 44px; object-fit: contain; }
-    .party-seal-mini { background: #003399; color: white; font-size: 10pt; font-weight: 900; padding: 3px 6px; border-radius: 4px; }
-    .header-text h1 { font-size: 13pt; font-weight: 900; color: #003399; line-height: 1.15; }
-    .header-text h2 { font-size: 8.5pt; font-weight: 800; color: #475569; line-height: 1.15; }
-    .header-rule { height: 2px; background: #003399; margin-top: 3px; }
+    .header-npp-logo { width: auto; height: 28px; max-width: 38px; object-fit: contain; }
+    .party-seal-mini { background: #003399; color: white; font-size: 9pt; font-weight: 900; padding: 2px 5px; border-radius: 3px; }
+    .header-text h1 { font-size: 11.5pt; font-weight: 900; color: #003399; line-height: 1.1; }
+    .header-text h2 { font-size: 7.8pt; font-weight: 800; color: #475569; line-height: 1.1; }
+    .header-rule { height: 1.5px; background: #003399; margin-top: 2px; }
     .page-footer {
-      flex: 0 0 7.5mm;
-      min-height: 7.5mm;
+      flex: 0 0 7mm;
+      min-height: 7mm;
       margin-top: auto;
-      padding-top: 2px;
+      padding-top: 1px;
       page-break-inside: avoid !important;
       break-inside: avoid !important;
       overflow: hidden;
     }
-    .footer-rule { height: 1.5px; background: #CBD5E1; margin-bottom: 2px; }
+    .footer-rule { height: 1px; background: #CBD5E1; margin-bottom: 1.5px; }
     .footer-content {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
       align-items: center;
-      column-gap: 6mm;
-      font-size: 7pt;
+      column-gap: 5mm;
+      font-size: 6.8pt;
       font-weight: 700;
       color: #475569;
       white-space: nowrap;
@@ -1278,13 +1283,13 @@ function generateAlbumHtml(
     .footer-content > span:last-child { overflow: hidden; text-overflow: ellipsis; text-align: right; }
     .footer-page-pill {
       display: inline-block;
-      font-size: 8.5pt;
+      font-size: 8pt;
       line-height: 1.1;
       font-weight: 900;
       color: #003399;
       background: #F1F5F9;
-      padding: 1px 8px;
-      border-radius: 8px;
+      padding: 0.5px 7px;
+      border-radius: 6px;
       border: 1px solid #CBD5E1;
       break-inside: avoid !important;
     }
@@ -1374,7 +1379,7 @@ function generateAlbumHtml(
 
         <div class="signature-section">
           <div class="seal-container">
-            <svg width="88" height="88" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="74" height="74" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="60" cy="60" r="56" fill="#FFFFFF" stroke="#003399" stroke-width="4" stroke-dasharray="6,3"/>
               <circle cx="60" cy="60" r="48" fill="#F8FAFC" stroke="#DC2626" stroke-width="2"/>
               <path id="curve-seal" d="M 22 60 A 38 38 0 1 1 98 60" fill="none"/>
