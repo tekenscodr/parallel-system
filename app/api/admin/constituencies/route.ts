@@ -18,6 +18,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ constituencies: [] });
     }
 
+    if (region.toLowerCase() === "external branch" || region.toLowerCase() === "external") {
+      return NextResponse.json({
+        region: "External Branch",
+        constituencies: [...getConstituenciesForRegion("External Branch")].sort((a, b) => a.localeCompare(b)),
+      });
+    }
+
     const set = new Set<string>();
 
     // 1. Add all official canonical constituencies for this region
@@ -31,7 +38,7 @@ export async function GET(req: Request) {
     try {
       const rows = await withEcSql(async (sql) => {
         return await sql`
-          SELECT DISTINCT UPPER(TRIM(constituency)) as name
+          SELECT DISTINCT TRIM(constituency) as name
           FROM executives_all
           WHERE constituency IS NOT NULL 
             AND constituency != ''

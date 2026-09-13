@@ -4,6 +4,7 @@ import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp, diffExecutiveRecords } from "@/lib/audit-logger";
 import { getVoterPhotoUrl } from "@/lib/voter-photo";
 import { saveUploadedExecutiveImage } from "@/lib/image-upload";
+import { normalizeConstituency } from "@/lib/constituency-normalizer";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -202,7 +203,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     // 2. Perform update
     const effRegion = region !== undefined ? region : previousRow.region;
-    const effConstituency = constituency !== undefined ? constituency : previousRow.constituency;
+    const normalizedConstituency = constituency !== undefined ? (normalizeConstituency(constituency) || constituency) : undefined;
+    const effConstituency = normalizedConstituency !== undefined ? normalizedConstituency : previousRow.constituency;
     const effVoterId = voterId !== undefined ? voterId : previousRow.voterId;
     const computedImageUrl = getVoterPhotoUrl(effRegion, effConstituency, effVoterId);
 
@@ -220,7 +222,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           executive_level = COALESCE(${executiveLevel ?? null}, executive_level),
           slot_status = COALESCE(${slotStatus ?? null}, slot_status),
           region = COALESCE(${region ?? null}, region),
-          constituency = COALESCE(${constituency ?? null}, constituency),
+          constituency = COALESCE(${normalizedConstituency ?? null}, constituency),
           electoral_area = COALESCE(${electoralArea ?? null}, electoral_area),
           polling_station = COALESCE(${pollingStation ?? null}, polling_station),
           position = COALESCE(${position ?? null}, position),

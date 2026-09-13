@@ -289,7 +289,66 @@ export const CANONICAL_CONSTITUENCIES: readonly string[] = [
 ];
 
 
-const CANONICAL_SET = new Set(CANONICAL_CONSTITUENCIES);
+// Official External Branch Countries (Diaspora Constituencies)
+export const EXTERNAL_BRANCH_COUNTRIES: readonly string[] = [
+  "Senegal",
+  "Russia",
+  "United Kingdom",
+  "Middle East",
+  "Togo",
+  "Nigeria",
+  "South Africa",
+  "United States of America",
+  "Austria",
+  "Spain",
+  "Sweden",
+  "Australia",
+  "Hong Kong",
+  "Qatar",
+  "Norway",
+  "South Korea",
+  "Ireland",
+  "Italy",
+  "Ivory Coast",
+  "Japan",
+  "Netherland",
+  "China",
+  "Czech",
+  "Denmark",
+  "Equitorial Guinea",
+  "Germany",
+  "France",
+  "Finland",
+  "Belgium",
+  "Canada",
+];
+
+const EXTERNAL_BRANCH_LOOKUP = new Map<string, string>();
+for (const country of EXTERNAL_BRANCH_COUNTRIES) {
+  EXTERNAL_BRANCH_LOOKUP.set(country.toUpperCase(), country);
+  EXTERNAL_BRANCH_LOOKUP.set(country.toUpperCase().replace(/[^A-Z0-9]/g, ""), country);
+}
+
+// Aliases and spelling variants for External Branch countries
+EXTERNAL_BRANCH_LOOKUP.set("UK", "United Kingdom");
+EXTERNAL_BRANCH_LOOKUP.set("GREAT BRITAIN", "United Kingdom");
+EXTERNAL_BRANCH_LOOKUP.set("USA", "United States of America");
+EXTERNAL_BRANCH_LOOKUP.set("UNITED STATES", "United States of America");
+EXTERNAL_BRANCH_LOOKUP.set("U.S.A.", "United States of America");
+EXTERNAL_BRANCH_LOOKUP.set("AMERICA", "United States of America");
+EXTERNAL_BRANCH_LOOKUP.set("NETHERLANDS", "Netherland");
+EXTERNAL_BRANCH_LOOKUP.set("THE NETHERLANDS", "Netherland");
+EXTERNAL_BRANCH_LOOKUP.set("HOLLAND", "Netherland");
+EXTERNAL_BRANCH_LOOKUP.set("CZECH REPUBLIC", "Czech");
+EXTERNAL_BRANCH_LOOKUP.set("EQUATORIAL GUINEA", "Equitorial Guinea");
+EXTERNAL_BRANCH_LOOKUP.set("COTE D'IVOIRE", "Ivory Coast");
+EXTERNAL_BRANCH_LOOKUP.set("CÔTE D'IVOIRE", "Ivory Coast");
+EXTERNAL_BRANCH_LOOKUP.set("IVORY COAST (CÔTE D'IVOIRE)", "Ivory Coast");
+EXTERNAL_BRANCH_LOOKUP.set("IVORY COAST (COTE D'IVOIRE)", "Ivory Coast");
+EXTERNAL_BRANCH_LOOKUP.set("KOREA", "South Korea");
+EXTERNAL_BRANCH_LOOKUP.set("REPUBLIC OF KOREA", "South Korea");
+
+const CANONICAL_SET = new Set([...CANONICAL_CONSTITUENCIES, ...EXTERNAL_BRANCH_COUNTRIES]);
 
 // Lookup table stripping all punctuation and spaces for fuzzy/flexible matching
 const ALPHANUMERIC_LOOKUP = new Map<string, string>();
@@ -333,32 +392,45 @@ const EXPLICIT_ALIASES: Record<string, string> = {
 };
 
 /**
- * Normalizes any raw constituency name to its canonical Ghana EC standard.
+ * Normalizes any raw constituency name to its canonical Ghana EC standard
+ * or diaspora External Branch country.
  */
 export function normalizeConstituency(raw: string | null | undefined): string {
   if (!raw) return "";
 
-  // 1. Clean whitespace and uppercase
-  let cleaned = raw.trim().toUpperCase().replace(/\s+/g, " ");
+  const trimmed = raw.trim().replace(/\s+/g, " ");
 
-  // 2. Check explicit alias dictionary
+  // 1. Check External Branch country matches & aliases
+  const upper = trimmed.toUpperCase();
+  if (EXTERNAL_BRANCH_LOOKUP.has(upper)) {
+    return EXTERNAL_BRANCH_LOOKUP.get(upper)!;
+  }
+  const strippedExt = upper.replace(/[^A-Z0-9]/g, "");
+  if (EXTERNAL_BRANCH_LOOKUP.has(strippedExt)) {
+    return EXTERNAL_BRANCH_LOOKUP.get(strippedExt)!;
+  }
+
+  // 2. Clean whitespace and uppercase for Ghana constituencies
+  let cleaned = upper;
+
+  // 3. Check explicit alias dictionary
   if (EXPLICIT_ALIASES[cleaned]) {
     return EXPLICIT_ALIASES[cleaned];
   }
 
-  // 3. Normalize slashes and hyphens spacing
+  // 4. Normalize slashes and hyphens spacing
   cleaned = cleaned.replace(/\s*\/\s*/g, "/").replace(/\s*-\s*/g, "-");
 
   if (EXPLICIT_ALIASES[cleaned]) {
     return EXPLICIT_ALIASES[cleaned];
   }
 
-  // 4. Check if exact canonical match
+  // 5. Check if exact canonical match
   if (CANONICAL_SET.has(cleaned)) {
     return cleaned;
   }
 
-  // 5. Check alphanumeric stripped match
+  // 6. Check alphanumeric stripped match
   const stripped = cleaned.replace(/[^A-Z0-9]/g, "");
   if (ALPHANUMERIC_LOOKUP.has(stripped)) {
     return ALPHANUMERIC_LOOKUP.get(stripped)!;
@@ -368,7 +440,8 @@ export function normalizeConstituency(raw: string | null | undefined): string {
 }
 
 export function isValidConstituency(name: string): boolean {
-  return CANONICAL_SET.has(normalizeConstituency(name));
+  const norm = normalizeConstituency(name);
+  return CANONICAL_SET.has(norm) || EXTERNAL_BRANCH_LOOKUP.has(norm.toUpperCase());
 }
 
 export const OFFICIAL_CONSTITUENCIES_BY_REGION: Record<string, string[]> = {
@@ -679,6 +752,38 @@ export const OFFICIAL_CONSTITUENCIES_BY_REGION: Record<string, string[]> = {
     "SEFWI AKONTOMBRA",
     "SEFWI WIAWSO",
     "SUAMAN"
+  ],
+  "External Branch": [
+    "Senegal",
+    "Russia",
+    "United Kingdom",
+    "Middle East",
+    "Togo",
+    "Nigeria",
+    "South Africa",
+    "United States of America",
+    "Austria",
+    "Spain",
+    "Sweden",
+    "Australia",
+    "Hong Kong",
+    "Qatar",
+    "Norway",
+    "South Korea",
+    "Ireland",
+    "Italy",
+    "Ivory Coast",
+    "Japan",
+    "Netherland",
+    "China",
+    "Czech",
+    "Denmark",
+    "Equitorial Guinea",
+    "Germany",
+    "France",
+    "Finland",
+    "Belgium",
+    "Canada"
   ]
 };
 
@@ -692,6 +797,11 @@ export function getConstituenciesForRegion(region: string | null | undefined): s
       return [...list];
     }
   }
+
+  if (/^external(\s*branch(es)?)?$/i.test(normalizedRegion)) {
+    return [...OFFICIAL_CONSTITUENCIES_BY_REGION["External Branch"]];
+  }
+
   return [];
 }
 

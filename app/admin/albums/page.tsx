@@ -32,6 +32,7 @@ const REGION_OPTIONS = [
   { value: "Volta", label: "Volta Region" },
   { value: "Western", label: "Western Region" },
   { value: "Western North", label: "Western North Region" },
+  { value: "External Branch", label: "External Branch" },
 ];
 
 type Delegate = {

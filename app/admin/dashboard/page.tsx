@@ -161,6 +161,7 @@ const TIERS = [
   { id: "National", label: "National", icon: Landmark },
   { id: "Region", label: "Regional", icon: Map },
   { id: "Constituency", label: "Constituency", icon: Building2 },
+  { id: "External Branch", label: "External Branch", icon: Compass },
   { id: "Electoral Area", label: "Electoral Area", icon: Layers },
   { id: "Polling Station", label: "Polling Station", icon: Vote },
   { id: "TESCON", label: "TESCON", icon: GraduationCap },
@@ -294,7 +295,7 @@ function getPhotoSourceBadge(url?: string | null) {
   const clean = url.trim().toLowerCase();
   if (clean.includes(".webp") || clean.includes("wp-content") || clean.includes("cms.newpatrioticparty.org")) {
     return {
-      label: "WordPress CDN • WebP",
+      label: "Party CDN • WebP",
       color: "#34d399",
       bg: "rgba(16, 185, 129, 0.15)",
       border: "rgba(16, 185, 129, 0.3)",
@@ -375,6 +376,10 @@ export default function NationalAdminDashboard() {
   const [addAvatarReloadKey, setAddAvatarReloadKey] = useState<number>(0);
   const [reloadingEditPhoto, setReloadingEditPhoto] = useState(false);
   const [reloadingAddPhoto, setReloadingAddPhoto] = useState(false);
+  const [editDraggingImage, setEditDraggingImage] = useState(false);
+  const [addDraggingImage, setAddDraggingImage] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+  const addFileInputRef = useRef<HTMLInputElement>(null);
 
   // Delete Modal State
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -437,6 +442,11 @@ export default function NationalAdminDashboard() {
       setSelectedConstituency("");
       setLoadingConstituencies(false);
       return;
+    }
+
+    const fallbackList = getConstituenciesForRegion(selectedRegion);
+    if (fallbackList.length > 0) {
+      setConstituencyList(fallbackList);
     }
 
     setLoadingConstituencies(true);
@@ -647,6 +657,7 @@ export default function NationalAdminDashboard() {
     setModalSuccess("");
     setIsEditCustomPosition(false);
     setEditConstituencyList([]);
+    setEditDraggingImage(false);
   };
 
   const computeExecutiveAgeAndDob = (dob: string | undefined | null, pos: string | undefined | null) => {
@@ -688,6 +699,24 @@ export default function NationalAdminDashboard() {
         position: value,
         dateOfBirth: dob,
         age: age !== null ? age : activeExecutive.age,
+      });
+      return;
+    }
+
+    if (field === "executiveLevel" && value === "External Branch") {
+      setActiveExecutive({
+        ...activeExecutive,
+        executiveLevel: value,
+        region: "External Branch",
+      });
+      return;
+    }
+
+    if (field === "region" && value === "External Branch") {
+      setActiveExecutive({
+        ...activeExecutive,
+        region: value,
+        executiveLevel: "External Branch",
       });
       return;
     }
@@ -1040,10 +1069,13 @@ export default function NationalAdminDashboard() {
     }
   };
 
-  // Upload image file in Edit Modal
-  const handleEditImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // Upload and process image file in Edit Modal
+  const processEditImageFile = async (file: File) => {
     if (!file || !activeExecutive) return;
+    if (!file.type.startsWith("image/")) {
+      setModalError("Please select or drop a valid image file (JPEG, PNG, or WebP).");
+      return;
+    }
     setEditUploadingImage(true);
     setEditImageSuccess("");
     setModalError("");
@@ -1061,19 +1093,29 @@ export default function NationalAdminDashboard() {
       if (!res.ok) throw new Error(data.error || "Image upload failed");
       handleFieldChange("imageUrl", data.imageUrl);
       const sizeKb = data.size ? `${(data.size / 1024).toFixed(1)} KB` : "";
-      setEditImageSuccess(`Photo converted to .webp & saved to WordPress CDN!${sizeKb ? ` (${sizeKb})` : ""}`);
+      setEditImageSuccess(`Photo converted to .webp & saved to Party CDN!${sizeKb ? ` (${sizeKb})` : ""}`);
     } catch (err: unknown) {
       setModalError(err instanceof Error ? err.message : "Image upload failed");
     } finally {
       setEditUploadingImage(false);
-      e.target.value = "";
     }
   };
 
-  // Upload image file in Add Modal
-  const handleAddImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEditImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (file) {
+      await processEditImageFile(file);
+    }
+    e.target.value = "";
+  };
+
+  // Upload and process image file in Add Modal
+  const processAddImageFile = async (file: File) => {
     if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAddError("Please select or drop a valid image file (JPEG, PNG, or WebP).");
+      return;
+    }
     setAddUploadingImage(true);
     setAddImageSuccess("");
     setAddError("");
@@ -1091,13 +1133,20 @@ export default function NationalAdminDashboard() {
       if (!res.ok) throw new Error(data.error || "Image upload failed");
       setNewExecImageUrl(data.imageUrl);
       const sizeKb = data.size ? `${(data.size / 1024).toFixed(1)} KB` : "";
-      setAddImageSuccess(`Photo converted to .webp & saved to WordPress CDN!${sizeKb ? ` (${sizeKb})` : ""}`);
+      setAddImageSuccess(`Photo converted to .webp & saved to Party CDN!${sizeKb ? ` (${sizeKb})` : ""}`);
     } catch (err: unknown) {
       setAddError(err instanceof Error ? err.message : "Image upload failed");
     } finally {
       setAddUploadingImage(false);
-      e.target.value = "";
     }
+  };
+
+  const handleAddImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await processAddImageFile(file);
+    }
+    e.target.value = "";
   };
 
   const handleCloseAddModal = () => {
@@ -1112,6 +1161,7 @@ export default function NationalAdminDashboard() {
     setIsCustomPosition(false);
     setNewExecPosition("");
     setNewExecImageUrl(null);
+    setAddDraggingImage(false);
   };
 
   const handleCreateExecutive = async (e: React.FormEvent) => {
@@ -1940,6 +1990,7 @@ export default function NationalAdminDashboard() {
               <option value="National">National Level</option>
               <option value="Region">Regional Level</option>
               <option value="Constituency">Constituency Level</option>
+              <option value="External Branch">External Branch Level</option>
               <option value="Electoral Area">Electoral Area Level</option>
               <option value="Polling Station">Polling Station Level</option>
               <option value="TESCON">TESCON Level</option>
@@ -1969,7 +2020,7 @@ export default function NationalAdminDashboard() {
                   cursor: "pointer"
                 }}
               >
-                <option value="">All 16 Regions</option>
+                <option value="">All Regions</option>
                 {REGIONS.map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
@@ -2008,11 +2059,17 @@ export default function NationalAdminDashboard() {
                 {!selectedRegion ? (
                   <option value="">Select Region First</option>
                 ) : loadingConstituencies ? (
-                  <option value="">Loading {selectedRegion} constituencies…</option>
+                  <option value="">
+                    {selectedRegion === "External Branch"
+                      ? "Loading External Branch countries…"
+                      : `Loading ${selectedRegion} constituencies…`}
+                  </option>
                 ) : (
                   <>
                     <option value="">
-                      All {selectedRegion} Constituencies ({constituencyList.length})
+                      {selectedRegion === "External Branch"
+                        ? `All Countries / Branches (${constituencyList.length})`
+                        : `All ${selectedRegion} Constituencies (${constituencyList.length})`}
                     </option>
                     {constituencyList.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -2321,10 +2378,12 @@ export default function NationalAdminDashboard() {
                               background: row.executiveLevel === "National" ? "rgba(168, 85, 247, 0.2)" :
                                           row.executiveLevel === "Region" ? "rgba(59, 130, 246, 0.2)" :
                                           row.executiveLevel === "Constituency" ? "rgba(16, 185, 129, 0.2)" :
+                                          row.executiveLevel === "External Branch" ? "rgba(6, 182, 212, 0.2)" :
                                           row.executiveLevel === "TESCON" ? "rgba(234, 179, 8, 0.2)" : "rgba(148, 163, 184, 0.12)",
                               color: row.executiveLevel === "National" ? "#c084fc" :
                                      row.executiveLevel === "Region" ? "#60a5fa" :
                                      row.executiveLevel === "Constituency" ? "#34d399" :
+                                     row.executiveLevel === "External Branch" ? "#22d3ee" :
                                      row.executiveLevel === "TESCON" ? "#facc15" : "#cbd5e1"
                             }}>
                               {row.executiveLevel}
@@ -2835,8 +2894,31 @@ export default function NationalAdminDashboard() {
                         flexWrap: "wrap",
                       }}
                     >
-                      {/* Live Avatar Preview with Camera Overlay */}
+                      {/* Live Avatar Preview with Camera Overlay & Drag-Drop */}
                       <label
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!editUploadingImage) setEditDraggingImage(true);
+                        }}
+                        onDragEnter={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!editUploadingImage) setEditDraggingImage(true);
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setEditDraggingImage(false);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setEditDraggingImage(false);
+                          if (editUploadingImage) return;
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) processEditImageFile(file);
+                        }}
                         style={{
                           position: "relative",
                           flexShrink: 0,
@@ -2844,8 +2926,11 @@ export default function NationalAdminDashboard() {
                           borderRadius: "50%",
                           overflow: "hidden",
                           display: "inline-block",
+                          outline: editDraggingImage ? "3px solid #38bdf8" : "none",
+                          boxShadow: editDraggingImage ? "0 0 16px rgba(56, 189, 248, 0.6)" : "none",
+                          transition: "all 0.15s ease",
                         }}
-                        title="Click to choose a new photo file"
+                        title="Click or drag & drop a photo file here"
                       >
                         <ExecutiveAvatar
                           imageUrl={activeExecutive.imageUrl}
@@ -2896,7 +2981,7 @@ export default function NationalAdminDashboard() {
                               marginBottom: "4px",
                             }}
                           >
-                            Image URL or WordPress CDN Address
+                            Image URL or Party CDN Address
                           </label>
                           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                             <input
@@ -3014,45 +3099,86 @@ export default function NationalAdminDashboard() {
                           </div>
                         </div>
 
-                        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-                          <label
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "6px",
-                              padding: "8px 14px",
-                              borderRadius: "6px",
-                              background: editUploadingImage ? "#1e293b" : "#2563eb",
-                              color: "#ffffff",
-                              fontSize: "12px",
-                              fontWeight: "600",
-                              cursor: editUploadingImage ? "not-allowed" : "pointer",
-                              border: "none",
-                              transition: "all 0.15s ease",
-                            }}
-                          >
-                            {editUploadingImage ? (
-                              <>
-                                <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
-                                <span>Converting to WebP & Uploading to WordPress…</span>
-                              </>
-                            ) : (
-                              <>
-                                <Upload size={14} />
-                                <span>Upload Image File</span>
-                              </>
-                            )}
-                            <input
-                              type="file"
-                              accept="image/jpeg,image/png,image/webp"
-                              disabled={editUploadingImage}
-                              onChange={handleEditImageUpload}
-                              style={{ display: "none" }}
-                            />
-                          </label>
-                          <span style={{ fontSize: "11px", color: "#64748b" }}>
-                            JPEG, PNG or WEBP (Max 8MB). Automatically converted to WebP on WordPress CDN.
-                          </span>
+                        {/* Drag and Drop Upload Zone */}
+                        <div
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!editUploadingImage) setEditDraggingImage(true);
+                          }}
+                          onDragEnter={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!editUploadingImage) setEditDraggingImage(true);
+                          }}
+                          onDragLeave={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setEditDraggingImage(false);
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setEditDraggingImage(false);
+                            if (editUploadingImage) return;
+                            const file = e.dataTransfer.files?.[0];
+                            if (file) {
+                              processEditImageFile(file);
+                            }
+                          }}
+                          onClick={() => {
+                            if (!editUploadingImage) editFileInputRef.current?.click();
+                          }}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "14px 18px",
+                            borderRadius: "8px",
+                            border: editDraggingImage
+                              ? "2px dashed #38bdf8"
+                              : "1.5px dashed rgba(255, 255, 255, 0.2)",
+                            background: editDraggingImage
+                              ? "rgba(56, 189, 248, 0.12)"
+                              : "rgba(2, 6, 23, 0.4)",
+                            cursor: editUploadingImage ? "not-allowed" : "pointer",
+                            transition: "all 0.18s ease",
+                            textAlign: "center",
+                            gap: "5px",
+                          }}
+                        >
+                          <input
+                            ref={editFileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            disabled={editUploadingImage}
+                            onChange={handleEditImageUpload}
+                            style={{ display: "none" }}
+                          />
+                          {editUploadingImage ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#38bdf8", fontSize: "12px", fontWeight: "600" }}>
+                              <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                              <span>Converting to WebP & Uploading to Party CDN…</span>
+                            </div>
+                          ) : editDraggingImage ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#38bdf8", fontSize: "13px", fontWeight: "600" }}>
+                              <Upload size={16} />
+                              <span>Drop photo here to upload immediately</span>
+                            </div>
+                          ) : (
+                            <>
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#e2e8f0", fontSize: "12px" }}>
+                                <Upload size={14} style={{ color: "#38bdf8" }} />
+                                <span>
+                                  <strong style={{ color: "#38bdf8" }}>Drag & drop</strong> photo here, or <span style={{ textDecoration: "underline", color: "#60a5fa" }}>browse files</span>
+                                </span>
+                              </div>
+                              <span style={{ fontSize: "11px", color: "#64748b" }}>
+                                JPEG, PNG or WEBP (Max 8MB). Automatically converted to WebP on Party CDN.
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -3198,6 +3324,7 @@ export default function NationalAdminDashboard() {
                           <option value="National">National Level</option>
                           <option value="Region">Regional Level</option>
                           <option value="Constituency">Constituency Level</option>
+                          <option value="External Branch">External Branch Level</option>
                           <option value="Electoral Area">Electoral Area Level</option>
                           <option value="Polling Station">Polling Station Level</option>
                           <option value="TESCON">TESCON Level</option>
@@ -3305,7 +3432,7 @@ export default function NationalAdminDashboard() {
 
                       <div>
                         <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                          Constituency {loadingEditConstituencies ? "(Loading...)" : ""}
+                          {activeExecutive.region === "External Branch" ? "Country (External Branch)" : "Constituency"} {loadingEditConstituencies ? "(Loading...)" : ""}
                         </label>
                         {editConstituencyList.length > 0 ? (
                           <select
@@ -3322,7 +3449,7 @@ export default function NationalAdminDashboard() {
                               boxSizing: "border-box",
                             }}
                           >
-                            <option value="">Select Constituency</option>
+                            <option value="">{activeExecutive.region === "External Branch" ? "Select Country" : "Select Constituency"}</option>
                             {activeExecutive.constituency && !editConstituencyList.includes(activeExecutive.constituency) && (
                               <option value={activeExecutive.constituency}>{activeExecutive.constituency}</option>
                             )}
@@ -3335,7 +3462,7 @@ export default function NationalAdminDashboard() {
                             type="text"
                             value={activeExecutive.constituency || ""}
                             onChange={(e) => handleFieldChange("constituency", e.target.value)}
-                            placeholder="e.g. ABLEKUMA WEST"
+                            placeholder={activeExecutive.region === "External Branch" ? "e.g. United Kingdom" : "e.g. ABLEKUMA WEST"}
                             style={{
                               width: "100%",
                               padding: "9px 12px",
@@ -3374,13 +3501,13 @@ export default function NationalAdminDashboard() {
 
                       <div>
                         <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                          Polling Station / Institution
+                          {activeExecutive.executiveLevel === "TESCON" ? "Institution" : "Polling Station"}
                         </label>
                         <input
                           type="text"
                           value={activeExecutive.pollingStation || ""}
                           onChange={(e) => handleFieldChange("pollingStation", e.target.value)}
-                          placeholder="e.g. D/A Primary School or KNUST Chapter"
+                          placeholder={activeExecutive.executiveLevel === "TESCON" ? "e.g. University of Ghana, Legon / KNUST" : "e.g. D/A Primary School"}
                           style={{
                             width: "100%",
                             padding: "9px 12px",
@@ -4188,8 +4315,31 @@ export default function NationalAdminDashboard() {
                       flexWrap: "wrap",
                     }}
                   >
-                    {/* Live Avatar Preview with Camera Overlay */}
+                    {/* Live Avatar Preview with Camera Overlay & Drag-Drop */}
                     <label
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!addUploadingImage) setAddDraggingImage(true);
+                      }}
+                      onDragEnter={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!addUploadingImage) setAddDraggingImage(true);
+                      }}
+                      onDragLeave={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setAddDraggingImage(false);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setAddDraggingImage(false);
+                        if (addUploadingImage) return;
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) processAddImageFile(file);
+                      }}
                       style={{
                         position: "relative",
                         flexShrink: 0,
@@ -4197,8 +4347,11 @@ export default function NationalAdminDashboard() {
                         borderRadius: "50%",
                         overflow: "hidden",
                         display: "inline-block",
+                        outline: addDraggingImage ? "3px solid #38bdf8" : "none",
+                        boxShadow: addDraggingImage ? "0 0 16px rgba(56, 189, 248, 0.6)" : "none",
+                        transition: "all 0.15s ease",
                       }}
-                      title="Click to choose a photo file"
+                      title="Click or drag & drop a photo file here"
                     >
                       <ExecutiveAvatar
                         imageUrl={newExecImageUrl}
@@ -4249,7 +4402,7 @@ export default function NationalAdminDashboard() {
                             marginBottom: "4px",
                           }}
                         >
-                          Image URL or WordPress CDN Address
+                          Image URL or Party CDN Address
                         </label>
                         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                           <input
@@ -4367,45 +4520,86 @@ export default function NationalAdminDashboard() {
                         </div>
                       </div>
 
-                      <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-                        <label
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            padding: "8px 14px",
-                            borderRadius: "6px",
-                            background: addUploadingImage ? "#1e293b" : "#2563eb",
-                            color: "#ffffff",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                            cursor: addUploadingImage ? "not-allowed" : "pointer",
-                            border: "none",
-                            transition: "all 0.15s ease",
-                          }}
-                        >
-                          {addUploadingImage ? (
-                            <>
-                              <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
-                              <span>Converting to WebP & Uploading to WordPress…</span>
-                            </>
-                          ) : (
-                            <>
-                              <Upload size={14} />
-                              <span>Upload Image File</span>
-                            </>
-                          )}
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            disabled={addUploadingImage}
-                            onChange={handleAddImageUpload}
-                            style={{ display: "none" }}
-                          />
-                        </label>
-                        <span style={{ fontSize: "11px", color: "#64748b" }}>
-                          JPEG, PNG or WEBP (Max 8MB). Automatically converted to WebP on WordPress CDN.
-                        </span>
+                      {/* Drag and Drop Upload Zone */}
+                      <div
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!addUploadingImage) setAddDraggingImage(true);
+                        }}
+                        onDragEnter={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!addUploadingImage) setAddDraggingImage(true);
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setAddDraggingImage(false);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setAddDraggingImage(false);
+                          if (addUploadingImage) return;
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) {
+                            processAddImageFile(file);
+                          }
+                        }}
+                        onClick={() => {
+                          if (!addUploadingImage) addFileInputRef.current?.click();
+                        }}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "14px 18px",
+                          borderRadius: "8px",
+                          border: addDraggingImage
+                            ? "2px dashed #38bdf8"
+                            : "1.5px dashed rgba(255, 255, 255, 0.2)",
+                          background: addDraggingImage
+                            ? "rgba(56, 189, 248, 0.12)"
+                            : "rgba(2, 6, 23, 0.4)",
+                          cursor: addUploadingImage ? "not-allowed" : "pointer",
+                          transition: "all 0.18s ease",
+                          textAlign: "center",
+                          gap: "5px",
+                        }}
+                      >
+                        <input
+                          ref={addFileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          disabled={addUploadingImage}
+                          onChange={handleAddImageUpload}
+                          style={{ display: "none" }}
+                        />
+                        {addUploadingImage ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#38bdf8", fontSize: "12px", fontWeight: "600" }}>
+                            <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                            <span>Converting to WebP & Uploading to Party CDN…</span>
+                          </div>
+                        ) : addDraggingImage ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#38bdf8", fontSize: "13px", fontWeight: "600" }}>
+                            <Upload size={16} />
+                            <span>Drop photo here to upload immediately</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#e2e8f0", fontSize: "12px" }}>
+                              <Upload size={14} style={{ color: "#38bdf8" }} />
+                              <span>
+                                <strong style={{ color: "#38bdf8" }}>Drag & drop</strong> photo here, or <span style={{ textDecoration: "underline", color: "#60a5fa" }}>browse files</span>
+                              </span>
+                            </div>
+                            <span style={{ fontSize: "11px", color: "#64748b" }}>
+                              JPEG, PNG or WEBP (Max 8MB). Automatically converted to WebP on Party CDN.
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -4456,6 +4650,9 @@ export default function NationalAdminDashboard() {
                       onChange={(e) => {
                         const newLevel = e.target.value;
                         setNewExecLevel(newLevel);
+                        if (newLevel === "External Branch") {
+                          setNewExecRegion("External Branch");
+                        }
                         if (!isCustomPosition) {
                           const validPositions = POSITIONS_BY_LEVEL[newLevel] || [];
                           if (!validPositions.includes(newExecPosition)) {
@@ -4477,6 +4674,7 @@ export default function NationalAdminDashboard() {
                       <option value="Constituency">Constituency</option>
                       <option value="Region">Region</option>
                       <option value="National">National</option>
+                      <option value="External Branch">External Branch</option>
                       <option value="TESCON">TESCON</option>
                       <option value="Electoral Area">Electoral Area</option>
                       <option value="Polling Station">Polling Station</option>
@@ -4604,7 +4802,19 @@ export default function NationalAdminDashboard() {
                     <select
                       required
                       value={newExecRegion}
-                      onChange={(e) => setNewExecRegion(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setNewExecRegion(val);
+                        if (val === "External Branch") {
+                          setNewExecLevel("External Branch");
+                          if (!isCustomPosition) {
+                            const validPositions = POSITIONS_BY_LEVEL["External Branch"] || [];
+                            if (!validPositions.includes(newExecPosition)) {
+                              handleAddPositionChange(validPositions[0] || "");
+                            }
+                          }
+                        }
+                      }}
                       style={{
                         width: "100%",
                         padding: "9px 12px",
@@ -4625,7 +4835,7 @@ export default function NationalAdminDashboard() {
 
                   <div>
                     <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                      Constituency {loadingNewExecConstituencies && "(loading…)"}
+                      {newExecRegion === "External Branch" ? "Country (External Branch)" : "Constituency"} {loadingNewExecConstituencies && "(loading…)"}
                     </label>
                     {newExecConstituencyList.length > 0 ? (
                       <select
@@ -4642,7 +4852,7 @@ export default function NationalAdminDashboard() {
                           boxSizing: "border-box",
                         }}
                       >
-                        <option value="">Select Constituency</option>
+                        <option value="">{newExecRegion === "External Branch" ? "Select Country" : "Select Constituency"}</option>
                         {newExecConstituencyList.map((c) => (
                           <option key={c} value={c}>{c}</option>
                         ))}
@@ -4652,7 +4862,7 @@ export default function NationalAdminDashboard() {
                         type="text"
                         value={newExecConstituency}
                         onChange={(e) => setNewExecConstituency(e.target.value)}
-                        placeholder="e.g. Dome Kwabenya"
+                        placeholder={newExecRegion === "External Branch" ? "e.g. United Kingdom" : "e.g. Dome Kwabenya"}
                         style={{
                           width: "100%",
                           padding: "9px 12px",
@@ -4691,13 +4901,13 @@ export default function NationalAdminDashboard() {
 
                   <div>
                     <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                      Polling Station
+                      {newExecLevel === "TESCON" ? "Institution" : "Polling Station"}
                     </label>
                     <input
                       type="text"
                       value={newExecPollingStation}
                       onChange={(e) => setNewExecPollingStation(e.target.value)}
-                      placeholder="e.g. Presby Primary School"
+                      placeholder={newExecLevel === "TESCON" ? "e.g. University of Ghana, Legon / KNUST" : "e.g. Presby Primary School"}
                       style={{
                         width: "100%",
                         padding: "9px 12px",
