@@ -50,7 +50,9 @@ export function buildVotingReport(source: VotingSource[]) {
   const groups = new Map<string, VotingSource[]>();
   let excludedVacancies = 0;
   for (const row of source) {
-    if (!['constituency', 'region', 'regional', 'national', 'tescon'].includes(norm(row.executive_level))) continue;
+    const rawLvl = norm(row.executive_level);
+    const lvl = rawLvl === 'externalbranch' ? 'constituency' : rawLvl;
+    if (!['constituency', 'region', 'regional', 'national', 'tescon'].includes(lvl)) continue;
     if (!clean(row.executive_name) || /^(vacant|vacancy|unknown|n\/?a|not available|representative)\b/i.test(clean(row.executive_name))) { excludedVacancies++; continue; }
     const vid = clean(row.voter_id).replace(/\s/g, '');
     const member = clean(row.membership_id);
@@ -73,20 +75,25 @@ export function buildVotingReport(source: VotingSource[]) {
     if (genders.length > 1) issues.push('Conflicting genders');
     const age = ages.length === 1 ? +ages[0] : null;
     const gender = genders.length === 1 ? genders[0] : '';
-    const core = rows.some(r=>['constituency','region','regional','national'].includes(norm(r.executive_level)));
+    const getRowLevel = (r: VotingSource) => {
+      const l = norm(r.executive_level);
+      return l === 'externalbranch' ? 'constituency' : l;
+    };
+    const core = rows.some(r=>['constituency','region','regional','national'].includes(getRowLevel(r)));
     const tescon = rows.filter(r=>norm(r.executive_level)==='tescon' && !/patron/i.test(clean(r.position)));
-    if (core && age === null) issues.push('DOB missing, invalid or conflicting: youth eligibility unresolved');
+    const hasYouthPortfolio = rows.some(r => /youth\s*organi[sz]er/i.test(clean(r.position)) || /former.*youth/i.test(clean(r.position)));
+    if (core && age === null && !hasYouthPortfolio) issues.push('DOB missing, invalid or conflicting: youth eligibility unresolved');
     if (core && !gender) issues.push('Gender missing or conflicting: women eligibility unresolved');
     const flags = {
       general: !identityConflict && (core || tescon.some(r=>norm(r.position)==='president')),
-      youth: !identityConflict && (tescon.length > 0 || (core && age !== null && age < 40)),
+      youth: !identityConflict && (tescon.length > 0 || hasYouthPortfolio || (core && age !== null && age < 40)),
       women: !identityConflict && ((core && gender==='female') || tescon.some(r=>['wocom','womencommissioner','womenscommissioner'].includes(norm(r.position)))),
       nasara: !identityConflict && rows.some(r=>/nasara/i.test(clean(r.position)) && !(norm(r.executive_level)==='tescon' && /patron/i.test(clean(r.position)))),
     };
     const regions = unique(rows.map(r => norm(r.executive_level)==='national' ? 'National' : clean(r.region).replace(/-/g,' ')));
     const region = regions.length===1 ? regions[0] : regions.length===0 ? 'Unassigned' : 'Multiple jurisdictions - review';
     const constituencies = unique(rows.map(r => {
-      const level = norm(r.executive_level);
+      const level = getRowLevel(r);
       return level==='national' ? 'National level' : ['region','regional'].includes(level) ? 'Regional level' : clean(r.constituency).toUpperCase().replace(/\s*\/\s*/g,'/');
     }));
     const constituency = constituencies.length===1 ? constituencies[0] : constituencies.length===0 ? 'Unassigned' : 'Multiple jurisdictions - review';
@@ -98,7 +105,7 @@ export function buildVotingReport(source: VotingSource[]) {
       dob: unique(rows.map(r=>clean(r.date_of_birth))).join('; '), age, gender,
       recordIds: rows.map(r=>r.id).join('; '), sourceRecords:rows.length, flags, issues,
       reasons: {general: flags.general ? (core ? 'Constituency/regional/national executive' : 'TESCON President') : '',
-        youth: flags.youth ? (tescon.length ? 'TESCON executive excluding patron' : (ageSource === 'db' ? 'DB age below 40 (DOB missing)' : 'DOB age below 40')) : '',
+        youth: flags.youth ? (hasYouthPortfolio ? 'Ex-officio Youth Organiser' : (tescon.length ? 'TESCON executive excluding patron' : (ageSource === 'db' ? 'DB age below 40 (DOB missing)' : 'DOB age below 40'))) : '',
         women: flags.women ? (core && gender==='female' ? 'Female executive' : 'TESCON WOCOM') : '',
         nasara: flags.nasara ? 'Nasara office' : ''},
     };

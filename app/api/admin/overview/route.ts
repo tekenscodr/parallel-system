@@ -159,7 +159,7 @@ export async function GET(req: Request) {
             COUNT(CASE WHEN executive_level = 'TESCON' AND position IN ('WOCOM', 'Women Commissioner') THEN 1 END)::int as tescon_wocom,
             COUNT(CASE WHEN executive_level = 'TESCON' AND position IN ('Tescon Nasara', 'Nasara Coordinator') THEN 1 END)::int as tescon_nasara,
             COUNT(CASE WHEN executive_level = 'Constituency' THEN 1 END)::int as constituency_execs,
-            COUNT(CASE WHEN executive_level = 'External Branch' THEN 1 END)::int as external_branch_execs
+            COUNT(CASE WHEN region = 'External Branch' OR executive_level = 'External Branch' THEN 1 END)::int as external_branch_execs
           FROM executives_all
           ${ecWhereClause}
         `

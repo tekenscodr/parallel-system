@@ -6,22 +6,22 @@
 
 ## 1. Contests & Electorate Eligibility Rules
 
-The internal national elections cover nine (9) specific elective executive portfolios. Electorates are drawn strictly from four recognized tiers: **National**, **Regional**, **Constituency**, and **TESCON** (where authorized).
+The internal national elections cover nine (9) specific elective executive portfolios. Electorates are drawn strictly from four recognized tiers: **National**, **Regional**, **Constituency** (including overseas **External Branch** chapters), and **TESCON** (where authorized). External Branch executives hold **Constituency level** status and are fully incorporated into the Electoral College, voting for all national positions following the rules of constituency level.
 
 > [!IMPORTANT]
 > **Strict Exclusion of TESCON Patrons:** TESCON Patrons do not hold voting delegate status in any contest and are strictly excluded from all electoral college registers and album rolls.
 
 | Position / Contest | Eligible Electorate Composition | Excluded Entities |
 | :--- | :--- | :--- |
-| **Chairperson** | All certified National, Regional, and Constituency executives, plus all substantive **TESCON Presidents**. | Polling Station, Electoral Area, External branches (unless authorized), TESCON Patrons, Non-executive members. |
+| **Chairperson** | All certified National, Regional, and Constituency (including External Branch) executives, plus all substantive **TESCON Presidents**. | Polling Station, Electoral Area, TESCON Patrons, Non-executive members. |
 | **Vice Chairperson** | Same electorate as National Chairperson. | Same as National Chairperson. |
 | **General Secretary** | Same electorate as National Chairperson. | Same as National Chairperson. |
 | **Treasurer** | Same electorate as National Chairperson. | Same as National Chairperson. |
 | **Communication Officer** | Same electorate as National Chairperson. | Same as National Chairperson. |
 | **Organiser** | Same electorate as National Chairperson. | Same as National Chairperson. |
-| **Youth Organiser** | 1. All executives across **Constituency**, **Regional**, and **National** levels aged **under 40** (age $< 40$ in 2026, calculated as $2026 - \text{DOB year}$).<br>2. **Youth Organisers and Deputy Youth Organisers** across all levels (ex-officio, regardless of DOB availability).<br>3. **TESCON Presidents** (regardless of age).<br>4. **TESCON Women Commissioners (WOCOM)** (regardless of age).<br>5. **TESCON Nasara Coordinators** (regardless of age).<br>6. **Former National Youth Organisers**.<br>7. Any other confirmed executive in the authorized levels aged under 40. | Core executives aged 40 and above (unless holding ex-officio youth portfolio), TESCON Patrons, Polling Station / Electoral Area executives. |
-| **Women Organiser** | 1. All **female** executives in the electoral college at **National**, **Regional**, and **Constituency** levels.<br>2. All **TESCON Women Commissioners (WOCOM)**.<br>3. All **Female TESCON Presidents**. | All male executives, TESCON Patrons, Polling Station / Electoral Area executives. |
-| **Nasara Organiser** | 1. All **Nasara executives** across **National**, **Regional**, and **Constituency** levels (substantive Nasara Coordinators / Organisers and Deputy Nasara Coordinators / Organisers).<br>2. All **TESCON Nasara Coordinators**. | Non-Nasara portfolio holders, TESCON Patrons, Polling Station / Electoral Area executives. |
+| **Youth Organiser** | 1. All executives across **Constituency** (including External Branch), **Regional**, and **National** levels aged **under 40** (age $< 40$ in 2026, calculated as $2026 - \text{DOB year}$).<br>2. **Youth Organisers and Deputy Youth Organisers** across all levels (ex-officio, regardless of DOB availability).<br>3. **TESCON Presidents** (regardless of age).<br>4. **TESCON Women Commissioners (WOCOM)** (regardless of age).<br>5. **TESCON Nasara Coordinators** (regardless of age).<br>6. **Former National Youth Organisers**.<br>7. Any other confirmed executive in the authorized levels aged under 40. | Core executives aged 40 and above (unless holding ex-officio youth portfolio), TESCON Patrons, Polling Station / Electoral Area executives. |
+| **Women Organiser** | 1. All **female** executives in the electoral college at **National**, **Regional**, and **Constituency** (including External Branch) levels.<br>2. All **TESCON Women Commissioners (WOCOM)**.<br>3. All **Female TESCON Presidents**. | All male executives, TESCON Patrons, Polling Station / Electoral Area executives. |
+| **Nasara Organiser** | 1. All **Nasara executives** across **National**, **Regional**, and **Constituency** (including External Branch) levels (substantive Nasara Coordinators / Organisers and Deputy Nasara Coordinators / Organisers).<br>2. All **TESCON Nasara Coordinators**. | Non-Nasara portfolio holders, TESCON Patrons, Polling Station / Electoral Area executives. |
 
 ---
 

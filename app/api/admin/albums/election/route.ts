@@ -408,7 +408,7 @@ export async function GET(req: NextRequest) {
         age,
         image_url
       FROM executives_all
-      WHERE lower(trim(executive_level)) IN ('national', 'region', 'regional', 'constituency', 'tescon')
+      WHERE lower(trim(executive_level)) IN ('national', 'region', 'regional', 'constituency', 'tescon', 'external branch')
       ORDER BY id
     `;
 
@@ -420,7 +420,8 @@ export async function GET(req: NextRequest) {
 
     // 3. Apply contest eligibility rules
     const contestFiltered = validRows.filter((r) => {
-      const lvl = String(r.executive_level || "").toLowerCase().trim();
+      const rawLvl = String(r.executive_level || "").toLowerCase().trim();
+      const lvl = rawLvl === "external branch" ? "constituency" : rawLvl;
       const pos = String(r.position || "").trim();
       const posLower = pos.toLowerCase();
       const g = String(r.gender || "").toLowerCase().trim();
