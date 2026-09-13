@@ -195,8 +195,31 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
   ],
   Region: [
     "Chairperson",
-    "1st Vice Chairperson",
-    "2nd Vice Chairperson",
+    "1st Vice-Chairperson",
+    "2nd Vice-Chairperson",
+    "Secretary",
+    "Deputy Secretary",
+    "Treasurer",
+    "Organiser",
+    "Women Organiser",
+    "Youth Organiser",
+    "Nasara Coordinator",
+    "Financial Secretary",
+    "Electoral Affairs Officer",
+    "Communication Officer",
+    "Research Officer",
+    "PWD Coordinator",
+    "Deputy Organiser",
+    "Deputy Women Organiser",
+    "Deputy Youth Organiser",
+    "Deputy Nasara Coordinator",
+    "Special Duties Officer",
+    "Legal Representative Officer",
+  ],
+  Constituency: [
+    "Chairperson",
+    "1st Vice-Chairperson",
+    "2nd Vice-Chairperson",
     "Secretary",
     "Deputy Secretary",
     "Treasurer",
@@ -208,34 +231,13 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Electoral Affairs Officer",
     "Communication Officer",
     "Research Officer",
-    "PWD",
+    "PWD Coordinator",
     "Deputy Organiser",
     "Deputy Women Organiser",
     "Deputy Youth Organiser",
     "Deputy Nasara Organiser",
     "Special Duties Officer",
     "Legal Representative Officer",
-  ],
-  Constituency: [
-    "Chairperson",
-    "1st Vice Chairperson",
-    "2nd Vice Chairperson",
-    "Secretary",
-    "Deputy Secretary",
-    "Treasurer",
-    "Organiser",
-    "Women Organiser",
-    "Youth Organiser",
-    "Nasara Organiser",
-    "Financial Secretary",
-    "Electoral Affairs Officer",
-    "Communication Officer",
-    "Research Officer",
-    "PWD",
-    "Deputy Organiser",
-    "Deputy Women Organiser",
-    "Deputy Youth Organiser",
-    "Deputy Nasara Organiser",
   ],
   "Electoral Area": [
     "Chairperson",
@@ -267,8 +269,8 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Deputy Women Organiser",
     "Youth Organiser",
     "Deputy Youth Organiser",
-    "Nasara Coordinator",
-    "Deputy Nasara Coordinator",
+    "Nasara Organiser",
+    "Deputy Nasara Organiser",
     "Communication Officer",
     "Electoral Affairs Officer",
     "Research Officer",
@@ -281,8 +283,24 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "WOCOM",
     "Nasara Coordinator",
     "Patron",
+    "Regional TESCON Coordinator",
   ],
 };
+
+POSITIONS_BY_LEVEL["Regional"] = POSITIONS_BY_LEVEL["Region"];
+
+function normalizeLevelKey(lvl?: string | null): string {
+  if (!lvl) return "Constituency";
+  const trimmed = lvl.trim();
+  if (/^region/i.test(trimmed)) return "Region";
+  if (/^national/i.test(trimmed)) return "National";
+  if (/^constituency/i.test(trimmed)) return "Constituency";
+  if (/^external/i.test(trimmed)) return "External Branch";
+  if (/^tescon/i.test(trimmed)) return "TESCON";
+  if (/^electoral/i.test(trimmed)) return "Electoral Area";
+  if (/^polling/i.test(trimmed)) return "Polling Station";
+  return trimmed;
+}
 
 const ALL_CANONICAL_POSITIONS = Array.from(
   new Set(Object.values(POSITIONS_BY_LEVEL).flat())
@@ -371,6 +389,8 @@ export default function NationalAdminDashboard() {
   const [editConstituencyList, setEditConstituencyList] = useState<string[]>([]);
   const [loadingEditConstituencies, setLoadingEditConstituencies] = useState(false);
   const [isEditCustomPosition, setIsEditCustomPosition] = useState(false);
+  const [editPositionList, setEditPositionList] = useState<string[]>([]);
+  const [loadingEditPositions, setLoadingEditPositions] = useState(false);
   const [addUploadingImage, setAddUploadingImage] = useState(false);
   const [addImageSuccess, setAddImageSuccess] = useState("");
   const [copiedPhotoUrl, setCopiedPhotoUrl] = useState(false);
@@ -425,6 +445,10 @@ export default function NationalAdminDashboard() {
   const [newExecImageUrl, setNewExecImageUrl] = useState<string | null>(null);
   const [newExecConstituencyList, setNewExecConstituencyList] = useState<string[]>([]);
   const [loadingNewExecConstituencies, setLoadingNewExecConstituencies] = useState(false);
+  const [addPositionList, setAddPositionList] = useState<string[]>(
+    POSITIONS_BY_LEVEL["Constituency"] || []
+  );
+  const [loadingAddPositions, setLoadingAddPositions] = useState(false);
   const [addExecHoneypot, setAddExecHoneypot] = useState("");
   const [exportCooldownSec, setExportCooldownSec] = useState(0);
 
@@ -495,6 +519,82 @@ export default function NationalAdminDashboard() {
       })
       .catch(() => {});
   }, [selectedLevel]);
+
+  // Helper to fetch and merge dynamic positions for a specific executive level
+  const fetchPositionsForLevel = useCallback(async (level: string): Promise<string[]> => {
+    const norm = normalizeLevelKey(level);
+    const fallback = POSITIONS_BY_LEVEL[norm] || POSITIONS_BY_LEVEL[level] || [];
+    try {
+      const params = new URLSearchParams();
+      params.set("level", level);
+      const res = await fetch(`/api/admin/positions?${params.toString()}`, {
+        credentials: "include",
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) return fallback;
+      const data = await res.json();
+      if (data.positions && Array.isArray(data.positions) && data.positions.length > 0) {
+        return Array.from(new Set([...fallback, ...data.positions]));
+      }
+      return fallback;
+    } catch {
+      return fallback;
+    }
+  }, []);
+
+  // Load positions for Add Executive modal when level changes
+  useEffect(() => {
+    if (!newExecLevel) return;
+    const norm = normalizeLevelKey(newExecLevel);
+    const initial = POSITIONS_BY_LEVEL[norm] || POSITIONS_BY_LEVEL[newExecLevel] || [];
+    setAddPositionList(initial);
+
+    let active = true;
+    setLoadingAddPositions(true);
+
+    fetchPositionsForLevel(newExecLevel)
+      .then((positions) => {
+        if (active && positions.length > 0) {
+          setAddPositionList(positions);
+        }
+      })
+      .finally(() => {
+        if (active) setLoadingAddPositions(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [newExecLevel, fetchPositionsForLevel]);
+
+  // Load positions for Edit Executive modal when level changes or modal opens
+  useEffect(() => {
+    if (!modalOpen || !activeExecutive?.executiveLevel) {
+      setEditPositionList([]);
+      return;
+    }
+    const level = activeExecutive.executiveLevel;
+    const norm = normalizeLevelKey(level);
+    const initial = POSITIONS_BY_LEVEL[norm] || POSITIONS_BY_LEVEL[level] || [];
+    setEditPositionList(initial);
+
+    let active = true;
+    setLoadingEditPositions(true);
+
+    fetchPositionsForLevel(level)
+      .then((positions) => {
+        if (active && positions.length > 0) {
+          setEditPositionList(positions);
+        }
+      })
+      .finally(() => {
+        if (active) setLoadingEditPositions(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [modalOpen, activeExecutive?.executiveLevel, fetchPositionsForLevel]);
 
   // Auth check & Overview data fetch
   useEffect(() => {
@@ -703,15 +803,27 @@ export default function NationalAdminDashboard() {
     if (field === "executiveLevel") {
       const isExt = value === "External Branch";
       const nextRegion = isExt ? "External Branch" : activeExecutive.region;
+      const normLevel = normalizeLevelKey(value);
+      const levelPositions = POSITIONS_BY_LEVEL[normLevel] || POSITIONS_BY_LEVEL[value] || [];
+
+      // If switching levels, update position to the new level's valid positions
+      let nextPos = activeExecutive.position;
+      if (!isEditCustomPosition) {
+        if (!levelPositions.includes(activeExecutive.position)) {
+          nextPos = levelPositions[0] || "";
+        }
+      }
+
       const { age, dob } = computeExecutiveAgeAndDob(
         activeExecutive.dateOfBirth,
-        activeExecutive.position,
+        nextPos,
         value,
         nextRegion
       );
       setActiveExecutive({
         ...activeExecutive,
         executiveLevel: value,
+        position: nextPos,
         region: nextRegion,
         dateOfBirth: dob,
         age: age !== null ? age : activeExecutive.age,
@@ -722,9 +834,16 @@ export default function NationalAdminDashboard() {
     if (field === "region") {
       const isExt = value === "External Branch";
       const nextLevel = isExt ? "External Branch" : activeExecutive.executiveLevel;
+      let nextPos = activeExecutive.position;
+      if (isExt && !isEditCustomPosition) {
+        const extPositions = POSITIONS_BY_LEVEL["External Branch"] || [];
+        if (!extPositions.includes(activeExecutive.position)) {
+          nextPos = extPositions[0] || "";
+        }
+      }
       const { age, dob } = computeExecutiveAgeAndDob(
         activeExecutive.dateOfBirth,
-        activeExecutive.position,
+        nextPos,
         nextLevel,
         value
       );
@@ -732,6 +851,7 @@ export default function NationalAdminDashboard() {
         ...activeExecutive,
         region: value,
         executiveLevel: nextLevel,
+        position: nextPos,
         dateOfBirth: dob,
         age: age !== null ? age : activeExecutive.age,
       });
@@ -1950,6 +2070,20 @@ export default function NationalAdminDashboard() {
                   setAddError("");
                   setAddSuccess("");
                   setVoterSearchStatus(null);
+                  if (selectedLevel && selectedLevel !== "All") {
+                    const norm = normalizeLevelKey(selectedLevel);
+                    if (POSITIONS_BY_LEVEL[norm]) {
+                      setNewExecLevel(norm);
+                      if (!isCustomPosition) {
+                        const validPositions = POSITIONS_BY_LEVEL[norm] || [];
+                        setNewExecPosition(validPositions[0] || "");
+                      }
+                    }
+                  } else if (!newExecPosition && !isCustomPosition) {
+                    const norm = normalizeLevelKey(newExecLevel);
+                    const validPositions = POSITIONS_BY_LEVEL[norm] || POSITIONS_BY_LEVEL[newExecLevel] || [];
+                    setNewExecPosition(validPositions[0] || "");
+                  }
                 }}
                 style={{
                   display: "inline-flex",
@@ -3269,13 +3403,51 @@ export default function NationalAdminDashboard() {
                       </div>
 
                       <div>
+                        <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
+                          Executive Level *
+                        </label>
+                        <select
+                          value={activeExecutive.executiveLevel || ""}
+                          onChange={(e) => handleFieldChange("executiveLevel", e.target.value)}
+                          style={{
+                            width: "100%",
+                            padding: "9px 12px",
+                            borderRadius: "6px",
+                            background: "rgba(2, 6, 23, 0.8)",
+                            border: "1px solid rgba(255, 255, 255, 0.15)",
+                            color: "#ffffff",
+                            fontSize: "13px",
+                            boxSizing: "border-box",
+                          }}
+                        >
+                          <option value="National">National Level</option>
+                          <option value="Region">Regional Level</option>
+                          <option value="Constituency">Constituency Level</option>
+                          <option value="External Branch">External Branch Level</option>
+                          <option value="Electoral Area">Electoral Area Level</option>
+                          <option value="Polling Station">Polling Station Level</option>
+                          <option value="TESCON">TESCON Level</option>
+                        </select>
+                      </div>
+
+                      <div>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
                           <label style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: "600" }}>
-                            Position / Role *
+                            Position / Role ({activeExecutive.executiveLevel || "Executive"}) *
                           </label>
                           <button
                             type="button"
-                            onClick={() => setIsEditCustomPosition(!isEditCustomPosition)}
+                            onClick={() => {
+                              const nextState = !isEditCustomPosition;
+                              setIsEditCustomPosition(nextState);
+                              if (!nextState) {
+                                const norm = normalizeLevelKey(activeExecutive.executiveLevel);
+                                const valid = editPositionList.length > 0 ? editPositionList : (POSITIONS_BY_LEVEL[norm] || []);
+                                if (!valid.includes(activeExecutive.position || "")) {
+                                  handleFieldChange("position", valid[0] || "");
+                                }
+                              }
+                            }}
                             style={{
                               background: "none",
                               border: "none",
@@ -3330,45 +3502,21 @@ export default function NationalAdminDashboard() {
                               boxSizing: "border-box",
                             }}
                           >
-                            <option value="">-- Select {activeExecutive.executiveLevel || "Executive"} Position --</option>
+                            <option value="">
+                              {loadingEditPositions
+                                ? `Loading ${activeExecutive.executiveLevel || "Executive"} Positions…`
+                                : `-- Select ${activeExecutive.executiveLevel || "Executive"} Position --`}
+                            </option>
                             {activeExecutive.position &&
-                              !(POSITIONS_BY_LEVEL[activeExecutive.executiveLevel] || []).includes(activeExecutive.position) && (
+                              !editPositionList.includes(activeExecutive.position) && (
                                 <option value={activeExecutive.position}>{activeExecutive.position}</option>
                               )}
-                            {(POSITIONS_BY_LEVEL[activeExecutive.executiveLevel] || []).map((pos) => (
+                            {editPositionList.map((pos) => (
                               <option key={pos} value={pos}>{pos}</option>
                             ))}
                             <option value="__custom__">+ Other / Custom position…</option>
                           </select>
                         )}
-                      </div>
-
-                      <div>
-                        <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                          Executive Level *
-                        </label>
-                        <select
-                          value={activeExecutive.executiveLevel || ""}
-                          onChange={(e) => handleFieldChange("executiveLevel", e.target.value)}
-                          style={{
-                            width: "100%",
-                            padding: "9px 12px",
-                            borderRadius: "6px",
-                            background: "rgba(2, 6, 23, 0.8)",
-                            border: "1px solid rgba(255, 255, 255, 0.15)",
-                            color: "#ffffff",
-                            fontSize: "13px",
-                            boxSizing: "border-box",
-                          }}
-                        >
-                          <option value="National">National Level</option>
-                          <option value="Region">Regional Level</option>
-                          <option value="Constituency">Constituency Level</option>
-                          <option value="External Branch">External Branch Level</option>
-                          <option value="Electoral Area">Electoral Area Level</option>
-                          <option value="Polling Station">Polling Station Level</option>
-                          <option value="TESCON">TESCON Level</option>
-                        </select>
                       </div>
 
                       <div>
@@ -4698,16 +4846,19 @@ export default function NationalAdminDashboard() {
                         if (newLevel === "External Branch") {
                           setNewExecRegion("External Branch");
                         }
+                        const norm = normalizeLevelKey(newLevel);
+                        const validPositions = POSITIONS_BY_LEVEL[norm] || POSITIONS_BY_LEVEL[newLevel] || [];
+                        let nextPos = newExecPosition;
+                        if (!isCustomPosition) {
+                          if (!validPositions.includes(newExecPosition)) {
+                            nextPos = validPositions[0] || "";
+                            handleAddPositionChange(nextPos);
+                          }
+                        }
                         if (newExecDob) {
-                          const { age, dob } = computeExecutiveAgeAndDob(newExecDob, newExecPosition, newLevel, effectiveRegion);
+                          const { age, dob } = computeExecutiveAgeAndDob(newExecDob, nextPos, newLevel, effectiveRegion);
                           setNewExecDob(dob);
                           if (age !== null) setNewExecAge(String(age));
-                        }
-                        if (!isCustomPosition) {
-                          const validPositions = POSITIONS_BY_LEVEL[newLevel] || [];
-                          if (!validPositions.includes(newExecPosition)) {
-                            handleAddPositionChange(validPositions[0] || "");
-                          }
                         }
                       }}
                       style={{
@@ -4742,7 +4893,8 @@ export default function NationalAdminDashboard() {
                           const nextState = !isCustomPosition;
                           setIsCustomPosition(nextState);
                           if (!nextState) {
-                            const validPositions = POSITIONS_BY_LEVEL[newExecLevel] || [];
+                            const norm = normalizeLevelKey(newExecLevel);
+                            const validPositions = addPositionList.length > 0 ? addPositionList : (POSITIONS_BY_LEVEL[norm] || []);
                             handleAddPositionChange(validPositions[0] || "");
                           }
                         }}
@@ -4801,8 +4953,16 @@ export default function NationalAdminDashboard() {
                           boxSizing: "border-box",
                         }}
                       >
-                        <option value="">-- Select {newExecLevel} Position --</option>
-                        {(POSITIONS_BY_LEVEL[newExecLevel] || []).map((pos) => (
+                        <option value="">
+                          {loadingAddPositions
+                            ? `Loading ${newExecLevel} Positions…`
+                            : `-- Select ${newExecLevel} Position --`}
+                        </option>
+                        {newExecPosition &&
+                          !addPositionList.includes(newExecPosition) && (
+                            <option value={newExecPosition}>{newExecPosition}</option>
+                          )}
+                        {addPositionList.map((pos) => (
                           <option key={pos} value={pos}>
                             {pos}
                           </option>
