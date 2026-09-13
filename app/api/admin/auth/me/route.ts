@@ -1,20 +1,30 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedAdmin } from "@/lib/admin-auth";
+import { validateAdminSession, clearSessionCookie } from "@/lib/admin-auth";
 
 export async function GET(req: Request) {
   try {
-    const session = await getAuthenticatedAdmin(req);
-    if (!session) {
-      return NextResponse.json(
-        { authenticated: false, error: "Unauthorized" },
+    const result = await validateAdminSession(req);
+    if (!result.authenticated) {
+      const response = NextResponse.json(
+        {
+          authenticated: false,
+          error: result.error,
+          reason: result.reason,
+          code: result.reason === "expired" ? "SESSION_EXPIRED" : "UNAUTHORIZED",
+          expired: result.reason === "expired",
+        },
         { status: 401 }
       );
+      if (result.reason === "expired" || result.reason === "revoked") {
+        response.headers.set("Set-Cookie", clearSessionCookie());
+      }
+      return response;
     }
 
     return NextResponse.json({
       authenticated: true,
-      user: session.user,
-      expiresAt: session.expiresAt,
+      user: result.session.user,
+      expiresAt: result.session.expiresAt.toISOString(),
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.stack || err.message : String(err);

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AdminShell } from '@/app/admin/components/AdminShell';
 import { getClientHeaders } from '@/lib/client-device';
+import { logoutAndRedirect } from '@/lib/client-session';
 import type { VotingReport, Electorate } from '@/lib/voting-rules';
 import { getPositionRank } from '@/lib/position-matcher';
 
@@ -15,7 +16,15 @@ export default function VotingPage() {
   const [view,setView]=useState<'regional'|'constituency'>('regional');
   const [page,setPage]=useState(1);
   useEffect(()=>{let active=true;fetch('/api/admin/voting',{credentials:'include',headers:getClientHeaders()})
-    .then(async r=>{if(!r.ok)throw new Error(r.status===401?'Please sign in as an administrator.':'Could not load voting data.');return r.json();})
+    .then(async r=>{
+      if(!r.ok){
+        if (r.status === 401) {
+          logoutAndRedirect("expired");
+        }
+        throw new Error(r.status===401?'Please sign in as an administrator.':'Could not load voting data.');
+      }
+      return r.json();
+    })
     .then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[]);
   const cell={padding:'12px',textAlign:'left' as const,borderBottom:'1px solid #334155'};
   const control={padding:'10px',background:'#17243b',color:'#fff',border:'1px solid #64748b',borderRadius:6,fontSize:14};

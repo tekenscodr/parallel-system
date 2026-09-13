@@ -1,28 +1,17 @@
 import fs from "fs";
 import path from "path";
-import crypto from "crypto";
 import sharp from "sharp";
 import ExcelJS from "exceljs";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { canAccessAlbums } from "@/lib/album-access";
+import { resolveAlbumImage } from "@/lib/album-images";
+import { ALBUM_PRINT_SCRIPT } from "@/lib/album-print";
 import { withEcSql } from "@/lib/db-ec";
 
 export const dynamic = "force-dynamic";
 
 import { CONTEST_LIST, type ContestType } from "@/lib/election-contests";
-
-const CACHE_DIR = path.join(process.cwd(), ".cache", "albums", "webp");
-try {
-  if (!fs.existsSync(CACHE_DIR)) {
-    fs.mkdirSync(CACHE_DIR, { recursive: true });
-  }
-} catch {
-  // Ignore
-}
-
-// In-memory cache for converted WebP Base64 Data URIs
-const webpMemoryCache = new Map<string, string>();
 
 // Pre-indexed WebP photos from Ahafo album (voter_id and executive_name)
 const ahafoPhotosByVoterId = new Map<string, string>();
@@ -218,151 +207,34 @@ async function resolveDelegateWebpImage(
   voterId?: string | null,
   name?: string | null
 ): Promise<string | null> {
-  // 1. Check Ahafo pre-converted index
+  const candidates: string[] = [];
   if (voterId && voterId !== "—") {
     const cachedByVoterId = ahafoPhotosByVoterId.get(voterId.trim());
-    if (cachedByVoterId) return cachedByVoterId;
+    if (cachedByVoterId) candidates.push(cachedByVoterId);
   }
   if (name) {
     const cleanName = name.trim().toUpperCase();
     const cachedByName = ahafoPhotosByName.get(cleanName);
-    if (cachedByName) return cachedByName;
+    if (cachedByName) candidates.push(cachedByName);
   }
-
-  if (!imageUrl || imageUrl.trim().length < 5) {
-    return null;
+  if (imageUrl) candidates.push(imageUrl);
+  // Validate embedded portraits too, and try the source if an old portrait is corrupt.
+  for (const candidate of new Set(candidates)) {
+    const buffer = await resolveAlbumImage(candidate);
+    if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
   }
-
-  const cleanUrl = imageUrl.trim();
-
-  // 2. In-memory cache
-  if (webpMemoryCache.has(cleanUrl)) {
-    return webpMemoryCache.get(cleanUrl)!;
-  }
-
-  // 3. Already WebP Data URI
-  if (cleanUrl.startsWith("data:image/webp;base64,")) {
-    webpMemoryCache.set(cleanUrl, cleanUrl);
-    return cleanUrl;
-  }
-
-  // 4. Other Base64 Data URI (e.g. data:image/jpeg or png)
-  if (cleanUrl.startsWith("data:image/")) {
-    try {
-      const commaIdx = cleanUrl.indexOf(",");
-      if (commaIdx !== -1) {
-        const inputBuf = Buffer.from(cleanUrl.slice(commaIdx + 1), "base64");
-        const webpBuf = await sharp(inputBuf)
-          .resize(240, 300, { fit: "cover", position: "top", withoutEnlargement: false })
-          .webp({ quality: 80, effort: 4 })
-          .toBuffer();
-        const uri = "data:image/webp;base64," + webpBuf.toString("base64");
-        webpMemoryCache.set(cleanUrl, uri);
-        return uri;
-      }
-    } catch (err) {
-      console.error("Base64 webp conversion error:", err);
-      return null;
-    }
-  }
-
-  // 5. Check Disk Cache via SHA256
-  const hash = crypto
-    .createHash("sha256")
-    .update(`${cleanUrl}_240_300_80`)
-    .digest("hex");
-  const diskCachePath = path.join(CACHE_DIR, `${hash}.webp`);
-
-  if (fs.existsSync(diskCachePath)) {
-    try {
-      const cachedBuf = fs.readFileSync(diskCachePath);
-      const uri = "data:image/webp;base64," + cachedBuf.toString("base64");
-      webpMemoryCache.set(cleanUrl, uri);
-      return uri;
-    } catch {
-      // fallback to reprocessing
-    }
-  }
-
-  // 6. Source Buffer Resolution (Local vs Remote)
-  let inputBuffer: Buffer | null = null;
-
-  if (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
-    try {
-      const res = await fetch(cleanUrl, {
-        signal: controller.signal,
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-          Accept: "image/webp,image/apng,image/*,*/*;q=0.8",
-        },
-      });
-      clearTimeout(timeoutId);
-      if (res.ok) {
-        const ab = await res.arrayBuffer();
-        inputBuffer = Buffer.from(ab);
-      }
-    } catch {
-      clearTimeout(timeoutId);
-    }
-  } else {
-    // Local file path
-    const localPath = cleanUrl.startsWith("/")
-      ? path.join(process.cwd(), "public", cleanUrl.replace(/^\//, ""))
-      : path.join(process.cwd(), cleanUrl);
-
-    if (fs.existsSync(localPath)) {
-      try {
-        inputBuffer = fs.readFileSync(localPath);
-      } catch {
-        inputBuffer = null;
-      }
-    }
-  }
-
-  if (!inputBuffer || inputBuffer.length < 100) {
-    return null;
-  }
-
-  // 7. Convert Source to WebP using Sharp
-  try {
-    const webpBuf = await sharp(inputBuffer)
-      .resize(240, 300, {
-        fit: "cover",
-        position: "top",
-        withoutEnlargement: false,
-      })
-      .webp({
-        quality: 80,
-        effort: 4,
-      })
-      .toBuffer();
-
-    // Save to disk cache
-    try {
-      fs.writeFileSync(diskCachePath, webpBuf);
-    } catch {
-      // Non-fatal
-    }
-
-    const uri = "data:image/webp;base64," + webpBuf.toString("base64");
-    webpMemoryCache.set(cleanUrl, uri);
-    return uri;
-  } catch (err) {
-    console.error("WebP conversion error for:", cleanUrl, err);
-    return null;
-  }
+  return null;
 }
 
 async function convertDelegatesImagesToWebp(delegates: any[]): Promise<void> {
-  const chunkSize = 25;
+  const chunkSize = 8;
   for (let i = 0; i < delegates.length; i += chunkSize) {
     const chunk = delegates.slice(i, i + chunkSize);
     await Promise.all(
       chunk.map(async (d) => {
         const webpUri = await resolveDelegateWebpImage(d.image_url, d.voter_id, d.executive_name);
         d.webp_base64 = webpUri || d.avatar_svg;
+        d.photo_unavailable = !webpUri;
       })
     );
   }
@@ -1047,7 +919,7 @@ function generateAlbumHtml(
             </div>
           </div>
           <div class="card-photo">
-            <img class="voter-img" src="${photoSrc}" alt="${d.executive_name}" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='${d.avatar_svg}';" />
+            <img class="voter-img" src="${photoSrc}" alt="${d.executive_name}" loading="eager" decoding="sync" data-fallback="${d.avatar_svg}" onerror="this.onerror=null; this.src='${d.avatar_svg}';" />
           </div>
         </div>
       `;
@@ -1376,7 +1248,8 @@ function generateAlbumHtml(
 
   <div class="web-nav no-print">
     <span>NPP · ${contest.toUpperCase()} PROVISIONAL ELECTION ALBUM (${totalPages} PAGES · ${delegates.length} VOTERS)</span>
-    <button class="print-btn" onclick="window.print()">PRINT / SAVE AS PDF</button>
+    <button id="album-print" class="print-btn" disabled onclick="window.printAlbum()">PREPARING IMAGES…</button>
+    ${delegates.some((d) => d.photo_unavailable) ? `<span role="status">${delegates.filter((d) => d.photo_unavailable).length} portrait(s) unavailable; initials shown. Reload to retry unavailable photos.</span>` : ""}
   </div>
 
   <!-- PAGE 1: COVER (Ahafo Master Cover Design Reverted) -->
@@ -1559,6 +1432,7 @@ function generateAlbumHtml(
     </footer>
   </div>
 
+<script>${ALBUM_PRINT_SCRIPT}</script>
 </body>
 </html>`;
 }

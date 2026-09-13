@@ -91,9 +91,13 @@ export function parseCookies(cookieHeader: string | null): Record<string, string
   return cookies;
 }
 
-export async function getAuthenticatedAdmin(
+export type AuthValidationResult =
+  | { authenticated: true; session: AdminSession }
+  | { authenticated: false; reason: "expired" | "revoked" | "not_found" | "inactive" | "forbidden"; error: string };
+
+export async function validateAdminSession(
   req: Request
-): Promise<AdminSession | null> {
+): Promise<AuthValidationResult> {
   const cookieHeader = req.headers.get("cookie");
   const cookies = parseCookies(cookieHeader);
   const authHeader = req.headers.get("authorization");
@@ -104,7 +108,7 @@ export async function getAuthenticatedAdmin(
   }
 
   if (!rawToken) {
-    return null;
+    return { authenticated: false, reason: "not_found", error: "No session token provided" };
   }
 
   const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
@@ -123,26 +127,34 @@ export async function getAuthenticatedAdmin(
         COALESCE(u."passwordChanged", false) as "passwordChanged",
         u."passwordChangedAt" as "passwordChangedAt"
       FROM "Session" s
-      INNER JOIN "User" u ON u.id = s."userId"
+      LEFT JOIN "User" u ON u.id = s."userId"
       WHERE s."tokenHash" = ${tokenHash}
-        AND s."expiresAt" > NOW()
-        AND s."revokedAt" IS NULL
       LIMIT 1
     `;
 
     if (rows.length === 0) {
-      return null;
+      return { authenticated: false, reason: "not_found", error: "Session not found" };
     }
 
     const row = rows[0];
 
-    if (row.status !== "ACTIVE") {
-      return null;
+    if (row.revokedAt) {
+      return { authenticated: false, reason: "revoked", error: "Session has been revoked" };
+    }
+
+    if (new Date(row.expiresAt).getTime() <= Date.now()) {
+      // Mark session revoked in database upon detecting expiration
+      await sql`UPDATE "Session" SET "revokedAt" = NOW() WHERE id = ${row.sessionId}`;
+      return { authenticated: false, reason: "expired", error: "Session token has expired" };
+    }
+
+    if (!row.userId || row.status !== "ACTIVE") {
+      return { authenticated: false, reason: "inactive", error: "User account is suspended or inactive" };
     }
 
     const roleUpper = String(row.role).toUpperCase();
     if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN" && roleUpper !== "NATIONAL") {
-      return null;
+      return { authenticated: false, reason: "forbidden", error: "Insufficient privileges" };
     }
 
     // Extract real IP and update lastSeenAt + ipAddress cleanly in the same connection context
@@ -154,19 +166,29 @@ export async function getAuthenticatedAdmin(
     }
 
     return {
-      sessionId: row.sessionId,
-      expiresAt: new Date(row.expiresAt),
-      user: {
-        id: row.userId,
-        email: row.email,
-        name: row.name,
-        role: row.role,
-        status: row.status,
-        passwordChanged: Boolean(row.passwordChanged),
-        passwordChangedAt: row.passwordChangedAt ? new Date(row.passwordChangedAt).toISOString() : null,
+      authenticated: true,
+      session: {
+        sessionId: row.sessionId,
+        expiresAt: new Date(row.expiresAt),
+        user: {
+          id: row.userId,
+          email: row.email,
+          name: row.name,
+          role: row.role,
+          status: row.status,
+          passwordChanged: Boolean(row.passwordChanged),
+          passwordChangedAt: row.passwordChangedAt ? new Date(row.passwordChangedAt).toISOString() : null,
+        },
       },
     };
   });
+}
+
+export async function getAuthenticatedAdmin(
+  req: Request
+): Promise<AdminSession | null> {
+  const result = await validateAdminSession(req);
+  return result.authenticated ? result.session : null;
 }
 
 export function isAdminNational(user: AdminUser | { role: string } | null | undefined): boolean {

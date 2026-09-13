@@ -22,6 +22,7 @@ import {
   Laptop,
 } from "lucide-react";
 import { getClientHeaders } from "@/lib/client-device";
+import { logoutAndRedirect } from "@/lib/client-session";
 
 interface AuditEvent {
   id: string;
@@ -85,7 +86,7 @@ export default function AuditLogsPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data || !data.authenticated) {
-          router.push("/admin/login");
+          logoutAndRedirect("expired");
           return;
         }
         const roleUpper = String(data.user?.role || "").toUpperCase();
@@ -100,7 +101,7 @@ export default function AuditLogsPage() {
         setLoadingUser(false);
       })
       .catch(() => {
-        router.push("/admin/login");
+        logoutAndRedirect("expired");
       });
   }, [router]);
 

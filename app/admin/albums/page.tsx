@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Download, ExternalLink, FileText, LoaderCircle, Minus, Plus, Printer, Search, ShieldCheck, Table2, Users } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
+import { logoutAndRedirect } from "@/lib/client-session";
+import type { AlbumPrintWindow } from "@/lib/album-print";
 import { useAlbumUser } from "./session";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +71,8 @@ export default function PositionAlbumsPage() {
   const [level, setLevel] = useState("all");
   const [page, setPage] = useState(1);
   const [previewReady, setPreviewReady] = useState("");
+  const [previewFailure, setPreviewFailure] = useState("");
+  const [printRequest, setPrintRequest] = useState("");
   const iframe = useRef<HTMLIFrameElement>(null);
 
   const isWingContest =
@@ -91,6 +95,9 @@ export default function PositionAlbumsPage() {
     fetch(`/api/admin/albums/election?${requestKey}&format=json`, { signal: controller.signal, cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) {
+          if (response.status === 401) {
+            logoutAndRedirect("expired");
+          }
           const body = await response.json().catch(() => ({}));
           throw new Error(body.error || "Unable to load the album. Please try again.");
         }
@@ -123,13 +130,26 @@ export default function PositionAlbumsPage() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  const handlePrintPdf = () => {
-    if (tab !== "preview") {
-      setTab("preview");
+  const handlePreviewLoad = async (frame: HTMLIFrameElement) => {
+    const albumWindow = frame.contentWindow as AlbumPrintWindow | null;
+    const ready = await albumWindow?.albumReady;
+    if (iframe.current !== frame) return;
+    if (ready) setPreviewReady(previewUrl);
+    else setPreviewFailure(previewUrl);
+  };
+
+  useEffect(() => {
+    if (printRequest !== previewUrl || previewReady !== previewUrl) return;
+    const albumWindow = iframe.current?.contentWindow as AlbumPrintWindow | null;
+    if (albumWindow?.document.documentElement.dataset.albumReady === "true") {
+      void albumWindow.printAlbum?.();
+      setPrintRequest("");
     }
-    setTimeout(() => {
-      iframe.current?.contentWindow?.print();
-    }, 250);
+  }, [printRequest, previewReady, previewUrl, tab]);
+
+  const handlePrintPdf = () => {
+    setTab("preview");
+    setPrintRequest(previewUrl);
   };
 
   return (
@@ -148,7 +168,7 @@ export default function PositionAlbumsPage() {
               </a>
             </Button>
             <Button variant="outline" disabled={!data} onClick={exportJson}><Download className="size-4" /> Export JSON</Button>
-            <Button disabled={!data || !delegates.length} onClick={handlePrintPdf}><Printer className="size-4" /> Print / Save PDF</Button>
+            <Button disabled={!data || !delegates.length || printRequest === previewUrl || previewFailure === previewUrl} onClick={handlePrintPdf}><Printer className="size-4" /> {printRequest === previewUrl && previewFailure !== previewUrl ? "Preparing images…" : "Print / Save PDF"}</Button>
           </div>
         </div>
 
@@ -223,7 +243,7 @@ export default function PositionAlbumsPage() {
           {loading ? <Card><CardContent className="flex min-h-72 flex-col items-center justify-center gap-3 pt-6" role="status"><LoaderCircle className="size-6 animate-spin text-muted-foreground" /><p className="text-sm text-muted-foreground">Preparing your electoral roll…</p></CardContent></Card>
             : error ? <Card><CardContent className="space-y-3 pt-6" role="alert"><p className="font-medium">Album could not be loaded</p><p className="text-sm text-muted-foreground">{error}</p><Button variant="outline" onClick={() => setRetry((value) => value + 1)}>Try again</Button></CardContent></Card>
             : <>
-              <TabsContent value="preview">
+              <TabsContent value="preview" forceMount className="data-[state=inactive]:hidden">
                 <Card className="overflow-hidden">
                   <CardHeader className="flex flex-col justify-between gap-4 border-b lg:flex-row lg:items-center">
                     <div className="space-y-1.5"><CardTitle>{contest} {isWingContest && effectiveScope === "organisers_only" ? "directory" : "election roll"}</CardTitle><CardDescription>Provisional publication · A4 portrait</CardDescription></div>
@@ -241,7 +261,8 @@ export default function PositionAlbumsPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="overflow-auto bg-muted/30 p-4 sm:p-6">
-                    {delegates.length ? <iframe key={previewUrl} ref={iframe} title={`${contest} election album preview`} src={previewUrl} onLoad={() => setPreviewReady(previewUrl)} className="mx-auto h-[800px] min-w-[320px] border bg-white shadow-sm" style={{ width: `${zoom}%` }} /> : <div className="py-24 text-center text-sm text-muted-foreground">No eligible delegates in this selection. Choose another portfolio or region.</div>}
+                    {previewFailure === previewUrl && <div role="alert" className="mb-4 space-y-2"><p>The album or its images could not be loaded. Reload before printing.</p><Button variant="outline" onClick={() => setRetry((value) => value + 1)}>Reload album</Button></div>}
+                    {delegates.length ? <iframe key={previewUrl} ref={iframe} title={`${contest} election album preview`} src={previewUrl} onLoad={(event) => void handlePreviewLoad(event.currentTarget)} className="mx-auto h-[800px] min-w-[320px] border bg-white shadow-sm" style={{ width: `${zoom}%` }} /> : <div className="py-24 text-center text-sm text-muted-foreground">No eligible delegates in this selection. Choose another portfolio or region.</div>}
                   </CardContent>
                 </Card>
               </TabsContent>

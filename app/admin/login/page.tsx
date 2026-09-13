@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Landmark, AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Landmark, AlertCircle, ArrowRight, Eye, EyeOff, Clock } from "lucide-react";
 import { initClientIpDetection, getClientHeaders } from "@/lib/client-device";
 import { checkClientRateLimit } from "@/lib/client-rate-limit";
+import { saveClientSession, clearClientSession } from "@/lib/client-session";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -13,9 +14,22 @@ export default function AdminLoginPage() {
   const [mountTime] = useState(() => Date.now());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     initClientIpDetection().catch(() => {});
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const reason = params.get("reason");
+      const expired = params.get("expired");
+      if (reason === "expired" || expired === "1") {
+        setNotice("Your session token has expired. You have been logged out. Please sign in again to continue.");
+        clearClientSession();
+      } else if (reason === "unauthorized") {
+        setNotice("Access unauthorized. Please sign in with appropriate credentials.");
+        clearClientSession();
+      }
+    }
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -60,10 +74,7 @@ export default function AdminLoginPage() {
       }
 
       if (data.token) {
-        localStorage.setItem("admin_session_token", data.token);
-        if (data.user?.role) {
-          localStorage.setItem("admin_user_role", String(data.user.role).toUpperCase());
-        }
+        saveClientSession(data.token, data.expiresAt, data.user?.role);
         document.cookie = `admin_session=${data.token}; path=/; max-age=86400; SameSite=Lax`;
       }
 
@@ -161,6 +172,27 @@ export default function AdminLoginPage() {
             ec-data PostgreSQL Backend
           </div>
         </div>
+
+        {notice && (
+          <div
+            style={{
+              padding: "12px 14px",
+              background: "rgba(234, 179, 8, 0.15)",
+              border: "1px solid rgba(234, 179, 8, 0.35)",
+              borderRadius: "8px",
+              color: "#facc15",
+              fontSize: "13px",
+              marginBottom: "20px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              lineHeight: 1.4,
+            }}
+          >
+            <Clock size={18} style={{ flexShrink: 0 }} />
+            <span>{notice}</span>
+          </div>
+        )}
 
         {error && (
           <div

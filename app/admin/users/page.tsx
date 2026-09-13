@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 import { getClientHeaders } from "@/lib/client-device";
+import { logoutAndRedirect } from "@/lib/client-session";
 import {
   Users,
   UserPlus,
@@ -137,7 +138,7 @@ export default function UsersManagementPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data || !data.authenticated) {
-          router.push("/admin/login");
+          logoutAndRedirect("expired");
           return;
         }
         const roleUpper = String(data.user?.role || "").toUpperCase();
@@ -153,7 +154,7 @@ export default function UsersManagementPage() {
         setLoadingUser(false);
       })
       .catch(() => {
-        router.push("/admin/login");
+        logoutAndRedirect("expired");
       });
   }, [router]);
 

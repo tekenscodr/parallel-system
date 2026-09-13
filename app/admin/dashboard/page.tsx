@@ -54,6 +54,7 @@ import { checkClientRateLimit } from "@/lib/client-rate-limit";
 import { getPositionRank } from "@/lib/position-matcher";
 import { getConstituenciesForRegion } from "@/lib/constituency-normalizer";
 import { computeExecutiveAgeAndDob } from "@/lib/voting-rules";
+import { logoutAndRedirect, saveClientSession, SESSION_TOKEN_KEY } from "@/lib/client-session";
 
 type OverviewData = {
   totals: {
@@ -504,23 +505,26 @@ export default function NationalAdminDashboard() {
     })
       .then((res) => {
         if (!res.ok) {
-          setAuthError("Session expired or unauthorized. Please login.");
+          logoutAndRedirect("expired");
           return null;
         }
         return res.json();
       })
       .then((data) => {
         if (!data || !data.authenticated) {
-          setAuthError("Session expired or unauthorized. Please login.");
+          logoutAndRedirect("expired");
           return;
         }
         setCurrentUser(data.user);
+        if (data.expiresAt && typeof window !== "undefined") {
+          saveClientSession(localStorage.getItem(SESSION_TOKEN_KEY) || "", data.expiresAt, data.user?.role);
+        }
         if (typeof window !== "undefined" && data.user?.role) {
           localStorage.setItem("admin_user_role", String(data.user.role).toUpperCase());
         }
       })
-      .catch((err: unknown) => {
-        setAuthError(err instanceof Error ? err.message : "Authentication error");
+      .catch(() => {
+        logoutAndRedirect("expired");
       });
   }, []);
 
@@ -1333,6 +1337,9 @@ export default function NationalAdminDashboard() {
   };
 
   if (authError && !currentUser) {
+    if (typeof window !== "undefined") {
+      logoutAndRedirect("expired");
+    }
     return (
       <div style={{
         minHeight: "100vh",

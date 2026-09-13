@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { initClientIpDetection } from "@/lib/client-device";
 import { canAccessAlbums } from "@/lib/album-access";
+import { useSessionGuard, logoutAndRedirect } from "@/lib/client-session";
 
 interface AdminUser {
   id: string;
@@ -51,6 +52,10 @@ export function AdminShell({
 }: AdminShellProps) {
   const pathname = usePathname();
   const router = useRouter();
+
+  // Monitor token expiration & auto-logout when expired
+  useSessionGuard();
+
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window !== "undefined") {
       try {
@@ -268,15 +273,7 @@ export function AdminShell({
       onLogout();
       return;
     }
-    try {
-      await fetch("/api/admin/auth/logout", { method: "POST", credentials: "include" });
-      localStorage.removeItem("admin_token");
-      localStorage.removeItem("admin_session_token");
-      localStorage.removeItem("admin_user_role");
-      router.push("/admin/login");
-    } catch {
-      router.push("/admin/login");
-    }
+    await logoutAndRedirect("user_logout");
   };
 
   return (

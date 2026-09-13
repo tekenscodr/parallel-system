@@ -90,6 +90,7 @@ export async function POST(req: Request) {
     const response = NextResponse.json({
       success: true,
       token,
+      expiresAt: expiresAt.toISOString(),
       user: {
         id: user.id,
         email: user.email,

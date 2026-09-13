@@ -11,6 +11,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { getClientHeaders } from "@/lib/client-device";
+import { logoutAndRedirect } from "@/lib/client-session";
 
 export default function AdminChangePasswordPage() {
   const [email, setEmail] = useState("");
@@ -35,14 +36,14 @@ export default function AdminChangePasswordPage() {
     })
       .then((res) => {
         if (!res.ok) {
-          window.location.href = "/admin/login";
+          logoutAndRedirect("expired");
           return null;
         }
         return res.json();
       })
       .then((data) => {
         if (!data || !data.authenticated) {
-          window.location.href = "/admin/login";
+          logoutAndRedirect("expired");
           return;
         }
 
