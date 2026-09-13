@@ -974,19 +974,26 @@ function generateAlbumHtml(
     }
     .no-print { display: flex; }
     @media print {
-      body { background: transparent; }
+      html, body {
+        background: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 210mm !important;
+        height: 100% !important;
+      }
       .no-print { display: none !important; }
       .album-page {
         margin: 0 !important;
         box-shadow: none !important;
         width: 210mm !important;
-        /* Leave room for print-engine sub-pixel rounding at the A4 boundary. */
         height: 296mm !important;
         max-height: 296mm !important;
         page-break-after: always !important;
         break-after: page !important;
         page-break-inside: avoid !important;
-        break-inside: avoid-page !important;
+        break-inside: avoid !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
       }
       .album-page:last-child { page-break-after: auto !important; break-after: auto !important; }
     }
@@ -1003,25 +1010,28 @@ function generateAlbumHtml(
     }
     .album-page {
       width: 210mm; height: 297mm; max-height: 297mm;
-      margin: 15px auto; padding: 8mm 10mm 6mm 10mm;
+      margin: 15px auto; padding: 7mm 10mm 5mm 10mm;
       background: #FFFFFF; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
       position: relative; display: flex; flex-direction: column; justify-content: space-between;
-      overflow: hidden;
+      overflow: hidden; box-sizing: border-box;
+      page-break-inside: avoid; break-inside: avoid;
     }
 
     /* Cover Page Styles (Ahafo Master Design Reverted) */
     .cover-page {
-      padding: 10mm 12mm 8mm 12mm;
+      padding: 7mm 10mm 5mm 10mm;
     }
 
     .cover-inner-border {
       border: 3px double #003399;
-      padding: 8mm 10mm;
+      padding: 6mm 8mm;
       display: flex;
       flex-direction: column;
-      height: 100%;
+      flex: 1;
+      min-height: 0;
       justify-content: space-between;
       box-sizing: border-box;
+      margin-bottom: 2.5mm;
     }
 
     .cover-header {
@@ -1097,39 +1107,39 @@ function generateAlbumHtml(
     .cover-body {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-top: 6px;
+      gap: 8px;
+      margin-top: 4px;
     }
 
     .formal-proclamation {
       background: #F8FAFC;
       border-left: 4px solid #003399;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 0 6px 6px 0;
     }
 
     .proclamation-title {
-      font-size: 10pt;
+      font-size: 9.5pt;
       font-weight: 900;
       color: #003399;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       letter-spacing: 0.5px;
     }
 
     .proclamation-p {
-      font-size: 8.5pt;
-      line-height: 1.45;
+      font-size: 8pt;
+      line-height: 1.35;
       color: #334155;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       text-align: justify;
     }
 
     .certification-metadata-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
+      gap: 6px;
       background: #F1F5F9;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 6px;
       border: 1px solid #CBD5E1;
     }
@@ -1148,7 +1158,7 @@ function generateAlbumHtml(
     }
 
     .m-val {
-      font-size: 9pt;
+      font-size: 8.5pt;
       font-weight: 800;
       color: #003399;
     }
@@ -1157,7 +1167,7 @@ function generateAlbumHtml(
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 4px 10px 0 10px;
+      padding: 2px 10px 0 10px;
     }
 
     .seal-container {
@@ -1181,84 +1191,86 @@ function generateAlbumHtml(
     }
 
     .sig-name {
-      font-size: 10.5pt;
+      font-size: 10pt;
       font-weight: 900;
       color: #003399;
       letter-spacing: 0.4px;
     }
 
     .sig-title {
-      font-size: 8pt;
+      font-size: 7.5pt;
       font-weight: 800;
       color: #1E293B;
       font-style: italic;
     }
 
     .sig-org {
-      font-size: 7pt;
+      font-size: 6.8pt;
       font-weight: 600;
       color: #64748B;
     }
 
     /* Page 2: Metrics */
-    .metrics-page { padding: 12mm 12mm 8mm 12mm; }
-    .page-title { font-size: 16pt; font-weight: 900; color: #003399; margin-bottom: 2px; }
-    .page-sub { font-size: 9.5pt; font-weight: 700; color: #64748B; margin-bottom: 12px; }
-    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
-    .kpi-card { background: #F8FAFC; border: 1px solid #CBD5E1; padding: 10px; border-radius: 6px; text-align: center; }
-    .kpi-num { font-size: 18pt; font-weight: 900; color: #003399; }
-    .kpi-lbl { font-size: 7.5pt; font-weight: 800; color: #64748B; text-transform: uppercase; margin-top: 2px; }
-    .table-container { margin-top: 10px; }
-    .stats-table { width: 100%; border-collapse: collapse; font-size: 8pt; margin-bottom: 12px; }
-    .stats-table th { background: #003399; color: white; padding: 6px 10px; text-align: left; font-weight: 800; }
-    .stats-table td { padding: 5px 10px; border-bottom: 1px solid #E2E8F0; }
+    .metrics-page { padding: 7mm 10mm 5mm 10mm; }
+    .page-title { font-size: 15pt; font-weight: 900; color: #003399; margin-bottom: 2px; }
+    .page-sub { font-size: 9pt; font-weight: 700; color: #64748B; margin-bottom: 8px; }
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+    .kpi-card { background: #F8FAFC; border: 1px solid #CBD5E1; padding: 8px 6px; border-radius: 6px; text-align: center; }
+    .kpi-num { font-size: 16pt; font-weight: 900; color: #003399; }
+    .kpi-lbl { font-size: 7pt; font-weight: 800; color: #64748B; text-transform: uppercase; margin-top: 2px; }
+    .table-container { margin-top: 6px; }
+    .stats-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; margin-bottom: 8px; }
+    .stats-table th { background: #003399; color: white; padding: 4px 8px; text-align: left; font-weight: 800; font-size: 7.5pt; }
+    .stats-table td { padding: 3.5px 8px; border-bottom: 1px solid #E2E8F0; font-size: 7.5pt; }
     .stats-table tr:nth-child(even) { background: #F8FAFC; }
 
     /* Cards Grid (Pages 3+) */
     .grid-10 {
       display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(5, 1fr);
-      gap: 6px; flex: 1; margin: 6px 0;
+      gap: 5px; flex: 1; min-height: 0; margin: 3px 0;
     }
     .voter-card {
       border: 1px solid #E2E8F0; border-radius: 4px; display: flex; justify-content: space-between;
-      overflow: hidden; height: 46mm; max-height: 46mm; background: white;
+      overflow: hidden; height: 45.5mm; max-height: 45.5mm; background: white; box-sizing: border-box;
+      break-inside: avoid !important; page-break-inside: avoid !important;
     }
-    .card-details { flex: 1; padding: 5px 8px; display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow: hidden; }
+    .card-details { flex: 1; padding: 4px 8px; display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow: hidden; }
     .pos-badge {
       background: #003399; color: white; font-size: 6.8pt; font-weight: 800; padding: 1.5px 5px;
       border-radius: 3px; display: inline-block; width: fit-content; text-transform: uppercase;
     }
-    .exec-name { font-size: 9pt; font-weight: 800; color: #0F172A; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .detail-line { font-size: 7.2pt; color: #334155; }
-    .lbl { font-weight: 800; color: #64748B; font-size: 6.8pt; }
+    .exec-name { font-size: 8.8pt; font-weight: 800; color: #0F172A; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .detail-line { font-size: 7pt; color: #334155; }
+    .lbl { font-weight: 800; color: #64748B; font-size: 6.5pt; }
     .val { font-weight: 700; color: #0F172A; }
     .val.mono { font-family: monospace; background: #F1F5F9; padding: 1px 4px; border-radius: 2px; }
     .card-photo { width: 33mm; min-width: 33mm; height: 100%; background: #F1F5F9; border-left: 1px solid #CBD5E1; }
     .voter-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
 
     /* Header & Footer */
-    .page-header { margin-bottom: 4px; }
-    .header-content { display: flex; align-items: center; gap: 10px; }
-    .party-seal-mini { background: #003399; color: white; font-size: 11pt; font-weight: 900; padding: 4px 8px; border-radius: 4px; }
-    .header-text h1 { font-size: 14pt; font-weight: 900; color: #003399; }
-    .header-text h2 { font-size: 9pt; font-weight: 800; color: #475569; }
-    .header-rule { height: 2px; background: #003399; margin-top: 4px; }
+    .page-header { margin-bottom: 3px; }
+    .header-content { display: flex; align-items: center; gap: 8px; }
+    .header-npp-logo { width: 34px; height: 34px; object-fit: contain; }
+    .party-seal-mini { background: #003399; color: white; font-size: 10pt; font-weight: 900; padding: 3px 6px; border-radius: 4px; }
+    .header-text h1 { font-size: 13pt; font-weight: 900; color: #003399; line-height: 1.15; }
+    .header-text h2 { font-size: 8.5pt; font-weight: 800; color: #475569; line-height: 1.15; }
+    .header-rule { height: 2px; background: #003399; margin-top: 3px; }
     .page-footer {
       flex: 0 0 7.5mm;
       min-height: 7.5mm;
       margin-top: auto;
-      padding-top: 3px;
-      page-break-inside: avoid;
-      break-inside: avoid;
+      padding-top: 2px;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
       overflow: hidden;
     }
-    .footer-rule { height: 1.5px; background: #CBD5E1; margin-bottom: 3px; }
+    .footer-rule { height: 1.5px; background: #CBD5E1; margin-bottom: 2px; }
     .footer-content {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
       align-items: center;
       column-gap: 6mm;
-      font-size: 7.5pt;
+      font-size: 7pt;
       font-weight: 700;
       color: #475569;
       white-space: nowrap;
@@ -1266,16 +1278,39 @@ function generateAlbumHtml(
     .footer-content > span:first-child { overflow: hidden; text-overflow: ellipsis; }
     .footer-content > span:last-child { overflow: hidden; text-overflow: ellipsis; text-align: right; }
     .footer-page-pill {
-      display: block;
-      font-size: 9.5pt;
-      line-height: 1.2;
+      display: inline-block;
+      font-size: 8.5pt;
+      line-height: 1.1;
       font-weight: 900;
       color: #003399;
       background: #F1F5F9;
-      padding: 1px 10px;
-      border-radius: 10px;
+      padding: 1px 8px;
+      border-radius: 8px;
       border: 1px solid #CBD5E1;
-      break-inside: avoid;
+      break-inside: avoid !important;
+    }
+
+    /* Final Page Proclamation */
+    .proclamation-box {
+      background: #F8FAFC;
+      border-left: 4px solid #003399;
+      padding: 6px 10px;
+      border-radius: 0 4px 4px 0;
+      margin-top: auto;
+      margin-bottom: 5px;
+    }
+    .proclamation-box h3 {
+      font-size: 8pt;
+      font-weight: 900;
+      color: #003399;
+      margin-bottom: 2px;
+      letter-spacing: 0.4px;
+    }
+    .proclamation-box p {
+      font-size: 7pt;
+      line-height: 1.35;
+      color: #334155;
+      text-align: justify;
     }
   </style>
 </head>
