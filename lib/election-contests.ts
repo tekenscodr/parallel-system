@@ -245,5 +245,71 @@ export function getCanonicalPositionsForSelection(selected: string[]): {
   return { canonicalSet, displayLabels, isTesconNasaraIncluded };
 }
 
+export interface CustomizableLevel {
+  id: string;
+  label: string;
+  shortLabel: string;
+  description: string;
+}
 
+export const ALL_CUSTOMIZABLE_LEVELS: CustomizableLevel[] = [
+  {
+    id: "National",
+    label: "National Council / Executives",
+    shortLabel: "National",
+    description: "National council & executive committee leadership",
+  },
+  {
+    id: "Regional",
+    label: "Regional Executives (16 Regions)",
+    shortLabel: "Regional",
+    description: "All 16 regional executive committees",
+  },
+  {
+    id: "Constituency",
+    label: "Constituency Executives (276 Constituencies)",
+    shortLabel: "Constituency",
+    description: "All 276 constituency executive committees in Ghana",
+  },
+  {
+    id: "External Branch",
+    label: "External Branches (Diaspora Chapters)",
+    shortLabel: "External Branch",
+    description: "Accredited diaspora chapters worldwide",
+  },
+  {
+    id: "TESCON",
+    label: "TESCON (Campus Institutions)",
+    shortLabel: "TESCON",
+    description: "Accredited tertiary institution chapters",
+  },
+];
 
+export const LEVEL_PRESETS = {
+  all_levels: {
+    label: "All Levels (Full College)",
+    ids: ["National", "Regional", "Constituency", "External Branch", "TESCON"],
+  },
+  regional_only: {
+    label: "Regional Only",
+    ids: ["Regional"],
+  },
+  constituency_only: {
+    label: "Constituency Only",
+    ids: ["Constituency"],
+  },
+  branches_only: {
+    label: "External Branches Only",
+    ids: ["External Branch"],
+  },
+  tescon_only: {
+    label: "TESCON Only",
+    ids: ["TESCON"],
+  },
+  core_executives: {
+    label: "Regional + Constituency",
+    ids: ["Regional", "Constituency"],
+  },
+} as const;
+
+export type LevelPresetKey = keyof typeof LEVEL_PRESETS;

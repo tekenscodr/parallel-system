@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  Building2,
   Check,
   CheckSquare,
   ChevronDown,
@@ -9,6 +10,7 @@ import {
   Download,
   ExternalLink,
   FileText,
+  Layers,
   LoaderCircle,
   Minus,
   Plus,
@@ -43,8 +45,12 @@ import {
   CUSTOM_POSITION_CATEGORIES,
   ALL_CUSTOMIZABLE_POSITIONS,
   POSITION_PRESETS,
+  ALL_CUSTOMIZABLE_LEVELS,
+  LEVEL_PRESETS,
   type ContestType,
   type CustomizablePosition,
+  type CustomizableLevel,
+  type LevelPresetKey,
 } from "@/lib/election-contests";
 
 const REGION_OPTIONS = [
@@ -94,6 +100,13 @@ export default function PositionAlbumsPage() {
     "secretary",
     "organiser",
   ]);
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([
+    "National",
+    "Regional",
+    "Constituency",
+    "External Branch",
+    "TESCON",
+  ]);
   const [customizerOpen, setCustomizerOpen] = useState(false);
   const [positionSearch, setPositionSearch] = useState("");
   const [tab, setTab] = useState("preview");
@@ -119,7 +132,13 @@ export default function PositionAlbumsPage() {
 
   const effectiveScope = WING_PORTFOLIOS.includes(contest as any) ? "organisers_only" : scope;
   const positionsQuery = isCustom ? `&positions=${encodeURIComponent(selectedPositions.join(","))}` : "";
-  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}`;
+  const levelsQuery =
+    selectedLevels.length > 0 && selectedLevels.length < ALL_CUSTOMIZABLE_LEVELS.length
+      ? `&levels=${encodeURIComponent(selectedLevels.join(","))}`
+      : level !== "all" && level !== "custom"
+      ? `&levels=${encodeURIComponent(level)}`
+      : "";
+  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}`;
   const requestKey = `${query}&revision=${retry}`;
   const previewUrl = `/api/admin/albums/election?${requestKey}&format=html`;
   const excelDownloadUrl = `/api/admin/albums/election?${query}&format=excel&download=1`;
@@ -157,6 +176,41 @@ export default function PositionAlbumsPage() {
 
   const applyPreset = (presetKey: keyof typeof POSITION_PRESETS) => {
     setSelectedPositions([...POSITION_PRESETS[presetKey].ids]);
+    setPage(1);
+  };
+
+  const toggleLevel = (id: string) => {
+    setSelectedLevels((prev) => {
+      const exists = prev.includes(id);
+      const next = exists ? prev.filter((l) => l !== id) : [...prev, id];
+      if (next.length === ALL_CUSTOMIZABLE_LEVELS.length) {
+        setLevel("all");
+      } else if (next.length === 1) {
+        setLevel(next[0]);
+      } else {
+        setLevel("custom");
+      }
+      return next;
+    });
+    setPage(1);
+  };
+
+  const selectAllLevels = () => {
+    setSelectedLevels(ALL_CUSTOMIZABLE_LEVELS.map((l) => l.id));
+    setLevel("all");
+    setPage(1);
+  };
+
+  const applyLevelPreset = (presetKey: LevelPresetKey) => {
+    const ids = [...LEVEL_PRESETS[presetKey].ids];
+    setSelectedLevels(ids);
+    if (ids.length === ALL_CUSTOMIZABLE_LEVELS.length) {
+      setLevel("all");
+    } else if (ids.length === 1) {
+      setLevel(ids[0]);
+    } else {
+      setLevel("custom");
+    }
     setPage(1);
   };
 
@@ -293,7 +347,7 @@ export default function PositionAlbumsPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 xl:items-end">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 xl:items-end">
               <div className="space-y-2">
                 <label htmlFor="contest" className="text-sm font-medium">Elective portfolio / Mode</label>
                 <NativeSelect
@@ -332,6 +386,40 @@ export default function PositionAlbumsPage() {
                   {REGION_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                 </NativeSelect>
               </div>
+              <div className="space-y-2">
+                <label htmlFor="level" className="text-sm font-medium flex items-center justify-between">
+                  <span>Administrative Level</span>
+                  {selectedLevels.length < ALL_CUSTOMIZABLE_LEVELS.length && (
+                    <span className="text-[11px] font-normal text-blue-600 dark:text-blue-400">
+                      ({selectedLevels.length}/5 active)
+                    </span>
+                  )}
+                </label>
+                <NativeSelect
+                  id="level"
+                  value={level}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setLevel(val);
+                    if (val === "all") {
+                      setSelectedLevels(ALL_CUSTOMIZABLE_LEVELS.map((l) => l.id));
+                    } else if (val !== "custom") {
+                      setSelectedLevels([val]);
+                    }
+                    setPage(1);
+                  }}
+                >
+                  <option value="all">All Levels (National, Regional, Constituency, External, TESCON)</option>
+                  {level === "custom" && (
+                    <option value="custom">Custom Levels ({selectedLevels.length} Tiers Selected)</option>
+                  )}
+                  <option value="Regional">Regional Level Only (16 Regions)</option>
+                  <option value="Constituency">Constituency Level Only (276 Constituencies)</option>
+                  <option value="External Branch">External Branches Only (Diaspora)</option>
+                  <option value="TESCON">TESCON Only (Campus Institutions)</option>
+                  <option value="National">National Level Only (Council & Executives)</option>
+                </NativeSelect>
+              </div>
               {isWingContest ? (
                 <div className="space-y-2">
                   <label htmlFor="scope" className="text-sm font-medium">Electorate filter</label>
@@ -350,25 +438,146 @@ export default function PositionAlbumsPage() {
               ) : isCustom ? (
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-foreground">
-                    Selected: {selectedPositions.length} position{selectedPositions.length === 1 ? "" : "s"}
+                    Selected: {selectedPositions.length} position{selectedPositions.length === 1 ? "" : "s"} · {selectedLevels.length} level{selectedLevels.length === 1 ? "" : "s"}
                   </p>
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    National → Regional → External Branch → Constituency → TESCON
+                  <p className="text-xs leading-5 text-muted-foreground truncate">
+                    {selectedLevels.join(" → ")}
                   </p>
                 </div>
               ) : (
-                <p className="text-xs leading-5 text-muted-foreground">National → Regional → External Branch → Constituency → TESCON<br />TESCON patrons excluded</p>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-foreground">
+                    {level === "all" ? "All Administrative Tiers" : `${level} Tier`}
+                  </p>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    National → Regional → External → Constituency → TESCON
+                  </p>
+                </div>
               )}
             </div>
 
-            {/* Position Customizer Panel when in Custom mode */}
+            {/* Position & Level Customizer Panel when in Custom mode */}
             {isCustom && (
-              <div className="rounded-xl border bg-card p-4 shadow-xs space-y-4">
+              <div className="rounded-xl border bg-card p-4 shadow-xs space-y-5">
+                {/* Section 1: Administrative Levels Specification */}
+                <div className="rounded-lg border bg-blue-50/40 dark:bg-blue-950/20 p-3.5 space-y-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-blue-100 dark:border-blue-900 pb-2">
+                    <div>
+                      <h4 className="font-semibold text-xs flex items-center gap-1.5 text-blue-950 dark:text-blue-100">
+                        <Building2 className="size-3.5 text-blue-600" />
+                        1. Specify Administrative Levels Included in Album
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Choose which administrative tiers to include. The album, PDF, voter register, and Excel export will extract records strictly from the checked levels.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={selectAllLevels}
+                        className="h-6 text-[11px] bg-white dark:bg-slate-900"
+                      >
+                        Select All Levels
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Level Quick Presets */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] font-medium text-muted-foreground">Level Presets:</span>
+                    <Button
+                      type="button"
+                      variant={selectedLevels.length === ALL_CUSTOMIZABLE_LEVELS.length ? "default" : "secondary"}
+                      size="sm"
+                      className="h-6 text-[11px]"
+                      onClick={() => applyLevelPreset("all_levels")}
+                    >
+                      All Levels (5)
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selectedLevels.length === 1 && selectedLevels.includes("Regional") ? "default" : "secondary"}
+                      size="sm"
+                      className="h-6 text-[11px]"
+                      onClick={() => applyLevelPreset("regional_only")}
+                    >
+                      Regional Only
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selectedLevels.length === 1 && selectedLevels.includes("Constituency") ? "default" : "secondary"}
+                      size="sm"
+                      className="h-6 text-[11px]"
+                      onClick={() => applyLevelPreset("constituency_only")}
+                    >
+                      Constituency Only
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selectedLevels.length === 1 && selectedLevels.includes("External Branch") ? "default" : "secondary"}
+                      size="sm"
+                      className="h-6 text-[11px]"
+                      onClick={() => applyLevelPreset("branches_only")}
+                    >
+                      External Branches Only
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selectedLevels.length === 1 && selectedLevels.includes("TESCON") ? "default" : "secondary"}
+                      size="sm"
+                      className="h-6 text-[11px]"
+                      onClick={() => applyLevelPreset("tescon_only")}
+                    >
+                      TESCON Only
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selectedLevels.length === 2 && selectedLevels.includes("Regional") && selectedLevels.includes("Constituency") ? "default" : "secondary"}
+                      size="sm"
+                      className="h-6 text-[11px]"
+                      onClick={() => applyLevelPreset("core_executives")}
+                    >
+                      Regional + Constituency
+                    </Button>
+                  </div>
+
+                  {/* Level Checkbox Pills */}
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 pt-1">
+                    {ALL_CUSTOMIZABLE_LEVELS.map((lvl) => {
+                      const isChecked = selectedLevels.includes(lvl.id);
+                      return (
+                        <label
+                          key={lvl.id}
+                          className={`flex items-start gap-2.5 p-2 rounded-md border cursor-pointer transition-colors text-xs select-none ${
+                            isChecked
+                              ? "bg-white dark:bg-slate-900 border-blue-400 dark:border-blue-600 shadow-2xs text-blue-950 dark:text-blue-100 font-medium"
+                              : "bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-muted-foreground hover:bg-white"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 size-3.5 rounded accent-blue-600 cursor-pointer"
+                            checked={isChecked}
+                            onChange={() => toggleLevel(lvl.id)}
+                          />
+                          <div className="space-y-0.5 leading-tight">
+                            <span className="font-semibold block">{lvl.shortLabel}</span>
+                            <span className="text-[10px] text-muted-foreground block line-clamp-1">{lvl.description}</span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section 2: Position Selection Header */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b pb-3">
                   <div>
                     <h3 className="font-semibold text-sm flex items-center gap-2">
                       <SlidersHorizontal className="size-4 text-blue-600" />
-                      Select Positions Needed for Album
+                      2. Select Positions Needed for Album
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Check any combination of positions below. The album, PDF, voter register, and Excel export will include only selected positions.
@@ -376,10 +585,10 @@ export default function PositionAlbumsPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button variant="outline" size="sm" onClick={selectAllPositions} className="h-7 text-xs">
-                      Select All
+                      Select All Positions
                     </Button>
                     <Button variant="outline" size="sm" onClick={clearAllPositions} className="h-7 text-xs text-muted-foreground">
-                      Clear
+                      Clear Positions
                     </Button>
                   </div>
                 </div>
@@ -602,7 +811,29 @@ export default function PositionAlbumsPage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" /><Input aria-label="Search delegates" placeholder="Search name, voter ID, position…" className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} /></div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <NativeSelect aria-label="Filter by administrative level" className="sm:w-48" value={level} onChange={(e) => { setLevel(e.target.value); setPage(1); }}><option value="all">All levels</option>{["National", "Regional", "External Branch", "Constituency", "TESCON"].map((item) => <option key={item}>{item}</option>)}</NativeSelect>
+                        <NativeSelect
+                          aria-label="Filter by administrative level"
+                          className="sm:w-48"
+                          value={level}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setLevel(val);
+                            if (val === "all") {
+                              setSelectedLevels(ALL_CUSTOMIZABLE_LEVELS.map((l) => l.id));
+                            } else if (val !== "custom") {
+                              setSelectedLevels([val]);
+                            }
+                            setPage(1);
+                          }}
+                        >
+                          <option value="all">All levels</option>
+                          {level === "custom" && (
+                            <option value="custom">Custom Levels ({selectedLevels.length})</option>
+                          )}
+                          {["National", "Regional", "External Branch", "Constituency", "TESCON"].map((item) => (
+                            <option key={item} value={item}>{item}</option>
+                          ))}
+                        </NativeSelect>
                         <Button asChild variant="outline" size="sm">
                           <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${region}_Voter_Directory_2026.xlsx`}>
                             <Download className="size-4" /> Export Excel (.xlsx)

@@ -271,6 +271,12 @@ export async function GET(req: NextRequest) {
   const isDownload =
     searchParams.get("download") === "1" || searchParams.get("download") === "true";
 
+  const levelsParam = (searchParams.get("levels") || searchParams.get("level") || "all").trim();
+  const selectedLevels =
+    levelsParam.toLowerCase() !== "all" && levelsParam !== ""
+      ? levelsParam.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean)
+      : [];
+
   const customPositionKeys = positionsParam
     ? positionsParam.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
@@ -304,6 +310,31 @@ export async function GET(req: NextRequest) {
       } else {
         effectiveContestName = `Custom Selection (${labels.length} Positions)`;
       }
+    }
+  }
+
+  // Append level suffix to title if specific level(s) selected
+  if (selectedLevels.length === 1) {
+    const singleLevelLabel =
+      selectedLevels[0] === "regional" || selectedLevels[0] === "region"
+        ? "Regional Level"
+        : selectedLevels[0] === "constituency"
+        ? "Constituency Level"
+        : selectedLevels[0] === "external branch" || selectedLevels[0] === "external"
+        ? "External Branches"
+        : selectedLevels[0] === "tescon"
+        ? "TESCON Institutions"
+        : selectedLevels[0] === "national"
+        ? "National Level"
+        : selectedLevels[0];
+
+    if (!effectiveContestName.toLowerCase().includes(singleLevelLabel.toLowerCase())) {
+      effectiveContestName = `${effectiveContestName} (${singleLevelLabel})`;
+    }
+  } else if (selectedLevels.length > 1 && selectedLevels.length < 5) {
+    const countLabel = `${selectedLevels.length} Levels`;
+    if (!effectiveContestName.includes(countLabel)) {
+      effectiveContestName = `${effectiveContestName} (${countLabel})`;
     }
   }
 
@@ -353,6 +384,36 @@ export async function GET(req: NextRequest) {
       // Rule: TESCON Patrons NEVER vote
       if (lvl === "tescon" && /patron/i.test(pos)) {
         return false;
+      }
+
+      // Optional Administrative Level Filter
+      if (selectedLevels.length > 0) {
+        const isExtBranch =
+          rawLvl === "external branch" ||
+          String(r.region || "").toLowerCase().trim() === "external branch";
+
+        const matchesLevel = selectedLevels.some((target) => {
+          if (target === "external branch" || target === "external" || target === "diaspora") {
+            return isExtBranch;
+          }
+          if (target === "regional" || target === "region") {
+            return (rawLvl === "region" || rawLvl === "regional") && !isExtBranch;
+          }
+          if (target === "constituency") {
+            return rawLvl === "constituency" && !isExtBranch;
+          }
+          if (target === "tescon") {
+            return rawLvl === "tescon";
+          }
+          if (target === "national") {
+            return rawLvl === "national";
+          }
+          return rawLvl === target;
+        });
+
+        if (!matchesLevel) {
+          return false;
+        }
       }
 
       // Optional Region Filter
@@ -596,6 +657,9 @@ export async function GET(req: NextRequest) {
       } else {
         expectedCount = isWingOrganisers ? 36 : Math.ceil(totalActual * 1.03); // Approximate for single region
       }
+    }
+    if (selectedLevels.length > 0 && selectedLevels.length < 5) {
+      expectedCount = Math.max(totalActual, Math.ceil(totalActual * 1.02));
     }
 
     const levelCounts = delegates.reduce(
