@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
+import ExcelJS from "exceljs";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { canAccessAlbums } from "@/lib/album-access";
@@ -93,8 +94,9 @@ const CANONICAL_LEVEL_ORDER: Record<string, number> = {
   national: 1,
   region: 2,
   regional: 2,
-  constituency: 3,
-  tescon: 4,
+  "external branch": 3,
+  constituency: 4,
+  tescon: 5,
 };
 
 function normalizePositionRank(pos: string | null): number {
@@ -380,16 +382,23 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const positionQuery = (searchParams.get("position") || "Youth Organiser").trim();
+  const positionQuery = (searchParams.get("position") || "Youth Organisers & Deputies").trim();
   const regionQuery = (searchParams.get("region") || "all").trim();
-  const format = searchParams.get("format") || "json";
+  const scopeQuery = (searchParams.get("scope") || "").trim().toLowerCase();
+  const format = (searchParams.get("format") || "json").toLowerCase();
   const isDownload =
     searchParams.get("download") === "1" || searchParams.get("download") === "true";
 
   // Match valid contest
   const matchedContest =
     CONTEST_LIST.find((c) => c.toLowerCase() === positionQuery.toLowerCase()) ||
-    "Youth Organiser";
+    "Youth Organisers & Deputies";
+
+  const isWingOrganisers =
+    matchedContest === "Youth Organisers & Deputies" ||
+    matchedContest === "Women Organisers & Deputies" ||
+    matchedContest === "Nasara Coordinators & Deputies" ||
+    scopeQuery === "organisers_only";
 
   return withEcSql(async (sql) => {
     // 1. Fetch certified pool
@@ -439,7 +448,52 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Contest specific qualification:
+      // Wing-specific extraction (Organisers & Deputies Only):
+      if (isWingOrganisers) {
+        if (
+          matchedContest === "Youth Organisers & Deputies" ||
+          matchedContest === "Youth Organiser"
+        ) {
+          return (
+            (posLower.includes("youth organiser") ||
+              posLower.includes("youth organizer") ||
+              posLower === "youth" ||
+              posLower.includes("deputy youth") ||
+              posLower.includes("assistant youth")) &&
+            !posLower.includes("former") &&
+            !posLower.includes("patron")
+          );
+        }
+
+        if (
+          matchedContest === "Women Organisers & Deputies" ||
+          matchedContest === "Women Organiser"
+        ) {
+          return (
+            (posLower.includes("women organiser") ||
+              posLower.includes("women organizer") ||
+              posLower === "women" ||
+              posLower.includes("deputy women") ||
+              posLower.includes("assistant women") ||
+              posLower.includes("wocom")) &&
+            !posLower.includes("former") &&
+            !posLower.includes("patron")
+          );
+        }
+
+        if (
+          matchedContest === "Nasara Coordinators & Deputies" ||
+          matchedContest === "Nasara Organiser"
+        ) {
+          return (
+            posLower.includes("nasara") &&
+            !posLower.includes("former") &&
+            !posLower.includes("patron")
+          );
+        }
+      }
+
+      // Standard Election Contests:
       if (
         matchedContest === "Chairperson" ||
         matchedContest === "Vice Chairperson" ||
@@ -516,6 +570,8 @@ export async function GET(req: NextRequest) {
             ? "National"
             : lvl === "region" || lvl === "regional"
             ? "Regional"
+            : lvl === "external branch"
+            ? "External Branch"
             : lvl === "constituency"
             ? "Constituency"
             : "TESCON";
@@ -562,7 +618,7 @@ export async function GET(req: NextRequest) {
           if (rCmp !== 0) return rCmp;
         }
         // Sub-sort by Constituency (if Constituency)
-        if (a.level_rank === 3) {
+        if (a.level_rank === 4) {
           const cCmp = a.constituency.localeCompare(b.constituency);
           if (cCmp !== 0) return cCmp;
         }
@@ -576,7 +632,9 @@ export async function GET(req: NextRequest) {
     const totalActual = delegates.length;
     let expectedCount = 0;
     if (regionQuery === "all" || regionQuery === "") {
-      if (
+      if (isWingOrganisers) {
+        expectedCount = 663; // 276*2 (constituency) + 16*3 (regional) + 3 (national) + 30*2 (external branches)
+      } else if (
         matchedContest === "Chairperson" ||
         matchedContest === "Vice Chairperson" ||
         matchedContest === "General Secretary" ||
@@ -593,7 +651,7 @@ export async function GET(req: NextRequest) {
         expectedCount = 760;
       }
     } else {
-      expectedCount = Math.ceil(totalActual * 1.03); // Approximate for single region
+      expectedCount = isWingOrganisers ? 36 : Math.ceil(totalActual * 1.03); // Approximate for single region
     }
 
     const levelCounts = delegates.reduce(
@@ -601,7 +659,7 @@ export async function GET(req: NextRequest) {
         acc[d.executive_level] = (acc[d.executive_level] || 0) + 1;
         return acc;
       },
-      { National: 0, Regional: 0, Constituency: 0, TESCON: 0 } as Record<string, number>
+      { National: 0, Regional: 0, "External Branch": 0, Constituency: 0, TESCON: 0 } as Record<string, number>
     );
 
     const genderCounts = delegates.reduce(
@@ -630,7 +688,12 @@ export async function GET(req: NextRequest) {
     // Regional breakdown table
     const regionalMap = new Map<string, number>();
     for (const d of delegates) {
-      const reg = d.executive_level === "National" ? "National Headquarters" : d.region;
+      const reg =
+        d.executive_level === "National"
+          ? "National Headquarters"
+          : d.executive_level === "External Branch"
+          ? `External: ${d.region}`
+          : d.region;
       regionalMap.set(reg, (regionalMap.get(reg) || 0) + 1);
     }
     const regionalBreakdown = Array.from(regionalMap.entries())
@@ -639,7 +702,10 @@ export async function GET(req: NextRequest) {
 
     const metrics = {
       contest: matchedContest,
-      scope: regionQuery === "all" ? "Nationwide (All 16 Regions + National + TESCON)" : `${regionQuery} Region`,
+      scope:
+        regionQuery === "all"
+          ? "Nationwide (All 16 Regions + External Branches + National + TESCON)"
+          : `${regionQuery} Region`,
       expectedFigures: expectedCount,
       actualFigures: totalActual,
       variance: Math.max(0, expectedCount - totalActual),
@@ -665,6 +731,29 @@ export async function GET(req: NextRequest) {
       },
     };
 
+    // Excel export format
+    if (format === "excel" || format === "xlsx") {
+      const excelBuffer = await generateAlbumExcel(
+        matchedContest,
+        regionQuery,
+        metrics,
+        delegates,
+        regionalBreakdown
+      );
+
+      const safeContest = matchedContest.replace(/[\s&]+/g, "_");
+      const safeRegion = regionQuery !== "all" ? `_${regionQuery.replace(/[\s&]+/g, "_")}` : "";
+      const filename = `NPP_${safeContest}${safeRegion}_Voter_Directory_2026.xlsx`;
+
+      return new NextResponse(excelBuffer as unknown as BodyInit, {
+        headers: {
+          "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+          "Cache-Control": "private, no-store",
+        },
+      });
+    }
+
     if (format === "html") {
       // Pre-convert logo to WebP
       const logoDataUri = await getLogoWebpDataUri();
@@ -688,8 +777,8 @@ export async function GET(req: NextRequest) {
       };
 
       if (isDownload) {
-        const safeContest = matchedContest.replace(/\s+/g, "_");
-        const safeRegion = regionQuery !== "all" ? `_${regionQuery.replace(/\s+/g, "_")}` : "";
+        const safeContest = matchedContest.replace(/[\s&]+/g, "_");
+        const safeRegion = regionQuery !== "all" ? `_${regionQuery.replace(/[\s&]+/g, "_")}` : "";
         headers["Content-Disposition"] = `attachment; filename="NPP_${safeContest}${safeRegion}_Election_Album_2026.html"`;
       }
 
@@ -703,6 +792,216 @@ export async function GET(req: NextRequest) {
       generatedAt: new Date().toISOString(),
     }, { headers: { "Cache-Control": "private, no-store" } });
   });
+}
+
+async function generateAlbumExcel(
+  contest: string,
+  regionQuery: string,
+  metrics: any,
+  delegates: any[],
+  regionalBreakdown: any[]
+): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "New Patriotic Party (NPP)";
+  workbook.lastModifiedBy = "National IT Directorate";
+  workbook.created = new Date();
+  workbook.modified = new Date();
+
+  // 1. Voter Directory Sheet
+  const sheet = workbook.addWorksheet("Voter Directory", {
+    views: [{ showGridLines: true }],
+    pageSetup: { paperSize: 9, orientation: "portrait" },
+  });
+
+  // Title Row 1
+  sheet.mergeCells("A1:N1");
+  const titleCell = sheet.getCell("A1");
+  titleCell.value = "NEW PATRIOTIC PARTY (NPP) — PROVISIONAL ELECTORAL COLLEGE ALBUM & VOTER DIRECTORY";
+  titleCell.font = { name: "Arial", size: 13, bold: true, color: { argb: "FFFFFFFF" } };
+  titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF003399" } };
+  titleCell.alignment = { horizontal: "center", vertical: "middle" };
+  sheet.getRow(1).height = 36;
+
+  // Subtitle Row 2
+  sheet.mergeCells("A2:N2");
+  const subCell = sheet.getCell("A2");
+  const scopeLabel =
+    regionQuery === "all"
+      ? "NATIONWIDE (ALL 16 REGIONS + EXTERNAL BRANCHES + TESCON)"
+      : `${regionQuery.toUpperCase()} REGION`;
+  subCell.value = `PORTFOLIO: ${contest.toUpperCase()}  |  SCOPE: ${scopeLabel}  |  TOTAL VOTERS: ${delegates.length.toLocaleString()}  |  GENERATED: ${new Date().toLocaleString("en-GB")}`;
+  subCell.font = { name: "Arial", size: 10, italic: true, color: { argb: "FF334155" } };
+  subCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+  subCell.alignment = { horizontal: "center", vertical: "middle" };
+  sheet.getRow(2).height = 24;
+
+  // Row 3 blank
+  sheet.getRow(3).height = 10;
+
+  // Header Row 4
+  const headers = [
+    "#",
+    "Voter ID",
+    "Executive Name",
+    "Executive Level",
+    "Region",
+    "Constituency / Jurisdiction",
+    "Position Held",
+    "Canonical Position",
+    "Gender",
+    "Age",
+    "Date of Birth",
+    "Phone Number",
+    "Biometric Status",
+    "Photo Available",
+  ];
+
+  const headerRow = sheet.getRow(4);
+  headerRow.values = headers;
+  headerRow.height = 28;
+  headerRow.eachCell((cell) => {
+    cell.font = { name: "Arial", size: 10, bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF003399" } };
+    cell.alignment = { horizontal: "center", vertical: "middle" };
+    cell.border = {
+      top: { style: "thin", color: { argb: "FF002266" } },
+      bottom: { style: "medium", color: { argb: "FF001845" } },
+      left: { style: "thin", color: { argb: "FF002266" } },
+      right: { style: "thin", color: { argb: "FF002266" } },
+    };
+  });
+
+  // Set explicit column widths
+  sheet.columns = [
+    { key: "no", width: 7 },
+    { key: "voter_id", width: 16 },
+    { key: "name", width: 34 },
+    { key: "level", width: 18 },
+    { key: "region", width: 22 },
+    { key: "jurisdiction", width: 30 },
+    { key: "position", width: 30 },
+    { key: "canon_pos", width: 28 },
+    { key: "gender", width: 12 },
+    { key: "age", width: 10 },
+    { key: "dob", width: 15 },
+    { key: "phone", width: 17 },
+    { key: "biometric", width: 18 },
+    { key: "photo", width: 16 },
+  ];
+
+  // Delegate Rows
+  delegates.forEach((d, idx) => {
+    const rowNum = idx + 1;
+    const isEven = rowNum % 2 === 0;
+    const row = sheet.addRow([
+      rowNum,
+      d.voter_id && d.voter_id !== "—" ? String(d.voter_id).trim() : "—",
+      d.executive_name,
+      d.executive_level,
+      d.region,
+      d.constituency || "—",
+      d.position || "—",
+      d.canonical_position,
+      d.gender || "Unknown",
+      d.age !== null && d.age !== undefined ? d.age : "—",
+      d.date_of_birth || "—",
+      d.phone || "—",
+      d.has_voter_id ? "Verified" : "Pending",
+      d.image_url ? "Yes" : "No",
+    ]);
+
+    row.height = 21;
+    row.eachCell((cell, colNumber) => {
+      cell.font = { name: "Arial", size: 9.5 };
+      if (isEven) {
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+      }
+      cell.border = {
+        top: { style: "thin", color: { argb: "FFE2E8F0" } },
+        bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
+        left: { style: "thin", color: { argb: "FFE2E8F0" } },
+        right: { style: "thin", color: { argb: "FFE2E8F0" } },
+      };
+
+      // Alignment
+      if ([1, 2, 4, 9, 10, 11, 12, 13, 14].includes(colNumber)) {
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+      } else {
+        cell.alignment = { horizontal: "left", vertical: "middle" };
+      }
+
+      // Biometric status styling
+      if (colNumber === 13) {
+        if (d.has_voter_id) {
+          cell.font = { name: "Arial", size: 9.5, bold: true, color: { argb: "FF166534" } };
+        } else {
+          cell.font = { name: "Arial", size: 9.5, color: { argb: "FF991B1B" } };
+        }
+      }
+    });
+  });
+
+  // 2. Summary & Metrics Sheet
+  const metricsSheet = workbook.addWorksheet("Summary & Metrics", {
+    views: [{ showGridLines: true }],
+  });
+
+  metricsSheet.mergeCells("A1:D1");
+  const mTitle = metricsSheet.getCell("A1");
+  mTitle.value = "PROVISIONAL ELECTORAL COLLEGE METRICS & COMPLIANCE";
+  mTitle.font = { name: "Arial", size: 12, bold: true, color: { argb: "FFFFFFFF" } };
+  mTitle.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF003399" } };
+  mTitle.alignment = { horizontal: "center", vertical: "middle" };
+  metricsSheet.getRow(1).height = 30;
+
+  metricsSheet.columns = [
+    { width: 30 },
+    { width: 22 },
+    { width: 30 },
+    { width: 22 },
+  ];
+
+  metricsSheet.addRow(["Portfolio / Wing", contest, "Confirmed Voters", metrics.actualFigures]);
+  metricsSheet.addRow(["Electoral Scope", metrics.scope, "Expected Roll Figures", metrics.expectedFigures]);
+  metricsSheet.addRow(["Compliance Coverage", metrics.complianceRate, "2/3 Quorum Requirement", metrics.quorumRequirement]);
+  metricsSheet.addRow([
+    "Verified Voter IDs",
+    metrics.biometricVerification?.verified ?? 0,
+    "Pending Voter IDs",
+    metrics.biometricVerification?.pending ?? 0,
+  ]);
+  metricsSheet.addRow([
+    "Biometric Verification Rate",
+    metrics.biometricVerification?.verificationRate ?? "0%",
+    "Under 40 Proportion",
+    metrics.ageBreakdown?.under40Percentage ?? "0%",
+  ]);
+
+  metricsSheet.addRow([]);
+  metricsSheet.addRow(["REGIONAL BREAKDOWN", "VOTER COUNT", "ADMINISTRATIVE LEVEL", "VOTER COUNT"]);
+  const mHeader = metricsSheet.getRow(8);
+  mHeader.height = 24;
+  mHeader.eachCell((c) => {
+    c.font = { name: "Arial", size: 10, bold: true, color: { argb: "FFFFFFFF" } };
+    c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDC2626" } };
+    c.alignment = { horizontal: "center", vertical: "middle" };
+  });
+
+  const levelEntries = Object.entries(metrics.levelBreakdown || {});
+  const maxRows = Math.max(regionalBreakdown.length, levelEntries.length);
+  for (let i = 0; i < maxRows; i++) {
+    const reg = regionalBreakdown[i];
+    const lvl = levelEntries[i];
+    metricsSheet.addRow([
+      reg ? reg.region : "",
+      reg ? reg.count : "",
+      lvl ? lvl[0] : "",
+      lvl ? lvl[1] : "",
+    ]);
+  }
+
+  const rawBuffer = await workbook.xlsx.writeBuffer();
+  return Buffer.from(rawBuffer);
 }
 
 function generateAlbumHtml(

@@ -75,20 +75,28 @@ export async function GET(req: Request) {
             COUNT(*)::int as total,
             COUNT(CASE WHEN date_of_birth IS NOT NULL AND date_of_birth != '' THEN 1 END)::int as with_dob,
             COUNT(CASE 
-              WHEN position ILIKE '%youth%' AND (date_of_birth IS NOT NULL OR age IS NOT NULL) THEN 1
+              WHEN position ILIKE '%youth%' 
+                AND executive_level NOT ILIKE '%external branch%' 
+                AND region NOT ILIKE '%external branch%' 
+                AND (date_of_birth IS NOT NULL OR age IS NOT NULL) THEN 1
               WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND (age + 2) < 40 THEN 1
             END)::int as under_40,
             COUNT(CASE 
-              WHEN position ILIKE '%youth%' THEN NULL
+              WHEN position ILIKE '%youth%' 
+                AND executive_level NOT ILIKE '%external branch%' 
+                AND region NOT ILIKE '%external branch%' THEN NULL
               WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) = 40 THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND (age + 2) = 40 THEN 1
             END)::int as equal_40,
             COUNT(CASE 
-              WHEN position ILIKE '%youth%' AND (
-                (date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) > 39)
-                OR (age IS NOT NULL AND (age + 2) > 39)
-              ) THEN 1 
+              WHEN position ILIKE '%youth%' 
+                AND executive_level NOT ILIKE '%external branch%' 
+                AND region NOT ILIKE '%external branch%' 
+                AND (
+                  (date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) > 39)
+                  OR (age IS NOT NULL AND (age + 2) > 39)
+                ) THEN 1 
             END)::int as youth_adjusted,
             COUNT(CASE WHEN gender = 'Female' THEN 1 END)::int as women,
             COUNT(CASE WHEN position ILIKE '%nasara%' THEN 1 END)::int as nasara,

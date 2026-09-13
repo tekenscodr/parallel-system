@@ -188,6 +188,8 @@ export async function GET(req: Request) {
           executive_name,
           CASE
             WHEN position ILIKE '%youth%' 
+                 AND executive_level NOT ILIKE '%external branch%'
+                 AND region NOT ILIKE '%external branch%'
                  AND (
                    (date_of_birth ~ '[0-9]{4}' AND (2026 - substring(date_of_birth from '([0-9]{4})')::int) > 39)
                    OR (age IS NOT NULL AND (age + 2) > 39)
@@ -201,6 +203,8 @@ export async function GET(req: Request) {
           END as age,
           CASE
             WHEN position ILIKE '%youth%' 
+                 AND executive_level NOT ILIKE '%external branch%'
+                 AND region NOT ILIKE '%external branch%'
                  AND date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' 
                  AND (2026 - substring(date_of_birth from '^[0-9]{4}')::int) > 39 
             THEN '1987' || substring(date_of_birth from 5)

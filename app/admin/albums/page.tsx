@@ -12,7 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NativeSelect } from "@/components/ui/native-select";
-import { CONTEST_LIST, type ContestType } from "@/lib/election-contests";
+import {
+  CONTEST_LIST,
+  WING_PORTFOLIOS,
+  GENERAL_CONTEST_LIST,
+  type ContestType,
+} from "@/lib/election-contests";
 
 const REGION_OPTIONS = [
   { value: "all", label: "All Ghana · Nationwide Roll" },
@@ -52,8 +57,9 @@ type AlbumData = {
 
 export default function PositionAlbumsPage() {
   const currentUser = useAlbumUser();
-  const [contest, setContest] = useState<ContestType>("Youth Organiser");
+  const [contest, setContest] = useState<ContestType>("Youth Organisers & Deputies");
   const [region, setRegion] = useState("all");
+  const [scope, setScope] = useState("organisers_only");
   const [tab, setTab] = useState("preview");
   const [zoom, setZoom] = useState(100);
   const [result, setResult] = useState<{ key: string; data: AlbumData } | null>(null);
@@ -64,9 +70,18 @@ export default function PositionAlbumsPage() {
   const [page, setPage] = useState(1);
   const [previewReady, setPreviewReady] = useState("");
   const iframe = useRef<HTMLIFrameElement>(null);
-  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}`;
+
+  const isWingContest =
+    WING_PORTFOLIOS.includes(contest as any) ||
+    contest === "Youth Organiser" ||
+    contest === "Women Organiser" ||
+    contest === "Nasara Organiser";
+
+  const effectiveScope = WING_PORTFOLIOS.includes(contest as any) ? "organisers_only" : scope;
+  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}`;
   const requestKey = `${query}&revision=${retry}`;
   const previewUrl = `/api/admin/albums/election?${requestKey}&format=html`;
+  const excelDownloadUrl = `/api/admin/albums/election?${query}&format=excel&download=1`;
   const data = result?.key === requestKey ? result.data : null;
   const error = failure?.key === requestKey ? failure.message : "";
   const loading = !data && !error;
@@ -97,6 +112,7 @@ export default function PositionAlbumsPage() {
   const currentPage = Math.min(page, totalPages);
   const rows = filtered.slice((currentPage - 1) * 50, currentPage * 50);
   const metrics = data?.metrics;
+
   const exportJson = () => {
     if (!data) return;
     const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
@@ -107,6 +123,15 @@ export default function PositionAlbumsPage() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  const handlePrintPdf = () => {
+    if (tab !== "preview") {
+      setTab("preview");
+    }
+    setTimeout(() => {
+      iframe.current?.contentWindow?.print();
+    }, 250);
+  };
+
   return (
     <AdminShell title="Election albums" subtitle="Prepare and manage the provisional electoral roll" currentUser={currentUser}>
       <div className="album-ui space-y-6">
@@ -114,20 +139,45 @@ export default function PositionAlbumsPage() {
           <div className="space-y-2">
             <Badge variant="outline" className="gap-1.5"><ShieldCheck className="size-3.5" /> National administrator</Badge>
             <h1 className="text-2xl font-semibold tracking-tight">Election albums <span className="text-muted-foreground">/ 2026</span></h1>
-            <p className="text-sm text-muted-foreground">Select a portfolio and region to preview, review, and export your album.</p>
+            <p className="text-sm text-muted-foreground">Select a portfolio or wing extraction and region to preview, review, and export your album.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" disabled={!data} onClick={exportJson}><Download /> Export JSON</Button>
-            <Button disabled={!data || !delegates.length || tab !== "preview" || previewReady !== previewUrl} onClick={() => iframe.current?.contentWindow?.print()}><Printer /> Print / Save PDF</Button>
+            <Button asChild variant="outline" disabled={!data || !delegates.length}>
+              <a href={excelDownloadUrl} download={`NPP_${contest.replaceAll(" ", "_")}_${region}_Voter_Directory_2026.xlsx`}>
+                <Download className="size-4" /> Download Excel (.xlsx)
+              </a>
+            </Button>
+            <Button variant="outline" disabled={!data} onClick={exportJson}><Download className="size-4" /> Export JSON</Button>
+            <Button disabled={!data || !delegates.length} onClick={handlePrintPdf}><Printer className="size-4" /> Print / Save PDF</Button>
           </div>
         </div>
 
         <Card>
-          <CardHeader><CardTitle>Album configuration</CardTitle><CardDescription>Choose the electorate included in this publication.</CardDescription></CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_auto] xl:items-end">
-            <div className="space-y-2"><label htmlFor="contest" className="text-sm font-medium">Elective portfolio</label>
-              <NativeSelect id="contest" value={contest} onChange={(e) => { setContest(e.target.value as ContestType); setPage(1); }}>
-                {CONTEST_LIST.map((item) => <option key={item}>{item}</option>)}
+          <CardHeader><CardTitle>Album configuration</CardTitle><CardDescription>Choose the elective portfolio, wing extraction, and regional scope.</CardDescription></CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 xl:items-end">
+            <div className="space-y-2"><label htmlFor="contest" className="text-sm font-medium">Elective portfolio / Wing</label>
+              <NativeSelect
+                id="contest"
+                value={contest}
+                onChange={(e) => {
+                  const val = e.target.value as ContestType;
+                  setContest(val);
+                  if (WING_PORTFOLIOS.includes(val as any)) {
+                    setScope("organisers_only");
+                  }
+                  setPage(1);
+                }}
+              >
+                <optgroup label="Wing Organisers & Deputies (Exclusive Extraction)">
+                  {WING_PORTFOLIOS.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="General Election Contests">
+                  {GENERAL_CONTEST_LIST.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </optgroup>
               </NativeSelect>
             </div>
             <div className="space-y-2"><label htmlFor="region" className="text-sm font-medium">Region</label>
@@ -135,7 +185,24 @@ export default function PositionAlbumsPage() {
                 {REGION_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </NativeSelect>
             </div>
-            <p className="text-xs leading-5 text-muted-foreground">National → Regional → Constituency → TESCON<br />TESCON patrons excluded</p>
+            {isWingContest ? (
+              <div className="space-y-2">
+                <label htmlFor="scope" className="text-sm font-medium">Electorate filter</label>
+                <NativeSelect
+                  id="scope"
+                  value={effectiveScope}
+                  onChange={(e) => {
+                    setScope(e.target.value);
+                    setPage(1);
+                  }}
+                >
+                  <option value="organisers_only">Organisers & Deputies Only (Wing Executives)</option>
+                  <option value="all_voters">Full Voting College (All Eligible Voters)</option>
+                </NativeSelect>
+              </div>
+            ) : (
+              <p className="text-xs leading-5 text-muted-foreground">National → Regional → External Branch → Constituency → TESCON<br />TESCON patrons excluded</p>
+            )}
           </CardContent>
         </Card>
 
@@ -144,7 +211,7 @@ export default function PositionAlbumsPage() {
             { label: "Confirmed voters", value: metrics?.actualFigures.toLocaleString(), detail: metrics ? `${metrics.expectedFigures.toLocaleString()} expected · ${metrics.complianceRate} coverage` : "Current electorate", icon: Users },
             { label: "Quorum threshold", value: metrics?.quorumRequirement.toLocaleString(), detail: "Two-thirds of confirmed voters", icon: ShieldCheck },
             { label: "Voter IDs recorded", value: metrics?.biometricVerification.verified.toLocaleString(), detail: metrics ? `${metrics.biometricVerification.pending.toLocaleString()} IDs pending` : "Identification coverage", icon: FileText },
-            { label: "Album scope", value: region === "all" ? "Nationwide" : region, detail: "National, regional, constituency & TESCON", icon: Table2 },
+            { label: "Album scope", value: region === "all" ? "Nationwide" : region, detail: "National, regional, external, constituency & TESCON", icon: Table2 },
           ].map(({ label, value, detail, icon: Icon }) => <Card key={label}><CardHeader className="flex-row items-center justify-between space-y-0 pb-2"><CardDescription>{label}</CardDescription><Icon className="size-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-semibold tracking-tight">{value ?? "—"}</div><p className="mt-2 text-xs text-muted-foreground">{detail}</p></CardContent></Card>)}
         </div>
 
@@ -159,12 +226,17 @@ export default function PositionAlbumsPage() {
               <TabsContent value="preview">
                 <Card className="overflow-hidden">
                   <CardHeader className="flex flex-col justify-between gap-4 border-b lg:flex-row lg:items-center">
-                    <div className="space-y-1.5"><CardTitle>{contest} election roll</CardTitle><CardDescription>Provisional publication · A4 portrait</CardDescription></div>
+                    <div className="space-y-1.5"><CardTitle>{contest} {isWingContest && effectiveScope === "organisers_only" ? "directory" : "election roll"}</CardTitle><CardDescription>Provisional publication · A4 portrait</CardDescription></div>
                     <div className="flex flex-wrap items-center gap-2">
                       <Button variant="outline" size="icon" aria-label="Zoom out" disabled={zoom === 50} onClick={() => setZoom((z) => Math.max(50, z - 10))}><Minus /></Button>
                       <Button variant="ghost" className="w-16 tabular-nums" aria-label="Reset zoom to 100 percent" onClick={() => setZoom(100)}>{zoom}%</Button>
                       <Button variant="outline" size="icon" aria-label="Zoom in" disabled={zoom === 150} onClick={() => setZoom((z) => Math.min(150, z + 10))}><Plus /></Button>
                       <Button asChild variant="outline"><a href={previewUrl} target="_blank" rel="noreferrer"><ExternalLink /> Open album</a></Button>
+                      <Button asChild variant="outline">
+                        <a href={excelDownloadUrl} download={`NPP_${contest.replaceAll(" ", "_")}_${region}_Voter_Directory_2026.xlsx`}>
+                          <Download /> Download Excel (.xlsx)
+                        </a>
+                      </Button>
                       <Button asChild variant="outline"><a href={`${previewUrl}&download=1`} download={`NPP_${contest.replaceAll(" ", "_")}_${region}_Album_2026.html`}><Download /> Download HTML (WebP)</a></Button>
                     </div>
                   </CardHeader>
@@ -179,7 +251,14 @@ export default function PositionAlbumsPage() {
                   <CardContent className="space-y-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" /><Input aria-label="Search delegates" placeholder="Search name, voter ID, position…" className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} /></div>
-                      <NativeSelect aria-label="Filter by administrative level" className="sm:w-48" value={level} onChange={(e) => { setLevel(e.target.value); setPage(1); }}><option value="all">All levels</option>{["National", "Regional", "Constituency", "TESCON"].map((item) => <option key={item}>{item}</option>)}</NativeSelect>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <NativeSelect aria-label="Filter by administrative level" className="sm:w-48" value={level} onChange={(e) => { setLevel(e.target.value); setPage(1); }}><option value="all">All levels</option>{["National", "Regional", "External Branch", "Constituency", "TESCON"].map((item) => <option key={item}>{item}</option>)}</NativeSelect>
+                        <Button asChild variant="outline" size="sm">
+                          <a href={excelDownloadUrl} download={`NPP_${contest.replaceAll(" ", "_")}_${region}_Voter_Directory_2026.xlsx`}>
+                            <Download className="size-4" /> Export Excel (.xlsx)
+                          </a>
+                        </Button>
+                      </div>
                     </div>
                     {metrics && <div className="flex flex-wrap gap-2">{Object.entries(metrics.levelBreakdown).map(([name, count]) => <Badge key={name} variant="outline">{name}: {count.toLocaleString()}</Badge>)}</div>}
                     <div className="rounded-md border"><Table><TableHeader><TableRow><TableHead>#</TableHead><TableHead>Delegate</TableHead><TableHead>Level</TableHead><TableHead>Constituency / Region</TableHead><TableHead>Position</TableHead><TableHead>Voter ID</TableHead><TableHead>Phone</TableHead><TableHead>Demographics</TableHead></TableRow></TableHeader><TableBody>

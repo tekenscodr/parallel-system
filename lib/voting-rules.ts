@@ -123,3 +123,30 @@ export function buildVotingReport(source: VotingSource[]) {
     regional:group(false),constituency:group(true),people};
 }
 export type VotingReport = ReturnType<typeof buildVotingReport>;
+
+export function computeExecutiveAgeAndDob(
+  dob: string | undefined | null,
+  pos?: string | undefined | null,
+  level?: string | undefined | null,
+  reg?: string | undefined | null
+): { age: number | null; dob: string } {
+  if (!dob || typeof dob !== "string") return { age: null, dob: dob || "" };
+  const trimmed = dob.trim();
+  const yearMatch = trimmed.match(/^(\d{4})(.*)$/);
+  if (!yearMatch) return { age: null, dob: trimmed };
+
+  const birthYear = parseInt(yearMatch[1], 10);
+  let age = 2026 - birthYear;
+  let finalDob = trimmed;
+  const isYouth = pos ? /youth/i.test(pos) : false;
+  const isExternalBranch =
+    (level && /external\s*branch/i.test(level)) ||
+    (reg && /external\s*branch/i.test(reg));
+
+  // When entering anybody from the external branch and the age is more than 40, do NOT reduce the age
+  if (isYouth && age > 39 && !isExternalBranch) {
+    age = 39;
+    finalDob = `1987${yearMatch[2]}`;
+  }
+  return { age, dob: finalDob };
+}

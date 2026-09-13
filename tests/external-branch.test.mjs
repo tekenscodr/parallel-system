@@ -6,6 +6,7 @@ import {
   normalizeConstituency,
   isValidConstituency,
 } from "../lib/constituency-normalizer.ts";
+import { computeExecutiveAgeAndDob } from "../lib/voting-rules.ts";
 
 const EXPECTED_30_COUNTRIES = [
   "Senegal",
@@ -85,3 +86,46 @@ test("normalizeConstituency normalizes country names and handles aliases", () =>
   assert.equal(normalizeConstituency("Korea"), "South Korea");
   assert.equal(normalizeConstituency("Republic of Korea"), "South Korea");
 });
+
+test("computeExecutiveAgeAndDob does NOT reduce age > 40 for External Branch executives", () => {
+  // External branch by executiveLevel
+  const res1 = computeExecutiveAgeAndDob(
+    "1978-05-12",
+    "Youth Organiser",
+    "External Branch",
+    "United Kingdom"
+  );
+  assert.equal(res1.age, 48, "External branch age 48 must not be reduced");
+  assert.equal(res1.dob, "1978-05-12", "External branch DOB year must remain 1978");
+
+  // External branch by region
+  const res2 = computeExecutiveAgeAndDob(
+    "1970-11-20",
+    "Deputy Youth Organiser",
+    "Constituency",
+    "External Branch"
+  );
+  assert.equal(res2.age, 56, "External branch age 56 must not be reduced");
+  assert.equal(res2.dob, "1970-11-20", "External branch DOB year must remain 1970");
+
+  // External branch non-youth position
+  const res3 = computeExecutiveAgeAndDob(
+    "1975-01-01",
+    "Chairman",
+    "External Branch",
+    "External Branch"
+  );
+  assert.equal(res3.age, 51);
+  assert.equal(res3.dob, "1975-01-01");
+
+  // Standard domestic constituency youth organiser > 39 DOES get reduced
+  const res4 = computeExecutiveAgeAndDob(
+    "1978-05-12",
+    "Youth Organiser",
+    "Constituency",
+    "Greater Accra"
+  );
+  assert.equal(res4.age, 39, "Standard youth age > 39 must be capped at 39");
+  assert.equal(res4.dob, "1987-05-12", "Standard youth DOB year must be adjusted to 1987");
+});
+

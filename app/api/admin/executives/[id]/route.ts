@@ -43,6 +43,8 @@ export async function GET(req: Request, { params }: RouteParams) {
           gender,
           CASE
             WHEN position ILIKE '%youth%' 
+                 AND executive_level NOT ILIKE '%external branch%'
+                 AND region NOT ILIKE '%external branch%'
                  AND date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' 
                  AND (2026 - substring(date_of_birth from '^[0-9]{4}')::int) > 39 
             THEN '1987' || substring(date_of_birth from 5)
@@ -50,6 +52,8 @@ export async function GET(req: Request, { params }: RouteParams) {
           END as "dateOfBirth",
           CASE
             WHEN position ILIKE '%youth%' 
+                 AND executive_level NOT ILIKE '%external branch%'
+                 AND region NOT ILIKE '%external branch%'
                  AND (
                    (date_of_birth ~ '[0-9]{4}' AND (2026 - substring(date_of_birth from '([0-9]{4})')::int) > 39)
                    OR (age IS NOT NULL AND (age + 2) > 39)
@@ -138,36 +142,6 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       status,
     } = body;
 
-    const isYouth = position && typeof position === "string" 
-      ? /youth/i.test(position) 
-      : false;
-
-    // Calculate age using current year 2026 and date of birth
-    let calculatedAge: number | null = null;
-    let adjustedDob: string | null = (dateOfBirth && typeof dateOfBirth === "string") ? dateOfBirth.trim() : null;
-
-    if (adjustedDob) {
-      const yearMatch = adjustedDob.match(/(\d{4})/);
-      if (yearMatch) {
-        const year = parseInt(yearMatch[1], 10);
-        if (!isNaN(year) && year > 1920 && year <= 2026) {
-          calculatedAge = 2026 - year;
-        }
-      }
-    }
-
-    let isAgeAdjusted = false;
-    if (isYouth && calculatedAge !== null && calculatedAge > 39) {
-      calculatedAge = 39;
-      isAgeAdjusted = true;
-      if (adjustedDob) {
-        // Change only the year to 1987 (2026 - 39 = 1987), keeping month and day intact
-        adjustedDob = adjustedDob.replace(/^(\d{4})/, "1987");
-      } else {
-        adjustedDob = "1987-01-01";
-      }
-    }
-
     // 1. Fetch previous state before updating
     const previousRow = await withEcSql(async (sql) => {
       const res = await sql`
@@ -189,7 +163,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           gender,
           date_of_birth as "dateOfBirth",
           age,
-          status
+          status,
+          image_url as "imageUrl"
         FROM executives_all
         WHERE id = ${id}
         LIMIT 1
@@ -201,8 +176,44 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Executive record not found" }, { status: 404 });
     }
 
-    // 2. Perform update
+    const effLevel = executiveLevel !== undefined ? executiveLevel : (body.executive_level !== undefined ? body.executive_level : previousRow.executiveLevel);
     const effRegion = region !== undefined ? region : previousRow.region;
+    const effPosition = position !== undefined ? position : previousRow.position;
+
+    const isYouth = effPosition && typeof effPosition === "string" 
+      ? /youth/i.test(effPosition) 
+      : false;
+    const isExternalBranch =
+      (effLevel && /external\s*branch/i.test(String(effLevel))) ||
+      (effRegion && /external\s*branch/i.test(String(effRegion)));
+
+    // Calculate age using current year 2026 and date of birth
+    let calculatedAge: number | null = null;
+    let adjustedDob: string | null = (dateOfBirth && typeof dateOfBirth === "string") ? dateOfBirth.trim() : null;
+
+    if (adjustedDob) {
+      const yearMatch = adjustedDob.match(/(\d{4})/);
+      if (yearMatch) {
+        const year = parseInt(yearMatch[1], 10);
+        if (!isNaN(year) && year > 1920 && year <= 2026) {
+          calculatedAge = 2026 - year;
+        }
+      }
+    }
+
+    let isAgeAdjusted = false;
+    if (isYouth && !isExternalBranch && calculatedAge !== null && calculatedAge > 39) {
+      calculatedAge = 39;
+      isAgeAdjusted = true;
+      if (adjustedDob) {
+        // Change only the year to 1987 (2026 - 39 = 1987), keeping month and day intact
+        adjustedDob = adjustedDob.replace(/^(\d{4})/, "1987");
+      } else {
+        adjustedDob = "1987-01-01";
+      }
+    }
+
+    // 2. Perform update
     const normalizedConstituency = constituency !== undefined ? (normalizeConstituency(constituency) || constituency) : undefined;
     const effConstituency = normalizedConstituency !== undefined ? normalizedConstituency : previousRow.constituency;
     const effVoterId = voterId !== undefined ? voterId : previousRow.voterId;
@@ -257,6 +268,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           gender,
           CASE
             WHEN position ILIKE '%youth%' 
+                 AND executive_level NOT ILIKE '%external branch%'
+                 AND region NOT ILIKE '%external branch%'
                  AND date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' 
                  AND (2026 - substring(date_of_birth from '^[0-9]{4}')::int) > 39 
             THEN '1987' || substring(date_of_birth from 5)
@@ -264,6 +277,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           END as "dateOfBirth",
           CASE
             WHEN position ILIKE '%youth%' 
+                 AND executive_level NOT ILIKE '%external branch%'
+                 AND region NOT ILIKE '%external branch%'
                  AND (
                    (date_of_birth ~ '[0-9]{4}' AND (2026 - substring(date_of_birth from '([0-9]{4})')::int) > 39)
                    OR (age IS NOT NULL AND (age + 2) > 39)

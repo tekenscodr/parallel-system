@@ -53,6 +53,7 @@ import { getClientHeaders } from "@/lib/client-device";
 import { checkClientRateLimit } from "@/lib/client-rate-limit";
 import { getPositionRank } from "@/lib/position-matcher";
 import { getConstituenciesForRegion } from "@/lib/constituency-normalizer";
+import { computeExecutiveAgeAndDob } from "@/lib/voting-rules";
 
 type OverviewData = {
   totals: {
@@ -660,30 +661,17 @@ export default function NationalAdminDashboard() {
     setEditDraggingImage(false);
   };
 
-  const computeExecutiveAgeAndDob = (dob: string | undefined | null, pos: string | undefined | null) => {
-    if (!dob || typeof dob !== "string") return { age: null, dob: dob || "" };
-    const trimmed = dob.trim();
-    const yearMatch = trimmed.match(/^(\d{4})(.*)$/);
-    if (!yearMatch) return { age: null, dob: trimmed };
-
-    const birthYear = parseInt(yearMatch[1], 10);
-    let age = 2026 - birthYear;
-    let finalDob = trimmed;
-    const isYouth = pos ? /youth/i.test(pos) : false;
-
-    if (isYouth && age > 39) {
-      age = 39;
-      finalDob = `1987${yearMatch[2]}`;
-    }
-    return { age, dob: finalDob };
-  };
-
   // Handle Form Change
   const handleFieldChange = (field: keyof ExecutiveDetail, value: string) => {
     if (!activeExecutive) return;
 
     if (field === "dateOfBirth") {
-      const { age, dob } = computeExecutiveAgeAndDob(value, activeExecutive.position);
+      const { age, dob } = computeExecutiveAgeAndDob(
+        value,
+        activeExecutive.position,
+        activeExecutive.executiveLevel,
+        activeExecutive.region
+      );
       setActiveExecutive({
         ...activeExecutive,
         dateOfBirth: dob,
@@ -693,7 +681,12 @@ export default function NationalAdminDashboard() {
     }
 
     if (field === "position") {
-      const { age, dob } = computeExecutiveAgeAndDob(activeExecutive.dateOfBirth, value);
+      const { age, dob } = computeExecutiveAgeAndDob(
+        activeExecutive.dateOfBirth,
+        value,
+        activeExecutive.executiveLevel,
+        activeExecutive.region
+      );
       setActiveExecutive({
         ...activeExecutive,
         position: value,
@@ -703,20 +696,40 @@ export default function NationalAdminDashboard() {
       return;
     }
 
-    if (field === "executiveLevel" && value === "External Branch") {
+    if (field === "executiveLevel") {
+      const isExt = value === "External Branch";
+      const nextRegion = isExt ? "External Branch" : activeExecutive.region;
+      const { age, dob } = computeExecutiveAgeAndDob(
+        activeExecutive.dateOfBirth,
+        activeExecutive.position,
+        value,
+        nextRegion
+      );
       setActiveExecutive({
         ...activeExecutive,
         executiveLevel: value,
-        region: "External Branch",
+        region: nextRegion,
+        dateOfBirth: dob,
+        age: age !== null ? age : activeExecutive.age,
       });
       return;
     }
 
-    if (field === "region" && value === "External Branch") {
+    if (field === "region") {
+      const isExt = value === "External Branch";
+      const nextLevel = isExt ? "External Branch" : activeExecutive.executiveLevel;
+      const { age, dob } = computeExecutiveAgeAndDob(
+        activeExecutive.dateOfBirth,
+        activeExecutive.position,
+        nextLevel,
+        value
+      );
       setActiveExecutive({
         ...activeExecutive,
         region: value,
-        executiveLevel: "External Branch",
+        executiveLevel: nextLevel,
+        dateOfBirth: dob,
+        age: age !== null ? age : activeExecutive.age,
       });
       return;
     }
@@ -728,7 +741,7 @@ export default function NationalAdminDashboard() {
   };
 
   const handleAddDobChange = (val: string) => {
-    const { age, dob } = computeExecutiveAgeAndDob(val, newExecPosition);
+    const { age, dob } = computeExecutiveAgeAndDob(val, newExecPosition, newExecLevel, newExecRegion);
     setNewExecDob(dob);
     if (age !== null) {
       setNewExecAge(String(age));
@@ -740,7 +753,7 @@ export default function NationalAdminDashboard() {
   const handleAddPositionChange = (pos: string) => {
     setNewExecPosition(pos);
     if (newExecDob) {
-      const { age, dob } = computeExecutiveAgeAndDob(newExecDob, pos);
+      const { age, dob } = computeExecutiveAgeAndDob(newExecDob, pos, newExecLevel, newExecRegion);
       setNewExecDob(dob);
       if (age !== null) setNewExecAge(String(age));
     }
@@ -757,7 +770,12 @@ export default function NationalAdminDashboard() {
       return;
     }
 
-    const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(activeExecutive.dateOfBirth, activeExecutive.position);
+    const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(
+      activeExecutive.dateOfBirth,
+      activeExecutive.position,
+      activeExecutive.executiveLevel,
+      activeExecutive.region
+    );
     const updatedExecutive = {
       ...activeExecutive,
       dateOfBirth: calculatedDob,
@@ -966,7 +984,12 @@ export default function NationalAdminDashboard() {
         setNewExecVoterId(v.voterId || cleanId);
         setNewExecGhanaCard(v.ghanaCard || "");
         setNewExecGender(v.gender || "Male");
-        const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(v.dateOfBirth || "", newExecPosition);
+        const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(
+          v.dateOfBirth || "",
+          newExecPosition,
+          newExecLevel,
+          v.region || newExecRegion
+        );
         setNewExecDob(calculatedDob || v.dateOfBirth || "");
         setNewExecAge(calculatedAge !== null ? String(calculatedAge) : (v.age ? String(v.age) : ""));
         setNewExecPhone(v.phone || "");
@@ -1027,7 +1050,12 @@ export default function NationalAdminDashboard() {
 
       if (res.ok && data.found && data.voter) {
         const v = data.voter;
-        const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(v.dateOfBirth || "", activeExecutive.position);
+        const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(
+          v.dateOfBirth || "",
+          activeExecutive.position,
+          activeExecutive.executiveLevel,
+          v.region || activeExecutive.region
+        );
         setActiveExecutive((prev) => {
           if (!prev) return null;
           return {
@@ -1197,7 +1225,12 @@ export default function NationalAdminDashboard() {
 
     setAddSaving(true);
     try {
-      const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(newExecDob, newExecPosition);
+      const { age: calculatedAge, dob: calculatedDob } = computeExecutiveAgeAndDob(
+        newExecDob,
+        newExecPosition,
+        newExecLevel,
+        newExecRegion
+      );
       const finalAge = calculatedAge !== null ? calculatedAge : (newExecAge ? parseInt(newExecAge, 10) : null);
       const finalDob = calculatedDob || newExecDob;
 
@@ -3678,7 +3711,11 @@ export default function NationalAdminDashboard() {
                           }}
                         >
                           <span>{activeExecutive.age !== null ? `${activeExecutive.age} years` : "—"}</span>
-                          {activeExecutive.position && /youth/i.test(activeExecutive.position) && activeExecutive.age === 39 && (
+                          {activeExecutive.position &&
+                            /youth/i.test(activeExecutive.position) &&
+                            activeExecutive.age === 39 &&
+                            !/external\s*branch/i.test(activeExecutive.executiveLevel || "") &&
+                            !/external\s*branch/i.test(activeExecutive.region || "") && (
                             <span style={{ fontSize: "11px", color: "#38bdf8", background: "rgba(56, 189, 248, 0.15)", padding: "1px 6px", borderRadius: "4px" }}>
                               Youth Quota Capped (&le;39)
                             </span>
@@ -4650,8 +4687,14 @@ export default function NationalAdminDashboard() {
                       onChange={(e) => {
                         const newLevel = e.target.value;
                         setNewExecLevel(newLevel);
+                        const effectiveRegion = newLevel === "External Branch" ? "External Branch" : newExecRegion;
                         if (newLevel === "External Branch") {
                           setNewExecRegion("External Branch");
+                        }
+                        if (newExecDob) {
+                          const { age, dob } = computeExecutiveAgeAndDob(newExecDob, newExecPosition, newLevel, effectiveRegion);
+                          setNewExecDob(dob);
+                          if (age !== null) setNewExecAge(String(age));
                         }
                         if (!isCustomPosition) {
                           const validPositions = POSITIONS_BY_LEVEL[newLevel] || [];
@@ -4805,6 +4848,7 @@ export default function NationalAdminDashboard() {
                       onChange={(e) => {
                         const val = e.target.value;
                         setNewExecRegion(val);
+                        const effectiveLevel = val === "External Branch" ? "External Branch" : newExecLevel;
                         if (val === "External Branch") {
                           setNewExecLevel("External Branch");
                           if (!isCustomPosition) {
@@ -4813,6 +4857,11 @@ export default function NationalAdminDashboard() {
                               handleAddPositionChange(validPositions[0] || "");
                             }
                           }
+                        }
+                        if (newExecDob) {
+                          const { age, dob } = computeExecutiveAgeAndDob(newExecDob, newExecPosition, effectiveLevel, val);
+                          setNewExecDob(dob);
+                          if (age !== null) setNewExecAge(String(age));
                         }
                       }}
                       style={{
@@ -5038,7 +5087,11 @@ export default function NationalAdminDashboard() {
                       <label style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: "600" }}>
                         Age
                       </label>
-                      {newExecPosition && /youth/i.test(newExecPosition) && Number(newExecAge) === 39 && (
+                      {newExecPosition &&
+                        /youth/i.test(newExecPosition) &&
+                        Number(newExecAge) === 39 &&
+                        !/external\s*branch/i.test(newExecLevel || "") &&
+                        !/external\s*branch/i.test(newExecRegion || "") && (
                         <span style={{ fontSize: "11px", color: "#38bdf8", background: "rgba(56, 189, 248, 0.15)", padding: "1px 6px", borderRadius: "4px" }}>
                           Youth Quota Capped (&le;39)
                         </span>

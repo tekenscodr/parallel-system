@@ -207,6 +207,8 @@ export async function GET(req: Request) {
             gender,
             CASE
               WHEN position ILIKE '%youth%' 
+                   AND executive_level NOT ILIKE '%external branch%'
+                   AND region NOT ILIKE '%external branch%'
                    AND date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' 
                    AND (2026 - substring(date_of_birth from '^[0-9]{4}')::int) > 39 
               THEN '1987' || substring(date_of_birth from 5)
@@ -214,6 +216,8 @@ export async function GET(req: Request) {
             END as "dateOfBirth",
             CASE
               WHEN position ILIKE '%youth%' 
+                   AND executive_level NOT ILIKE '%external branch%'
+                   AND region NOT ILIKE '%external branch%'
                    AND (
                      (date_of_birth ~ '[0-9]{4}' AND (2026 - substring(date_of_birth from '([0-9]{4})')::int) > 39)
                      OR (age IS NOT NULL AND (age + 2) > 39)
@@ -333,8 +337,11 @@ export async function POST(req: Request) {
     }
 
     const isYouth = position.toLowerCase().includes("youth");
+    const isExternalBranch =
+      (executiveLevel && executiveLevel.toLowerCase().includes("external branch")) ||
+      (region && region.toLowerCase().includes("external branch"));
     let isAgeAdjusted = false;
-    if (isYouth && parsedAge !== null && parsedAge > 39) {
+    if (isYouth && !isExternalBranch && parsedAge !== null && parsedAge > 39) {
       parsedAge = 39;
       isAgeAdjusted = true;
       if (finalDob) {
