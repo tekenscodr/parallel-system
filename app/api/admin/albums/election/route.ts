@@ -17,6 +17,10 @@ import {
   getCanonicalPositionsForSelection,
   type ContestType,
 } from "@/lib/election-contests";
+import {
+  getConstituenciesForRegion,
+  normalizeConstituency,
+} from "@/lib/constituency-normalizer";
 
 // Pre-indexed WebP photos from Ahafo album (voter_id and executive_name)
 const ahafoPhotosByVoterId = new Map<string, string>();
@@ -853,10 +857,271 @@ export async function GET(req: NextRequest) {
       headersHtml: string;
       rowsHtml: string;
       footerHtml: string;
+      contentHtml?: string;
       auditRows: any[];
     } | null = null;
 
-    if (isRegionalOnly) {
+    const isSingleRegion = regionQuery !== "all" && regionQuery !== "";
+    const selectedRegion = isSingleRegion ? (activeRegions[0] || regionQuery) : "";
+
+    if (isSingleRegion) {
+      // Build detailed constituency-level breakdown for this specific region
+      const conList = getConstituenciesForRegion(selectedRegion);
+      const conNames =
+        conList.length > 0
+          ? conList
+          : Array.from(
+              new Set(
+                delegates
+                  .filter(
+                    (d) =>
+                      String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
+                      String(d.region || "").toLowerCase().trim() === selectedRegion.toLowerCase().trim()
+                  )
+                  .map((d) => d.constituency)
+                  .filter(Boolean)
+              )
+            );
+
+      const auditItems: Array<{
+        isRegional: boolean;
+        num: string;
+        name: string;
+        level: string;
+        confirmed: number;
+        target: number;
+        variance: string;
+        rate: string;
+      }> = [];
+
+      const includeRegional = hasRegional || (!isRegionalOnly && !isConstituencyOnly);
+      const includeConstituency = hasConstituency || (!isRegionalOnly && !isConstituencyOnly);
+
+      if (includeRegional) {
+        const regConfirmed = delegates.filter(
+          (d) =>
+            (String(d.executive_level || "").toLowerCase().trim() === "regional" ||
+              String(d.executive_level || "").toLowerCase().trim() === "region") &&
+            (String(d.region || "").toLowerCase().trim() === selectedRegion.toLowerCase().trim() ||
+              selectedRegion.toLowerCase().includes(String(d.region || "").toLowerCase().trim()))
+        ).length;
+        const regTarget = regionalTargetPerUnit;
+        const regVariance = regTarget - regConfirmed;
+        auditItems.push({
+          isRegional: true,
+          num: "★",
+          name: `${selectedRegion} Regional Executive Committee`,
+          level: "Regional",
+          confirmed: regConfirmed,
+          target: regTarget,
+          variance: regVariance > 0 ? `-${regVariance}` : "0",
+          rate: regTarget > 0 ? ((regConfirmed / regTarget) * 100).toFixed(1) + "%" : "100%",
+        });
+      }
+
+      if (includeConstituency) {
+        for (let i = 0; i < conNames.length; i++) {
+          const cName = conNames[i];
+          const norm = normalizeConstituency(cName);
+          const confirmed = delegates.filter(
+            (d) =>
+              String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
+              (normalizeConstituency(d.constituency) === norm ||
+                d.constituency.toLowerCase().trim() === cName.toLowerCase().trim()) &&
+              (!d.region ||
+                selectedRegion.toLowerCase().trim() === "external branch" ||
+                String(d.region).toLowerCase().trim() === selectedRegion.toLowerCase().trim())
+          ).length;
+          const target = constituencyTargetPerUnit;
+          const variance = target - confirmed;
+          auditItems.push({
+            isRegional: false,
+            num: String(i + 1),
+            name: `${cName} Constituency`,
+            level: "Constituency",
+            confirmed,
+            target,
+            variance: variance > 0 ? `-${variance}` : "0",
+            rate: target > 0 ? ((confirmed / target) * 100).toFixed(1) + "%" : "100%",
+          });
+        }
+      }
+
+      const sumItemConfirmed = auditItems.reduce((acc, it) => acc + it.confirmed, 0);
+      const sumItemTarget = auditItems.reduce((acc, it) => acc + it.target, 0);
+      const sumItemVariance = sumItemTarget - sumItemConfirmed;
+      const sumItemRate = sumItemTarget > 0 ? ((sumItemConfirmed / sumItemTarget) * 100).toFixed(1) + "%" : "100%";
+
+      const numConstituenciesInAudit = auditItems.filter((it) => !it.isRegional).length;
+      const summaryUnitsLabel = `${numConstituenciesInAudit} CONSTITUENCIES${includeRegional ? " + REGIONAL EXEC" : ""}`;
+
+      const titleSuffix = includeRegional && includeConstituency
+        ? "REGIONAL & CONSTITUENCY"
+        : includeRegional
+        ? "REGIONAL LEADERSHIP"
+        : "CONSTITUENCY LEADERSHIP";
+
+      const subDetail = includeRegional && includeConstituency
+        ? `Regional Executive Quota (${regionalTargetPerUnit}) & Constituency Quotas (${constituencyTargetPerUnit} per Constituency)`
+        : includeRegional
+        ? `Regional Executive Committee Quota (${regionalTargetPerUnit})`
+        : `Constituency Statutory Quota (${constituencyTargetPerUnit} per Constituency)`;
+
+      // If more than 22 rows (e.g. Ashanti with 47+1, Greater Accra with 34+1, Eastern with 33+1, Central with 23+1),
+      // render a 2-column side-by-side compact grid so it strictly fits on 1 single page!
+      let contentHtml = "";
+      if (auditItems.length > 22) {
+        const mid = Math.ceil(auditItems.length / 2);
+        const col1 = auditItems.slice(0, mid);
+        const col2 = auditItems.slice(mid);
+
+        const renderColRows = (items: typeof auditItems) =>
+          items
+            .map(
+              (it) => `
+            <tr${it.isRegional ? ' style="background: #EFF6FF; font-weight: 700;"' : ''}>
+              <td style="text-align: center;">${it.num}</td>
+              <td><strong>${it.name}</strong></td>
+              <td style="text-align: center;">${it.confirmed.toLocaleString()}</td>
+              <td style="text-align: center;">${it.target}</td>
+              <td style="text-align: center;">${it.rate}</td>
+            </tr>
+          `
+            )
+            .join("\n");
+
+        contentHtml = `
+          <div class="two-col-audit-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div>
+              <table class="stats-table compact" style="margin-bottom: 0;">
+                <thead>
+                  <tr>
+                    <th style="width: 7%; text-align: center;">#</th>
+                    <th style="width: 47%;">Jurisdiction</th>
+                    <th style="width: 16%; text-align: center;">Confirmed</th>
+                    <th style="width: 14%; text-align: center;">Quota</th>
+                    <th style="width: 16%; text-align: center;">Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${renderColRows(col1)}
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <table class="stats-table compact" style="margin-bottom: 0;">
+                <thead>
+                  <tr>
+                    <th style="width: 7%; text-align: center;">#</th>
+                    <th style="width: 47%;">Jurisdiction</th>
+                    <th style="width: 16%; text-align: center;">Confirmed</th>
+                    <th style="width: 14%; text-align: center;">Quota</th>
+                    <th style="width: 16%; text-align: center;">Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${renderColRows(col2)}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <table class="stats-table compact" style="margin-top: 4px;">
+            <tfoot>
+              <tr>
+                <td style="width: 54%; text-align: right;"><strong>TOTAL (${selectedRegion.toUpperCase()} · ${summaryUnitsLabel}):</strong></td>
+                <td style="width: 16%; text-align: center;"><strong>${sumItemConfirmed.toLocaleString()}</strong></td>
+                <td style="width: 14%; text-align: center;"><strong>${sumItemTarget.toLocaleString()}</strong></td>
+                <td style="width: 16%; text-align: center;"><strong>${sumItemRate}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        `;
+      } else {
+        contentHtml = `
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th style="width: 5%; text-align: center;">#</th>
+                <th style="width: 35%;">Jurisdiction / Executive Body</th>
+                <th style="width: 15%; text-align: center;">Tier</th>
+                <th style="width: 15%; text-align: center;">Confirmed Voters</th>
+                <th style="width: 15%; text-align: center;">Statutory Quota</th>
+                <th style="width: 15%; text-align: center;">Compliance Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${auditItems
+                .map(
+                  (it) => `
+                <tr${it.isRegional ? ' style="background: #EFF6FF; font-weight: 700;"' : ''}>
+                  <td style="text-align: center;">${it.num}</td>
+                  <td><strong>${it.name}</strong></td>
+                  <td style="text-align: center;"><span class="val" style="background:${it.isRegional ? '#EFF6FF; color:#1E40AF' : '#F1F5F9; color:#334155'}; padding:1px 5px; border-radius:3px;">${it.level}</span></td>
+                  <td style="text-align: center;"><strong>${it.confirmed.toLocaleString()}</strong></td>
+                  <td style="text-align: center;">${it.target}</td>
+                  <td style="text-align: center;"><strong>${it.rate}</strong></td>
+                </tr>
+              `
+                )
+                .join("\n")}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="text-align: right;"><strong>TOTAL (${selectedRegion.toUpperCase()} · ${summaryUnitsLabel}):</strong></td>
+                <td style="text-align: center;"><strong>${sumItemConfirmed.toLocaleString()}</strong></td>
+                <td style="text-align: center;"><strong>${sumItemTarget.toLocaleString()}</strong></td>
+                <td style="text-align: center;"><strong>${sumItemRate}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        `;
+      }
+
+      levelAudit = {
+        tableTitle: `${selectedRegion.toUpperCase()} ${titleSuffix} STATUTORY AUDIT & SIGN-OFF`,
+        tableSub: `${subDetail} · ${effectiveContestName}`,
+        footerLabel: `${selectedRegion.toUpperCase()} STATUTORY AUDIT`,
+        headersHtml: `
+          <tr>
+            <th style="width: 5%; text-align: center;">#</th>
+            <th style="width: 35%;">Jurisdiction / Executive Body</th>
+            <th style="width: 15%; text-align: center;">Tier</th>
+            <th style="width: 15%; text-align: center;">Confirmed Voters</th>
+            <th style="width: 15%; text-align: center;">Statutory Quota</th>
+            <th style="width: 15%; text-align: center;">Compliance Rate</th>
+          </tr>
+        `,
+        rowsHtml: auditItems
+          .map(
+            (it) => `
+          <tr${it.isRegional ? ' style="background: #EFF6FF; font-weight: 700;"' : ''}>
+            <td style="text-align: center;">${it.num}</td>
+            <td><strong>${it.name}</strong></td>
+            <td style="text-align: center;"><span class="val" style="background:${it.isRegional ? '#EFF6FF; color:#1E40AF' : '#F1F5F9; color:#334155'}; padding:1px 5px; border-radius:3px;">${it.level}</span></td>
+            <td style="text-align: center;"><strong>${it.confirmed.toLocaleString()}</strong></td>
+            <td style="text-align: center;">${it.target}</td>
+            <td style="text-align: center;"><strong>${it.rate}</strong></td>
+          </tr>
+        `
+          )
+          .join("\n"),
+        footerHtml: `
+          <tr>
+            <td colspan="3" style="text-align: right;"><strong>TOTAL (${selectedRegion.toUpperCase()} · ${summaryUnitsLabel}):</strong></td>
+            <td style="text-align: center;"><strong>${sumItemConfirmed.toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>${sumItemTarget.toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>${sumItemRate}</strong></td>
+          </tr>
+        `,
+        contentHtml,
+        auditRows: auditItems.map((it) => ({
+          region: it.name,
+          confirmed: it.confirmed,
+          target: it.target,
+          complianceRate: it.rate,
+        })),
+      };
+    } else if (isRegionalOnly) {
       levelAudit = {
         tableTitle: "REGIONAL LEADERSHIP STATUTORY AUDIT & SIGN-OFF",
         tableSub: `Regional Executive Committee Quota Distribution (Target: ${regionalTargetPerUnit} per Region) · ${effectiveContestName}`,
@@ -1068,7 +1333,76 @@ export async function GET(req: NextRequest) {
         pending: totalActual - verifiedVoterIds,
         verificationRate: totalActual > 0 ? ((verifiedVoterIds / totalActual) * 100).toFixed(1) + "%" : "0%",
       },
+      regionalQuota: regionalTargetPerUnit,
+      constituencyQuota: constituencyTargetPerUnit,
     };
+
+    const targetRegions =
+      regionQuery !== "all" && regionQuery !== ""
+        ? [regionQuery]
+        : GHANA_REGIONS_ORDER;
+
+    const constituencyAudit: Array<{
+      region: string;
+      constituency: string;
+      confirmed: number;
+      target: number;
+      variance: number;
+      complianceRate: string;
+      status: "Compliant" | "Under Quota" | "Over Quota";
+    }> = [];
+
+    for (const reg of targetRegions) {
+      const cList = getConstituenciesForRegion(reg);
+      const conNames =
+        cList.length > 0
+          ? cList
+          : Array.from(
+              new Set(
+                delegates
+                  .filter(
+                    (d) =>
+                      String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
+                      String(d.region || "").toLowerCase().trim() === reg.toLowerCase().trim()
+                  )
+                  .map((d) => d.constituency)
+                  .filter(Boolean)
+              )
+            );
+
+      for (const cName of conNames) {
+        const norm = normalizeConstituency(cName);
+        const conConfirmed = delegates.filter(
+          (d) =>
+            String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
+            (normalizeConstituency(d.constituency) === norm ||
+              d.constituency.toLowerCase().trim() === cName.toLowerCase().trim()) &&
+            (!d.region ||
+              reg.toLowerCase().trim() === "external branch" ||
+              String(d.region).toLowerCase().trim() === reg.toLowerCase().trim())
+        ).length;
+
+        const target = constituencyTargetPerUnit;
+        const variance = target - conConfirmed;
+        const complianceRate = target > 0 ? ((conConfirmed / target) * 100).toFixed(1) + "%" : "100%";
+        const status: "Compliant" | "Under Quota" | "Over Quota" =
+          conConfirmed === target
+            ? "Compliant"
+            : conConfirmed < target
+            ? "Under Quota"
+            : "Over Quota";
+
+        constituencyAudit.push({
+          region: reg,
+          constituency: cName,
+          confirmed: conConfirmed,
+          target,
+          variance,
+          complianceRate,
+          status,
+        });
+      }
+    }
 
     // Excel export format
     if (format === "excel" || format === "xlsx") {
@@ -1078,7 +1412,8 @@ export async function GET(req: NextRequest) {
         metrics,
         delegates,
         regionalBreakdown,
-        levelAudit
+        levelAudit,
+        constituencyAudit
       );
 
       const safeContest = effectiveContestName.replace(/[\s&]+/g, "_");
@@ -1131,6 +1466,8 @@ export async function GET(req: NextRequest) {
       metrics,
       regionalBreakdown,
       delegates,
+      constituencyAudit,
+      levelAudit,
       generatedAt: new Date().toISOString(),
     }, { headers: { "Cache-Control": "private, no-store" } });
   });
@@ -1142,7 +1479,8 @@ async function generateAlbumExcel(
   metrics: any,
   delegates: any[],
   regionalBreakdown: any[],
-  levelAudit?: any
+  levelAudit?: any,
+  constituencyAudit?: any[]
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "New Patriotic Party (NPP)";
@@ -1356,6 +1694,69 @@ async function generateAlbumExcel(
     for (const r of levelAudit.auditRows) {
       metricsSheet.addRow([r.region, r.confirmed, r.target, r.complianceRate]);
     }
+  }
+
+  if (constituencyAudit && constituencyAudit.length > 0) {
+    const conSheet = workbook.addWorksheet("Constituency Statistics", {
+      views: [{ showGridLines: true }],
+      pageSetup: { paperSize: 9, orientation: "portrait" },
+    });
+
+    conSheet.mergeCells("A1:H1");
+    const tCell = conSheet.getCell("A1");
+    tCell.value = `NPP CONSTITUENCY STATUTORY AUDIT & SIGN-OFF · STATUTORY QUOTA: ${metrics.constituencyQuota || 19} PER CONSTITUENCY`;
+    tCell.font = { name: "Arial", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
+    tCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF003399" } };
+    tCell.alignment = { horizontal: "center", vertical: "middle" };
+    conSheet.getRow(1).height = 28;
+
+    const cHeader = conSheet.addRow([
+      "#",
+      "Region",
+      "Constituency Name",
+      "Confirmed Voters",
+      "Statutory Quota",
+      "Variance",
+      "Compliance Rate",
+      "Status",
+    ]);
+    cHeader.height = 22;
+    cHeader.eachCell((c) => {
+      c.font = { name: "Arial", size: 9.5, bold: true, color: { argb: "FFFFFFFF" } };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDC2626" } };
+      c.alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    constituencyAudit.forEach((item, idx) => {
+      const row = conSheet.addRow([
+        idx + 1,
+        item.region,
+        item.constituency,
+        item.confirmed,
+        item.target,
+        item.variance,
+        item.complianceRate,
+        item.status,
+      ]);
+      row.height = 19;
+      row.getCell(1).alignment = { horizontal: "center" };
+      row.getCell(4).alignment = { horizontal: "center" };
+      row.getCell(5).alignment = { horizontal: "center" };
+      row.getCell(6).alignment = { horizontal: "center" };
+      row.getCell(7).alignment = { horizontal: "center" };
+      row.getCell(8).alignment = { horizontal: "center" };
+    });
+
+    conSheet.columns = [
+      { width: 6 },
+      { width: 18 },
+      { width: 30 },
+      { width: 16 },
+      { width: 16 },
+      { width: 14 },
+      { width: 16 },
+      { width: 16 },
+    ];
   }
 
   const rawBuffer = await workbook.xlsx.writeBuffer();
@@ -1711,6 +2112,11 @@ function generateAlbumHtml(
     .stats-table tr:nth-child(even) { background: #F8FAFC; }
     .stats-table tfoot tr { background: #E2E8F0; font-weight: 800; border-top: 1.5px solid #003399; }
     .stats-table tfoot td { padding: 3.5px 8px; font-weight: 800; font-size: 7.5pt; color: #003399; }
+    .two-col-audit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stats-table.compact { font-size: 6.5pt; margin-bottom: 0; }
+    .stats-table.compact th { padding: 2px 5px; font-size: 6.5pt; }
+    .stats-table.compact td { padding: 1.5px 5px; font-size: 6.5pt; line-height: 1.15; }
+    .stats-table.compact tfoot td { padding: 2.5px 5px; font-size: 6.8pt; }
 
     /* Cards Grid (Pages 3+) */
     .grid-10 {
@@ -1961,28 +2367,30 @@ function generateAlbumHtml(
     </header>
 
     <div class="table-container">
-      <table class="stats-table">
-        ${levelAudit ? `
-          <thead>
-            ${levelAudit.headersHtml}
-          </thead>
-          <tbody>
-            ${levelAudit.rowsHtml}
-          </tbody>
-          ${levelAudit.footerHtml ? `<tfoot>${levelAudit.footerHtml}</tfoot>` : ""}
-        ` : `
-          <thead><tr><th>Jurisdiction / Region</th><th>Confirmed Voters</th><th>Percentage Share</th><th>Status</th></tr></thead>
-          <tbody>
-            ${regionalBreakdown
-              .map(
-                (r) => `
-              <tr><td><strong>${r.region}</strong></td><td>${r.count.toLocaleString()}</td><td>${((r.count / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Active Electorate</td></tr>
-            `
-              )
-              .join("\n")}
-          </tbody>
-        `}
-      </table>
+      ${levelAudit?.contentHtml ? levelAudit.contentHtml : `
+        <table class="stats-table">
+          ${levelAudit ? `
+            <thead>
+              ${levelAudit.headersHtml}
+            </thead>
+            <tbody>
+              ${levelAudit.rowsHtml}
+            </tbody>
+            ${levelAudit.footerHtml ? `<tfoot>${levelAudit.footerHtml}</tfoot>` : ""}
+          ` : `
+            <thead><tr><th>Jurisdiction / Region</th><th>Confirmed Voters</th><th>Percentage Share</th><th>Status</th></tr></thead>
+            <tbody>
+              ${regionalBreakdown
+                .map(
+                  (r) => `
+                <tr><td><strong>${r.region}</strong></td><td>${r.count.toLocaleString()}</td><td>${((r.count / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Active Electorate</td></tr>
+              `
+                )
+                .join("\n")}
+            </tbody>
+          `}
+        </table>
+      `}
     </div>
 
     <div class="proclamation-box" style="margin-top: auto; margin-bottom: 10px;">

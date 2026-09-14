@@ -80,13 +80,28 @@ type Delegate = {
   constituency: string; canonical_position: string; voter_id: string; phone: string;
   gender: string; age: number | null; image_url: string; avatar_svg: string;
 };
+
+type ConstituencyAuditItem = {
+  region: string;
+  constituency: string;
+  confirmed: number;
+  target: number;
+  variance: number;
+  complianceRate: string;
+  status: "Compliant" | "Under Quota" | "Over Quota";
+};
+
 type AlbumData = {
   delegates: Delegate[];
   generatedAt: string;
+  constituencyAudit?: ConstituencyAuditItem[];
+  levelAudit?: any;
   metrics: {
     contest: string;
     actualFigures: number; expectedFigures: number; complianceRate: string;
     quorumRequirement: number; levelBreakdown: Record<string, number>;
+    regionalQuota?: number;
+    constituencyQuota?: number;
     biometricVerification: { verified: number; pending: number; verificationRate: string };
   };
 };
@@ -118,6 +133,10 @@ export default function PositionAlbumsPage() {
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState("all");
   const [page, setPage] = useState(1);
+  const [constituencySearch, setConstituencySearch] = useState("");
+  const [constituencyStatusFilter, setConstituencyStatusFilter] = useState("all");
+  const [constituencyRegionFilter, setConstituencyRegionFilter] = useState("all");
+  const [constituencyPage, setConstituencyPage] = useState(1);
   const [previewReady, setPreviewReady] = useState("");
   const [previewFailure, setPreviewFailure] = useState("");
   const [printRequest, setPrintRequest] = useState("");
@@ -272,6 +291,26 @@ export default function PositionAlbumsPage() {
   const currentPage = Math.min(page, totalPages);
   const rows = filtered.slice((currentPage - 1) * 50, currentPage * 50);
   const metrics = data?.metrics;
+
+  const allConstituencyAudit = data?.constituencyAudit ?? [];
+  const filteredConstituencies = allConstituencyAudit.filter((c) => {
+    const matchesSearch =
+      !constituencySearch.trim() ||
+      c.constituency.toLowerCase().includes(constituencySearch.toLowerCase()) ||
+      c.region.toLowerCase().includes(constituencySearch.toLowerCase());
+    const matchesStatus =
+      constituencyStatusFilter === "all" || c.status === constituencyStatusFilter;
+    const matchesRegion =
+      constituencyRegionFilter === "all" ||
+      c.region.toLowerCase().trim() === constituencyRegionFilter.toLowerCase().trim();
+    return matchesSearch && matchesStatus && matchesRegion;
+  });
+  const totalConstituencyPages = Math.max(1, Math.ceil(filteredConstituencies.length / 50));
+  const currentConstituencyPage = Math.min(constituencyPage, totalConstituencyPages);
+  const pagedConstituencies = filteredConstituencies.slice(
+    (currentConstituencyPage - 1) * 50,
+    currentConstituencyPage * 50
+  );
 
   const exportJson = () => {
     if (!data) return;
@@ -792,7 +831,11 @@ export default function PositionAlbumsPage() {
 
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <TabsList><TabsTrigger value="preview" className="gap-2"><FileText className="size-4" /> Album preview</TabsTrigger><TabsTrigger value="register" className="gap-2"><Table2 className="size-4" /> Voter register {data && <Badge variant="secondary">{delegates.length.toLocaleString()}</Badge>}</TabsTrigger></TabsList>
+            <TabsList>
+              <TabsTrigger value="preview" className="gap-2"><FileText className="size-4" /> Album preview</TabsTrigger>
+              <TabsTrigger value="register" className="gap-2"><Table2 className="size-4" /> Voter register {data && <Badge variant="secondary">{delegates.length.toLocaleString()}</Badge>}</TabsTrigger>
+              <TabsTrigger value="stats" className="gap-2"><Building2 className="size-4" /> Constituency statistics {allConstituencyAudit.length > 0 && <Badge variant="secondary">{allConstituencyAudit.length.toLocaleString()}</Badge>}</TabsTrigger>
+            </TabsList>
             {data && <span className="text-xs text-muted-foreground">Generated {new Date(data.generatedAt).toLocaleString()}</span>}
           </div>
           {loading ? <Card><CardContent className="flex min-h-72 flex-col items-center justify-center gap-3 pt-6" role="status"><LoaderCircle className="size-6 animate-spin text-muted-foreground" /><p className="text-sm text-muted-foreground">Preparing your electoral roll…</p></CardContent></Card>
@@ -868,6 +911,202 @@ export default function PositionAlbumsPage() {
                       </TableRow>)}
                     </TableBody></Table></div>
                     <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground"><p>{filtered.length ? (currentPage - 1) * 50 + 1 : 0}–{Math.min(currentPage * 50, filtered.length)} of {filtered.length.toLocaleString()} delegates</p><div className="flex items-center gap-2"><Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Previous</Button><span className="px-2 text-xs">Page {currentPage} of {totalPages}</span><Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>Next</Button></div></div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="stats">
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="space-y-1">
+                        <CardTitle>Constituency statutory audit &amp; compliance</CardTitle>
+                        <CardDescription>
+                          Audit individual constituencies against statutory quotas (Target: 19 per Constituency · Regional: 21 per Region)
+                        </CardDescription>
+                      </div>
+                      <Button asChild variant="outline" size="sm">
+                        <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${region}_Voter_Directory_2026.xlsx`}>
+                          <Download className="size-4 mr-1.5" /> Export Excel (.xlsx)
+                        </a>
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Top Stat KPI Cards */}
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                      <div className="rounded-lg border bg-blue-50/50 dark:bg-blue-950/20 p-3.5 border-blue-200 dark:border-blue-800">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-blue-800 dark:text-blue-300">Constituency Quota</div>
+                        <div className="mt-1 text-2xl font-bold text-blue-950 dark:text-blue-100">{metrics?.constituencyQuota ?? 19}</div>
+                        <p className="mt-0.5 text-xs text-blue-700/80 dark:text-blue-400">Statutory executives per constituency</p>
+                      </div>
+                      <div className="rounded-lg border bg-indigo-50/50 dark:bg-indigo-950/20 p-3.5 border-indigo-200 dark:border-indigo-800">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-indigo-800 dark:text-indigo-300">Regional Quota</div>
+                        <div className="mt-1 text-2xl font-bold text-indigo-950 dark:text-indigo-100">{metrics?.regionalQuota ?? 21}</div>
+                        <p className="mt-0.5 text-xs text-indigo-700/80 dark:text-indigo-400">Statutory executives per region</p>
+                      </div>
+                      <div className="rounded-lg border bg-slate-50 dark:bg-slate-900/50 p-3.5 border-slate-200 dark:border-slate-800">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Constituencies Tracked</div>
+                        <div className="mt-1 text-2xl font-bold text-foreground">{allConstituencyAudit.length}</div>
+                        <p className="mt-0.5 text-xs text-muted-foreground">In active scope ({region === "all" ? "Nationwide" : region})</p>
+                      </div>
+                      <div className="rounded-lg border bg-emerald-50/50 dark:bg-emerald-950/20 p-3.5 border-emerald-200 dark:border-emerald-800">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Full Compliance</div>
+                        <div className="mt-1 text-2xl font-bold text-emerald-950 dark:text-emerald-100">
+                          {allConstituencyAudit.filter((c) => c.status === "Compliant").length} / {allConstituencyAudit.length}
+                        </div>
+                        <p className="mt-0.5 text-xs text-emerald-700/80 dark:text-emerald-400">
+                          {allConstituencyAudit.length
+                            ? `${Math.round((allConstituencyAudit.filter((c) => c.status === "Compliant").length / allConstituencyAudit.length) * 100)}% compliance rate`
+                            : "—"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Filter and Search Bar */}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="relative w-full sm:max-w-sm">
+                        <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                          aria-label="Search constituency"
+                          placeholder="Search constituency name or region…"
+                          className="pl-9 text-xs"
+                          value={constituencySearch}
+                          onChange={(e) => {
+                            setConstituencySearch(e.target.value);
+                            setConstituencyPage(1);
+                          }}
+                        />
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {region === "all" && (
+                          <NativeSelect
+                            aria-label="Filter by region"
+                            className="sm:w-44 text-xs"
+                            value={constituencyRegionFilter}
+                            onChange={(e) => {
+                              setConstituencyRegionFilter(e.target.value);
+                              setConstituencyPage(1);
+                            }}
+                          >
+                            <option value="all">All 16 regions</option>
+                            {REGION_OPTIONS.filter((r) => r.value !== "all").map((r) => (
+                              <option key={r.value} value={r.value}>{r.label}</option>
+                            ))}
+                          </NativeSelect>
+                        )}
+                        <NativeSelect
+                          aria-label="Filter by compliance status"
+                          className="sm:w-36 text-xs"
+                          value={constituencyStatusFilter}
+                          onChange={(e) => {
+                            setConstituencyStatusFilter(e.target.value);
+                            setConstituencyPage(1);
+                          }}
+                        >
+                          <option value="all">All statuses</option>
+                          <option value="Compliant">Compliant (100%)</option>
+                          <option value="Under Quota">Under Quota</option>
+                          <option value="Over Quota">Over Quota</option>
+                        </NativeSelect>
+                      </div>
+                    </div>
+
+                    {/* Table */}
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12 text-center">#</TableHead>
+                            <TableHead>Constituency</TableHead>
+                            <TableHead>Region</TableHead>
+                            <TableHead className="text-center">Confirmed Voters</TableHead>
+                            <TableHead className="text-center">Statutory Quota</TableHead>
+                            <TableHead className="text-center">Variance</TableHead>
+                            <TableHead className="text-center">Compliance Rate</TableHead>
+                            <TableHead className="text-center">Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {pagedConstituencies.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                                No constituencies match your search or filter.
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            pagedConstituencies.map((c, i) => (
+                              <TableRow key={`${c.region}-${c.constituency}`}>
+                                <TableCell className="text-center text-muted-foreground text-xs">
+                                  {(currentConstituencyPage - 1) * 50 + i + 1}
+                                </TableCell>
+                                <TableCell className="font-semibold text-foreground text-xs">
+                                  {c.constituency}
+                                </TableCell>
+                                <TableCell className="text-muted-foreground text-xs">{c.region}</TableCell>
+                                <TableCell className="text-center font-semibold text-xs">{c.confirmed}</TableCell>
+                                <TableCell className="text-center text-xs">{c.target}</TableCell>
+                                <TableCell className="text-center text-xs">
+                                  <span className={c.variance > 0 ? "text-amber-600 dark:text-amber-400 font-semibold" : "text-muted-foreground"}>
+                                    {c.variance > 0 ? `-${c.variance}` : c.variance < 0 ? `+${Math.abs(c.variance)}` : "0"}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center font-mono text-xs">{c.complianceRate}</TableCell>
+                                <TableCell className="text-center">
+                                  <Badge
+                                    variant={
+                                      c.status === "Compliant"
+                                        ? "outline"
+                                        : c.status === "Under Quota"
+                                        ? "destructive"
+                                        : "secondary"
+                                    }
+                                    className={
+                                      c.status === "Compliant"
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 text-[11px]"
+                                        : c.status === "Under Quota"
+                                        ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800 text-[11px]"
+                                        : "text-[11px]"
+                                    }
+                                  >
+                                    {c.status}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Pagination controls */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+                      <p>
+                        {filteredConstituencies.length ? (currentConstituencyPage - 1) * 50 + 1 : 0}–
+                        {Math.min(currentConstituencyPage * 50, filteredConstituencies.length)} of{" "}
+                        {filteredConstituencies.length.toLocaleString()} constituencies
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentConstituencyPage === 1}
+                          onClick={() => setConstituencyPage(currentConstituencyPage - 1)}
+                        >
+                          Previous
+                        </Button>
+                        <span className="px-2 text-xs">
+                          Page {currentConstituencyPage} of {totalConstituencyPages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentConstituencyPage === totalConstituencyPages}
+                          onClick={() => setConstituencyPage(currentConstituencyPage + 1)}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
