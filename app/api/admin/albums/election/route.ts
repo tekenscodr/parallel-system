@@ -710,6 +710,129 @@ export async function GET(req: NextRequest) {
       .map(([region, count]) => ({ region, count }))
       .sort((a, b) => b.count - a.count);
 
+    // Administrative Level Statutory Analysis:
+    // Regional Executives benchmark: 21 per Region
+    // Constituency Executives benchmark: 19 per Constituency
+    const isCustom = isCustomContest && customPositionKeys.length > 0;
+    const regionalTargetPerUnit = isCustom ? customPositionKeys.length : 21;
+    const constituencyTargetPerUnit = isCustom ? customPositionKeys.length : 19;
+
+    const hasRegional =
+      selectedLevels.length === 0 ||
+      selectedLevels.includes("regional") ||
+      selectedLevels.includes("region");
+    const hasConstituency =
+      selectedLevels.length === 0 ||
+      selectedLevels.includes("constituency");
+
+    // 1. Regional Executives Breakdown
+    const regionalExecMap = new Map<string, number>();
+    for (const d of delegates) {
+      const lvl = String(d.executive_level || "").toLowerCase().trim();
+      if (lvl === "regional" || lvl === "region") {
+        const reg = String(d.region || "Unassigned").trim();
+        regionalExecMap.set(reg, (regionalExecMap.get(reg) || 0) + 1);
+      }
+    }
+    const regionalExecutiveStats = Array.from(regionalExecMap.entries())
+      .map(([region, confirmed]) => {
+        const target = regionalTargetPerUnit;
+        const variance = Math.max(0, target - confirmed);
+        const complianceRate = target > 0 ? ((confirmed / target) * 100).toFixed(1) + "%" : "100%";
+        const status =
+          confirmed >= target
+            ? `Fully Constituted (${target}/${target})`
+            : `${confirmed}/${target} (${variance} Vacant)`;
+        return {
+          region,
+          confirmed,
+          target,
+          variance,
+          complianceRate,
+          status,
+        };
+      })
+      .sort((a, b) => a.region.localeCompare(b.region));
+
+    // 2. Constituency Executives Breakdown
+    const constituencyMap = new Map<string, Map<string, number>>();
+    for (const d of delegates) {
+      const lvl = String(d.executive_level || "").toLowerCase().trim();
+      if (lvl === "constituency") {
+        const reg = String(d.region || "Unassigned").trim();
+        const con = String(d.constituency || "Unassigned").trim();
+        if (!constituencyMap.has(reg)) {
+          constituencyMap.set(reg, new Map<string, number>());
+        }
+        const regCons = constituencyMap.get(reg)!;
+        regCons.set(con, (regCons.get(con) || 0) + 1);
+      }
+    }
+
+    const constituencyDetailedBreakdown: {
+      region: string;
+      constituency: string;
+      confirmed: number;
+      target: number;
+      variance: number;
+      complianceRate: string;
+      status: string;
+    }[] = [];
+
+    const sortedConRegions = Array.from(constituencyMap.keys()).sort((a, b) => a.localeCompare(b));
+    for (const reg of sortedConRegions) {
+      const conMap = constituencyMap.get(reg)!;
+      const sortedCons = Array.from(conMap.keys()).sort((a, b) => a.localeCompare(b));
+      for (const con of sortedCons) {
+        const confirmed = conMap.get(con)!;
+        const target = constituencyTargetPerUnit;
+        const variance = Math.max(0, target - confirmed);
+        const complianceRate = target > 0 ? ((confirmed / target) * 100).toFixed(1) + "%" : "100%";
+        const status =
+          confirmed >= target
+            ? `Full Slate (${target}/${target})`
+            : `${confirmed}/${target} (${variance} Vacant)`;
+        constituencyDetailedBreakdown.push({
+          region: reg,
+          constituency: con,
+          confirmed,
+          target,
+          variance,
+          complianceRate,
+          status,
+        });
+      }
+    }
+
+    const constituencyRegionalSummary = sortedConRegions.map((reg) => {
+      const conMap = constituencyMap.get(reg)!;
+      const constituenciesCount = conMap.size;
+      let confirmed = 0;
+      for (const cnt of conMap.values()) {
+        confirmed += cnt;
+      }
+      const target = constituenciesCount * constituencyTargetPerUnit;
+      const variance = Math.max(0, target - confirmed);
+      const complianceRate = target > 0 ? ((confirmed / target) * 100).toFixed(1) + "%" : "100%";
+      return {
+        region: reg,
+        constituenciesCount,
+        confirmed,
+        target,
+        variance,
+        complianceRate,
+      };
+    });
+
+    const levelStats = {
+      selectedLevels,
+      regionalTargetPerUnit,
+      constituencyTargetPerUnit,
+      regionalExecutiveStats,
+      constituencyRegionalSummary,
+      constituencyDetailedBreakdown,
+    };
+
     const metrics = {
       contest: effectiveContestName,
       scope:
@@ -748,7 +871,8 @@ export async function GET(req: NextRequest) {
         regionQuery,
         metrics,
         delegates,
-        regionalBreakdown
+        regionalBreakdown,
+        levelStats
       );
 
       const safeContest = effectiveContestName.replace(/[\s&]+/g, "_");
@@ -778,7 +902,8 @@ export async function GET(req: NextRequest) {
         metrics,
         delegates,
         regionalBreakdown,
-        logoDataUri
+        logoDataUri,
+        levelStats
       );
 
       const headers: Record<string, string> = {
@@ -799,18 +924,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       metrics,
       regionalBreakdown,
+      regionalExecutiveStats,
+      constituencyRegionalSummary,
+      constituencyDetailedBreakdown,
       delegates,
       generatedAt: new Date().toISOString(),
     }, { headers: { "Cache-Control": "private, no-store" } });
   });
 }
 
-async function generateAlbumExcel(
+export async function generateAlbumExcel(
   contest: string,
   regionQuery: string,
   metrics: any,
   delegates: any[],
-  regionalBreakdown: any[]
+  regionalBreakdown: any[],
+  levelStats?: {
+    selectedLevels: string[];
+    regionalTargetPerUnit: number;
+    constituencyTargetPerUnit: number;
+    regionalExecutiveStats: any[];
+    constituencyRegionalSummary: any[];
+    constituencyDetailedBreakdown: any[];
+  }
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "New Patriotic Party (NPP)";
@@ -1011,17 +1147,100 @@ async function generateAlbumExcel(
     ]);
   }
 
+  // Optional: Regional Executive Leadership Breakdown (Target: 21 per Region)
+  if (levelStats?.regionalExecutiveStats && levelStats.regionalExecutiveStats.length > 0) {
+    metricsSheet.addRow([]);
+    metricsSheet.addRow([`REGIONAL LEADERSHIP AUDIT (STATUTORY TARGET: ${levelStats.regionalTargetPerUnit || 21} PER REGION)`, "", "", ""]);
+    const rHeader = metricsSheet.addRow(["Region / Jurisdiction", "Confirmed Voters", `Statutory Quota (${levelStats.regionalTargetPerUnit || 21})`, "Compliance Rate"]);
+    rHeader.height = 22;
+    rHeader.eachCell((c) => {
+      c.font = { name: "Arial", size: 9.5, bold: true, color: { argb: "FFFFFFFF" } };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF003399" } };
+      c.alignment = { horizontal: "center", vertical: "middle" };
+    });
+    for (const r of levelStats.regionalExecutiveStats) {
+      metricsSheet.addRow([r.region, r.confirmed, r.target, r.complianceRate]);
+    }
+  }
+
+  // Optional: Constituency Regional Summary (Target: 19 per Constituency)
+  if (levelStats?.constituencyRegionalSummary && levelStats.constituencyRegionalSummary.length > 0) {
+    metricsSheet.addRow([]);
+    metricsSheet.addRow([`CONSTITUENCY REGIONAL SUMMARY (STATUTORY TARGET: ${levelStats.constituencyTargetPerUnit || 19} PER CONSTITUENCY)`, "", "", ""]);
+    const cHeader = metricsSheet.addRow(["Region", "Constituencies Count", `Statutory Quota (@ ${levelStats.constituencyTargetPerUnit || 19})`, "Confirmed Voters"]);
+    cHeader.height = 22;
+    cHeader.eachCell((c) => {
+      c.font = { name: "Arial", size: 9.5, bold: true, color: { argb: "FFFFFFFF" } };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF003399" } };
+      c.alignment = { horizontal: "center", vertical: "middle" };
+    });
+    for (const c of levelStats.constituencyRegionalSummary) {
+      metricsSheet.addRow([c.region, c.constituenciesCount, c.target, c.confirmed]);
+    }
+  }
+
+  // 3. Dedicated Constituency Audit Worksheet (if constituency level present)
+  if (levelStats?.constituencyDetailedBreakdown && levelStats.constituencyDetailedBreakdown.length > 0) {
+    const conSheet = workbook.addWorksheet("Constituency Audit", {
+      views: [{ showGridLines: true }],
+    });
+    conSheet.columns = [
+      { key: "no", width: 8 },
+      { key: "region", width: 22 },
+      { key: "constituency", width: 30 },
+      { key: "confirmed", width: 18 },
+      { key: "target", width: 16 },
+      { key: "variance", width: 14 },
+      { key: "compliance", width: 18 },
+      { key: "status", width: 24 },
+    ];
+    const cHead = conSheet.addRow(["#", "Region", "Constituency", "Confirmed Voters", "Statutory Quota", "Variance", "Compliance Rate", "Status"]);
+    cHead.height = 26;
+    cHead.eachCell((c) => {
+      c.font = { name: "Arial", size: 10, bold: true, color: { argb: "FFFFFFFF" } };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF003399" } };
+      c.alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    levelStats.constituencyDetailedBreakdown.forEach((cd, idx) => {
+      const row = conSheet.addRow([
+        idx + 1,
+        cd.region,
+        cd.constituency,
+        cd.confirmed,
+        cd.target,
+        cd.variance > 0 ? `-${cd.variance}` : 0,
+        cd.complianceRate,
+        cd.status,
+      ]);
+      row.height = 20;
+      if ((idx + 1) % 2 === 0) {
+        row.eachCell((cell) => {
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+        });
+      }
+    });
+  }
+
   const rawBuffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(rawBuffer);
 }
 
-function generateAlbumHtml(
+export function generateAlbumHtml(
   contest: string,
   region: string,
   metrics: any,
   delegates: any[],
   regionalBreakdown: any[],
-  logoDataUri?: string
+  logoDataUri?: string,
+  levelStats?: {
+    selectedLevels: string[];
+    regionalTargetPerUnit: number;
+    constituencyTargetPerUnit: number;
+    regionalExecutiveStats: any[];
+    constituencyRegionalSummary: any[];
+    constituencyDetailedBreakdown: any[];
+  }
 ): string {
   const cardsPerPage = 10;
   const delegatePages: any[][] = [];
@@ -1029,7 +1248,298 @@ function generateAlbumHtml(
     delegatePages.push(delegates.slice(i, i + cardsPerPage));
   }
 
-  const totalPages = 2 + delegatePages.length + 1; // Page 1: Cover, Page 2: Metrics, Pages 3+: Cards, Final: Stats
+  const selectedLevels = levelStats?.selectedLevels || [];
+  const hasRegional =
+    selectedLevels.length === 0 ||
+    selectedLevels.includes("regional") ||
+    selectedLevels.includes("region");
+  const hasConstituency =
+    selectedLevels.length === 0 ||
+    selectedLevels.includes("constituency");
+
+  const regionalStats = levelStats?.regionalExecutiveStats || [];
+  const constituencySummary = levelStats?.constituencyRegionalSummary || [];
+  const constituencyDetails = levelStats?.constituencyDetailedBreakdown || [];
+  const regionalTarget = levelStats?.regionalTargetPerUnit || 21;
+  const constituencyTarget = levelStats?.constituencyTargetPerUnit || 19;
+
+  // Build modular back pages based on administrative level selection
+  const backPages: {
+    title: string;
+    subtitle: string;
+    footerLabel: string;
+    contentHtml: string;
+    isFinal: boolean;
+  }[] = [];
+
+  // A. Regional Leadership Statistical Audit (Target: 21 per Region)
+  if (hasRegional && (regionalStats.length > 0 || !hasConstituency)) {
+    const totalRegConfirmed = regionalStats.reduce((sum, r) => sum + r.confirmed, 0);
+    const totalRegTarget = regionalStats.reduce((sum, r) => sum + r.target, 0);
+    const totalRegVariance = Math.max(0, totalRegTarget - totalRegConfirmed);
+    const overallRegCompliance =
+      totalRegTarget > 0 ? ((totalRegConfirmed / totalRegTarget) * 100).toFixed(1) : "100.0";
+    const isThisFinal = !hasConstituency || constituencySummary.length === 0;
+
+    backPages.push({
+      title: "REGIONAL LEADERSHIP STATISTICAL AUDIT",
+      subtitle: `Jurisdictional Breakdown & Statutory Quota (Target: ${regionalTarget} per Region) · ${contest}`,
+      footerLabel: "REGIONAL LEADERSHIP AUDIT",
+      isFinal: isThisFinal,
+      contentHtml: `
+        <div class="kpi-row">
+          <div class="kpi-card"><div class="kpi-num">${totalRegConfirmed.toLocaleString()}</div><div class="kpi-lbl">Confirmed Regional Voters</div></div>
+          <div class="kpi-card"><div class="kpi-num">${totalRegTarget.toLocaleString()}</div><div class="kpi-lbl">Statutory Expected Quota</div></div>
+          <div class="kpi-card"><div class="kpi-num">${regionalTarget} / Reg</div><div class="kpi-lbl">Statutory Benchmark</div></div>
+          <div class="kpi-card"><div class="kpi-num">${overallRegCompliance}%</div><div class="kpi-lbl">Regional Compliance</div></div>
+        </div>
+
+        <div class="table-container">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th style="width: 32%;">Jurisdiction / Region</th>
+                <th style="width: 16%; text-align: center;">Confirmed Voters</th>
+                <th style="width: 14%; text-align: center;">Statutory Quota</th>
+                <th style="width: 12%; text-align: center;">Variance</th>
+                <th style="width: 12%; text-align: center;">Compliance</th>
+                <th style="width: 14%; text-align: center;">Gazette Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${regionalStats
+                .map(
+                  (r) => `
+                <tr>
+                  <td><strong>${r.region}</strong></td>
+                  <td style="text-align: center;">${r.confirmed.toLocaleString()}</td>
+                  <td style="text-align: center;">${r.target}</td>
+                  <td style="text-align: center;">${r.variance > 0 ? `-${r.variance}` : "0"}</td>
+                  <td style="text-align: center;"><strong>${r.complianceRate}</strong></td>
+                  <td style="text-align: center;"><span class="status-pill ${r.confirmed >= r.target ? "pill-complete" : "pill-pending"}">${r.status}</span></td>
+                </tr>
+              `
+                )
+                .join("\n")}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td><strong>TOTAL / REGIONAL AGGREGATION (${regionalStats.length} Regions)</strong></td>
+                <td style="text-align: center;"><strong>${totalRegConfirmed.toLocaleString()}</strong></td>
+                <td style="text-align: center;"><strong>${totalRegTarget.toLocaleString()}</strong></td>
+                <td style="text-align: center;"><strong>${totalRegVariance > 0 ? `-${totalRegVariance}` : "0"}</strong></td>
+                <td style="text-align: center;"><strong>${overallRegCompliance}%</strong></td>
+                <td style="text-align: center;"><strong>Active Roll</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `,
+    });
+  }
+
+  // B. Constituency Leadership Audit & Regional Summary (Target: 19 per Constituency)
+  if (hasConstituency && (constituencySummary.length > 0 || !hasRegional)) {
+    const totalConsCount = constituencySummary.reduce((sum, c) => sum + c.constituenciesCount, 0);
+    const totalConConfirmed = constituencySummary.reduce((sum, c) => sum + c.confirmed, 0);
+    const totalConTarget = constituencySummary.reduce((sum, c) => sum + c.target, 0);
+    const totalConVariance = Math.max(0, totalConTarget - totalConConfirmed);
+    const overallConCompliance =
+      totalConTarget > 0 ? ((totalConConfirmed / totalConTarget) * 100).toFixed(1) : "100.0";
+
+    const kpiRowHtml = `
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-num">${totalConConfirmed.toLocaleString()}</div><div class="kpi-lbl">Confirmed Constituency Voters</div></div>
+        <div class="kpi-card"><div class="kpi-num">${totalConsCount}</div><div class="kpi-lbl">Documented Constituencies</div></div>
+        <div class="kpi-card"><div class="kpi-num">${constituencyTarget} / Const</div><div class="kpi-lbl">Statutory Benchmark</div></div>
+        <div class="kpi-card"><div class="kpi-num">${overallConCompliance}%</div><div class="kpi-lbl">Constituency Compliance</div></div>
+      </div>
+    `;
+
+    const regionalSummaryTableHtml = `
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th style="width: 32%;">Region</th>
+            <th style="width: 14%; text-align: center;">Constituencies</th>
+            <th style="width: 16%; text-align: center;">Confirmed Voters</th>
+            <th style="width: 14%; text-align: center;">Statutory Quota (@ ${constituencyTarget})</th>
+            <th style="width: 10%; text-align: center;">Variance</th>
+            <th style="width: 14%; text-align: center;">Compliance Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${constituencySummary
+            .map(
+              (c) => `
+            <tr>
+              <td><strong>${c.region}</strong></td>
+              <td style="text-align: center;">${c.constituenciesCount}</td>
+              <td style="text-align: center;">${c.confirmed.toLocaleString()}</td>
+              <td style="text-align: center;">${c.target.toLocaleString()}</td>
+              <td style="text-align: center;">${c.variance > 0 ? `-${c.variance}` : "0"}</td>
+              <td style="text-align: center;"><strong>${c.complianceRate}</strong></td>
+            </tr>
+          `
+            )
+            .join("\n")}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td><strong>TOTAL CONSTITUENCY AGGREGATION (${totalConsCount} Constituencies)</strong></td>
+            <td style="text-align: center;"><strong>${totalConsCount}</strong></td>
+            <td style="text-align: center;"><strong>${totalConConfirmed.toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>${totalConTarget.toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>${totalConVariance > 0 ? `-${totalConVariance}` : "0"}</strong></td>
+            <td style="text-align: center;"><strong>${overallConCompliance}%</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
+
+    if (constituencyDetails.length <= 15) {
+      // Fits on a single compact page (e.g. Ahafo with 6 constituencies)
+      backPages.push({
+        title: "CONSTITUENCY LEADERSHIP STATISTICAL AUDIT",
+        subtitle: `Statutory Constituency Quota & Jurisdiction Roll (Target: ${constituencyTarget} per Constituency) · ${contest}`,
+        footerLabel: "CONSTITUENCY LEADERSHIP AUDIT",
+        isFinal: true,
+        contentHtml: `
+          ${kpiRowHtml}
+          <div class="table-container">
+            ${regionalSummaryTableHtml}
+          </div>
+          <div class="stats-section-title">Detailed Constituency Distribution</div>
+          <div class="table-container">
+            <table class="stats-table">
+              <thead>
+                <tr>
+                  <th style="width: 6%; text-align: center;">#</th>
+                  <th style="width: 28%;">Constituency</th>
+                  <th style="width: 20%;">Region</th>
+                  <th style="width: 14%; text-align: center;">Confirmed</th>
+                  <th style="width: 10%; text-align: center;">Quota</th>
+                  <th style="width: 8%; text-align: center;">Var</th>
+                  <th style="width: 14%; text-align: center;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${constituencyDetails
+                  .map(
+                    (cd, idx) => `
+                  <tr>
+                    <td style="text-align: center;">${idx + 1}</td>
+                    <td><strong>${cd.constituency}</strong></td>
+                    <td>${cd.region}</td>
+                    <td style="text-align: center;">${cd.confirmed}</td>
+                    <td style="text-align: center;">${cd.target}</td>
+                    <td style="text-align: center;">${cd.variance > 0 ? `-${cd.variance}` : "0"}</td>
+                    <td style="text-align: center;"><span class="status-pill ${cd.confirmed >= cd.target ? "pill-complete" : "pill-pending"}">${cd.status}</span></td>
+                  </tr>
+                `
+                  )
+                  .join("\n")}
+              </tbody>
+            </table>
+          </div>
+        `,
+      });
+    } else {
+      // Multi-page constituency breakdown
+      backPages.push({
+        title: "CONSTITUENCY LEADERSHIP REGIONAL SUMMARY",
+        subtitle: `Statutory Constituency Quota & Regional Roll-up (Target: ${constituencyTarget} per Constituency) · ${contest}`,
+        footerLabel: "CONSTITUENCY REGIONAL SUMMARY",
+        isFinal: false,
+        contentHtml: `
+          ${kpiRowHtml}
+          <div class="table-container">
+            ${regionalSummaryTableHtml}
+          </div>
+        `,
+      });
+
+      const conRowsPerPage = 28;
+      const conChunks: any[][] = [];
+      for (let i = 0; i < constituencyDetails.length; i += conRowsPerPage) {
+        conChunks.push(constituencyDetails.slice(i, i + conRowsPerPage));
+      }
+
+      conChunks.forEach((chunk, chunkIdx) => {
+        const isLastChunk = chunkIdx === conChunks.length - 1;
+        const startRowIdx = chunkIdx * conRowsPerPage;
+        backPages.push({
+          title: "CONSTITUENCY ELECTORAL ROLL AUDIT",
+          subtitle: `Detailed Constituency Distribution (Target: ${constituencyTarget} per Constituency) · Part ${chunkIdx + 1} of ${conChunks.length}`,
+          footerLabel: `CONSTITUENCY AUDIT PART ${chunkIdx + 1}`,
+          isFinal: isLastChunk,
+          contentHtml: `
+            <div class="table-container">
+              <table class="stats-table">
+                <thead>
+                  <tr>
+                    <th style="width: 6%; text-align: center;">#</th>
+                    <th style="width: 28%;">Constituency</th>
+                    <th style="width: 20%;">Region</th>
+                    <th style="width: 14%; text-align: center;">Confirmed</th>
+                    <th style="width: 10%; text-align: center;">Quota</th>
+                    <th style="width: 8%; text-align: center;">Var</th>
+                    <th style="width: 14%; text-align: center;">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${chunk
+                    .map(
+                      (cd, idx) => `
+                    <tr>
+                      <td style="text-align: center;">${startRowIdx + idx + 1}</td>
+                      <td><strong>${cd.constituency}</strong></td>
+                      <td>${cd.region}</td>
+                      <td style="text-align: center;">${cd.confirmed}</td>
+                      <td style="text-align: center;">${cd.target}</td>
+                      <td style="text-align: center;">${cd.variance > 0 ? `-${cd.variance}` : "0"}</td>
+                      <td style="text-align: center;"><span class="status-pill ${cd.confirmed >= cd.target ? "pill-complete" : "pill-pending"}">${cd.status}</span></td>
+                    </tr>
+                  `
+                    )
+                    .join("\n")}
+                </tbody>
+              </table>
+            </div>
+          `,
+        });
+      });
+    }
+  }
+
+  // Fallback: If no level-specific back page was generated, fallback to general regional breakdown
+  if (backPages.length === 0) {
+    backPages.push({
+      title: "REGIONAL DISTRIBUTION & AUDIT SIGN-OFF",
+      subtitle: `Jurisdictional Breakdown & Gazette Closure · ${contest}`,
+      footerLabel: "REGIONAL AUDIT",
+      isFinal: true,
+      contentHtml: `
+        <div class="table-container">
+          <table class="stats-table">
+            <thead><tr><th>Jurisdiction / Region</th><th>Confirmed Voters</th><th>Percentage Share</th><th>Status</th></tr></thead>
+            <tbody>
+              ${regionalBreakdown
+                .map(
+                  (r) => `
+                <tr><td><strong>${r.region}</strong></td><td>${r.count.toLocaleString()}</td><td>${((r.count / Math.max(1, metrics.actualFigures)) * 100).toFixed(1)}%</td><td>Active Electorate</td></tr>
+              `
+                )
+                .join("\n")}
+            </tbody>
+          </table>
+        </div>
+      `,
+    });
+  }
+
+  const basePagesCount = 2 + delegatePages.length;
+  const totalPages = basePagesCount + backPages.length;
 
   const scopeText = region === "all" ? "NATIONWIDE ELECTORAL ROLL" : `${region.toUpperCase()} REGION`;
   const badgeText = region === "all" ? `${contest.toUpperCase()} ELECTION` : `${region.toUpperCase()} REGION · ${contest.toUpperCase()}`;
@@ -1361,6 +1871,18 @@ function generateAlbumHtml(
     .stats-table th { background: #003399; color: white; padding: 4px 8px; text-align: left; font-weight: 800; font-size: 7.5pt; }
     .stats-table td { padding: 3.5px 8px; border-bottom: 1px solid #E2E8F0; font-size: 7.5pt; }
     .stats-table tr:nth-child(even) { background: #F8FAFC; }
+    .stats-table tfoot tr { background: #E2E8F0; font-weight: 800; border-top: 1.5px solid #003399; }
+    .stats-table tfoot td { padding: 3.5px 8px; font-weight: 800; font-size: 7.5pt; color: #003399; }
+    .status-pill {
+      font-size: 6.5pt; font-weight: 800; padding: 1.5px 5px;
+      border-radius: 3px; display: inline-block; white-space: nowrap;
+    }
+    .pill-complete { background: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
+    .pill-pending { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+    .stats-section-title {
+      font-size: 8.5pt; font-weight: 900; color: #003399; margin: 6px 0 3px 0;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
 
     /* Cards Grid (Pages 3+) */
     .grid-10 {
@@ -1602,45 +2124,43 @@ function generateAlbumHtml(
   <!-- PAGES 3+: VOTER CARDS -->
   ${delegatePagesHtml}
 
-  <!-- FINAL PAGE: DEEP DIVE REGIONAL STATS -->
-  <div class="album-page metrics-page">
-    <header class="page-header">
-      <h1 class="page-title">REGIONAL DISTRIBUTION &amp; AUDIT SIGN-OFF</h1>
-      <h2 class="page-sub">Jurisdictional Breakdown &amp; Gazette Closure · ${contest}</h2>
-      <div class="header-rule"></div>
-    </header>
-
-    <div class="table-container">
-      <table class="stats-table">
-        <thead><tr><th>Jurisdiction / Region</th><th>Confirmed Voters</th><th>Percentage Share</th><th>Status</th></tr></thead>
-        <tbody>
-          ${regionalBreakdown
-            .map(
-              (r) => `
-            <tr><td><strong>${r.region}</strong></td><td>${r.count.toLocaleString()}</td><td>${((r.count / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Active Electorate</td></tr>
-          `
-            )
-            .join("\n")}
-        </tbody>
-      </table>
-    </div>
-
+  <!-- BACK PAGES: ADMINISTRATIVE LEVEL STATISTICS AUDIT -->
+  ${backPages
+    .map((page, idx) => {
+      const pageNum = basePagesCount + idx + 1;
+      const proclamationHtml = page.isFinal
+        ? `
     <div class="proclamation-box" style="margin-top: auto; margin-bottom: 10px;">
       <h3>NATIONAL ELECTIONS COMMITTEE DECLARATION</h3>
       <p>
         This document represents the official provisional compilation of the electoral roll for the ${contest} election. Any petition, objection, or substitution must be lodged in writing with the National Secretariat within five (5) working days of publication.
       </p>
-    </div>
+    </div>`
+        : "";
+
+      return `
+  <div class="album-page metrics-page">
+    <header class="page-header">
+      <h1 class="page-title">${page.title}</h1>
+      <h2 class="page-sub">${page.subtitle}</h2>
+      <div class="header-rule"></div>
+    </header>
+
+    ${page.contentHtml}
+
+    ${proclamationHtml}
 
     <footer class="page-footer">
       <div class="footer-rule"></div>
       <div class="footer-content">
-        <span>PROVISIONAL ELECTORAL COLLEGE ALBUM · REGIONAL AUDIT</span>
-        <span class="footer-page-pill">${totalPages}</span>
+        <span>PROVISIONAL ELECTORAL COLLEGE ALBUM · ${page.footerLabel}</span>
+        <span class="footer-page-pill">${pageNum}</span>
         <span>NATIONAL ELECTIONS COMMITTEE</span>
       </div>
     </footer>
-  </div>
+  </div>`;
+    })
+    .join("\n")}
 
 <script>${ALBUM_PRINT_SCRIPT}</script>
 </body>
