@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 import { logoutAndRedirect } from "@/lib/client-session";
+import { getClientHeaders } from "@/lib/client-device";
 import type { AlbumPrintWindow } from "@/lib/album-print";
 import { useAlbumUser } from "./session";
 import { Button } from "@/components/ui/button";
@@ -228,7 +229,12 @@ export default function PositionAlbumsPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/admin/albums/election?${requestKey}&format=json`, { signal: controller.signal, cache: "no-store" })
+    fetch(`/api/admin/albums/election?${requestKey}&format=json`, {
+      signal: controller.signal,
+      cache: "no-store",
+      credentials: "include",
+      headers: getClientHeaders(),
+    })
       .then(async (response) => {
         if (!response.ok) {
           if (response.status === 401) {

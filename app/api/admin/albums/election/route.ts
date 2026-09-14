@@ -216,34 +216,55 @@ async function resolveDelegateWebpImage(
   voterId?: string | null,
   name?: string | null
 ): Promise<string | null> {
-  const candidates: string[] = [];
+  // 1. Instant check: Ahafo pre-indexed WebP portraits (by voter ID or executive name)
   if (voterId && voterId !== "—") {
     const cachedByVoterId = ahafoPhotosByVoterId.get(voterId.trim());
-    if (cachedByVoterId) candidates.push(cachedByVoterId);
+    if (cachedByVoterId && cachedByVoterId.startsWith("data:image/webp")) {
+      return cachedByVoterId;
+    }
   }
   if (name) {
     const cleanName = name.trim().toUpperCase();
     const cachedByName = ahafoPhotosByName.get(cleanName);
-    if (cachedByName) candidates.push(cachedByName);
+    if (cachedByName && cachedByName.startsWith("data:image/webp")) {
+      return cachedByName;
+    }
   }
-  if (imageUrl) candidates.push(imageUrl);
-  // Validate embedded portraits too, and try the source if an old portrait is corrupt.
-  for (const candidate of new Set(candidates)) {
-    const buffer = await resolveAlbumImage(candidate);
-    if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
+
+  // 2. Direct data URI
+  if (imageUrl && imageUrl.startsWith("data:image/")) {
+    return imageUrl;
   }
+
+  // 3. Local file portrait (e.g. in public/ directory)
+  if (imageUrl && !/^https?:\/\//i.test(imageUrl)) {
+    try {
+      const buffer = await resolveAlbumImage(imageUrl);
+      if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
+    } catch {
+      // ignore local file read failure
+    }
+  }
+
+  // 4. Remote HTTP/HTTPS portraits:
+  // Return the direct URL so the client browser loads it asynchronously without
+  // blocking the serverless function or hitting 504 Gateway / 300s timeout.
+  if (imageUrl && /^https?:\/\//i.test(imageUrl)) {
+    return imageUrl;
+  }
+
   return null;
 }
 
 async function convertDelegatesImagesToWebp(delegates: any[]): Promise<void> {
-  const chunkSize = 8;
+  const chunkSize = 50;
   for (let i = 0; i < delegates.length; i += chunkSize) {
     const chunk = delegates.slice(i, i + chunkSize);
     await Promise.all(
       chunk.map(async (d) => {
         const webpUri = await resolveDelegateWebpImage(d.image_url, d.voter_id, d.executive_name);
-        d.webp_base64 = webpUri || d.avatar_svg;
-        d.photo_unavailable = !webpUri;
+        d.webp_base64 = webpUri || d.image_url || d.avatar_svg;
+        d.photo_unavailable = !webpUri && !d.image_url;
       })
     );
   }
