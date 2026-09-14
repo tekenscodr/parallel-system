@@ -247,10 +247,21 @@ export default function PositionAlbumsPage() {
   }, [requestKey]);
 
   const delegates = data?.delegates ?? [];
-  const filtered = delegates.filter((d) =>
-    (level === "all" || d.executive_level === level) &&
-    [d.executive_name, d.voter_id, d.constituency, d.region, d.canonical_position].some((value) =>
-      String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())));
+  const filtered = delegates.filter((d) => {
+    const matchesLevel =
+      level === "all"
+        ? true
+        : level === "custom"
+        ? selectedLevels.some((sl) => sl.toLowerCase() === String(d.executive_level || "").toLowerCase())
+        : String(d.executive_level || "").toLowerCase() === level.toLowerCase();
+
+    return (
+      matchesLevel &&
+      [d.executive_name, d.voter_id, d.constituency, d.region, d.canonical_position].some((value) =>
+        String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())
+      )
+    );
+  });
   const totalPages = Math.max(1, Math.ceil(filtered.length / 50));
   const currentPage = Math.min(page, totalPages);
   const rows = filtered.slice((currentPage - 1) * 50, currentPage * 50);

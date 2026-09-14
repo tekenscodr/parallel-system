@@ -710,6 +710,314 @@ export async function GET(req: NextRequest) {
       .map(([region, count]) => ({ region, count }))
       .sort((a, b) => b.count - a.count);
 
+    // Statutory Audit Calculations for Administrative Levels
+    // Regional Executives Statutory Target: 21 per Region
+    // Constituency Executives Statutory Target: 19 per Constituency
+    const GHANA_REGIONS_ORDER = [
+      "Ahafo",
+      "Ashanti",
+      "Bono",
+      "Bono East",
+      "Central",
+      "Eastern",
+      "Greater Accra",
+      "North East",
+      "Northern",
+      "Oti",
+      "Savannah",
+      "Upper East",
+      "Upper West",
+      "Volta",
+      "Western",
+      "Western North",
+    ];
+
+    const REGIONAL_CONSTITUENCY_COUNTS: Record<string, number> = {
+      "Ahafo": 6,
+      "Ashanti": 47,
+      "Bono": 12,
+      "Bono East": 11,
+      "Central": 23,
+      "Eastern": 33,
+      "Greater Accra": 34,
+      "North East": 6,
+      "Northern": 18,
+      "Oti": 9,
+      "Savannah": 7,
+      "Upper East": 15,
+      "Upper West": 11,
+      "Volta": 18,
+      "Western": 17,
+      "Western North": 9,
+    };
+
+    const isCustom = isCustomContest && customPositionKeys.length > 0;
+    const regionalTargetPerUnit = isCustom ? customPositionKeys.length : 21;
+    const constituencyTargetPerUnit = isCustom ? customPositionKeys.length : 19;
+
+    const hasRegional =
+      selectedLevels.includes("regional") || selectedLevels.includes("region");
+    const hasConstituency = selectedLevels.includes("constituency");
+
+    const isRegionalOnly = hasRegional && !hasConstituency && selectedLevels.length === 1;
+    const isConstituencyOnly = hasConstituency && !hasRegional && selectedLevels.length === 1;
+
+    const activeRegions =
+      regionQuery !== "all" && regionQuery !== ""
+        ? GHANA_REGIONS_ORDER.filter((r) => r.toLowerCase() === regionQuery.toLowerCase())
+        : GHANA_REGIONS_ORDER;
+
+    if (activeRegions.length === 0 && regionQuery !== "all") {
+      activeRegions.push(regionQuery);
+    }
+
+    const regionalRows = activeRegions.map((reg) => {
+      const regConfirmed = delegates.filter(
+        (d) =>
+          String(d.region || "").toLowerCase().trim() === reg.toLowerCase().trim() &&
+          (String(d.executive_level || "").toLowerCase().trim() === "regional" ||
+            String(d.executive_level || "").toLowerCase().trim() === "region")
+      ).length;
+
+      const conConfirmed = delegates.filter(
+        (d) =>
+          String(d.region || "").toLowerCase().trim() === reg.toLowerCase().trim() &&
+          String(d.executive_level || "").toLowerCase().trim() === "constituency"
+      ).length;
+
+      const numConstituencies = REGIONAL_CONSTITUENCY_COUNTS[reg] || 0;
+      const regTarget = regionalTargetPerUnit;
+      const conTarget = numConstituencies * constituencyTargetPerUnit;
+      const totalConfirmed = regConfirmed + conConfirmed;
+      const totalTarget = regTarget + conTarget;
+
+      return {
+        region: reg,
+        numConstituencies,
+        regConfirmed,
+        regTarget,
+        conConfirmed,
+        conTarget,
+        totalConfirmed,
+        totalTarget,
+      };
+    });
+
+    let sumConstituencies = 0;
+    let sumRegConfirmed = 0;
+    let sumRegTarget = 0;
+    let sumConConfirmed = 0;
+    let sumConTarget = 0;
+    let sumTotalConfirmed = 0;
+    let sumTotalTarget = 0;
+
+    for (const row of regionalRows) {
+      sumConstituencies += row.numConstituencies;
+      sumRegConfirmed += row.regConfirmed;
+      sumRegTarget += row.regTarget;
+      sumConConfirmed += row.conConfirmed;
+      sumConTarget += row.conTarget;
+      sumTotalConfirmed += row.totalConfirmed;
+      sumTotalTarget += row.totalTarget;
+    }
+
+    const extCount = delegates.filter((d) => String(d.executive_level || "").toLowerCase().trim() === "external branch").length;
+    const tesconCount = delegates.filter((d) => String(d.executive_level || "").toLowerCase().trim() === "tescon").length;
+    const natCount = delegates.filter((d) => String(d.executive_level || "").toLowerCase().trim() === "national").length;
+
+    let levelAudit: {
+      tableTitle: string;
+      tableSub: string;
+      footerLabel: string;
+      headersHtml: string;
+      rowsHtml: string;
+      footerHtml: string;
+      auditRows: any[];
+    } | null = null;
+
+    if (isRegionalOnly) {
+      levelAudit = {
+        tableTitle: "REGIONAL LEADERSHIP STATUTORY AUDIT & SIGN-OFF",
+        tableSub: `Regional Executive Committee Quota Distribution (Target: ${regionalTargetPerUnit} per Region) · ${effectiveContestName}`,
+        footerLabel: "REGIONAL STATUTORY AUDIT",
+        headersHtml: `
+          <tr>
+            <th style="width: 5%; text-align: center;">#</th>
+            <th style="width: 33%;">Jurisdiction / Region</th>
+            <th style="width: 18%; text-align: center;">Confirmed Voters</th>
+            <th style="width: 14%; text-align: center;">Statutory Quota</th>
+            <th style="width: 14%; text-align: center;">Variance</th>
+            <th style="width: 16%; text-align: center;">Compliance Rate</th>
+          </tr>
+        `,
+        rowsHtml: regionalRows
+          .map(
+            (r, idx) => `
+          <tr>
+            <td style="text-align: center;">${idx + 1}</td>
+            <td><strong>${r.region} Region</strong></td>
+            <td style="text-align: center;">${r.regConfirmed.toLocaleString()}</td>
+            <td style="text-align: center;">${r.regTarget}</td>
+            <td style="text-align: center;">${r.regTarget - r.regConfirmed > 0 ? `-${r.regTarget - r.regConfirmed}` : "0"}</td>
+            <td style="text-align: center;">${r.regTarget > 0 ? ((r.regConfirmed / r.regTarget) * 100).toFixed(1) + "%" : "100%"}</td>
+          </tr>
+        `
+          )
+          .join("\n"),
+        footerHtml: `
+          <tr>
+            <td colspan="2" style="text-align: right;"><strong>TOTAL (${regionalRows.length} REGIONS):</strong></td>
+            <td style="text-align: center;"><strong>${sumRegConfirmed.toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>${sumRegTarget.toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>${sumRegTarget - sumRegConfirmed > 0 ? `-${sumRegTarget - sumRegConfirmed}` : "0"}</strong></td>
+            <td style="text-align: center;"><strong>${sumRegTarget > 0 ? ((sumRegConfirmed / sumRegTarget) * 100).toFixed(1) + "%" : "100%"}</strong></td>
+          </tr>
+        `,
+        auditRows: regionalRows.map((r) => ({
+          region: `${r.region} Region`,
+          confirmed: r.regConfirmed,
+          target: r.regTarget,
+          complianceRate: r.regTarget > 0 ? ((r.regConfirmed / r.regTarget) * 100).toFixed(1) + "%" : "100%",
+        })),
+      };
+    } else if (isConstituencyOnly) {
+      levelAudit = {
+        tableTitle: "CONSTITUENCY LEADERSHIP STATUTORY AUDIT & SIGN-OFF",
+        tableSub: `Constituency Regional Roll-up (Statutory Target: ${constituencyTargetPerUnit} per Constituency) · ${effectiveContestName}`,
+        footerLabel: "CONSTITUENCY STATUTORY AUDIT",
+        headersHtml: `
+          <tr>
+            <th style="width: 5%; text-align: center;">#</th>
+            <th style="width: 31%;">Region</th>
+            <th style="width: 14%; text-align: center;">Constituencies</th>
+            <th style="width: 18%; text-align: center;">Confirmed Voters</th>
+            <th style="width: 16%; text-align: center;">Statutory Quota (@ ${constituencyTargetPerUnit})</th>
+            <th style="width: 16%; text-align: center;">Compliance Rate</th>
+          </tr>
+        `,
+        rowsHtml: regionalRows
+          .map(
+            (r, idx) => `
+          <tr>
+            <td style="text-align: center;">${idx + 1}</td>
+            <td><strong>${r.region}</strong></td>
+            <td style="text-align: center;">${r.numConstituencies}</td>
+            <td style="text-align: center;">${r.conConfirmed.toLocaleString()}</td>
+            <td style="text-align: center;">${r.conTarget.toLocaleString()}</td>
+            <td style="text-align: center;">${r.conTarget > 0 ? ((r.conConfirmed / r.conTarget) * 100).toFixed(1) + "%" : "100%"}</td>
+          </tr>
+        `
+          )
+          .join("\n"),
+        footerHtml: `
+          <tr>
+            <td colspan="2" style="text-align: right;"><strong>TOTAL (${regionalRows.length} REGIONS):</strong></td>
+            <td style="text-align: center;"><strong>${sumConstituencies}</strong></td>
+            <td style="text-align: center;"><strong>${sumConConfirmed.toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>${sumConTarget.toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>${sumConTarget > 0 ? ((sumConConfirmed / sumConTarget) * 100).toFixed(1) + "%" : "100%"}</strong></td>
+          </tr>
+        `,
+        auditRows: regionalRows.map((r) => ({
+          region: r.region,
+          confirmed: r.conConfirmed,
+          target: r.conTarget,
+          complianceRate: r.conTarget > 0 ? ((r.conConfirmed / r.conTarget) * 100).toFixed(1) + "%" : "100%",
+        })),
+      };
+    } else {
+      // Both or All
+      const extraRowsHtml: string[] = [];
+      if (extCount > 0) {
+        extraRowsHtml.push(`
+          <tr>
+            <td style="text-align: center;">•</td>
+            <td><strong>External Branches (Diaspora)</strong></td>
+            <td style="text-align: center;">30</td>
+            <td style="text-align: center;">—</td>
+            <td style="text-align: center;">—</td>
+            <td style="text-align: center;"><strong>${extCount.toLocaleString()}</strong></td>
+            <td style="text-align: center;">${extCount.toLocaleString()}</td>
+          </tr>
+        `);
+      }
+      if (tesconCount > 0) {
+        extraRowsHtml.push(`
+          <tr>
+            <td style="text-align: center;">•</td>
+            <td><strong>TESCON Tertiary Institutions</strong></td>
+            <td style="text-align: center;">Campus</td>
+            <td style="text-align: center;">—</td>
+            <td style="text-align: center;">—</td>
+            <td style="text-align: center;"><strong>${tesconCount.toLocaleString()}</strong></td>
+            <td style="text-align: center;">${tesconCount.toLocaleString()}</td>
+          </tr>
+        `);
+      }
+      if (natCount > 0) {
+        extraRowsHtml.push(`
+          <tr>
+            <td style="text-align: center;">•</td>
+            <td><strong>National Council / Headquarters</strong></td>
+            <td style="text-align: center;">HQ</td>
+            <td style="text-align: center;">—</td>
+            <td style="text-align: center;">—</td>
+            <td style="text-align: center;"><strong>${natCount.toLocaleString()}</strong></td>
+            <td style="text-align: center;">${natCount.toLocaleString()}</td>
+          </tr>
+        `);
+      }
+
+      levelAudit = {
+        tableTitle: "REGIONAL & CONSTITUENCY STATUTORY AUDIT & SIGN-OFF",
+        tableSub: `Statutory Quota Distribution (Regional: ${regionalTargetPerUnit} per Region · Constituency: ${constituencyTargetPerUnit} per Constituency) · ${effectiveContestName}`,
+        footerLabel: "ELECTORAL ROLL AUDIT",
+        headersHtml: `
+          <tr>
+            <th style="width: 4%; text-align: center;">#</th>
+            <th style="width: 25%;">Region</th>
+            <th style="width: 7%; text-align: center;">Const.</th>
+            <th style="width: 16%; text-align: center;">Regional (Quota ${regionalTargetPerUnit})</th>
+            <th style="width: 16%; text-align: center;">Constituency (@ ${constituencyTargetPerUnit})</th>
+            <th style="width: 16%; text-align: center;">Total Confirmed</th>
+            <th style="width: 16%; text-align: center;">Statutory Quota</th>
+          </tr>
+        `,
+        rowsHtml: regionalRows
+          .map(
+            (r, idx) => `
+          <tr>
+            <td style="text-align: center;">${idx + 1}</td>
+            <td><strong>${r.region}</strong></td>
+            <td style="text-align: center;">${r.numConstituencies}</td>
+            <td style="text-align: center;">${r.regConfirmed} / ${r.regTarget}</td>
+            <td style="text-align: center;">${r.conConfirmed} / ${r.conTarget}</td>
+            <td style="text-align: center;"><strong>${r.totalConfirmed.toLocaleString()}</strong></td>
+            <td style="text-align: center;">${r.totalTarget.toLocaleString()}</td>
+          </tr>
+        `
+          )
+          .concat(extraRowsHtml)
+          .join("\n"),
+        footerHtml: `
+          <tr>
+            <td colspan="2" style="text-align: right;"><strong>TOTAL:</strong></td>
+            <td style="text-align: center;"><strong>${sumConstituencies}</strong></td>
+            <td style="text-align: center;"><strong>${sumRegConfirmed} / ${sumRegTarget}</strong></td>
+            <td style="text-align: center;"><strong>${sumConConfirmed} / ${sumConTarget}</strong></td>
+            <td style="text-align: center;"><strong>${(sumTotalConfirmed + extCount + tesconCount + natCount).toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>${(sumTotalTarget + extCount + tesconCount + natCount).toLocaleString()}</strong></td>
+          </tr>
+        `,
+        auditRows: regionalRows.map((r) => ({
+          region: r.region,
+          confirmed: r.totalConfirmed,
+          target: r.totalTarget,
+          complianceRate: r.totalTarget > 0 ? ((r.totalConfirmed / r.totalTarget) * 100).toFixed(1) + "%" : "100%",
+        })),
+      };
+    }
+
     const metrics = {
       contest: effectiveContestName,
       scope:
@@ -748,7 +1056,8 @@ export async function GET(req: NextRequest) {
         regionQuery,
         metrics,
         delegates,
-        regionalBreakdown
+        regionalBreakdown,
+        levelAudit
       );
 
       const safeContest = effectiveContestName.replace(/[\s&]+/g, "_");
@@ -778,7 +1087,8 @@ export async function GET(req: NextRequest) {
         metrics,
         delegates,
         regionalBreakdown,
-        logoDataUri
+        logoDataUri,
+        levelAudit
       );
 
       const headers: Record<string, string> = {
@@ -810,7 +1120,8 @@ async function generateAlbumExcel(
   regionQuery: string,
   metrics: any,
   delegates: any[],
-  regionalBreakdown: any[]
+  regionalBreakdown: any[],
+  levelAudit?: any
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "New Patriotic Party (NPP)";
@@ -1011,6 +1322,21 @@ async function generateAlbumExcel(
     ]);
   }
 
+  if (levelAudit?.auditRows && levelAudit.auditRows.length > 0) {
+    metricsSheet.addRow([]);
+    metricsSheet.addRow([`STATUTORY AUDIT (${levelAudit.tableTitle})`, "", "", ""]);
+    const auditHeader = metricsSheet.addRow(["Region / Jurisdiction", "Confirmed Voters", "Statutory Quota", "Compliance Rate"]);
+    auditHeader.height = 22;
+    auditHeader.eachCell((c) => {
+      c.font = { name: "Arial", size: 9.5, bold: true, color: { argb: "FFFFFFFF" } };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF003399" } };
+      c.alignment = { horizontal: "center", vertical: "middle" };
+    });
+    for (const r of levelAudit.auditRows) {
+      metricsSheet.addRow([r.region, r.confirmed, r.target, r.complianceRate]);
+    }
+  }
+
   const rawBuffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(rawBuffer);
 }
@@ -1021,7 +1347,8 @@ function generateAlbumHtml(
   metrics: any,
   delegates: any[],
   regionalBreakdown: any[],
-  logoDataUri?: string
+  logoDataUri?: string,
+  levelAudit?: any
 ): string {
   const cardsPerPage = 10;
   const delegatePages: any[][] = [];
@@ -1361,6 +1688,8 @@ function generateAlbumHtml(
     .stats-table th { background: #003399; color: white; padding: 4px 8px; text-align: left; font-weight: 800; font-size: 7.5pt; }
     .stats-table td { padding: 3.5px 8px; border-bottom: 1px solid #E2E8F0; font-size: 7.5pt; }
     .stats-table tr:nth-child(even) { background: #F8FAFC; }
+    .stats-table tfoot tr { background: #E2E8F0; font-weight: 800; border-top: 1.5px solid #003399; }
+    .stats-table tfoot td { padding: 3.5px 8px; font-weight: 800; font-size: 7.5pt; color: #003399; }
 
     /* Cards Grid (Pages 3+) */
     .grid-10 {
@@ -1605,23 +1934,33 @@ function generateAlbumHtml(
   <!-- FINAL PAGE: DEEP DIVE REGIONAL STATS -->
   <div class="album-page metrics-page">
     <header class="page-header">
-      <h1 class="page-title">REGIONAL DISTRIBUTION &amp; AUDIT SIGN-OFF</h1>
-      <h2 class="page-sub">Jurisdictional Breakdown &amp; Gazette Closure · ${contest}</h2>
+      <h1 class="page-title">${levelAudit ? levelAudit.tableTitle : "REGIONAL DISTRIBUTION &amp; AUDIT SIGN-OFF"}</h1>
+      <h2 class="page-sub">${levelAudit ? levelAudit.tableSub : `Jurisdictional Breakdown &amp; Gazette Closure · ${contest}`}</h2>
       <div class="header-rule"></div>
     </header>
 
     <div class="table-container">
       <table class="stats-table">
-        <thead><tr><th>Jurisdiction / Region</th><th>Confirmed Voters</th><th>Percentage Share</th><th>Status</th></tr></thead>
-        <tbody>
-          ${regionalBreakdown
-            .map(
-              (r) => `
-            <tr><td><strong>${r.region}</strong></td><td>${r.count.toLocaleString()}</td><td>${((r.count / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Active Electorate</td></tr>
-          `
-            )
-            .join("\n")}
-        </tbody>
+        ${levelAudit ? `
+          <thead>
+            ${levelAudit.headersHtml}
+          </thead>
+          <tbody>
+            ${levelAudit.rowsHtml}
+          </tbody>
+          ${levelAudit.footerHtml ? `<tfoot>${levelAudit.footerHtml}</tfoot>` : ""}
+        ` : `
+          <thead><tr><th>Jurisdiction / Region</th><th>Confirmed Voters</th><th>Percentage Share</th><th>Status</th></tr></thead>
+          <tbody>
+            ${regionalBreakdown
+              .map(
+                (r) => `
+              <tr><td><strong>${r.region}</strong></td><td>${r.count.toLocaleString()}</td><td>${((r.count / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Active Electorate</td></tr>
+            `
+              )
+              .join("\n")}
+          </tbody>
+        `}
       </table>
     </div>
 
@@ -1635,7 +1974,7 @@ function generateAlbumHtml(
     <footer class="page-footer">
       <div class="footer-rule"></div>
       <div class="footer-content">
-        <span>PROVISIONAL ELECTORAL COLLEGE ALBUM · REGIONAL AUDIT</span>
+        <span>PROVISIONAL ELECTORAL COLLEGE ALBUM · ${levelAudit ? levelAudit.footerLabel : "REGIONAL AUDIT"}</span>
         <span class="footer-page-pill">${totalPages}</span>
         <span>NATIONAL ELECTIONS COMMITTEE</span>
       </div>
