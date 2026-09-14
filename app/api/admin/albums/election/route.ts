@@ -933,7 +933,7 @@ export async function GET(req: NextRequest) {
   });
 }
 
-export async function generateAlbumExcel(
+async function generateAlbumExcel(
   contest: string,
   regionQuery: string,
   metrics: any,
@@ -1226,7 +1226,7 @@ export async function generateAlbumExcel(
   return Buffer.from(rawBuffer);
 }
 
-export function generateAlbumHtml(
+function generateAlbumHtml(
   contest: string,
   region: string,
   metrics: any,

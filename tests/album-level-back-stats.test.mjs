@@ -12,7 +12,11 @@ const root = path.resolve(import.meta.dirname, "..");
 
 function load(relativePath, mocks = {}) {
   const filename = path.join(root, relativePath);
-  const source = ts.transpileModule(readFileSync(filename, "utf8"), {
+  let rawSource = readFileSync(filename, "utf8");
+  if (relativePath.includes("route.ts")) {
+    rawSource += "\n;module.exports.generateAlbumHtml = generateAlbumHtml;\nmodule.exports.generateAlbumExcel = generateAlbumExcel;";
+  }
+  const source = ts.transpileModule(rawSource, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true, target: ts.ScriptTarget.ES2022 },
     fileName: filename,
   }).outputText;
