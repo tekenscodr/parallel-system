@@ -114,9 +114,9 @@ type AlbumData = {
 
 export default function PositionAlbumsPage() {
   const currentUser = useAlbumUser();
-  const [contest, setContest] = useState<ContestType>("Youth Organisers & Deputies");
+  const [contest, setContest] = useState<ContestType>("Women Organiser");
   const [region, setRegion] = useState("all");
-  const [scope, setScope] = useState("organisers_only");
+  const [scope, setScope] = useState("all_voters");
   const [selectedPositions, setSelectedPositions] = useState<string[]>([
     "chairperson",
     "secretary",
@@ -156,7 +156,11 @@ export default function PositionAlbumsPage() {
       contest === "Women Organiser" ||
       contest === "Nasara Organiser");
 
-  const effectiveScope = WING_PORTFOLIOS.includes(contest as any) ? "organisers_only" : scope;
+  const effectiveScope = WING_PORTFOLIOS.includes(contest as any)
+    ? "organisers_only"
+    : GENERAL_CONTEST_LIST.includes(contest as any)
+    ? (scope === "organisers_only" ? "organisers_only" : "all_voters")
+    : scope;
   const positionsQuery = isCustom ? `&positions=${encodeURIComponent(selectedPositions.join(","))}` : "";
   const levelsQuery =
     selectedLevels.length > 0 && selectedLevels.length < ALL_CUSTOMIZABLE_LEVELS.length
@@ -423,6 +427,8 @@ export default function PositionAlbumsPage() {
                     }
                     if (WING_PORTFOLIOS.includes(val as any)) {
                       setScope("organisers_only");
+                    } else {
+                      setScope("all_voters");
                     }
                     setPage(1);
                   }}
@@ -493,8 +499,8 @@ export default function PositionAlbumsPage() {
                       setPage(1);
                     }}
                   >
-                    <option value="organisers_only">Organisers & Deputies Only (Wing Executives)</option>
                     <option value="all_voters">Full Voting College (All Eligible Voters)</option>
+                    <option value="organisers_only">Organisers & Deputies Only (Wing Executives)</option>
                   </NativeSelect>
                 </div>
               ) : isCustom ? (

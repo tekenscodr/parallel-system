@@ -355,11 +355,30 @@ export async function GET(req: NextRequest) {
     ? getCanonicalPositionsForSelection(customPositionKeys)
     : null;
 
-  // Match valid contest
-  const matchedContest = isCustomContest
-    ? "Custom"
-    : CONTEST_LIST.find((c) => c.toLowerCase() === positionQuery.toLowerCase()) ||
+  // Match valid contest with robust synonym handling
+  const normalizedPositionQuery = positionQuery.toLowerCase().trim();
+  let matchedContest: ContestType = "Youth Organisers & Deputies";
+  if (isCustomContest) {
+    matchedContest = "Custom";
+  } else if (/national\s+chairperson|general\s+officers/i.test(normalizedPositionQuery)) {
+    matchedContest = "National Chairperson & General Officers";
+  } else if (/women.*organisers?\s*&\s*deput/i.test(normalizedPositionQuery)) {
+    matchedContest = "Women Organisers & Deputies";
+  } else if (/women.*organi[sz]er/i.test(normalizedPositionQuery)) {
+    matchedContest = "Women Organiser";
+  } else if (/youth.*organisers?\s*&\s*deput/i.test(normalizedPositionQuery)) {
+    matchedContest = "Youth Organisers & Deputies";
+  } else if (/youth.*organi[sz]er/i.test(normalizedPositionQuery)) {
+    matchedContest = "Youth Organiser";
+  } else if (/nasara.*coordinators?\s*&\s*deput/i.test(normalizedPositionQuery)) {
+    matchedContest = "Nasara Coordinators & Deputies";
+  } else if (/nasara/i.test(normalizedPositionQuery)) {
+    matchedContest = "Nasara Organiser";
+  } else {
+    matchedContest =
+      CONTEST_LIST.find((c) => c.toLowerCase() === normalizedPositionQuery) ||
       "Youth Organisers & Deputies";
+  }
 
   let effectiveContestName: string = matchedContest;
   if (isCustomContest) {
@@ -409,7 +428,8 @@ export async function GET(req: NextRequest) {
     (matchedContest === "Youth Organisers & Deputies" ||
       matchedContest === "Women Organisers & Deputies" ||
       matchedContest === "Nasara Coordinators & Deputies" ||
-      scopeQuery === "organisers_only");
+      (scopeQuery === "organisers_only" &&
+        !GENERAL_CONTEST_LIST.includes(matchedContest as any)));
 
 
   return withEcSql(async (sql) => {
@@ -519,10 +539,7 @@ export async function GET(req: NextRequest) {
       // Wing-specific extraction (Organisers & Deputies Only):
 
       if (isWingOrganisers) {
-        if (
-          matchedContest === "Youth Organisers & Deputies" ||
-          matchedContest === "Youth Organiser"
-        ) {
+        if (matchedContest === "Youth Organisers & Deputies") {
           return (
             (posLower.includes("youth organiser") ||
               posLower.includes("youth organizer") ||
@@ -534,10 +551,7 @@ export async function GET(req: NextRequest) {
           );
         }
 
-        if (
-          matchedContest === "Women Organisers & Deputies" ||
-          matchedContest === "Women Organiser"
-        ) {
+        if (matchedContest === "Women Organisers & Deputies") {
           return (
             (posLower.includes("women organiser") ||
               posLower.includes("women organizer") ||
@@ -550,10 +564,7 @@ export async function GET(req: NextRequest) {
           );
         }
 
-        if (
-          matchedContest === "Nasara Coordinators & Deputies" ||
-          matchedContest === "Nasara Organiser"
-        ) {
+        if (matchedContest === "Nasara Coordinators & Deputies") {
           return (
             posLower.includes("nasara") &&
             !posLower.includes("former") &&
@@ -564,6 +575,7 @@ export async function GET(req: NextRequest) {
 
       // Standard Election Contests:
       if (
+        matchedContest === "National Chairperson & General Officers" ||
         matchedContest === "Chairperson" ||
         matchedContest === "Vice Chairperson" ||
         matchedContest === "General Secretary" ||
@@ -601,8 +613,8 @@ export async function GET(req: NextRequest) {
       }
 
       if (matchedContest === "Women Organiser") {
-        // All females in core levels
-        if (["national", "region", "regional", "constituency"].includes(lvl)) {
+        // All females in regional and constituency levels (excluding national officers)
+        if (["region", "regional", "constituency"].includes(lvl)) {
           return g === "female";
         }
         // TESCON: All WOCOM + female Presidents
@@ -753,6 +765,7 @@ export async function GET(req: NextRequest) {
       : isCustomContest
       ? Math.min(customPositionKeys.length, constituencyTargetPerUnit)
       : [
+          "National Chairperson & General Officers",
           "Chairperson",
           "Vice Chairperson",
           "General Secretary",
@@ -781,6 +794,7 @@ export async function GET(req: NextRequest) {
           (hasRegional ? regionalTargetPerUnit : 0) +
           (hasConstituency ? regConCount * constituencyTargetPerUnit : 0);
       } else if (
+        matchedContest === "National Chairperson & General Officers" ||
         matchedContest === "Chairperson" ||
         matchedContest === "Vice Chairperson" ||
         matchedContest === "General Secretary" ||
@@ -819,6 +833,7 @@ export async function GET(req: NextRequest) {
       } else if (isConstituencyOnly) {
         expectedCount = 276 * 19; // 5,244
       } else if (
+        matchedContest === "National Chairperson & General Officers" ||
         matchedContest === "Chairperson" ||
         matchedContest === "Vice Chairperson" ||
         matchedContest === "General Secretary" ||
@@ -826,13 +841,19 @@ export async function GET(req: NextRequest) {
         matchedContest === "Communication Officer" ||
         matchedContest === "Organiser"
       ) {
-        expectedCount = 5650; // Core (105 + 336 + 5030) + 179 TESCON Presidents
+        expectedCount = 6449;
       } else if (matchedContest === "Youth Organiser") {
-        expectedCount = 2400;
+        expectedCount = 2722;
       } else if (matchedContest === "Women Organiser") {
-        expectedCount = 1080;
+        expectedCount = 1245;
       } else if (matchedContest === "Nasara Organiser") {
-        expectedCount = 760;
+        expectedCount = 852;
+      } else if (matchedContest === "Youth Organisers & Deputies") {
+        expectedCount = 624;
+      } else if (matchedContest === "Women Organisers & Deputies") {
+        expectedCount = 863;
+      } else if (matchedContest === "Nasara Coordinators & Deputies") {
+        expectedCount = 852;
       } else {
         // Full Directory (All Executives) Nationwide:
         // Core regional (16 * 21 = 336) + constituency (276 * 19 = 5,244) = 5,580

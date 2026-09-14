@@ -5,6 +5,7 @@ export const WING_PORTFOLIOS = [
 ] as const;
 
 export const GENERAL_CONTEST_LIST = [
+  "National Chairperson & General Officers",
   "Chairperson",
   "Vice Chairperson",
   "General Secretary",

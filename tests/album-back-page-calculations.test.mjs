@@ -125,3 +125,18 @@ test('Election album statutory audit table renders TESCON institution count and 
     'External Branches row must render numerator / denominator in Constituency (@ 19) column'
   );
 });
+
+test('Election album route filters Women Organiser electorate to regional, constituency, and TESCON females (excluding national)', () => {
+  const routePath = path.join(process.cwd(), 'app/api/admin/albums/election/route.ts');
+  const fileContent = fs.readFileSync(routePath, 'utf8');
+
+  assert.ok(
+    fileContent.includes('matchedContest === "Women Organiser"'),
+    'Route must define Women Organiser contest branch'
+  );
+  assert.ok(
+    fileContent.includes('["region", "regional", "constituency"].includes(lvl)'),
+    'Women Organiser must only include regional and constituency (including external branch) levels, excluding national'
+  );
+});
+
