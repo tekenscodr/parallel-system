@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedAdmin } from "@/lib/admin-auth";
+import { getAuthenticatedAdmin, isC1User } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { normalizeConstituency } from "@/lib/constituency-normalizer";
 import { getVotingReport } from '@/lib/voting-data';
 import { buildPositionCondition } from "@/lib/position-matcher";
+import { getC1SqlCondition } from "@/lib/c1-electoral-college";
 
 export async function GET(req: Request) {
   try {
@@ -11,6 +12,8 @@ export async function GET(req: Request) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
     }
+
+    const isC1 = isC1User(session.user);
 
     const url = new URL(req.url);
     const region = url.searchParams.get("region")?.trim() || "";
@@ -21,6 +24,10 @@ export async function GET(req: Request) {
     // Run parallel queries on ec-data in scoped connection
     const result = await withEcSql(async (sql) => {
       const conditions = [];
+
+      if (isC1) {
+        conditions.push(getC1SqlCondition(sql));
+      }
 
       if (level) {
         conditions.push(sql`executive_level = ${level}`);
@@ -56,6 +63,9 @@ export async function GET(req: Request) {
           ))
         )`
       ];
+      if (isC1) {
+        ecConditions.push(getC1SqlCondition(sql));
+      }
       if (region) {
         ecConditions.push(sql`region ILIKE ${region}`);
       }
@@ -194,7 +204,7 @@ export async function GET(req: Request) {
       };
     });
 
-    const voting = await getVotingReport();
+    const voting = await getVotingReport({ c1Only: isC1 });
     const electorate = voting.people.filter(p =>
       (!region || p.region.toLowerCase() === region.toLowerCase()) &&
       (!constituency || normalizeConstituency(p.constituency).toLowerCase() === normalizeConstituency(constituency).toLowerCase()) &&

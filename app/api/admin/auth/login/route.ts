@@ -47,9 +47,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verify role is admin_national, ADMIN, or NATIONAL
+    // Verify role is admin_national, ADMIN, NATIONAL, or C1
     const roleUpper = String(user.role).toUpperCase();
-    if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN" && roleUpper !== "NATIONAL") {
+    if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN" && roleUpper !== "NATIONAL" && roleUpper !== "C1") {
       return NextResponse.json(
         { error: "Access restricted: This dashboard requires national administrator or officer privileges." },
         { status: 403 }

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedAdmin } from "@/lib/admin-auth";
+import { getAuthenticatedAdmin, isC1User } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp, diffExecutiveRecords } from "@/lib/audit-logger";
 import { getVoterPhotoUrl } from "@/lib/voter-photo";
 import { saveUploadedExecutiveImage } from "@/lib/image-upload";
 import { normalizeConstituency } from "@/lib/constituency-normalizer";
+import { getC1SqlCondition, isC1FemaleElectoralDelegate } from "@/lib/c1-electoral-college";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -17,6 +18,8 @@ export async function GET(req: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const isC1 = isC1User(session.user);
+
     const { id: idStr } = await params;
     const id = parseInt(idStr, 10);
     if (isNaN(id)) {
@@ -24,6 +27,7 @@ export async function GET(req: Request, { params }: RouteParams) {
     }
 
     const row = await withEcSql(async (sql) => {
+      const c1Cond = isC1 ? sql`AND ${getC1SqlCondition(sql)}` : sql``;
       const res = await sql`
         SELECT 
           id,
@@ -71,7 +75,7 @@ export async function GET(req: Request, { params }: RouteParams) {
           record_entered_by as "recordEnteredBy",
           image_url as "imageUrl"
         FROM executives_all
-        WHERE id = ${id}
+        WHERE id = ${id} ${c1Cond}
         LIMIT 1
       `;
       return res[0] || null;
@@ -143,7 +147,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     } = body;
 
     // 1. Fetch previous state before updating
+    const isC1 = isC1User(session.user);
+
     const previousRow = await withEcSql(async (sql) => {
+      const c1Cond = isC1 ? sql`AND ${getC1SqlCondition(sql)}` : sql``;
       const res = await sql`
         SELECT 
           id,
@@ -166,7 +173,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           status,
           image_url as "imageUrl"
         FROM executives_all
-        WHERE id = ${id}
+        WHERE id = ${id} ${c1Cond}
         LIMIT 1
       `;
       return res[0] || null;
@@ -179,6 +186,16 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     const effLevel = executiveLevel !== undefined ? executiveLevel : (body.executive_level !== undefined ? body.executive_level : previousRow.executiveLevel);
     const effRegion = region !== undefined ? region : previousRow.region;
     const effPosition = position !== undefined ? position : previousRow.position;
+    const effGender = gender !== undefined ? gender : previousRow.gender;
+
+    if (isC1) {
+      if (!isC1FemaleElectoralDelegate({ executive_level: effLevel, region: effRegion, position: effPosition, gender: effGender })) {
+        return NextResponse.json(
+          { error: "Access denied: Role C1 can only update female executives in the electoral college." },
+          { status: 403 }
+        );
+      }
+    }
 
     const isYouth = effPosition && typeof effPosition === "string" 
       ? /youth/i.test(effPosition) 

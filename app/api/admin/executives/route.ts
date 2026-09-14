@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedAdmin } from "@/lib/admin-auth";
+import { getAuthenticatedAdmin, isC1User } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
 import { normalizeConstituency } from "@/lib/constituency-normalizer";
 import { getVoterPhotoUrl } from "@/lib/voter-photo";
 import { buildPositionCondition } from "@/lib/position-matcher";
 import { saveUploadedExecutiveImage } from "@/lib/image-upload";
+import { getC1SqlCondition, isC1FemaleElectoralDelegate } from "@/lib/c1-electoral-college";
 
 export async function GET(req: Request) {
   try {
@@ -13,6 +14,8 @@ export async function GET(req: Request) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
     }
+
+    const isC1 = isC1User(session.user);
 
     const url = new URL(req.url);
     const level = url.searchParams.get("level")?.trim() || "";
@@ -29,6 +32,10 @@ export async function GET(req: Request) {
 
     const result = await withEcSql(async (sql) => {
       const conditions = [];
+
+      if (isC1) {
+        conditions.push(getC1SqlCondition(sql));
+      }
 
       if (level) {
         conditions.push(sql`executive_level = ${level}`);
@@ -320,6 +327,15 @@ export async function POST(req: Request) {
     }
     if (!region || !region.trim()) {
       return NextResponse.json({ error: "Region is required." }, { status: 400 });
+    }
+
+    if (isC1User(session.user)) {
+      if (!isC1FemaleElectoralDelegate({ executive_level: executiveLevel, region, position, gender })) {
+        return NextResponse.json(
+          { error: "Access denied: Role C1 can only register female executives in the electoral college." },
+          { status: 403 }
+        );
+      }
     }
 
     // Calculate age using current year 2026 and date of birth

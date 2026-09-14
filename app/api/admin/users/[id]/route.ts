@@ -28,7 +28,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     }
 
     const body = await req.json();
-    const { status, name, password, resetPassword } = body;
+    const { status, name, password, resetPassword, role } = body;
 
     // Guard: Prevent self-suspension
     if (session.user.id === targetUserId && status === "SUSPENDED") {
@@ -65,6 +65,12 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       }
       if (name && typeof name === "string" && name.trim()) {
         sets.push(sql`name = ${name.trim()}`);
+      }
+      if (role) {
+        const rUpper = String(role).toUpperCase();
+        if (rUpper === "ADMIN_NATIONAL" || rUpper === "NATIONAL" || rUpper === "C1") {
+          sets.push(sql`role = ${rUpper}`);
+        }
       }
       if (newPasswordHash) {
         sets.push(sql`"passwordHash" = ${newPasswordHash}`);

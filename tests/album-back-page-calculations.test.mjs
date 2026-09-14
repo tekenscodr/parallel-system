@@ -96,3 +96,32 @@ test('Voter register client filter correctly matches delegates when custom or mu
   assert.equal(filtered[0].executive_name, 'John Regional');
   assert.equal(filtered[1].executive_name, 'Jane Constituency');
 });
+
+test('Election album statutory audit table renders TESCON institution count and External Branches 19x quota', () => {
+  const routePath = path.join(process.cwd(), 'app/api/admin/albums/election/route.ts');
+  const fileContent = fs.readFileSync(routePath, 'utf8');
+
+  // TESCON must show number of institutions instead of Campus
+  assert.ok(
+    !fileContent.includes('>Campus<'),
+    'TESCON row must not contain static "Campus" cell'
+  );
+  assert.ok(
+    fileContent.includes('tesconInstitutionsCount'),
+    'Route must calculate and render tesconInstitutionsCount'
+  );
+  assert.ok(
+    fileContent.includes('${tesconInstitutionsCount.toLocaleString()}'),
+    'TESCON row must display tesconInstitutionsCount in the Const. column'
+  );
+
+  // External branches must show 19 * constituencies as denominator and actual total sum as numerator
+  assert.ok(
+    fileContent.includes('extConstituencyTarget = extNumConstituencies * 19'),
+    'Route must calculate External Branches statutory target as constituencies * 19'
+  );
+  assert.ok(
+    fileContent.includes('${extCount.toLocaleString()} / ${extConstituencyTarget.toLocaleString()}'),
+    'External Branches row must render numerator / denominator in Constituency (@ 19) column'
+  );
+});

@@ -96,7 +96,8 @@ export async function POST(req: Request) {
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = name.trim();
-    const targetRole = role === "ADMIN_NATIONAL" ? "ADMIN_NATIONAL" : "NATIONAL";
+    const roleUpper = String(role || "").toUpperCase();
+    const targetRole = roleUpper === "ADMIN_NATIONAL" ? "ADMIN_NATIONAL" : roleUpper === "C1" ? "C1" : "NATIONAL";
 
     const clientIp = getClientIp(req);
 

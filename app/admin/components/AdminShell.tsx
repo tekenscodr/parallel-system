@@ -232,6 +232,7 @@ export function AdminShell({
 
   const roleUpper = String(currentUser?.role || cachedRole || "").toUpperCase();
   const isAdminNational = roleUpper === "ADMIN_NATIONAL" || roleUpper === "ADMIN";
+  const isC1 = roleUpper === "C1";
   const isPasswordLocked = !isAdminNational && Boolean(currentUser?.passwordChanged);
 
   // Navigation tabs visible only for Admin_national
@@ -750,16 +751,16 @@ export function AdminShell({
                   </h1>
                   <span
                     style={{
-                      background: "rgba(59, 130, 246, 0.15)",
-                      color: "#60a5fa",
-                      border: "1px solid rgba(59, 130, 246, 0.3)",
+                      background: isC1 ? "rgba(236, 72, 153, 0.15)" : "rgba(59, 130, 246, 0.15)",
+                      color: isC1 ? "#f472b6" : "#60a5fa",
+                      border: isC1 ? "1px solid rgba(236, 72, 153, 0.3)" : "1px solid rgba(59, 130, 246, 0.3)",
                       borderRadius: "999px",
                       padding: "2px 8px",
                       fontSize: "11px",
                       fontWeight: "600",
                     }}
                   >
-                    Role: National Officer
+                    {isC1 ? "Role: C1 (Female Electoral College)" : "Role: National Officer"}
                   </span>
                   <span
                     style={{
@@ -775,7 +776,9 @@ export function AdminShell({
                   </span>
                 </div>
                 <p style={{ fontSize: "11px", color: "#94a3b8", margin: "2px 0 0 0" }}>
-                  Authorized to inspect and update nationwide party executives
+                  {isC1
+                    ? "Authorized to view female electoral college executives across National, Regional, Constituency, External Branches, and TESCON (Presidents & WOCOM)"
+                    : "Authorized to inspect and update nationwide party executives"}
                 </p>
               </div>
             </div>

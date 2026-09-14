@@ -1430,6 +1430,10 @@ export default function NationalAdminDashboard() {
     ""
   ).toUpperCase();
   const isAdminNational = userRole === "ADMIN_NATIONAL" || userRole === "ADMIN";
+  const isC1 = userRole === "C1";
+  const visibleTiers = isC1
+    ? TIERS.filter((t) => t.id !== "Electoral Area" && t.id !== "Polling Station")
+    : TIERS;
 
   const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&position=${encodeURIComponent(selectedPosition)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}`;
 
@@ -1762,7 +1766,7 @@ export default function NationalAdminDashboard() {
           </div>
 
           <div className="dash-tier-grid">
-            {TIERS.map((tier) => {
+            {visibleTiers.map((tier) => {
               const isActive = selectedLevel === tier.id;
               const count = getTierCount(tier.id);
               const IconComp = tier.icon;
@@ -2017,6 +2021,31 @@ export default function NationalAdminDashboard() {
         )}
 
         <p><Link href="/admin/voting">View all nine contests, regional metrics, constituency metrics and electorate details →</Link></p>
+
+        {isC1 && (
+          <div
+            style={{
+              marginBottom: "16px",
+              padding: "12px 18px",
+              borderRadius: "8px",
+              background: "rgba(236, 72, 153, 0.12)",
+              border: "1px solid rgba(236, 72, 153, 0.3)",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              color: "#f472b6",
+              fontSize: "13px",
+            }}
+          >
+            <span style={{ fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+              C1 Access Scope Active:
+            </span>
+            <span style={{ color: "#fbcfe8" }}>
+              Directory is filtered strictly to female executives in the Electoral College (Constituency, Regional, External Branches, National, and TESCON female Presidents &amp; WOCOM). Non-electoral tiers and non-female executives are restricted.
+            </span>
+          </div>
+        )}
+
         {/* Multi-Dimensional Filter & Search Toolbar */}
         <section className="dash-toolbar-card">
           <div className="dash-toolbar-row1">
@@ -2160,13 +2189,13 @@ export default function NationalAdminDashboard() {
                 cursor: "pointer"
               }}
             >
-              <option value="">All Levels</option>
+              <option value="">{isC1 ? "All Electoral College Levels" : "All Levels"}</option>
               <option value="National">National Level</option>
               <option value="Region">Regional Level</option>
               <option value="Constituency">Constituency Level</option>
               <option value="External Branch">External Branch Level</option>
-              <option value="Electoral Area">Electoral Area Level</option>
-              <option value="Polling Station">Polling Station Level</option>
+              {!isC1 && <option value="Electoral Area">Electoral Area Level</option>}
+              {!isC1 && <option value="Polling Station">Polling Station Level</option>}
               <option value="TESCON">TESCON Level</option>
             </select>
 

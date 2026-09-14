@@ -153,7 +153,7 @@ export async function validateAdminSession(
     }
 
     const roleUpper = String(row.role).toUpperCase();
-    if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN" && roleUpper !== "NATIONAL") {
+    if (roleUpper !== "ADMIN_NATIONAL" && roleUpper !== "ADMIN" && roleUpper !== "NATIONAL" && roleUpper !== "C1") {
       return { authenticated: false, reason: "forbidden", error: "Insufficient privileges" };
     }
 
@@ -201,6 +201,12 @@ export function isNationalUser(user: AdminUser | { role: string } | null | undef
   if (!user || !user.role) return false;
   const r = String(user.role).toUpperCase();
   return r === "NATIONAL";
+}
+
+export function isC1User(user: AdminUser | { role: string } | null | undefined): boolean {
+  if (!user || !user.role) return false;
+  const r = String(user.role).toUpperCase();
+  return r === "C1";
 }
 
 export async function revokeSession(rawToken: string): Promise<void> {

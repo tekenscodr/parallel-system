@@ -420,6 +420,7 @@ export async function GET(req: NextRequest) {
         executive_level,
         region,
         constituency,
+        polling_station,
         position,
         executive_name,
         voter_id,
@@ -485,8 +486,15 @@ export async function GET(req: NextRequest) {
       // Optional Region Filter
       if (regionQuery !== "all" && regionQuery !== "") {
         const rowRegion = String(r.region || "").toLowerCase().trim();
-        if (lvl !== "national" && rowRegion !== regionQuery.toLowerCase()) {
-          return false;
+        const isQueryExternal = regionQuery.toLowerCase().includes("external");
+        const isRowExternal = rawLvl.includes("external") || rowRegion.includes("external");
+
+        if (isQueryExternal) {
+          if (!isRowExternal) return false;
+        } else {
+          if (lvl !== "national" && rowRegion !== regionQuery.toLowerCase()) {
+            return false;
+          }
         }
       }
 
@@ -657,6 +665,7 @@ export async function GET(req: NextRequest) {
           executive_level: levelGroup,
           region: regName,
           constituency: conName,
+          polling_station: r.polling_station ? String(r.polling_station).trim() : "",
           voter_id: r.voter_id ? String(r.voter_id).trim() : "—",
           has_voter_id: hasVoterId,
           phone: r.phone && String(r.phone).trim() !== "None" ? String(r.phone).trim() : "—",
@@ -732,7 +741,34 @@ export async function GET(req: NextRequest) {
     const totalActual = delegates.length;
     let expectedCount = 0;
 
-    if (regionQuery !== "all" && regionQuery !== "") {
+    const isExternalScope =
+      regionQuery.toLowerCase().includes("external") ||
+      (selectedLevels.length === 1 &&
+        (selectedLevels[0].toLowerCase().includes("external") ||
+          selectedLevels[0].toLowerCase().includes("diaspora")));
+
+    // External target per chapter (30 external branch chapters)
+    const externalTargetPerUnit = isWingOrganisers
+      ? 2
+      : isCustomContest
+      ? Math.min(customPositionKeys.length, constituencyTargetPerUnit)
+      : [
+          "Chairperson",
+          "Vice Chairperson",
+          "General Secretary",
+          "Treasurer",
+          "Communication Officer",
+          "Organiser",
+          "Youth Organiser",
+          "Women Organiser",
+          "Nasara Organiser",
+        ].includes(matchedContest)
+      ? 1
+      : constituencyTargetPerUnit;
+
+    if (isExternalScope) {
+      expectedCount = 30 * externalTargetPerUnit;
+    } else if (regionQuery !== "all" && regionQuery !== "") {
       const regConCount =
         REGIONAL_CONSTITUENCY_COUNTS[regionQuery] ||
         (getConstituenciesForRegion(regionQuery).length || 0);
@@ -777,7 +813,7 @@ export async function GET(req: NextRequest) {
           (hasRegional ? 16 * regionalTargetPerUnit : 0) +
           (hasConstituency ? 276 * constituencyTargetPerUnit : 0) +
           (hasNational ? Math.min(30, customPositionKeys.length) : 0) +
-          (hasExternal ? 30 * Math.min(2, customPositionKeys.length) : 0);
+          (hasExternal ? 30 * externalTargetPerUnit : 0);
       } else if (isRegionalOnly) {
         expectedCount = 16 * 21; // 336
       } else if (isConstituencyOnly) {
@@ -803,7 +839,7 @@ export async function GET(req: NextRequest) {
         const regQuota = hasRegional ? 16 * 21 : 0;
         const conQuota = hasConstituency ? 276 * 19 : 0;
         const natQuota = hasNational ? 30 : 0;
-        const extQuota = hasExternal ? 60 : 0;
+        const extQuota = hasExternal ? 30 * externalTargetPerUnit : 0;
         const tesconQuota = hasTescon ? 248 : 0;
         expectedCount = regQuota + conQuota + natQuota + extQuota + tesconQuota;
       }
@@ -934,11 +970,12 @@ export async function GET(req: NextRequest) {
       auditRows: any[];
     } | null = null;
 
-    const isSingleRegion = regionQuery !== "all" && regionQuery !== "";
-    const selectedRegion = isSingleRegion ? (activeRegions[0] || regionQuery) : "";
+    const isSingleRegion = (regionQuery !== "all" && regionQuery !== "") || isExternalScope;
+    const selectedRegion = isSingleRegion ? (isExternalScope ? "External Branch" : (activeRegions[0] || regionQuery)) : "";
+    const regionDisplayName = isExternalScope ? "EXTERNAL BRANCHES" : selectedRegion.toUpperCase();
 
     if (isSingleRegion) {
-      // Build detailed constituency-level breakdown for this specific region
+      // Build detailed constituency-level breakdown for this specific region / diaspora jurisdiction
       const conList = getConstituenciesForRegion(selectedRegion);
       const conNames =
         conList.length > 0
@@ -948,7 +985,10 @@ export async function GET(req: NextRequest) {
                 delegates
                   .filter(
                     (d) =>
-                      String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
+                      (String(d.executive_level || "").toLowerCase().trim() === "constituency" ||
+                        (isExternalScope &&
+                          (String(d.executive_level || "").toLowerCase().trim() === "external branch" ||
+                            String(d.region || "").toLowerCase().includes("external")))) &&
                       String(d.region || "").toLowerCase().trim() === selectedRegion.toLowerCase().trim()
                   )
                   .map((d) => d.constituency)
@@ -967,8 +1007,8 @@ export async function GET(req: NextRequest) {
         rate: string;
       }> = [];
 
-      const includeRegional = hasRegional || (!isRegionalOnly && !isConstituencyOnly);
-      const includeConstituency = hasConstituency || (!isRegionalOnly && !isConstituencyOnly);
+      const includeRegional = !isExternalScope && (hasRegional || (!isRegionalOnly && !isConstituencyOnly));
+      const includeConstituency = isExternalScope || hasConstituency || (!isRegionalOnly && !isConstituencyOnly);
 
       if (includeRegional) {
         const regConfirmed = delegates.filter(
@@ -998,20 +1038,23 @@ export async function GET(req: NextRequest) {
           const norm = normalizeConstituency(cName);
           const confirmed = delegates.filter(
             (d) =>
-              String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
+              (String(d.executive_level || "").toLowerCase().trim() === "constituency" ||
+                (isExternalScope &&
+                  (String(d.executive_level || "").toLowerCase().trim() === "external branch" ||
+                    String(d.region || "").toLowerCase().includes("external")))) &&
               (normalizeConstituency(d.constituency) === norm ||
                 d.constituency.toLowerCase().trim() === cName.toLowerCase().trim()) &&
               (!d.region ||
                 selectedRegion.toLowerCase().trim() === "external branch" ||
                 String(d.region).toLowerCase().trim() === selectedRegion.toLowerCase().trim())
           ).length;
-          const target = constituencyTargetPerUnit;
+          const target = isExternalScope ? externalTargetPerUnit : constituencyTargetPerUnit;
           const variance = target - confirmed;
           auditItems.push({
             isRegional: false,
             num: String(i + 1),
-            name: `${cName} Constituency`,
-            level: "Constituency",
+            name: isExternalScope ? `${cName} External Branch` : `${cName} Constituency`,
+            level: isExternalScope ? "External Branch" : "Constituency",
             confirmed,
             target,
             variance: variance > 0 ? `-${variance}` : "0",
@@ -1026,21 +1069,27 @@ export async function GET(req: NextRequest) {
       const sumItemRate = sumItemTarget > 0 ? ((sumItemConfirmed / sumItemTarget) * 100).toFixed(1) + "%" : "100%";
 
       const numConstituenciesInAudit = auditItems.filter((it) => !it.isRegional).length;
-      const summaryUnitsLabel = `${numConstituenciesInAudit} CONSTITUENCIES${includeRegional ? " + REGIONAL EXEC" : ""}`;
+      const summaryUnitsLabel = isExternalScope
+        ? "30 EXTERNAL BRANCHES / COUNTRIES"
+        : `${numConstituenciesInAudit} CONSTITUENCIES${includeRegional ? " + REGIONAL EXEC" : ""}`;
 
-      const titleSuffix = includeRegional && includeConstituency
+      const titleSuffix = isExternalScope
+        ? "STATUTORY AUDIT & SIGN-OFF"
+        : includeRegional && includeConstituency
         ? "REGIONAL & CONSTITUENCY"
         : includeRegional
         ? "REGIONAL LEADERSHIP"
         : "CONSTITUENCY LEADERSHIP";
 
-      const subDetail = includeRegional && includeConstituency
+      const subDetail = isExternalScope
+        ? `30 External Chapters / Countries · Statutory Quota Distribution (@ ${externalTargetPerUnit} per Chapter)`
+        : includeRegional && includeConstituency
         ? `Regional Executive Quota (${regionalTargetPerUnit}) & Constituency Quotas (${constituencyTargetPerUnit} per Constituency: 11 Elected + 8 Appointed)`
         : includeRegional
         ? `Regional Executive Committee Quota (${regionalTargetPerUnit})`
         : `Constituency Statutory Quota (${constituencyTargetPerUnit} per Constituency: 11 Elected + 8 Appointed)`;
 
-      // If more than 22 rows (e.g. Ashanti with 47+1, Greater Accra with 34+1, Eastern with 33+1, Central with 23+1),
+      // If more than 22 rows (e.g. Ashanti with 47+1, Greater Accra with 34+1, Eastern with 33+1, Central with 23+1, or External Branch with 30),
       // render a 2-column side-by-side compact grid so it strictly fits on 1 single page!
       let contentHtml = "";
       if (auditItems.length > 22) {
@@ -1101,7 +1150,7 @@ export async function GET(req: NextRequest) {
           <table class="stats-table compact" style="margin-top: 4px;">
             <tfoot>
               <tr>
-                <td style="width: 54%; text-align: right;"><strong>TOTAL (${selectedRegion.toUpperCase()} · ${summaryUnitsLabel}):</strong></td>
+                <td style="width: 54%; text-align: right;"><strong>TOTAL (${regionDisplayName} · ${summaryUnitsLabel}):</strong></td>
                 <td style="width: 16%; text-align: center;"><strong>${sumItemConfirmed.toLocaleString()}</strong></td>
                 <td style="width: 14%; text-align: center;"><strong>${sumItemTarget.toLocaleString()}</strong></td>
                 <td style="width: 16%; text-align: center;"><strong>${sumItemRate}</strong></td>
@@ -1140,7 +1189,7 @@ export async function GET(req: NextRequest) {
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="3" style="text-align: right;"><strong>TOTAL (${selectedRegion.toUpperCase()} · ${summaryUnitsLabel}):</strong></td>
+                <td colspan="3" style="text-align: right;"><strong>TOTAL (${regionDisplayName} · ${summaryUnitsLabel}):</strong></td>
                 <td style="text-align: center;"><strong>${sumItemConfirmed.toLocaleString()}</strong></td>
                 <td style="text-align: center;"><strong>${sumItemTarget.toLocaleString()}</strong></td>
                 <td style="text-align: center;"><strong>${sumItemRate}</strong></td>
@@ -1151,9 +1200,13 @@ export async function GET(req: NextRequest) {
       }
 
       levelAudit = {
-        tableTitle: `${selectedRegion.toUpperCase()} ${titleSuffix} STATUTORY AUDIT & SIGN-OFF`,
+        tableTitle: isExternalScope
+          ? "EXTERNAL BRANCHES (DIASPORA) STATUTORY AUDIT & SIGN-OFF"
+          : `${selectedRegion.toUpperCase()} ${titleSuffix} STATUTORY AUDIT & SIGN-OFF`,
         tableSub: `${subDetail} · ${effectiveContestName}`,
-        footerLabel: `${selectedRegion.toUpperCase()} STATUTORY AUDIT`,
+        footerLabel: isExternalScope
+          ? "EXTERNAL BRANCHES STATUTORY AUDIT"
+          : `${selectedRegion.toUpperCase()} STATUTORY AUDIT`,
         headersHtml: `
           <tr>
             <th style="width: 5%; text-align: center;">#</th>
@@ -1180,7 +1233,7 @@ export async function GET(req: NextRequest) {
           .join("\n"),
         footerHtml: `
           <tr>
-            <td colspan="3" style="text-align: right;"><strong>TOTAL (${selectedRegion.toUpperCase()} · ${summaryUnitsLabel}):</strong></td>
+            <td colspan="3" style="text-align: right;"><strong>TOTAL (${regionDisplayName} · ${summaryUnitsLabel}):</strong></td>
             <td style="text-align: center;"><strong>${sumItemConfirmed.toLocaleString()}</strong></td>
             <td style="text-align: center;"><strong>${sumItemTarget.toLocaleString()}</strong></td>
             <td style="text-align: center;"><strong>${sumItemRate}</strong></td>
@@ -1287,25 +1340,41 @@ export async function GET(req: NextRequest) {
     } else {
       // Both or All
       const extraRowsHtml: string[] = [];
+      const extNumConstituencies = 30;
+      const extConstituencyTarget = extNumConstituencies * 19;
+
       if (extCount > 0) {
         extraRowsHtml.push(`
           <tr>
             <td style="text-align: center;">•</td>
             <td><strong>External Branches (Diaspora)</strong></td>
-            <td style="text-align: center;">30</td>
+            <td style="text-align: center;">${extNumConstituencies}</td>
             <td style="text-align: center;">—</td>
-            <td style="text-align: center;">—</td>
+            <td style="text-align: center;">${extCount.toLocaleString()} / ${extConstituencyTarget.toLocaleString()}</td>
             <td style="text-align: center;"><strong>${extCount.toLocaleString()}</strong></td>
-            <td style="text-align: center;">${extCount.toLocaleString()}</td>
+            <td style="text-align: center;">${extConstituencyTarget.toLocaleString()}</td>
           </tr>
         `);
       }
       if (tesconCount > 0) {
+        const tesconDelegates = delegates.filter(
+          (d) => String(d.executive_level || "").toLowerCase().trim() === "tescon"
+        );
+        const tesconInstitutions = new Set(
+          tesconDelegates
+            .map((d) => {
+              const s = (d.polling_station || d.constituency || "").trim();
+              return s.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
+            })
+            .filter(Boolean)
+        );
+        const tesconInstitutionsCount = tesconInstitutions.size > 0 ? tesconInstitutions.size : tesconCount;
+
         extraRowsHtml.push(`
           <tr>
             <td style="text-align: center;">•</td>
             <td><strong>TESCON Tertiary Institutions</strong></td>
-            <td style="text-align: center;">Campus</td>
+            <td style="text-align: center;">${tesconInstitutionsCount.toLocaleString()}</td>
             <td style="text-align: center;">—</td>
             <td style="text-align: center;">—</td>
             <td style="text-align: center;"><strong>${tesconCount.toLocaleString()}</strong></td>
@@ -1361,28 +1430,69 @@ export async function GET(req: NextRequest) {
         footerHtml: `
           <tr>
             <td colspan="2" style="text-align: right;"><strong>TOTAL:</strong></td>
-            <td style="text-align: center;"><strong>${sumConstituencies}</strong></td>
+            <td style="text-align: center;"><strong>${sumConstituencies + (extCount > 0 ? extNumConstituencies : 0)}</strong></td>
             <td style="text-align: center;"><strong>${sumRegConfirmed} / ${sumRegTarget}</strong></td>
-            <td style="text-align: center;"><strong>${sumConConfirmed} / ${sumConTarget}</strong></td>
+            <td style="text-align: center;"><strong>${(sumConConfirmed + (extCount > 0 ? extCount : 0)).toLocaleString()} / ${(sumConTarget + (extCount > 0 ? extConstituencyTarget : 0)).toLocaleString()}</strong></td>
             <td style="text-align: center;"><strong>${(sumTotalConfirmed + extCount + tesconCount + natCount).toLocaleString()}</strong></td>
-            <td style="text-align: center;"><strong>${(sumTotalTarget + extCount + tesconCount + natCount).toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>${(sumTotalTarget + (extCount > 0 ? extConstituencyTarget : 0) + tesconCount + natCount).toLocaleString()}</strong></td>
           </tr>
         `,
-        auditRows: regionalRows.map((r) => ({
-          region: r.region,
-          confirmed: r.totalConfirmed,
-          target: r.totalTarget,
-          complianceRate: r.totalTarget > 0 ? ((r.totalConfirmed / r.totalTarget) * 100).toFixed(1) + "%" : "100%",
-        })),
+        auditRows: regionalRows
+          .map((r) => ({
+            region: r.region,
+            confirmed: r.totalConfirmed,
+            target: r.totalTarget,
+            complianceRate: r.totalTarget > 0 ? ((r.totalConfirmed / r.totalTarget) * 100).toFixed(1) + "%" : "100%",
+          }))
+          .concat(
+            extCount > 0
+              ? [
+                  {
+                    region: "External Branches (Diaspora)",
+                    confirmed: extCount,
+                    target: extConstituencyTarget,
+                    complianceRate:
+                      extConstituencyTarget > 0
+                        ? ((extCount / extConstituencyTarget) * 100).toFixed(1) + "%"
+                        : "100%",
+                  },
+                ]
+              : []
+          )
+          .concat(
+            tesconCount > 0
+              ? [
+                  {
+                    region: "TESCON Tertiary Institutions",
+                    confirmed: tesconCount,
+                    target: tesconCount,
+                    complianceRate: "100%",
+                  },
+                ]
+              : []
+          )
+          .concat(
+            natCount > 0
+              ? [
+                  {
+                    region: "National Council / Headquarters",
+                    confirmed: natCount,
+                    target: natCount,
+                    complianceRate: "100%",
+                  },
+                ]
+              : []
+          ),
       };
     }
 
     const metrics = {
       contest: effectiveContestName,
-      scope:
-        regionQuery === "all"
-          ? "Nationwide (All 16 Regions + External Branches + National + TESCON)"
-          : `${regionQuery} Region`,
+      scope: isExternalScope
+        ? "External Branches (Diaspora Chapters)"
+        : regionQuery === "all"
+        ? "Nationwide (All 16 Regions + External Branches + National + TESCON)"
+        : `${regionQuery} Region`,
       expectedFigures: expectedCount,
       actualFigures: totalActual,
       variance: Math.max(0, expectedCount - totalActual),
@@ -1412,10 +1522,13 @@ export async function GET(req: NextRequest) {
       constituencyAppointedQuota: isCustom ? undefined : 8,
     };
 
-    const targetRegions =
-      regionQuery !== "all" && regionQuery !== ""
-        ? [regionQuery]
-        : GHANA_REGIONS_ORDER;
+    const targetRegions = isExternalScope
+      ? ["External Branch"]
+      : regionQuery !== "all" && regionQuery !== ""
+      ? [regionQuery]
+      : hasExternal
+      ? [...GHANA_REGIONS_ORDER, "External Branch"]
+      : GHANA_REGIONS_ORDER;
 
     const constituencyAudit: Array<{
       region: string;
@@ -1433,6 +1546,7 @@ export async function GET(req: NextRequest) {
 
     for (const reg of targetRegions) {
       const cList = getConstituenciesForRegion(reg);
+      const isRegExternal = reg.toLowerCase().includes("external");
       const conNames =
         cList.length > 0
           ? cList
@@ -1441,7 +1555,10 @@ export async function GET(req: NextRequest) {
                 delegates
                   .filter(
                     (d) =>
-                      String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
+                      (String(d.executive_level || "").toLowerCase().trim() === "constituency" ||
+                        (isRegExternal &&
+                          (String(d.executive_level || "").toLowerCase().trim() === "external branch" ||
+                            String(d.region || "").toLowerCase().includes("external")))) &&
                       String(d.region || "").toLowerCase().trim() === reg.toLowerCase().trim()
                   )
                   .map((d) => d.constituency)
@@ -1453,22 +1570,25 @@ export async function GET(req: NextRequest) {
         const norm = normalizeConstituency(cName);
         const conDelegates = delegates.filter(
           (d) =>
-            String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
+            (String(d.executive_level || "").toLowerCase().trim() === "constituency" ||
+              (isRegExternal &&
+                (String(d.executive_level || "").toLowerCase().trim() === "external branch" ||
+                  String(d.region || "").toLowerCase().includes("external")))) &&
             (normalizeConstituency(d.constituency) === norm ||
               d.constituency.toLowerCase().trim() === cName.toLowerCase().trim()) &&
             (!d.region ||
-              reg.toLowerCase().trim() === "external branch" ||
+              isRegExternal ||
               String(d.region).toLowerCase().trim() === reg.toLowerCase().trim())
         );
 
         const conConfirmed = conDelegates.length;
-        const target = constituencyTargetPerUnit;
+        const target = isRegExternal ? externalTargetPerUnit : constituencyTargetPerUnit;
         const confirmedElected = conDelegates.filter((d) =>
           isElectedConstituencyPosition(d.canonical_position || d.position)
         ).length;
-        const targetElected = isCustom ? Math.min(target, confirmedElected) : 11;
+        const targetElected = isCustom || isRegExternal ? Math.min(target, confirmedElected) : 11;
         const confirmedAppointed = Math.max(0, conConfirmed - confirmedElected);
-        const targetAppointed = isCustom ? Math.max(0, target - targetElected) : 8;
+        const targetAppointed = isCustom || isRegExternal ? Math.max(0, target - targetElected) : 8;
 
         const variance = target - conConfirmed;
         const complianceRate = target > 0 ? ((conConfirmed / target) * 100).toFixed(1) + "%" : "100%";
@@ -1879,8 +1999,24 @@ function generateAlbumHtml(
 
   const totalPages = 2 + delegatePages.length + 1; // Page 1: Cover, Page 2: Metrics, Pages 3+: Cards, Final: Stats
 
-  const scopeText = region === "all" ? "NATIONWIDE ELECTORAL ROLL" : `${region.toUpperCase()} REGION`;
-  const badgeText = region === "all" ? `${contest.toUpperCase()} ELECTION` : `${region.toUpperCase()} REGION · ${contest.toUpperCase()}`;
+  const isExtScope =
+    region.toLowerCase().includes("external") ||
+    (delegates.length > 0 &&
+      delegates.every(
+        (d) =>
+          String(d.executive_level || "").toLowerCase().trim() === "external branch" ||
+          String(d.region || "").toLowerCase().includes("external")
+      ));
+  const scopeText = region === "all"
+    ? (isExtScope ? "EXTERNAL BRANCHES (DIASPORA CHAPTERS)" : "NATIONWIDE ELECTORAL ROLL")
+    : isExtScope
+    ? "EXTERNAL BRANCHES (DIASPORA CHAPTERS)"
+    : `${region.toUpperCase()} REGION`;
+  const badgeText = region === "all"
+    ? (isExtScope ? `EXTERNAL BRANCHES · ${contest.toUpperCase()}` : `${contest.toUpperCase()} ELECTION`)
+    : isExtScope
+    ? `EXTERNAL BRANCHES · ${contest.toUpperCase()}`
+    : `${region.toUpperCase()} REGION · ${contest.toUpperCase()}`;
 
   const delegatePagesHtml = delegatePages
     .map((group, pageIdx) => {

@@ -412,6 +412,7 @@ export default function UsersManagementPage() {
               <option value="">All Roles</option>
               <option value="ADMIN_NATIONAL">Admin_national</option>
               <option value="NATIONAL">National</option>
+              <option value="C1">C1 (Female Electoral College)</option>
             </select>
 
             <select
@@ -512,6 +513,7 @@ export default function UsersManagementPage() {
                 filteredUsers.map((u) => {
                   const roleUpper = u.role.toUpperCase();
                   const isAdmin = roleUpper === "ADMIN_NATIONAL" || roleUpper === "ADMIN";
+                  const isC1 = roleUpper === "C1";
                   const isCurrent = currentUser?.id === u.id;
 
                   return (
@@ -523,23 +525,33 @@ export default function UsersManagementPage() {
                               width: "36px",
                               height: "36px",
                               borderRadius: "50%",
-                              background: isAdmin ? "rgba(59, 130, 246, 0.2)" : "rgba(16, 185, 129, 0.15)",
-                              border: isAdmin ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid rgba(16, 185, 129, 0.3)",
+                              background: isAdmin ? "rgba(59, 130, 246, 0.2)" : isC1 ? "rgba(236, 72, 153, 0.2)" : "rgba(16, 185, 129, 0.15)",
+                              border: isAdmin ? "1px solid rgba(59, 130, 246, 0.4)" : isC1 ? "1px solid rgba(236, 72, 153, 0.4)" : "1px solid rgba(16, 185, 129, 0.3)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
                               fontWeight: "700",
                               fontSize: "12px",
-                              color: isAdmin ? "#60a5fa" : "#34d399",
+                              color: isAdmin ? "#60a5fa" : isC1 ? "#f472b6" : "#34d399",
                             }}
                           >
-                            {u.name.substring(0, 2).toUpperCase()}
+                            {u.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .slice(0, 2)
+                              .toUpperCase()}
                           </div>
                           <div>
-                            <div style={{ fontWeight: "600", color: "#f8fafc" }}>
-                              {u.name} {isCurrent && <span style={{ color: "#38bdf8", fontSize: "11px" }}>(You)</span>}
+                            <div style={{ fontWeight: "600", fontSize: "13px", color: "#f8fafc", display: "flex", alignItems: "center", gap: "6px" }}>
+                              {u.name}
+                              {isCurrent && (
+                                <span style={{ fontSize: "10px", background: "rgba(59, 130, 246, 0.2)", color: "#60a5fa", padding: "1px 6px", borderRadius: "4px" }}>
+                                  You
+                                </span>
+                              )}
                             </div>
-                            <div style={{ fontSize: "11px", color: "#94a3b8" }}>{u.email}</div>
+                            <div style={{ fontSize: "12px", color: "#94a3b8" }}>{u.email}</div>
                           </div>
                         </div>
                       </td>
@@ -547,16 +559,16 @@ export default function UsersManagementPage() {
                       <td style={{ padding: "14px 18px" }}>
                         <span
                           style={{
-                            background: isAdmin ? "rgba(16, 185, 129, 0.15)" : "rgba(59, 130, 246, 0.15)",
-                            color: isAdmin ? "#34d399" : "#60a5fa",
-                            border: isAdmin ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(59, 130, 246, 0.3)",
+                            background: isAdmin ? "rgba(16, 185, 129, 0.15)" : isC1 ? "rgba(236, 72, 153, 0.15)" : "rgba(59, 130, 246, 0.15)",
+                            color: isAdmin ? "#34d399" : isC1 ? "#f472b6" : "#60a5fa",
+                            border: isAdmin ? "1px solid rgba(16, 185, 129, 0.3)" : isC1 ? "1px solid rgba(236, 72, 153, 0.3)" : "1px solid rgba(59, 130, 246, 0.3)",
                             borderRadius: "999px",
                             padding: "3px 10px",
                             fontSize: "11px",
                             fontWeight: "600",
                           }}
                         >
-                          {isAdmin ? "Admin_national" : "National Officer"}
+                          {isAdmin ? "Admin_national" : isC1 ? "C1 (Female Electoral)" : "National Officer"}
                         </span>
                       </td>
 
@@ -929,6 +941,7 @@ export default function UsersManagementPage() {
                     }}
                   >
                     <option value="NATIONAL">National (Executive View & Updates Only — No Sidebar)</option>
+                    <option value="C1">C1 (Female Electoral College Only — Constituency, Region, External Branch, National, TESCON Presidents & WOCOM)</option>
                     <option value="ADMIN_NATIONAL">Admin_national (Full Admin with Sidebar & Audit)</option>
                   </select>
                 </div>
