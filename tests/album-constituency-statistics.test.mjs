@@ -154,6 +154,7 @@ test('Album UI page.tsx includes Constituency statistics tab, KPI cards, preset 
     'utf8'
   );
 
+  assert.ok(pageCode.includes('Full Regional (21)'), 'Preset button must say Full Regional (21)');
   assert.ok(pageCode.includes('Full Constituency (19)'), 'Preset button must say Full Constituency (19)');
   assert.ok(pageCode.includes('Elected Only (11)'), 'Preset button must say Elected Only (11)');
   assert.ok(pageCode.includes('Appointed Only (8)'), 'Preset button must say Appointed Only (8)');

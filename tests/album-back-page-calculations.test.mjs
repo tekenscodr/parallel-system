@@ -8,12 +8,20 @@ test('Election album route defines 21 regional and 19 constituency statutory quo
   const fileContent = fs.readFileSync(routePath, 'utf8');
 
   assert.ok(
-    fileContent.includes('regionalTargetPerUnit = isCustom ? customPositionKeys.length : 21'),
-    'Regional quota benchmark must default to 21'
+    fileContent.includes('regionalTargetPerUnit = isCustom'),
+    'Route must calculate regionalTargetPerUnit'
   );
   assert.ok(
-    fileContent.includes('constituencyTargetPerUnit = isCustom ? customPositionKeys.length : 19'),
-    'Constituency quota benchmark must default to 19'
+    fileContent.includes('constituencyTargetPerUnit = isCustom'),
+    'Route must calculate constituencyTargetPerUnit'
+  );
+  assert.ok(
+    fileContent.includes('Math.min(21, regionalPositionsSelected'),
+    'Regional quota must be capped at 21'
+  );
+  assert.ok(
+    fileContent.includes('Math.min(19, constituencyPositionsSelected'),
+    'Constituency quota must be capped at 19'
   );
   assert.ok(
     fileContent.includes('REGIONAL_CONSTITUENCY_COUNTS'),

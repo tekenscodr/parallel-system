@@ -16,6 +16,8 @@ import {
   CUSTOM_CONTEST,
   getCanonicalPositionsForSelection,
   isElectedConstituencyPosition,
+  CONSTITUENCY_POSITION_IDS,
+  REGIONAL_POSITION_IDS,
   type ContestType,
 } from "@/lib/election-contests";
 import {
@@ -691,8 +693,22 @@ export async function GET(req: NextRequest) {
 
     // 5. Compute Comprehensive Metrics
     const isCustom = isCustomContest && customPositionKeys.length > 0;
-    const regionalTargetPerUnit = isCustom ? customPositionKeys.length : 21;
-    const constituencyTargetPerUnit = isCustom ? customPositionKeys.length : 19;
+
+    // Constitutional Quotas: Regional is 21, Constituency is 19 (11 Elected + 8 Appointed)
+    const constituencyPositionsSelected = isCustom
+      ? customPositionKeys.filter((id) => CONSTITUENCY_POSITION_IDS.has(id)).length
+      : 19;
+    const regionalPositionsSelected = isCustom
+      ? customPositionKeys.filter((id) => REGIONAL_POSITION_IDS.has(id)).length
+      : 21;
+
+    // Quotas: When all party portfolios are selected, regional is 21 and constituency is strictly 19!
+    const regionalTargetPerUnit = isCustom
+      ? Math.min(21, regionalPositionsSelected || customPositionKeys.length)
+      : 21;
+    const constituencyTargetPerUnit = isCustom
+      ? Math.min(19, constituencyPositionsSelected || Math.min(19, customPositionKeys.length))
+      : 19;
 
     const hasRegional =
       selectedLevels.length === 0 ||
@@ -725,10 +741,9 @@ export async function GET(req: NextRequest) {
         expectedCount =
           (hasRegional ? 3 : 0) + (hasConstituency ? regConCount * 2 : 0);
       } else if (isCustomContest) {
-        const numSelected = customPositionKeys.length || 1;
         expectedCount =
-          (hasRegional ? numSelected : 0) +
-          (hasConstituency ? regConCount * numSelected : 0);
+          (hasRegional ? regionalTargetPerUnit : 0) +
+          (hasConstituency ? regConCount * constituencyTargetPerUnit : 0);
       } else if (
         matchedContest === "Chairperson" ||
         matchedContest === "Vice Chairperson" ||
@@ -758,12 +773,11 @@ export async function GET(req: NextRequest) {
           (hasNational ? 3 : 0) +
           (hasExternal ? 30 * 2 : 0);
       } else if (isCustomContest) {
-        const numSelected = customPositionKeys.length || 1;
         expectedCount =
-          (hasRegional ? 16 * numSelected : 0) +
-          (hasConstituency ? 276 * numSelected : 0) +
-          (hasNational ? numSelected : 0) +
-          (hasExternal ? 30 * numSelected : 0);
+          (hasRegional ? 16 * regionalTargetPerUnit : 0) +
+          (hasConstituency ? 276 * constituencyTargetPerUnit : 0) +
+          (hasNational ? Math.min(30, customPositionKeys.length) : 0) +
+          (hasExternal ? 30 * Math.min(2, customPositionKeys.length) : 0);
       } else if (isRegionalOnly) {
         expectedCount = 16 * 21; // 336
       } else if (isConstituencyOnly) {

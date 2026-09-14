@@ -692,6 +692,15 @@ export default function PositionAlbumsPage() {
                     variant="secondary"
                     size="sm"
                     className="h-7 text-xs"
+                    onClick={() => applyPreset("regional_slate")}
+                  >
+                    Full Regional (21)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="h-7 text-xs"
                     onClick={() => applyPreset("constituency_slate")}
                   >
                     Full Constituency (19)

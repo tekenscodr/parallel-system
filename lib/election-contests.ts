@@ -187,6 +187,32 @@ export const POSITION_PRESETS = {
       "pwd_officer",
     ],
   },
+  regional_slate: {
+    label: "Full Regional Slate (21)",
+    ids: [
+      "chairperson",
+      "1st_vice",
+      "2nd_vice",
+      "secretary",
+      "deputy_secretary",
+      "treasurer",
+      "financial_secretary",
+      "organiser",
+      "deputy_organiser",
+      "women_organiser",
+      "deputy_women_organiser",
+      "youth_organiser",
+      "deputy_youth_organiser",
+      "nasara_coordinator",
+      "deputy_nasara_coordinator",
+      "communication_officer",
+      "electoral_affairs",
+      "research_officer",
+      "pwd_officer",
+      "special_duties",
+      "legal_officer",
+    ],
+  },
   deputies_only: {
     label: "Deputies Only",
     ids: [
@@ -200,6 +226,9 @@ export const POSITION_PRESETS = {
     ],
   },
 } as const;
+
+export const CONSTITUENCY_POSITION_IDS = new Set<string>(POSITION_PRESETS.constituency_slate.ids);
+export const REGIONAL_POSITION_IDS = new Set<string>(POSITION_PRESETS.regional_slate.ids);
 
 export function isElectedConstituencyPosition(pos: string | null | undefined): boolean {
   const s = String(pos || "").trim().toLowerCase();
