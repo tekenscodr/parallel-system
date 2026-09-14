@@ -15,6 +15,7 @@ import {
   CONTEST_LIST,
   CUSTOM_CONTEST,
   getCanonicalPositionsForSelection,
+  isElectedConstituencyPosition,
   type ContestType,
 } from "@/lib/election-contests";
 import {
@@ -66,6 +67,44 @@ try {
 } catch {
   // Non-fatal
 }
+
+const GHANA_REGIONS_ORDER = [
+  "Ahafo",
+  "Ashanti",
+  "Bono",
+  "Bono East",
+  "Central",
+  "Eastern",
+  "Greater Accra",
+  "North East",
+  "Northern",
+  "Oti",
+  "Savannah",
+  "Upper East",
+  "Upper West",
+  "Volta",
+  "Western",
+  "Western North",
+];
+
+const REGIONAL_CONSTITUENCY_COUNTS: Record<string, number> = {
+  "Ahafo": 6,
+  "Ashanti": 47,
+  "Bono": 12,
+  "Bono East": 11,
+  "Central": 23,
+  "Eastern": 33,
+  "Greater Accra": 34,
+  "North East": 6,
+  "Northern": 18,
+  "Oti": 9,
+  "Savannah": 7,
+  "Upper East": 15,
+  "Upper West": 11,
+  "Volta": 18,
+  "Western": 17,
+  "Western North": 9,
+};
 
 let LOGO_WEBP_DATA_URI = "";
 async function getLogoWebpDataUri(): Promise<string> {
@@ -651,14 +690,84 @@ export async function GET(req: NextRequest) {
       });
 
     // 5. Compute Comprehensive Metrics
+    const isCustom = isCustomContest && customPositionKeys.length > 0;
+    const regionalTargetPerUnit = isCustom ? customPositionKeys.length : 21;
+    const constituencyTargetPerUnit = isCustom ? customPositionKeys.length : 19;
+
+    const hasRegional =
+      selectedLevels.length === 0 ||
+      selectedLevels.includes("regional") ||
+      selectedLevels.includes("region");
+    const hasConstituency =
+      selectedLevels.length === 0 || selectedLevels.includes("constituency");
+    const hasNational =
+      selectedLevels.length === 0 || selectedLevels.includes("national");
+    const hasTescon =
+      selectedLevels.length === 0 || selectedLevels.includes("tescon");
+    const hasExternal =
+      selectedLevels.length === 0 ||
+      selectedLevels.includes("external branch") ||
+      selectedLevels.includes("external") ||
+      selectedLevels.includes("diaspora");
+
+    const isRegionalOnly = hasRegional && !hasConstituency && selectedLevels.length === 1;
+    const isConstituencyOnly = hasConstituency && !hasRegional && selectedLevels.length === 1;
+
     const totalActual = delegates.length;
     let expectedCount = 0;
-    if (regionQuery === "all" || regionQuery === "") {
+
+    if (regionQuery !== "all" && regionQuery !== "") {
+      const regConCount =
+        REGIONAL_CONSTITUENCY_COUNTS[regionQuery] ||
+        (getConstituenciesForRegion(regionQuery).length || 0);
+
       if (isWingOrganisers) {
-        expectedCount = 663; // 276*2 (constituency) + 16*3 (regional) + 3 (national) + 30*2 (external branches)
+        expectedCount =
+          (hasRegional ? 3 : 0) + (hasConstituency ? regConCount * 2 : 0);
       } else if (isCustomContest) {
         const numSelected = customPositionKeys.length || 1;
-        expectedCount = numSelected * 322;
+        expectedCount =
+          (hasRegional ? numSelected : 0) +
+          (hasConstituency ? regConCount * numSelected : 0);
+      } else if (
+        matchedContest === "Chairperson" ||
+        matchedContest === "Vice Chairperson" ||
+        matchedContest === "General Secretary" ||
+        matchedContest === "Treasurer" ||
+        matchedContest === "Communication Officer" ||
+        matchedContest === "Organiser" ||
+        matchedContest === "Youth Organiser" ||
+        matchedContest === "Women Organiser" ||
+        matchedContest === "Nasara Organiser"
+      ) {
+        expectedCount =
+          (hasRegional ? 1 : 0) + (hasConstituency ? regConCount * 1 : 0);
+      } else {
+        // Full Directory / Standard Single Region:
+        // Regional Quota = 21, Constituency Quota = 19 (11 elected + 8 appointed)
+        const regQuota = hasRegional ? regionalTargetPerUnit : 0;
+        const conQuota = hasConstituency ? regConCount * constituencyTargetPerUnit : 0;
+        expectedCount = regQuota + conQuota;
+      }
+    } else {
+      // Nationwide (all regions)
+      if (isWingOrganisers) {
+        expectedCount =
+          (hasConstituency ? 276 * 2 : 0) +
+          (hasRegional ? 16 * 3 : 0) +
+          (hasNational ? 3 : 0) +
+          (hasExternal ? 30 * 2 : 0);
+      } else if (isCustomContest) {
+        const numSelected = customPositionKeys.length || 1;
+        expectedCount =
+          (hasRegional ? 16 * numSelected : 0) +
+          (hasConstituency ? 276 * numSelected : 0) +
+          (hasNational ? numSelected : 0) +
+          (hasExternal ? 30 * numSelected : 0);
+      } else if (isRegionalOnly) {
+        expectedCount = 16 * 21; // 336
+      } else if (isConstituencyOnly) {
+        expectedCount = 276 * 19; // 5,244
       } else if (
         matchedContest === "Chairperson" ||
         matchedContest === "Vice Chairperson" ||
@@ -674,17 +783,16 @@ export async function GET(req: NextRequest) {
         expectedCount = 1080;
       } else if (matchedContest === "Nasara Organiser") {
         expectedCount = 760;
-      }
-    } else {
-      if (isCustomContest) {
-        const numSelected = customPositionKeys.length || 1;
-        expectedCount = numSelected * 18;
       } else {
-        expectedCount = isWingOrganisers ? 36 : Math.ceil(totalActual * 1.03); // Approximate for single region
+        // Full Directory (All Executives) Nationwide:
+        // Core regional (16 * 21 = 336) + constituency (276 * 19 = 5,244) = 5,580
+        const regQuota = hasRegional ? 16 * 21 : 0;
+        const conQuota = hasConstituency ? 276 * 19 : 0;
+        const natQuota = hasNational ? 30 : 0;
+        const extQuota = hasExternal ? 60 : 0;
+        const tesconQuota = hasTescon ? 248 : 0;
+        expectedCount = regQuota + conQuota + natQuota + extQuota + tesconQuota;
       }
-    }
-    if (selectedLevels.length > 0 && selectedLevels.length < 5) {
-      expectedCount = Math.max(totalActual, Math.ceil(totalActual * 1.02));
     }
 
     const levelCounts = delegates.reduce(
@@ -737,56 +845,7 @@ export async function GET(req: NextRequest) {
 
     // Statutory Audit Calculations for Administrative Levels
     // Regional Executives Statutory Target: 21 per Region
-    // Constituency Executives Statutory Target: 19 per Constituency
-    const GHANA_REGIONS_ORDER = [
-      "Ahafo",
-      "Ashanti",
-      "Bono",
-      "Bono East",
-      "Central",
-      "Eastern",
-      "Greater Accra",
-      "North East",
-      "Northern",
-      "Oti",
-      "Savannah",
-      "Upper East",
-      "Upper West",
-      "Volta",
-      "Western",
-      "Western North",
-    ];
-
-    const REGIONAL_CONSTITUENCY_COUNTS: Record<string, number> = {
-      "Ahafo": 6,
-      "Ashanti": 47,
-      "Bono": 12,
-      "Bono East": 11,
-      "Central": 23,
-      "Eastern": 33,
-      "Greater Accra": 34,
-      "North East": 6,
-      "Northern": 18,
-      "Oti": 9,
-      "Savannah": 7,
-      "Upper East": 15,
-      "Upper West": 11,
-      "Volta": 18,
-      "Western": 17,
-      "Western North": 9,
-    };
-
-    const isCustom = isCustomContest && customPositionKeys.length > 0;
-    const regionalTargetPerUnit = isCustom ? customPositionKeys.length : 21;
-    const constituencyTargetPerUnit = isCustom ? customPositionKeys.length : 19;
-
-    const hasRegional =
-      selectedLevels.includes("regional") || selectedLevels.includes("region");
-    const hasConstituency = selectedLevels.includes("constituency");
-
-    const isRegionalOnly = hasRegional && !hasConstituency && selectedLevels.length === 1;
-    const isConstituencyOnly = hasConstituency && !hasRegional && selectedLevels.length === 1;
-
+    // Constituency Executives Statutory Target: 19 per Constituency (11 Elected + 8 Appointed)
     const activeRegions =
       regionQuery !== "all" && regionQuery !== ""
         ? GHANA_REGIONS_ORDER.filter((r) => r.toLowerCase() === regionQuery.toLowerCase())
@@ -962,10 +1021,10 @@ export async function GET(req: NextRequest) {
         : "CONSTITUENCY LEADERSHIP";
 
       const subDetail = includeRegional && includeConstituency
-        ? `Regional Executive Quota (${regionalTargetPerUnit}) & Constituency Quotas (${constituencyTargetPerUnit} per Constituency)`
+        ? `Regional Executive Quota (${regionalTargetPerUnit}) & Constituency Quotas (${constituencyTargetPerUnit} per Constituency: 11 Elected + 8 Appointed)`
         : includeRegional
         ? `Regional Executive Committee Quota (${regionalTargetPerUnit})`
-        : `Constituency Statutory Quota (${constituencyTargetPerUnit} per Constituency)`;
+        : `Constituency Statutory Quota (${constituencyTargetPerUnit} per Constituency: 11 Elected + 8 Appointed)`;
 
       // If more than 22 rows (e.g. Ashanti with 47+1, Greater Accra with 34+1, Eastern with 33+1, Central with 23+1),
       // render a 2-column side-by-side compact grid so it strictly fits on 1 single page!
@@ -1256,7 +1315,7 @@ export async function GET(req: NextRequest) {
 
       levelAudit = {
         tableTitle: "REGIONAL & CONSTITUENCY STATUTORY AUDIT & SIGN-OFF",
-        tableSub: `Statutory Quota Distribution (Regional: ${regionalTargetPerUnit} per Region · Constituency: ${constituencyTargetPerUnit} per Constituency) · ${effectiveContestName}`,
+        tableSub: `Statutory Quota Distribution (Regional: ${regionalTargetPerUnit} per Region · Constituency: ${constituencyTargetPerUnit} per Constituency [11 Elected + 8 Appointed]) · ${effectiveContestName}`,
         footerLabel: "ELECTORAL ROLL AUDIT",
         headersHtml: `
           <tr>
@@ -1335,6 +1394,8 @@ export async function GET(req: NextRequest) {
       },
       regionalQuota: regionalTargetPerUnit,
       constituencyQuota: constituencyTargetPerUnit,
+      constituencyElectedQuota: isCustom ? undefined : 11,
+      constituencyAppointedQuota: isCustom ? undefined : 8,
     };
 
     const targetRegions =
@@ -1347,6 +1408,10 @@ export async function GET(req: NextRequest) {
       constituency: string;
       confirmed: number;
       target: number;
+      confirmedElected: number;
+      targetElected: number;
+      confirmedAppointed: number;
+      targetAppointed: number;
       variance: number;
       complianceRate: string;
       status: "Compliant" | "Under Quota" | "Over Quota";
@@ -1372,7 +1437,7 @@ export async function GET(req: NextRequest) {
 
       for (const cName of conNames) {
         const norm = normalizeConstituency(cName);
-        const conConfirmed = delegates.filter(
+        const conDelegates = delegates.filter(
           (d) =>
             String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
             (normalizeConstituency(d.constituency) === norm ||
@@ -1380,9 +1445,17 @@ export async function GET(req: NextRequest) {
             (!d.region ||
               reg.toLowerCase().trim() === "external branch" ||
               String(d.region).toLowerCase().trim() === reg.toLowerCase().trim())
-        ).length;
+        );
 
+        const conConfirmed = conDelegates.length;
         const target = constituencyTargetPerUnit;
+        const confirmedElected = conDelegates.filter((d) =>
+          isElectedConstituencyPosition(d.canonical_position || d.position)
+        ).length;
+        const targetElected = isCustom ? Math.min(target, confirmedElected) : 11;
+        const confirmedAppointed = Math.max(0, conConfirmed - confirmedElected);
+        const targetAppointed = isCustom ? Math.max(0, target - targetElected) : 8;
+
         const variance = target - conConfirmed;
         const complianceRate = target > 0 ? ((conConfirmed / target) * 100).toFixed(1) + "%" : "100%";
         const status: "Compliant" | "Under Quota" | "Over Quota" =
@@ -1397,6 +1470,10 @@ export async function GET(req: NextRequest) {
           constituency: cName,
           confirmed: conConfirmed,
           target,
+          confirmedElected,
+          targetElected,
+          confirmedAppointed,
+          targetAppointed,
           variance,
           complianceRate,
           status,
@@ -1702,9 +1779,9 @@ async function generateAlbumExcel(
       pageSetup: { paperSize: 9, orientation: "portrait" },
     });
 
-    conSheet.mergeCells("A1:H1");
+    conSheet.mergeCells("A1:J1");
     const tCell = conSheet.getCell("A1");
-    tCell.value = `NPP CONSTITUENCY STATUTORY AUDIT & SIGN-OFF · STATUTORY QUOTA: ${metrics.constituencyQuota || 19} PER CONSTITUENCY`;
+    tCell.value = `NPP CONSTITUENCY STATUTORY AUDIT & SIGN-OFF · STATUTORY QUOTA: ${metrics.constituencyQuota || 19} PER CONSTITUENCY (11 ELECTED + 8 APPOINTED)`;
     tCell.font = { name: "Arial", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
     tCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF003399" } };
     tCell.alignment = { horizontal: "center", vertical: "middle" };
@@ -1714,7 +1791,9 @@ async function generateAlbumExcel(
       "#",
       "Region",
       "Constituency Name",
-      "Confirmed Voters",
+      "Total Confirmed",
+      "Elected (x/11)",
+      "Appointed (x/8)",
       "Statutory Quota",
       "Variance",
       "Compliance Rate",
@@ -1733,6 +1812,8 @@ async function generateAlbumExcel(
         item.region,
         item.constituency,
         item.confirmed,
+        item.confirmedElected !== undefined ? `${item.confirmedElected} / ${item.targetElected ?? 11}` : "—",
+        item.confirmedAppointed !== undefined ? `${item.confirmedAppointed} / ${item.targetAppointed ?? 8}` : "—",
         item.target,
         item.variance,
         item.complianceRate,
@@ -1745,12 +1826,16 @@ async function generateAlbumExcel(
       row.getCell(6).alignment = { horizontal: "center" };
       row.getCell(7).alignment = { horizontal: "center" };
       row.getCell(8).alignment = { horizontal: "center" };
+      row.getCell(9).alignment = { horizontal: "center" };
+      row.getCell(10).alignment = { horizontal: "center" };
     });
 
     conSheet.columns = [
       { width: 6 },
       { width: 18 },
       { width: 30 },
+      { width: 16 },
+      { width: 16 },
       { width: 16 },
       { width: 16 },
       { width: 14 },
@@ -2326,9 +2411,9 @@ function generateAlbumHtml(
       <table class="stats-table">
         <thead><tr><th>Administrative Level</th><th>Certified Delegates</th><th>Share of Electorate</th><th>Verification Status</th></tr></thead>
         <tbody>
-          <tr><td><strong>National Level</strong></td><td>${metrics.levelBreakdown.National || 0}</td><td>${(((metrics.levelBreakdown.National || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>
-          <tr><td><strong>Regional Level (16 Regions)</strong></td><td>${metrics.levelBreakdown.Regional || 0}</td><td>${(((metrics.levelBreakdown.Regional || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>
-          <tr><td><strong>Constituency Level (276 Constituencies)</strong></td><td>${metrics.levelBreakdown.Constituency || 0}</td><td>${(((metrics.levelBreakdown.Constituency || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>
+          <tr><td><strong>National Level</strong></td><td>${metrics.levelBreakdown.National || 0}</td><td>${(((metrics.levelBreakdown.National || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>National Council</td></tr>
+          <tr><td><strong>Regional Level (16 Regions)</strong></td><td>${metrics.levelBreakdown.Regional || 0}</td><td>${(((metrics.levelBreakdown.Regional || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Statutory Quota: 21 per Region</td></tr>
+          <tr><td><strong>Constituency Level (276 Constituencies)</strong></td><td>${metrics.levelBreakdown.Constituency || 0}</td><td>${(((metrics.levelBreakdown.Constituency || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Statutory Quota: 19 (11 Elected + 8 Appointed)</td></tr>
           ${(metrics.levelBreakdown["External Branch"] || 0) > 0 ? `<tr><td><strong>External Branches (Diaspora)</strong></td><td>${metrics.levelBreakdown["External Branch"]}</td><td>${(((metrics.levelBreakdown["External Branch"] || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>` : ""}
           <tr><td><strong>TESCON Level (Accredited Institutions)</strong></td><td>${metrics.levelBreakdown.TESCON || 0}</td><td>${(((metrics.levelBreakdown.TESCON || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Patrons Excluded</td></tr>
         </tbody>

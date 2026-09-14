@@ -135,7 +135,7 @@ export const POSITION_PRESETS = {
     ],
   },
   constituency_slate: {
-    label: "Full Constituency Slate (17)",
+    label: "Full Constituency Slate (19)",
     ids: [
       "chairperson",
       "1st_vice",
@@ -158,6 +158,35 @@ export const POSITION_PRESETS = {
       "pwd_officer",
     ],
   },
+  elected_constituency: {
+    label: "Elected Only (11)",
+    ids: [
+      "chairperson",
+      "1st_vice",
+      "2nd_vice",
+      "secretary",
+      "deputy_secretary",
+      "treasurer",
+      "financial_secretary",
+      "organiser",
+      "women_organiser",
+      "youth_organiser",
+      "nasara_coordinator",
+    ],
+  },
+  appointed_constituency: {
+    label: "Appointed Only (8)",
+    ids: [
+      "deputy_organiser",
+      "deputy_women_organiser",
+      "deputy_youth_organiser",
+      "deputy_nasara_coordinator",
+      "communication_officer",
+      "electoral_affairs",
+      "research_officer",
+      "pwd_officer",
+    ],
+  },
   deputies_only: {
     label: "Deputies Only",
     ids: [
@@ -171,6 +200,27 @@ export const POSITION_PRESETS = {
     ],
   },
 } as const;
+
+export function isElectedConstituencyPosition(pos: string | null | undefined): boolean {
+  const s = String(pos || "").trim().toLowerCase();
+  // In NPP at constituency level, all Secretary positions (Secretary, Assistant/Deputy Secretary, Financial Secretary) are ELECTED
+  if (s.includes("secretary")) return true;
+  // Other deputies / assistants are appointed
+  if (s.includes("deputy") || s.includes("assistant")) return false;
+  // Appointed / co-opted portfolio officers
+  if (
+    s.includes("communication") ||
+    s.includes("electoral") ||
+    s.includes("research") ||
+    s.includes("pwd") ||
+    s.includes("disability") ||
+    s.includes("special duties") ||
+    s.includes("legal")
+  ) {
+    return false;
+  }
+  return true;
+}
 
 export function getCanonicalPositionsForSelection(selected: string[]): {
   canonicalSet: Set<string>;

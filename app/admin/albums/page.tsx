@@ -89,6 +89,10 @@ type ConstituencyAuditItem = {
   variance: number;
   complianceRate: string;
   status: "Compliant" | "Under Quota" | "Over Quota";
+  confirmedElected?: number;
+  targetElected?: number;
+  confirmedAppointed?: number;
+  targetAppointed?: number;
 };
 
 type AlbumData = {
@@ -102,6 +106,8 @@ type AlbumData = {
     quorumRequirement: number; levelBreakdown: Record<string, number>;
     regionalQuota?: number;
     constituencyQuota?: number;
+    constituencyElectedQuota?: number;
+    constituencyAppointedQuota?: number;
     biometricVerification: { verified: number; pending: number; verificationRate: string };
   };
 };
@@ -688,7 +694,25 @@ export default function PositionAlbumsPage() {
                     className="h-7 text-xs"
                     onClick={() => applyPreset("constituency_slate")}
                   >
-                    Full Constituency (17)
+                    Full Constituency (19)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => applyPreset("elected_constituency")}
+                  >
+                    Elected Only (11)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => applyPreset("appointed_constituency")}
+                  >
+                    Appointed Only (8)
                   </Button>
                   <Button
                     type="button"
@@ -921,7 +945,7 @@ export default function PositionAlbumsPage() {
                       <div className="space-y-1">
                         <CardTitle>Constituency statutory audit &amp; compliance</CardTitle>
                         <CardDescription>
-                          Audit individual constituencies against statutory quotas (Target: 19 per Constituency · Regional: 21 per Region)
+                          Audit individual constituencies against statutory quotas (Target: 19 per Constituency [11 Elected + 8 Appointed] · Regional: 21 per Region)
                         </CardDescription>
                       </div>
                       <Button asChild variant="outline" size="sm">
@@ -937,7 +961,7 @@ export default function PositionAlbumsPage() {
                       <div className="rounded-lg border bg-blue-50/50 dark:bg-blue-950/20 p-3.5 border-blue-200 dark:border-blue-800">
                         <div className="text-xs font-semibold uppercase tracking-wider text-blue-800 dark:text-blue-300">Constituency Quota</div>
                         <div className="mt-1 text-2xl font-bold text-blue-950 dark:text-blue-100">{metrics?.constituencyQuota ?? 19}</div>
-                        <p className="mt-0.5 text-xs text-blue-700/80 dark:text-blue-400">Statutory executives per constituency</p>
+                        <p className="mt-0.5 text-xs text-blue-700/80 dark:text-blue-400">11 Elected + 8 Appointed per constituency</p>
                       </div>
                       <div className="rounded-lg border bg-indigo-50/50 dark:bg-indigo-950/20 p-3.5 border-indigo-200 dark:border-indigo-800">
                         <div className="text-xs font-semibold uppercase tracking-wider text-indigo-800 dark:text-indigo-300">Regional Quota</div>
@@ -1019,7 +1043,9 @@ export default function PositionAlbumsPage() {
                             <TableHead className="w-12 text-center">#</TableHead>
                             <TableHead>Constituency</TableHead>
                             <TableHead>Region</TableHead>
-                            <TableHead className="text-center">Confirmed Voters</TableHead>
+                            <TableHead className="text-center">Total Confirmed</TableHead>
+                            <TableHead className="text-center">Elected (x/11)</TableHead>
+                            <TableHead className="text-center">Appointed (x/8)</TableHead>
                             <TableHead className="text-center">Statutory Quota</TableHead>
                             <TableHead className="text-center">Variance</TableHead>
                             <TableHead className="text-center">Compliance Rate</TableHead>
@@ -1029,7 +1055,7 @@ export default function PositionAlbumsPage() {
                         <TableBody>
                           {pagedConstituencies.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                              <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
                                 No constituencies match your search or filter.
                               </TableCell>
                             </TableRow>
@@ -1044,6 +1070,16 @@ export default function PositionAlbumsPage() {
                                 </TableCell>
                                 <TableCell className="text-muted-foreground text-xs">{c.region}</TableCell>
                                 <TableCell className="text-center font-semibold text-xs">{c.confirmed}</TableCell>
+                                <TableCell className="text-center text-xs">
+                                  <span className={c.confirmedElected !== undefined && c.confirmedElected < (c.targetElected ?? 11) ? "text-amber-600 dark:text-amber-400 font-medium" : "text-emerald-700 dark:text-emerald-400 font-semibold"}>
+                                    {c.confirmedElected ?? "—"} / {c.targetElected ?? 11}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center text-xs">
+                                  <span className={c.confirmedAppointed !== undefined && c.confirmedAppointed < (c.targetAppointed ?? 8) ? "text-amber-600 dark:text-amber-400 font-medium" : "text-emerald-700 dark:text-emerald-400 font-semibold"}>
+                                    {c.confirmedAppointed ?? "—"} / {c.targetAppointed ?? 8}
+                                  </span>
+                                </TableCell>
                                 <TableCell className="text-center text-xs">{c.target}</TableCell>
                                 <TableCell className="text-center text-xs">
                                   <span className={c.variance > 0 ? "text-amber-600 dark:text-amber-400 font-semibold" : "text-muted-foreground"}>
