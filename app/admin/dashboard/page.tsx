@@ -38,6 +38,8 @@ import {
   ExternalLink,
   Camera,
   RotateCw,
+  Archive,
+  Undo2,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 import { ExecutiveAvatar } from "@/app/admin/components/ExecutiveAvatar";
@@ -350,6 +352,14 @@ export default function NationalAdminDashboard() {
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
 
+  const userRole = String(
+    currentUser?.role ||
+    (typeof window !== "undefined" ? localStorage.getItem("admin_user_role") : "") ||
+    ""
+  ).toUpperCase();
+  const isAdminNational = userRole === "ADMIN_NATIONAL" || userRole === "ADMIN";
+  const isC1 = userRole === "C1";
+
   // Filters
   const [selectedLevel, setSelectedLevel] = useState<string>("");
   const [selectedRegion, setSelectedRegion] = useState<string>("");
@@ -408,6 +418,15 @@ export default function NationalAdminDashboard() {
   const [executiveToDelete, setExecutiveToDelete] = useState<ExecutiveRow | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+
+  // Deleted Voters / Revert State (Super User Only)
+  const [deletedModalOpen, setDeletedModalOpen] = useState(false);
+  const [deletedRows, setDeletedRows] = useState<any[]>([]);
+  const [loadingDeleted, setLoadingDeleted] = useState(false);
+  const [deletedSearch, setDeletedSearch] = useState("");
+  const [deletedTotal, setDeletedTotal] = useState(0);
+  const [revertingId, setRevertingId] = useState<number | null>(null);
+  const [revertMessage, setRevertMessage] = useState("");
 
   // Add Executive Modal State
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -1070,10 +1089,76 @@ export default function NationalAdminDashboard() {
       setDeleting(false);
       fetchRoster();
       loadOverview();
+      fetchDeletedRecords();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Network error";
       setDeleteError(`Deletion failed: ${msg}`);
       setDeleting(false);
+    }
+  };
+
+  // Deleted Records & Revert Handlers (Super User Only)
+  const fetchDeletedRecords = useCallback(async (searchQuery = "") => {
+    if (!isAdminNational) return;
+    setLoadingDeleted(true);
+    try {
+      const q = searchQuery.trim();
+      const res = await fetch(`/api/admin/executives/deleted?search=${encodeURIComponent(q)}&limit=100`, {
+        headers: getAuthHeaders(),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setDeletedRows(data.records || []);
+        setDeletedTotal(data.total || 0);
+      }
+    } catch (err) {
+      console.error("Failed to load deleted records:", err);
+    } finally {
+      setLoadingDeleted(false);
+    }
+  }, [isAdminNational]);
+
+  useEffect(() => {
+    if (currentUser && isAdminNational) {
+      fetchDeletedRecords();
+    }
+  }, [currentUser, isAdminNational, fetchDeletedRecords]);
+
+  const handleOpenDeletedModal = () => {
+    setDeletedModalOpen(true);
+    setRevertMessage("");
+    fetchDeletedRecords(deletedSearch);
+  };
+
+  const handleCloseDeletedModal = () => {
+    setDeletedModalOpen(false);
+    setRevertMessage("");
+  };
+
+  const handleRevert = async (deletionId: number, execName: string) => {
+    setRevertingId(deletionId);
+    setRevertMessage("");
+    try {
+      const res = await fetch(`/api/admin/executives/deleted/${deletionId}/revert`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRevertMessage(`Failed: ${data.error || "Unable to restore executive."}`);
+      } else {
+        setRevertMessage(`Restored: "${execName}" has been successfully restored to the active register!`);
+        fetchDeletedRecords(deletedSearch);
+        fetchRoster();
+        loadOverview();
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Network error";
+      setRevertMessage(`Error: ${msg}`);
+    } finally {
+      setRevertingId(null);
     }
   };
 
@@ -1424,13 +1509,6 @@ export default function NationalAdminDashboard() {
     }
   };
 
-  const userRole = String(
-    currentUser?.role ||
-    (typeof window !== "undefined" ? localStorage.getItem("admin_user_role") : "") ||
-    ""
-  ).toUpperCase();
-  const isAdminNational = userRole === "ADMIN_NATIONAL" || userRole === "ADMIN";
-  const isC1 = userRole === "C1";
   const visibleTiers = isC1
     ? TIERS.filter((t) => t.id !== "Electoral Area" && t.id !== "Polling Station")
     : TIERS;
@@ -2164,6 +2242,53 @@ export default function NationalAdminDashboard() {
                     ? `Cooldown (${exportCooldownSec}s)`
                     : "Export Filtered CSV"}
                 </a>
+              )}
+
+              {isAdminNational && (
+                <button
+                  type="button"
+                  onClick={handleOpenDeletedModal}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    padding: "9px 14px",
+                    borderRadius: "8px",
+                    background: "rgba(239, 68, 68, 0.12)",
+                    border: "1px solid rgba(239, 68, 68, 0.3)",
+                    color: "#fca5a5",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(239, 68, 68, 0.22)";
+                    e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(239, 68, 68, 0.12)";
+                    e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
+                  }}
+                  title="Super User Only: View and revert deleted voters/executives"
+                >
+                  <Archive size={14} color="#fca5a5" />
+                  <span>Deleted Voters / Revert</span>
+                  {deletedTotal > 0 && (
+                    <span
+                      style={{
+                        padding: "1px 6px",
+                        borderRadius: "10px",
+                        background: "#ef4444",
+                        color: "#ffffff",
+                        fontSize: "11px",
+                        fontWeight: "700",
+                      }}
+                    >
+                      {deletedTotal}
+                    </span>
+                  )}
+                </button>
               )}
             </div>
           </div>
@@ -4238,6 +4363,297 @@ export default function NationalAdminDashboard() {
                     <span>Confirm Delete</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Super User Deleted Voters & Revert Modal */}
+      {deletedModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="dash-modal-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0, 0, 0, 0.8)",
+            backdropFilter: "blur(6px)",
+            padding: "16px",
+          }}
+          onClick={handleCloseDeletedModal}
+        >
+          <div
+            className="dash-modal-container"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "1050px",
+              maxHeight: "90vh",
+              background: "#0f172a",
+              border: "1px solid rgba(239, 68, 68, 0.3)",
+              borderRadius: "14px",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(239, 68, 68, 0.15)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                padding: "20px 24px",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                background: "rgba(30, 41, 59, 0.5)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div
+                  style={{
+                    padding: "9px",
+                    borderRadius: "8px",
+                    background: "rgba(239, 68, 68, 0.15)",
+                    border: "1px solid rgba(239, 68, 68, 0.3)",
+                    color: "#f87171",
+                  }}
+                >
+                  <Archive size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "17px", fontWeight: "700", color: "#f8fafc" }}>
+                    Deleted Voters &amp; Executives Archive (Super User Revert)
+                  </h3>
+                  <p style={{ margin: "3px 0 0 0", fontSize: "12px", color: "#94a3b8" }}>
+                    Review deleted records and restore them back into the active register with their exact original details.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseDeletedModal}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#94a3b8",
+                  cursor: "pointer",
+                  padding: "6px",
+                  borderRadius: "6px",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Search & Status Bar */}
+            <div style={{ padding: "14px 24px", borderBottom: "1px solid rgba(255, 255, 255, 0.06)", display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ position: "relative", flex: 1, minWidth: "240px" }}>
+                <Search size={14} color="#94a3b8" style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)" }} />
+                <input
+                  type="text"
+                  placeholder="Search deleted voter by name, voter ID, constituency, or phone…"
+                  value={deletedSearch}
+                  onChange={(e) => {
+                    setDeletedSearch(e.target.value);
+                    fetchDeletedRecords(e.target.value);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px 8px 32px",
+                    borderRadius: "6px",
+                    background: "rgba(2, 6, 23, 0.8)",
+                    border: "1px solid rgba(255, 255, 255, 0.15)",
+                    color: "#ffffff",
+                    fontSize: "13px",
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => fetchDeletedRecords(deletedSearch)}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: "6px",
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "none",
+                  color: "#cbd5e1",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <RotateCw size={13} />
+                Refresh
+              </button>
+              <div style={{ fontSize: "12px", color: "#94a3b8" }}>
+                Total in Archive: <strong style={{ color: "#f8fafc" }}>{deletedTotal}</strong>
+              </div>
+            </div>
+
+            {/* Notification Banner */}
+            {revertMessage && (
+              <div
+                style={{
+                  margin: "12px 24px 0 24px",
+                  padding: "10px 14px",
+                  borderRadius: "6px",
+                  fontSize: "13px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: revertMessage.startsWith("Restored") ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                  border: revertMessage.startsWith("Restored") ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(239, 68, 68, 0.3)",
+                  color: revertMessage.startsWith("Restored") ? "#34d399" : "#fca5a5",
+                }}
+              >
+                {revertMessage.startsWith("Restored") ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                <span>{revertMessage}</span>
+              </div>
+            )}
+
+            {/* Table Area */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px" }}>
+              {loadingDeleted ? (
+                <div style={{ textAlign: "center", padding: "48px 0", color: "#94a3b8" }}>
+                  <Loader2 size={24} style={{ animation: "spin 1s linear infinite", margin: "0 auto 12px auto" }} />
+                  Loading deleted records from archive…
+                </div>
+              ) : deletedRows.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "48px 0", color: "#64748b" }}>
+                  <Archive size={32} style={{ margin: "0 auto 12px auto", opacity: 0.5 }} />
+                  <p style={{ margin: 0, fontSize: "14px" }}>No deleted voters found in the auxiliary archive.</p>
+                  <p style={{ margin: "4px 0 0 0", fontSize: "12px" }}>Whenever an executive or voter is deleted, a full backup snapshot is stored here for super-user revert.</p>
+                </div>
+              ) : (
+                <div style={{ borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)", overflow: "hidden" }}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow style={{ background: "rgba(30, 41, 59, 0.7)" }}>
+                        <TableHead style={{ color: "#94a3b8", fontSize: "12px" }}># Orig ID</TableHead>
+                        <TableHead style={{ color: "#94a3b8", fontSize: "12px" }}>Voter ID</TableHead>
+                        <TableHead style={{ color: "#94a3b8", fontSize: "12px" }}>Name &amp; Position</TableHead>
+                        <TableHead style={{ color: "#94a3b8", fontSize: "12px" }}>Level</TableHead>
+                        <TableHead style={{ color: "#94a3b8", fontSize: "12px" }}>Region / Constituency</TableHead>
+                        <TableHead style={{ color: "#94a3b8", fontSize: "12px" }}>Deleted When</TableHead>
+                        <TableHead style={{ color: "#94a3b8", fontSize: "12px" }}>Deleted By</TableHead>
+                        <TableHead style={{ color: "#94a3b8", fontSize: "12px", textAlign: "right" }}>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {deletedRows.map((row) => (
+                        <TableRow key={row.deletion_id} style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.04)" }}>
+                          <TableCell style={{ fontSize: "12px", fontFamily: "monospace", color: "#94a3b8" }}>
+                            {row.original_id}
+                          </TableCell>
+                          <TableCell style={{ fontSize: "12px", fontFamily: "monospace", color: "#93c5fd" }}>
+                            {row.voter_id || "—"}
+                          </TableCell>
+                          <TableCell>
+                            <div style={{ display: "flex", flexDirection: "column" }}>
+                              <span style={{ color: "#ffffff", fontWeight: 600, fontSize: "13px" }}>
+                                {row.executive_name}
+                              </span>
+                              <span style={{ color: "#60a5fa", fontSize: "11px", marginTop: "2px" }}>
+                                {row.position || "—"}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell style={{ fontSize: "12px", color: "#cbd5e1" }}>
+                            {row.executive_level || "—"}
+                          </TableCell>
+                          <TableCell style={{ fontSize: "12px", color: "#cbd5e1" }}>
+                            {[row.constituency, row.region].filter(Boolean).join(" / ") || "—"}
+                          </TableCell>
+                          <TableCell style={{ fontSize: "12px", color: "#94a3b8", whiteSpace: "nowrap" }}>
+                            {row.deleted_at ? new Date(row.deleted_at).toLocaleString() : "—"}
+                          </TableCell>
+                          <TableCell style={{ fontSize: "12px", color: "#cbd5e1" }}>
+                            <div style={{ display: "flex", flexDirection: "column" }}>
+                              <span>{row.deleted_by_name || "Admin"}</span>
+                              <span style={{ fontSize: "10px", color: "#64748b" }}>{row.deleted_by_role || "ADMIN"}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                            <button
+                              type="button"
+                              disabled={revertingId === row.deletion_id}
+                              onClick={() => handleRevert(row.deletion_id, row.executive_name)}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                padding: "6px 12px",
+                                borderRadius: "6px",
+                                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                                border: "none",
+                                color: "#ffffff",
+                                fontSize: "12px",
+                                fontWeight: "600",
+                                cursor: revertingId === row.deletion_id ? "not-allowed" : "pointer",
+                                opacity: revertingId === row.deletion_id ? 0.7 : 1,
+                                boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
+                              }}
+                            >
+                              {revertingId === row.deletion_id ? (
+                                <>
+                                  <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />
+                                  <span>Restoring…</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Undo2 size={12} />
+                                  <span>Revert</span>
+                                </>
+                              )}
+                            </button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                padding: "14px 24px",
+                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                background: "rgba(15, 23, 42, 0.6)",
+              }}
+            >
+              <span style={{ fontSize: "12px", color: "#64748b" }}>
+                Reverting restores the executive record to the active database with their original IDs, voter details, and quotas.
+              </span>
+              <button
+                type="button"
+                onClick={handleCloseDeletedModal}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: "6px",
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "none",
+                  color: "#ffffff",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                Close
               </button>
             </div>
           </div>

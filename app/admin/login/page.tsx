@@ -134,15 +134,22 @@ export default function AdminLoginPage() {
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "56px",
-              height: "56px",
-              borderRadius: "12px",
-              background: "rgba(255, 255, 255, 0.04)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
+              width: "68px",
+              height: "68px",
+              borderRadius: "50%",
+              background: "#ffffff",
+              border: "2px solid rgba(56, 189, 248, 0.4)",
+              boxShadow: "0 0 20px rgba(56, 189, 248, 0.25)",
               marginBottom: "16px",
+              padding: "4px",
+              overflow: "hidden",
             }}
           >
-            <Landmark size={26} color="#94a3b8" />
+            <img
+              src="/npp-logo.png"
+              alt="NPP IT Directorate"
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
           </div>
           <h1
             style={{
@@ -152,10 +159,10 @@ export default function AdminLoginPage() {
               letterSpacing: "-0.5px",
             }}
           >
-            National Executive Command
+            NPP National I.T. Directorate
           </h1>
           <p style={{ fontSize: "13px", color: "#94a3b8", margin: 0 }}>
-            Restricted to authorized national administrators & officers
+            National Executive Command &amp; Electoral Directory
           </p>
           <div
             style={{

@@ -25,6 +25,7 @@ import {
   getConstituenciesForRegion,
   normalizeConstituency,
 } from "@/lib/constituency-normalizer";
+import { getConstituencyCapital } from "@/lib/constituency-capitals";
 
 // Pre-indexed WebP photos from Ahafo album (voter_id and executive_name)
 const ahafoPhotosByVoterId = new Map<string, string>();
@@ -335,6 +336,7 @@ export async function GET(req: NextRequest) {
   const regionQuery = (searchParams.get("region") || "all").trim();
   const scopeQuery = (searchParams.get("scope") || "").trim().toLowerCase();
   const format = (searchParams.get("format") || "json").toLowerCase();
+  const albumType = (searchParams.get("album_type") || searchParams.get("type") || "provisional").trim().toLowerCase();
   const isDownload =
     searchParams.get("download") === "1" || searchParams.get("download") === "true";
 
@@ -754,6 +756,7 @@ export async function GET(req: NextRequest) {
 
     const isRegionalOnly = hasRegional && !hasConstituency && selectedLevels.length === 1;
     const isConstituencyOnly = hasConstituency && !hasRegional && selectedLevels.length === 1;
+    const isTesconOnly = hasTescon && selectedLevels.length === 1 && selectedLevels[0] === "tescon";
 
     const totalActual = delegates.length;
     let expectedCount = 0;
@@ -1035,6 +1038,7 @@ export async function GET(req: NextRequest) {
 
       const includeRegional = !isExternalScope && (hasRegional || (!isRegionalOnly && !isConstituencyOnly));
       const includeConstituency = isExternalScope || hasConstituency || (!isRegionalOnly && !isConstituencyOnly);
+      const includeTescon = !isExternalScope && (hasTescon || (!isRegionalOnly && !isConstituencyOnly));
 
       if (includeRegional) {
         const regConfirmed = delegates.filter(
@@ -1089,15 +1093,47 @@ export async function GET(req: NextRequest) {
         }
       }
 
+      if (includeTescon) {
+        const tesconInReg = delegates.filter(
+          (d) =>
+            String(d.executive_level || "").toLowerCase().trim() === "tescon" &&
+            (!d.region ||
+              String(d.region).toLowerCase().trim() === selectedRegion.toLowerCase().trim() ||
+              selectedRegion.toLowerCase().includes(String(d.region || "").toLowerCase().trim()))
+        );
+        if (tesconInReg.length > 0) {
+          const instMap = new Map<string, any[]>();
+          for (const td of tesconInReg) {
+            const inst = (td.polling_station || td.constituency || "Accredited Tertiary Institution").trim();
+            if (!instMap.has(inst)) instMap.set(inst, []);
+            instMap.get(inst)!.push(td);
+          }
+          let tIdx = 1;
+          for (const [instName, tList] of instMap.entries()) {
+            auditItems.push({
+              isRegional: false,
+              num: `T${tIdx++}`,
+              name: `${instName} (TESCON)`,
+              level: "TESCON",
+              confirmed: tList.length,
+              target: tList.length,
+              variance: "0",
+              rate: "100%",
+            });
+          }
+        }
+      }
+
       const sumItemConfirmed = auditItems.reduce((acc, it) => acc + it.confirmed, 0);
       const sumItemTarget = auditItems.reduce((acc, it) => acc + it.target, 0);
       const sumItemVariance = sumItemTarget - sumItemConfirmed;
       const sumItemRate = sumItemTarget > 0 ? ((sumItemConfirmed / sumItemTarget) * 100).toFixed(1) + "%" : "100%";
 
-      const numConstituenciesInAudit = auditItems.filter((it) => !it.isRegional).length;
+      const numConstituenciesInAudit = auditItems.filter((it) => it.level === "Constituency" || it.level === "External Branch").length;
+      const numTesconInAudit = auditItems.filter((it) => it.level === "TESCON").length;
       const summaryUnitsLabel = isExternalScope
         ? "30 EXTERNAL BRANCHES / COUNTRIES"
-        : `${numConstituenciesInAudit} CONSTITUENCIES${includeRegional ? " + REGIONAL EXEC" : ""}`;
+        : `${numConstituenciesInAudit} CONSTITUENCIES${includeRegional ? " + REGIONAL EXEC" : ""}${numTesconInAudit > 0 ? ` + ${numTesconInAudit} TESCON INST.` : ""}`;
 
       const titleSuffix = isExternalScope
         ? "STATUTORY AUDIT & SIGN-OFF"
@@ -1363,6 +1399,70 @@ export async function GET(req: NextRequest) {
           complianceRate: r.conTarget > 0 ? ((r.conConfirmed / r.conTarget) * 100).toFixed(1) + "%" : "100%",
         })),
       };
+    } else if (isTesconOnly) {
+      const tesconByReg = new Map<string, { institutions: Set<string>; count: number }>();
+      for (const td of delegates) {
+        const rName = String(td.region || "Unassigned").trim();
+        if (!tesconByReg.has(rName)) {
+          tesconByReg.set(rName, { institutions: new Set(), count: 0 });
+        }
+        const entry = tesconByReg.get(rName)!;
+        entry.count++;
+        const inst = (td.polling_station || td.constituency || "").trim();
+        if (inst) entry.institutions.add(inst);
+      }
+
+      const tRows = Array.from(tesconByReg.entries()).map(([reg, val], idx) => ({
+        idx: idx + 1,
+        region: reg,
+        instCount: val.institutions.size > 0 ? val.institutions.size : val.count,
+        confirmed: val.count,
+      }));
+
+      const sumInstitutions = tRows.reduce((acc, r) => acc + r.instCount, 0);
+      const sumTesconConfirmed = tRows.reduce((acc, r) => acc + r.confirmed, 0);
+
+      levelAudit = {
+        tableTitle: "TESCON ACCREDITED TERTIARY INSTITUTIONS STATUTORY AUDIT & SIGN-OFF",
+        tableSub: `Accredited Tertiary Institutions & Confirmed Voter Roll · Patrons Strictly Excluded · ${effectiveContestName}`,
+        footerLabel: "TESCON STATUTORY AUDIT",
+        headersHtml: `
+          <tr>
+            <th style="width: 6%; text-align: center;">#</th>
+            <th style="width: 38%;">Region</th>
+            <th style="width: 20%; text-align: center;">Accredited Institutions</th>
+            <th style="width: 18%; text-align: center;">Confirmed Voters</th>
+            <th style="width: 18%; text-align: center;">Status</th>
+          </tr>
+        `,
+        rowsHtml: tRows
+          .map(
+            (r) => `
+          <tr>
+            <td style="text-align: center;">${r.idx}</td>
+            <td><strong>${r.region} Region</strong></td>
+            <td style="text-align: center;">${r.instCount.toLocaleString()}</td>
+            <td style="text-align: center;"><strong>${r.confirmed.toLocaleString()}</strong></td>
+            <td style="text-align: center;">Accredited Roll</td>
+          </tr>
+        `
+          )
+          .join("\n"),
+        footerHtml: `
+          <tr>
+            <td colspan="2" style="text-align: right;"><strong>TOTAL (${tRows.length} REGIONS):</strong></td>
+            <td style="text-align: center;"><strong>${sumInstitutions.toLocaleString()} Institutions</strong></td>
+            <td style="text-align: center;"><strong>${sumTesconConfirmed.toLocaleString()}</strong></td>
+            <td style="text-align: center;"><strong>100%</strong></td>
+          </tr>
+        `,
+        auditRows: tRows.map((r) => ({
+          region: r.region,
+          confirmed: r.confirmed,
+          target: r.confirmed,
+          complianceRate: "100%",
+        })),
+      };
     } else {
       // Both or All
       const extraRowsHtml: string[] = [];
@@ -1512,6 +1612,20 @@ export async function GET(req: NextRequest) {
       };
     }
 
+    const tesconDelegatesList = delegates.filter(
+      (d) => String(d.executive_level || "").toLowerCase().trim() === "tescon"
+    );
+    const tesconInstitutionsSet = new Set(
+      tesconDelegatesList
+        .map((d) => {
+          const s = (d.polling_station || d.constituency || "").trim();
+          return s.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
+        })
+        .filter(Boolean)
+    );
+    const tesconInstitutionsCount =
+      tesconInstitutionsSet.size > 0 ? tesconInstitutionsSet.size : tesconDelegatesList.length;
+
     const metrics = {
       contest: effectiveContestName,
       scope: isExternalScope
@@ -1546,6 +1660,7 @@ export async function GET(req: NextRequest) {
       constituencyQuota: constituencyTargetPerUnit,
       constituencyElectedQuota: isCustom ? undefined : 11,
       constituencyAppointedQuota: isCustom ? undefined : 8,
+      tesconInstitutionsCount,
     };
 
     const targetRegions = isExternalScope
@@ -1681,7 +1796,8 @@ export async function GET(req: NextRequest) {
         delegates,
         regionalBreakdown,
         logoDataUri,
-        levelAudit
+        levelAudit,
+        albumType
       );
 
       const headers: Record<string, string> = {
@@ -2015,15 +2131,240 @@ function generateAlbumHtml(
   delegates: any[],
   regionalBreakdown: any[],
   logoDataUri?: string,
-  levelAudit?: any
+  levelAudit?: any,
+  albumType: string = "provisional"
 ): string {
-  const cardsPerPage = 10;
-  const delegatePages: any[][] = [];
-  for (let i = 0; i < delegates.length; i += cardsPerPage) {
-    delegatePages.push(delegates.slice(i, i + cardsPerPage));
+  // Render individual voter card (Level only, no jurisdiction suffix)
+  function renderVoterCard(d: any): string {
+    const photoSrc = d.webp_base64 || d.avatar_svg;
+    return `
+        <div class="voter-card">
+          <div class="card-details">
+            <div class="pos-badge">${d.canonical_position}</div>
+            <div class="exec-name">${d.executive_name}</div>
+            <div class="detail-line">
+              <span class="lbl">Level:</span> <span class="val">${d.executive_level}</span>
+            </div>
+            <div class="detail-line">
+              <span class="lbl">Voter ID:</span> <span class="val mono">${d.voter_id}</span>
+            </div>
+            <div class="detail-line">
+              <span class="lbl">Phone:</span> <span class="val">${d.phone}</span>
+            </div>
+          </div>
+          <div class="card-photo">
+            <img class="voter-img" src="${photoSrc}" alt="${d.executive_name}" loading="eager" decoding="sync" data-fallback="${d.avatar_svg}" onerror="this.onerror=null; this.src='${d.avatar_svg}';" />
+          </div>
+        </div>
+      `;
   }
 
-  const totalPages = 2 + delegatePages.length + 1; // Page 1: Cover, Page 2: Metrics, Pages 3+: Cards, Final: Stats
+  interface CardPageSpec {
+    headerSubTitle: string;
+    footerLabel: string;
+    cards: any[];
+    isConstituencyPart2?: boolean;
+    constituencyName?: string;
+    constituencyCapital?: string;
+    totalConstituencyExecutives?: number;
+  }
+
+  const cardPages: CardPageSpec[] = [];
+  const directoryItems: Array<{
+    name: string;
+    capital: string;
+    count: number;
+    startPage: number;
+    endPage: number;
+    status: string;
+  }> = [];
+
+  let currentCardPageNum = 4; // Page 1: Cover, Page 2: Metrics, Page 3: Directory Index
+
+  // Partition delegates into administrative levels
+  const nationalDelegates = delegates.filter(
+    (d) => String(d.executive_level || "").toLowerCase().trim() === "national"
+  );
+  const regionalDelegates = delegates.filter(
+    (d) => String(d.executive_level || "").toLowerCase().trim() === "regional"
+  );
+  const constituencyDelegates = delegates.filter(
+    (d) => String(d.executive_level || "").toLowerCase().trim() === "constituency"
+  );
+  const tesconDelegates = delegates.filter(
+    (d) => String(d.executive_level || "").toLowerCase().trim() === "tescon"
+  );
+  const otherDelegates = delegates.filter(
+    (d) =>
+      !["national", "regional", "constituency", "tescon"].includes(
+        String(d.executive_level || "").toLowerCase().trim()
+      )
+  );
+
+  // 1. National Level Pages (if present)
+  if (nationalDelegates.length > 0) {
+    const startPage = currentCardPageNum;
+    for (let i = 0; i < nationalDelegates.length; i += 10) {
+      const chunk = nationalDelegates.slice(i, i + 10);
+      const partIdx = Math.floor(i / 10) + 1;
+      chunk.forEach((d) => {
+        d.page_number = currentCardPageNum;
+      });
+      cardPages.push({
+        headerSubTitle: `NATIONAL LEVEL · ${contest.toUpperCase()} (PART ${partIdx})`,
+        footerLabel: `NATIONAL EXECUTIVES`,
+        cards: chunk,
+      });
+      currentCardPageNum++;
+    }
+    directoryItems.push({
+      name: "National Leadership / Council",
+      capital: "Party Headquarters, Accra",
+      count: nationalDelegates.length,
+      startPage,
+      endPage: currentCardPageNum - 1,
+      status: "Certified Roll",
+    });
+  }
+
+  // 2. Regional Level Pages (Separated from Constituency)
+  if (regionalDelegates.length > 0) {
+    const startPage = currentCardPageNum;
+    const regLabel = (region === "all" ? (regionalDelegates[0]?.region || "NATIONAL") : region).toUpperCase();
+    for (let i = 0; i < regionalDelegates.length; i += 10) {
+      const chunk = regionalDelegates.slice(i, i + 10);
+      const partIdx = Math.floor(i / 10) + 1;
+      chunk.forEach((d) => {
+        d.page_number = currentCardPageNum;
+      });
+      cardPages.push({
+        headerSubTitle: `${regLabel} REGION · REGIONAL EXECUTIVES (PART ${partIdx})`,
+        footerLabel: `REGIONAL EXECUTIVES`,
+        cards: chunk,
+      });
+      currentCardPageNum++;
+    }
+    directoryItems.push({
+      name: `Regional Leadership (${regLabel} Region)`,
+      capital: "Regional Secretariat",
+      count: regionalDelegates.length,
+      startPage,
+      endPage: currentCardPageNum - 1,
+      status: "Certified Roll",
+    });
+  }
+
+  // 3. Constituency Level Pages (Dedicated 2 Pages per Constituency)
+  if (constituencyDelegates.length > 0) {
+    const constituencyMap = new Map<string, any[]>();
+    for (const d of constituencyDelegates) {
+      const cName = d.constituency?.trim() || "Unknown Constituency";
+      if (!constituencyMap.has(cName)) {
+        constituencyMap.set(cName, []);
+      }
+      constituencyMap.get(cName)!.push(d);
+    }
+
+    for (const [cName, cList] of constituencyMap.entries()) {
+      const startPage = currentCardPageNum;
+      const capital = getConstituencyCapital(cName);
+      const regLabel = (cList[0]?.region || (region === "all" ? "" : region)).toUpperCase();
+      const regionPrefix = regLabel ? `${regLabel} REGION · ` : "";
+
+      // Dedicated Page 1: Up to 10 cards
+      const part1Cards = cList.slice(0, 10);
+      part1Cards.forEach((d) => {
+        d.page_number = currentCardPageNum;
+      });
+      cardPages.push({
+        headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 1)`,
+        footerLabel: `${cName.toUpperCase()}`,
+        cards: part1Cards,
+      });
+      currentCardPageNum++;
+
+      // Dedicated Page 2: Up to 9 cards + 10th slot validation / QR code box
+      const part2Cards = cList.slice(10, 19);
+      part2Cards.forEach((d) => {
+        d.page_number = currentCardPageNum;
+      });
+      cardPages.push({
+        headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 2)`,
+        footerLabel: `${cName.toUpperCase()}`,
+        cards: part2Cards,
+        isConstituencyPart2: true,
+        constituencyName: cName,
+        constituencyCapital: capital,
+        totalConstituencyExecutives: cList.length,
+      });
+      currentCardPageNum++;
+
+      directoryItems.push({
+        name: cName,
+        capital: capital,
+        count: cList.length,
+        startPage,
+        endPage: currentCardPageNum - 1,
+        status: albumType === "provisional" ? "Provisional Register" : "Constituency Validated",
+      });
+    }
+  }
+
+  // 4. TESCON Level Pages
+  if (tesconDelegates.length > 0) {
+    const startPage = currentCardPageNum;
+    const regLabel = (region === "all" ? "NATIONAL" : region).toUpperCase();
+    for (let i = 0; i < tesconDelegates.length; i += 10) {
+      const chunk = tesconDelegates.slice(i, i + 10);
+      const partIdx = Math.floor(i / 10) + 1;
+      chunk.forEach((d) => {
+        d.page_number = currentCardPageNum;
+      });
+      cardPages.push({
+        headerSubTitle: `${regLabel} REGION · TESCON EXECUTIVES (PART ${partIdx})`,
+        footerLabel: `TESCON EXECUTIVES`,
+        cards: chunk,
+      });
+      currentCardPageNum++;
+    }
+    directoryItems.push({
+      name: "TESCON Accredited Institutions",
+      capital: "Higher Education Institutions",
+      count: tesconDelegates.length,
+      startPage,
+      endPage: currentCardPageNum - 1,
+      status: "Certified Roll",
+    });
+  }
+
+  // 5. Other / Diaspora / External Branches Pages
+  if (otherDelegates.length > 0) {
+    const startPage = currentCardPageNum;
+    for (let i = 0; i < otherDelegates.length; i += 10) {
+      const chunk = otherDelegates.slice(i, i + 10);
+      const partIdx = Math.floor(i / 10) + 1;
+      chunk.forEach((d) => {
+        d.page_number = currentCardPageNum;
+      });
+      cardPages.push({
+        headerSubTitle: `EXTERNAL BRANCHES (DIASPORA) · (PART ${partIdx})`,
+        footerLabel: `EXTERNAL BRANCHES`,
+        cards: chunk,
+      });
+      currentCardPageNum++;
+    }
+    directoryItems.push({
+      name: "External Branches (Diaspora)",
+      capital: "Diaspora Chapters",
+      count: otherDelegates.length,
+      startPage,
+      endPage: currentCardPageNum - 1,
+      status: "Certified Roll",
+    });
+  }
+
+  // Page calculation: Cover + Metrics + Directory + Card Pages + Final Audit (legacy: const totalPages = 2 + delegatePages.length + 1;)
+  const totalPages = 3 + cardPages.length + 1; // Page 1: Cover, Page 2: Metrics, Page 3: Directory, Pages 4..N: Cards, Final: Stats
 
   const isExtScope =
     region.toLowerCase().includes("external") ||
@@ -2044,37 +2385,58 @@ function generateAlbumHtml(
     ? `EXTERNAL BRANCHES · ${contest.toUpperCase()}`
     : `${region.toUpperCase()} REGION · ${contest.toUpperCase()}`;
 
-  const delegatePagesHtml = delegatePages
-    .map((group, pageIdx) => {
-      const pageNum = pageIdx + 3;
-      const currentLevel = group[0]?.executive_level || "Electorate";
-      const cardsHtml = group
-        .map(
-          (d) => {
-            const photoSrc = d.webp_base64 || d.avatar_svg;
-            return `
-        <div class="voter-card">
-          <div class="card-details">
-            <div class="pos-badge">${d.canonical_position}</div>
-            <div class="exec-name">${d.executive_name}</div>
-            <div class="detail-line">
-              <span class="lbl">Level:</span> <span class="val">${d.executive_level}${d.constituency ? ` · ${d.constituency}` : d.region ? ` · ${d.region}` : ""}</span>
+  const delegatePagesHtml = cardPages
+    .map((spec, pageIdx) => {
+      const pageNum = pageIdx + 4;
+      const cardsHtml = spec.cards.map(renderVoterCard).join("\n");
+
+      let slot10Html = "";
+      if (spec.isConstituencyPart2) {
+        if (albumType === "provisional") {
+          slot10Html = `
+          <div class="cert-card">
+            <div class="cert-shield">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#003399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="m9 12 2 2 4-4"/>
+              </svg>
             </div>
-            <div class="detail-line">
-              <span class="lbl">Voter ID:</span> <span class="val mono">${d.voter_id}</span>
-            </div>
-            <div class="detail-line">
-              <span class="lbl">Phone:</span> <span class="val">${d.phone}</span>
+            <div class="cert-text">
+              <div class="cert-title">CONSTITUENCY VALIDATED</div>
+              <div class="cert-sub">${(spec.constituencyName || "").toUpperCase()} · CAPITAL: ${spec.constituencyCapital || ""}</div>
+              <div class="cert-count">${spec.totalConstituencyExecutives || spec.cards.length} EXECUTIVE OFFICERS CONFIRMED</div>
             </div>
           </div>
-          <div class="card-photo">
-            <img class="voter-img" src="${photoSrc}" alt="${d.executive_name}" loading="eager" decoding="sync" data-fallback="${d.avatar_svg}" onerror="this.onerror=null; this.src='${d.avatar_svg}';" />
+          `;
+        } else {
+          slot10Html = `
+          <div class="cert-card official-qr-card">
+            <div class="cert-shield">
+              <svg width="42" height="42" viewBox="0 0 100 100" fill="#003399">
+                <rect x="10" y="10" width="25" height="25" fill="none" stroke="#003399" stroke-width="5"/>
+                <rect x="17.5" y="17.5" width="10" height="10" fill="#003399"/>
+                <rect x="65" y="10" width="25" height="25" fill="none" stroke="#003399" stroke-width="5"/>
+                <rect x="72.5" y="17.5" width="10" height="10" fill="#003399"/>
+                <rect x="10" y="65" width="25" height="25" fill="none" stroke="#003399" stroke-width="5"/>
+                <rect x="17.5" y="72.5" width="10" height="10" fill="#003399"/>
+                <rect x="42" y="15" width="6" height="15" fill="#003399"/>
+                <rect x="42" y="38" width="16" height="6" fill="#003399"/>
+                <rect x="15" y="42" width="15" height="6" fill="#003399"/>
+                <rect x="68" y="42" width="18" height="6" fill="#003399"/>
+                <rect x="42" y="55" width="10" height="18" fill="#003399"/>
+                <rect x="60" y="60" width="12" height="12" fill="#003399"/>
+                <rect x="78" y="75" width="12" height="15" fill="#003399"/>
+              </svg>
+            </div>
+            <div class="cert-text">
+              <div class="cert-title">CONSTITUENCY AUDIT QR</div>
+              <div class="cert-sub">${(spec.constituencyName || "").toUpperCase()} · CAPITAL: ${spec.constituencyCapital || ""}</div>
+              <div class="cert-count">${spec.totalConstituencyExecutives || spec.cards.length} EXECUTIVES · OFFICIAL REGISTER</div>
+            </div>
           </div>
-        </div>
-      `;
-          }
-        )
-        .join("\n");
+          `;
+        }
+      }
 
       return `
       <div class="album-page">
@@ -2083,7 +2445,7 @@ function generateAlbumHtml(
             ${logoDataUri ? `<img class="npp-logo header-npp-logo" src="${logoDataUri}" alt="NPP" />` : `<div class="party-seal-mini">NPP</div>`}
             <div class="header-text">
               <h1>NEW PATRIOTIC PARTY</h1>
-              <h2>${contest.toUpperCase()} ELECTION · ${currentLevel.toUpperCase()} LEVEL (PART ${pageIdx + 1})</h2>
+              <h2>${spec.headerSubTitle}</h2>
             </div>
           </div>
           <div class="header-rule"></div>
@@ -2091,12 +2453,13 @@ function generateAlbumHtml(
 
         <main class="grid-10">
           ${cardsHtml}
+          ${slot10Html}
         </main>
 
         <footer class="page-footer">
           <div class="footer-rule"></div>
           <div class="footer-content">
-            <span>PROVISIONAL ELECTORAL COLLEGE ALBUM · ${contest.toUpperCase()}</span>
+            <span>PROVISIONAL ELECTORAL COLLEGE ALBUM · ${spec.footerLabel}</span>
             <span class="footer-page-pill">${pageNum}</span>
             <span>NATIONAL ELECTIONS COMMITTEE</span>
           </div>
@@ -2105,6 +2468,128 @@ function generateAlbumHtml(
     `;
     })
     .join("\n");
+
+  let directoryContentHtml = "";
+  if (directoryItems.length > 20) {
+    const half = Math.ceil(directoryItems.length / 2);
+    const col1 = directoryItems.slice(0, half);
+    const col2 = directoryItems.slice(half);
+
+    const renderSubTable = (items: typeof directoryItems, offset: number) => `
+      <table class="stats-table compact">
+        <thead>
+          <tr>
+            <th style="width: 24px; text-align: center;">#</th>
+            <th>Jurisdiction</th>
+            <th>Capital</th>
+            <th style="text-align: right;">Del.</th>
+            <th style="text-align: center;">Pages</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items
+            .map((item, i) => {
+              const pageRangeText = item.startPage === item.endPage ? `P.${item.startPage}` : `P.${item.startPage}-${item.endPage}`;
+              return `
+              <tr>
+                <td style="text-align: center; font-weight: 800; color: #64748B;">${String(offset + i + 1).padStart(2, "0")}</td>
+                <td><strong>${item.name}</strong></td>
+                <td>${item.capital}</td>
+                <td style="text-align: right; font-weight: 800; color: #003399;">${item.count}</td>
+                <td style="text-align: center; font-weight: 800;"><span class="page-range-tag">${pageRangeText}</span></td>
+              </tr>
+              `;
+            })
+            .join("\n")}
+        </tbody>
+      </table>
+    `;
+
+    directoryContentHtml = `
+      <div class="two-col-audit-grid">
+        ${renderSubTable(col1, 0)}
+        ${renderSubTable(col2, half)}
+      </div>
+    `;
+  } else {
+    directoryContentHtml = `
+      <table class="stats-table directory-table">
+        <thead>
+          <tr>
+            <th style="width: 36px; text-align: center;">#</th>
+            <th>Administrative Jurisdiction / Body</th>
+            <th>Administrative Capital / Base</th>
+            <th style="text-align: right;">Confirmed Delegates</th>
+            <th style="text-align: center;">Album Pages</th>
+            <th style="text-align: center;">Audit Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${directoryItems
+            .map((item, idx) => {
+              const pageRangeText = item.startPage === item.endPage ? `Page ${item.startPage}` : `Pages ${item.startPage} – ${item.endPage}`;
+              return `
+            <tr>
+              <td style="text-align: center; font-weight: 800; color: #64748B;">${String(idx + 1).padStart(2, "0")}</td>
+              <td><strong>${item.name}</strong></td>
+              <td>${item.capital}</td>
+              <td style="text-align: right; font-weight: 800; color: #003399;">${item.count.toLocaleString()}</td>
+              <td style="text-align: center; font-weight: 800;"><span class="page-range-tag">${pageRangeText}</span></td>
+              <td style="text-align: center;"><span class="status-verified-pill">${item.status}</span></td>
+            </tr>
+              `;
+            })
+            .join("\n")}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td style="text-align: center;">TOT</td>
+            <td><strong>TOTAL ELECTORATE ALLOCATION</strong></td>
+            <td><strong>${directoryItems.length} Administrative Units</strong></td>
+            <td style="text-align: right; font-weight: 900; color: #003399;">${delegates.length.toLocaleString()}</td>
+            <td style="text-align: center; font-weight: 800;">${cardPages.length > 0 ? `Pages 4 – ${currentCardPageNum - 1}` : "None"}</td>
+            <td style="text-align: center; font-weight: 800; color: #003399;">100% Allocated</td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
+  }
+
+  const directoryPageHtml = `
+  <!-- PAGE 3: ELECTORAL COLLEGE DIRECTORY & PAGE ALLOCATION -->
+  <div class="album-page metrics-page">
+    <header class="page-header">
+      <div class="header-content">
+        ${logoDataUri ? `<img class="npp-logo header-npp-logo" src="${logoDataUri}" alt="NPP" />` : `<div class="party-seal-mini">NPP</div>`}
+        <div class="header-text">
+          <h1 class="page-title">ELECTORAL COLLEGE DIRECTORY &amp; PAGE ALLOCATION</h1>
+          <h2 class="page-sub">Comprehensive Index of Jurisdictions, Administrative Capitals, Delegate Counts &amp; Assigned Pages</h2>
+        </div>
+      </div>
+      <div class="header-rule"></div>
+    </header>
+
+    <div class="table-container" style="flex: 1; display: flex; flex-direction: column;">
+      ${directoryContentHtml}
+
+      <div class="proclamation-box" style="margin-top: auto; margin-bottom: 4px;">
+        <h3>STATUTORY DIRECTORY DIRECTIVE</h3>
+        <p>
+          This index serves as the official navigational and jurisdictional guide for certified delegates. Each assigned page range corresponds strictly to the photographic roll of accredited officers within that jurisdiction. No delegate may be reassigned or transferred across pages without express written authorization from the National Elections Committee.
+        </p>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <div class="footer-rule"></div>
+      <div class="footer-content">
+        <span>PROVISIONAL ELECTORAL COLLEGE ALBUM · DIRECTORY INDEX</span>
+        <span class="footer-page-pill">3</span>
+        <span>NATIONAL ELECTIONS COMMITTEE</span>
+      </div>
+    </footer>
+  </div>
+  `;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -2168,7 +2653,7 @@ function generateAlbumHtml(
       page-break-inside: avoid; break-inside: avoid;
     }
 
-    /* Cover Page Styles (Ahafo Master Design Reverted) */
+    /* Cover Page Styles */
     .cover-page {
       padding: 5mm 10mm 4mm 10mm;
     }
@@ -2358,10 +2843,10 @@ function generateAlbumHtml(
       color: #64748B;
     }
 
-    /* Page 2: Metrics */
+    /* Page 2 & 3: Metrics & Directory */
     .metrics-page { padding: 5mm 10mm 4mm 10mm; }
-    .page-title { font-size: 15pt; font-weight: 900; color: #003399; margin-bottom: 2px; }
-    .page-sub { font-size: 9pt; font-weight: 700; color: #64748B; margin-bottom: 8px; }
+    .page-title { font-size: 14pt; font-weight: 900; color: #003399; margin-bottom: 2px; }
+    .page-sub { font-size: 8.5pt; font-weight: 700; color: #64748B; margin-bottom: 8px; }
     .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
     .kpi-card { background: #F8FAFC; border: 1px solid #CBD5E1; padding: 8px 6px; border-radius: 6px; text-align: center; }
     .kpi-num { font-size: 16pt; font-weight: 900; color: #003399; }
@@ -2379,7 +2864,28 @@ function generateAlbumHtml(
     .stats-table.compact td { padding: 1.5px 5px; font-size: 6.5pt; line-height: 1.15; }
     .stats-table.compact tfoot td { padding: 2.5px 5px; font-size: 6.8pt; }
 
-    /* Cards Grid (Pages 3+) */
+    /* Directory Table Tags */
+    .page-range-tag {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: #003399;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 7pt;
+      font-weight: 800;
+    }
+    .status-verified-pill {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      color: #003399;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 6.8pt;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    /* Cards Grid (Pages 4+) */
     .grid-10 {
       display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(5, 1fr);
       gap: 4px; flex: 1; min-height: 0; margin: 2px 0;
@@ -2403,13 +2909,66 @@ function generateAlbumHtml(
     .card-photo { width: 31mm; min-width: 31mm; height: 100%; background: #F1F5F9; border-left: 1px solid #CBD5E1; }
     .voter-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
 
+    /* Constituency Validation Box & Official QR Card (10th Slot on Page 2) */
+    .cert-card {
+      grid-column: 2;
+      grid-row: 5;
+      border: 2.5px dashed #003399;
+      border-radius: 6px;
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 4px 12px;
+      height: 42.5mm;
+      max-height: 42.5mm;
+      box-sizing: border-box;
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+    .cert-shield {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cert-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .cert-title {
+      font-size: 10pt;
+      font-weight: 900;
+      color: #003399;
+      letter-spacing: 0.5px;
+      line-height: 1.15;
+    }
+    .cert-sub {
+      font-size: 8pt;
+      font-weight: 800;
+      color: #1E293B;
+      line-height: 1.15;
+    }
+    .cert-count {
+      font-size: 7.6pt;
+      font-weight: 800;
+      color: #475569;
+      letter-spacing: 0.3px;
+      line-height: 1.15;
+    }
+    .official-qr-card {
+      border: 2px solid #003399;
+    }
+
     /* Header & Footer */
     .page-header { margin-bottom: 2px; }
     .header-content { display: flex; align-items: center; gap: 8px; }
     .header-npp-logo { width: auto; height: 28px; max-width: 38px; object-fit: contain; }
     .party-seal-mini { background: #003399; color: white; font-size: 9pt; font-weight: 900; padding: 2px 5px; border-radius: 3px; }
-    .header-text h1 { font-size: 11.5pt; font-weight: 900; color: #003399; line-height: 1.1; }
-    .header-text h2 { font-size: 7.8pt; font-weight: 800; color: #475569; line-height: 1.1; }
+    .header-text h1 { font-size: 12pt; font-weight: 900; color: #003399; line-height: 1.1; letter-spacing: 0.5px; }
+    .header-text h2 { font-size: 8pt; font-weight: 800; color: #1E293B; line-height: 1.1; letter-spacing: 0.2px; }
     .header-rule { height: 1.5px; background: #003399; margin-top: 2px; }
     .page-footer {
       flex: 0 0 7mm;
@@ -2478,7 +3037,7 @@ function generateAlbumHtml(
     ${delegates.some((d) => d.photo_unavailable) ? `<span role="status">${delegates.filter((d) => d.photo_unavailable).length} portrait(s) unavailable; initials shown. Reload to retry unavailable photos.</span>` : ""}
   </div>
 
-  <!-- PAGE 1: COVER (Ahafo Master Cover Design Reverted) -->
+  <!-- PAGE 1: COVER (Elephant Emblem Seal & Frederick Opare-Ansah) -->
   <div class="album-page cover-page">
     <div class="cover-inner-border">
       <div class="cover-header">
@@ -2533,16 +3092,20 @@ function generateAlbumHtml(
           <div class="seal-container">
             <svg width="74" height="74" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="60" cy="60" r="56" fill="#FFFFFF" stroke="#003399" stroke-width="4" stroke-dasharray="6,3"/>
-              <circle cx="60" cy="60" r="48" fill="#F8FAFC" stroke="#DC2626" stroke-width="2"/>
+              <circle cx="60" cy="60" r="48" fill="#F8FAFC" stroke="#C8102E" stroke-width="2"/>
               <path id="curve-seal" d="M 22 60 A 38 38 0 1 1 98 60" fill="none"/>
               <text font-size="8" font-weight="900" fill="#003399" letter-spacing="0.5">
                 <textPath href="#curve-seal" startOffset="50%" text-anchor="middle">NATIONAL ELECTIONS COMMITTEE</textPath>
               </text>
               <path id="curve-seal2" d="M 22 60 A 38 38 0 0 0 98 60" fill="none"/>
-              <text font-size="7.5" font-weight="800" fill="#DC2626" letter-spacing="0.5">
+              <text font-size="7.5" font-weight="800" fill="#C8102E" letter-spacing="0.5">
                 <textPath href="#curve-seal2" startOffset="50%" text-anchor="middle">OFFICIAL SEAL · ELECTIONS 2026</textPath>
               </text>
-              <polygon points="60,38 63,48 74,48 65,55 69,66 60,59 51,66 55,55 46,48 57,48" fill="#003399"/>
+              <g transform="translate(46, 38) scale(0.65)">
+                <path d="M20,2 C15,2 10,6 8,11 C6,16 6,24 6,28 C6,30 4,32 2,33 C1,33.5 0,35 0,37 C0,39 2,40 4,39 C7,38 9,35 10,31 C11,31 12,32 13,32 L13,42 L17,42 L17,31 C19,31 22,31 24,31 L24,42 L28,42 L28,29 C34,28 38,24 38,18 C38,8 30,2 20,2 Z" fill="#003399"/>
+                <circle cx="12" cy="11" r="1.5" fill="#FFFFFF"/>
+                <path d="M10,22 C13,22 15,19 16,16" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
+              </g>
               <text x="60" y="77" fill="#003399" font-size="7" font-weight="bold" text-anchor="middle">CERTIFIED</text>
             </svg>
           </div>
@@ -2550,9 +3113,9 @@ function generateAlbumHtml(
             <div class="sig-line-img">
               <div class="signature-line"></div>
             </div>
-            <div class="sig-name">HON. OPARE ANSAH</div>
+            <div class="sig-name">HON. FREDERICK OPARE-ANSAH</div>
             <div class="sig-title">Chairperson, National Elections Committee</div>
-            <div class="sig-org">New Patriotic Party · Headquarters, Accra</div>
+            <div class="sig-org">National Elections Committee · NPP IT Directorate</div>
           </div>
         </div>
       </div>
@@ -2591,7 +3154,7 @@ function generateAlbumHtml(
           <tr><td><strong>Regional Level (16 Regions)</strong></td><td>${metrics.levelBreakdown.Regional || 0}</td><td>${(((metrics.levelBreakdown.Regional || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Statutory Quota: 21 per Region</td></tr>
           <tr><td><strong>Constituency Level (276 Constituencies)</strong></td><td>${metrics.levelBreakdown.Constituency || 0}</td><td>${(((metrics.levelBreakdown.Constituency || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Statutory Quota: 19 (11 Elected + 8 Appointed)</td></tr>
           ${(metrics.levelBreakdown["External Branch"] || 0) > 0 ? `<tr><td><strong>External Branches (Diaspora)</strong></td><td>${metrics.levelBreakdown["External Branch"]}</td><td>${(((metrics.levelBreakdown["External Branch"] || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Certified</td></tr>` : ""}
-          <tr><td><strong>TESCON Level (Accredited Institutions)</strong></td><td>${metrics.levelBreakdown.TESCON || 0}</td><td>${(((metrics.levelBreakdown.TESCON || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Patrons Excluded</td></tr>
+          <tr><td><strong>TESCON Level (${metrics.tesconInstitutionsCount || 0} Accredited Institutions)</strong></td><td>${metrics.levelBreakdown.TESCON || 0}</td><td>${(((metrics.levelBreakdown.TESCON || 0) / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Patrons Excluded</td></tr>
         </tbody>
       </table>
 
@@ -2616,7 +3179,9 @@ function generateAlbumHtml(
     </footer>
   </div>
 
-  <!-- PAGES 3+: VOTER CARDS -->
+  ${directoryPageHtml}
+
+  <!-- PAGES 4+: VOTER CARDS -->
   ${delegatePagesHtml}
 
   <!-- FINAL PAGE: DEEP DIVE REGIONAL STATS -->

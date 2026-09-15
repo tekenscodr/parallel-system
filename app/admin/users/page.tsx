@@ -412,7 +412,7 @@ export default function UsersManagementPage() {
               <option value="">All Roles</option>
               <option value="ADMIN_NATIONAL">Admin_national</option>
               <option value="NATIONAL">National</option>
-              <option value="C1">C1 (Female Electoral College)</option>
+              <option value="C1">All Women (Female Electoral College)</option>
             </select>
 
             <select
@@ -568,7 +568,7 @@ export default function UsersManagementPage() {
                             fontWeight: "600",
                           }}
                         >
-                          {isAdmin ? "Admin_national" : isC1 ? "C1 (Female Electoral)" : "National Officer"}
+                          {isAdmin ? "Admin_national" : isC1 ? "All Women" : "National Officer"}
                         </span>
                       </td>
 
@@ -941,7 +941,7 @@ export default function UsersManagementPage() {
                     }}
                   >
                     <option value="NATIONAL">National (Executive View & Updates Only — No Sidebar)</option>
-                    <option value="C1">C1 (Female Electoral College Only — Constituency, Region, External Branch, National, TESCON Presidents & WOCOM)</option>
+                    <option value="C1">All Women (Female Electoral College Only — Constituency, Region, External Branch, National, TESCON Presidents & WOCOM)</option>
                     <option value="ADMIN_NATIONAL">Admin_national (Full Admin with Sidebar & Audit)</option>
                   </select>
                 </div>

@@ -7,7 +7,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = requestHeaders.get("host") ?? "localhost:3000";
   const protocol = host.includes("localhost") ? "http" : "https";
   const image = `${protocol}://${host}/og.png`;
-  const title = "NPP National Directorate — Electoral Directory & Albums";
+  const title = "NPP National I.T. Directorate — Electoral Directory & Command Centre";
   const description = "Official nationwide executive registry, electoral college photo albums, and voter directory command center.";
 
 

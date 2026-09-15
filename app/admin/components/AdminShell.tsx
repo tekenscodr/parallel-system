@@ -277,7 +277,21 @@ export function AdminShell({
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0B1120", color: "#f8fafc", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100vh", background: isC1 ? "#ffffff" : "#0B1120", color: isC1 ? "#0f172a" : "#f8fafc", display: "flex", flexDirection: "column" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .scenario-b-header {
+            padding: 12px 16px !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+          }
+          .scenario-b-header-user {
+            justify-content: space-between !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
       {/* 
         ========================================================================
         SCENARIO A: ADMIN_NATIONAL (Sidebar Layout Enabled)
@@ -349,21 +363,28 @@ export function AdminShell({
                   style={{
                     width: "36px",
                     height: "36px",
-                    borderRadius: "10px",
-                    background: "linear-gradient(135deg, rgba(30, 64, 175, 0.5), rgba(59, 130, 246, 0.2))",
-                    border: "1px solid rgba(59, 130, 246, 0.3)",
+                    borderRadius: "50%",
+                    background: "#ffffff",
+                    border: "1.5px solid rgba(56, 189, 248, 0.4)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    boxShadow: "0 0 15px rgba(59, 130, 246, 0.15)",
+                    padding: "2px",
+                    overflow: "hidden",
+                    boxShadow: "0 0 15px rgba(56, 189, 248, 0.25)",
+                    flexShrink: 0,
                   }}
                 >
-                  <Landmark size={18} color="#60a5fa" />
+                  <img
+                    src="/npp-logo.png"
+                    alt="NPP IT Directorate"
+                    style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                  />
                 </div>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ fontSize: "14px", fontWeight: "800", letterSpacing: "-0.3px", color: "#f8fafc" }}>
-                      NPP DIRECTORY
+                    <span style={{ fontSize: "13px", fontWeight: "800", letterSpacing: "-0.3px", color: "#f8fafc" }}>
+                      NPP I.T. DIRECTORATE
                     </span>
                     <span
                       style={{
@@ -598,6 +619,29 @@ export function AdminShell({
                   <Menu size={15} />
                   <span>Menu</span>
                 </button>
+                {!sidebarOpen && (
+                  <div
+                    style={{
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "50%",
+                      background: "#ffffff",
+                      border: "1px solid rgba(56, 189, 248, 0.4)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "2px",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src="/npp-logo.png"
+                      alt="NPP IT Directorate"
+                      style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                    />
+                  </div>
+                )}
                 <div>
                   <h1 style={{ fontSize: "16px", fontWeight: "700", margin: 0, letterSpacing: "-0.3px", color: "#f8fafc" }}>
                     {title}
@@ -695,12 +739,13 @@ export function AdminShell({
           SCENARIO B: NATIONAL USER (Sidebar Hidden • Executive Access Only)
           ========================================================================
         */
-        <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: isC1 ? "#ffffff" : undefined }}>
           {/* Top Full-Width Header */}
           <header
+            className="scenario-b-header"
             style={{
-              background: "rgba(15, 23, 42, 0.98)",
-              borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+              background: isC1 ? "#ffffff" : "rgba(15, 23, 42, 0.98)",
+              borderBottom: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.08)",
               padding: "16px 32px",
               display: "flex",
               alignItems: "center",
@@ -717,47 +762,49 @@ export function AdminShell({
                   width: "40px",
                   height: "40px",
                   borderRadius: "10px",
-                  background: "rgba(59, 130, 246, 0.15)",
-                  border: "1px solid rgba(59, 130, 246, 0.3)",
+                  background: isC1 ? "#fdf2f8" : "rgba(59, 130, 246, 0.15)",
+                  border: isC1 ? "1px solid #fbcfe8" : "1px solid rgba(59, 130, 246, 0.3)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  flexShrink: 0,
                 }}
               >
-                <Landmark size={20} color="#60a5fa" />
+                <Landmark size={20} color={isC1 ? "#db2777" : "#60a5fa"} />
               </div>
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <h1 style={{ fontSize: "16px", fontWeight: "700", margin: 0, letterSpacing: "-0.3px" }}>
-                    National Executive Directory
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  <h1 style={{ fontSize: "16px", fontWeight: "700", margin: 0, letterSpacing: "-0.3px", color: isC1 ? "#0f172a" : "#f8fafc" }}>
+                    {isC1 ? "Aspirant page" : (title || "National Executive Directory")}
                   </h1>
                   <span
                     style={{
-                      background: isC1 ? "rgba(236, 72, 153, 0.15)" : "rgba(59, 130, 246, 0.15)",
-                      color: isC1 ? "#f472b6" : "#60a5fa",
-                      border: isC1 ? "1px solid rgba(236, 72, 153, 0.3)" : "1px solid rgba(59, 130, 246, 0.3)",
+                      background: isC1 ? "#fdf2f8" : "rgba(59, 130, 246, 0.15)",
+                      color: isC1 ? "#be185d" : "#60a5fa",
+                      border: isC1 ? "1px solid #fbcfe8" : "1px solid rgba(59, 130, 246, 0.3)",
                       borderRadius: "999px",
                       padding: "2px 8px",
                       fontSize: "11px",
                       fontWeight: "600",
                     }}
                   >
-                    {isC1 ? "Role: C1 (Female Electoral College)" : "Role: National Officer"}
+                    {isC1 ? "All Women" : "Role: National Officer"}
                   </span>
                   <span
                     style={{
-                      background: "rgba(16, 185, 129, 0.1)",
-                      color: "#34d399",
-                      border: "1px solid rgba(16, 185, 129, 0.25)",
+                      background: isC1 ? "#f0fdf4" : "rgba(16, 185, 129, 0.1)",
+                      color: isC1 ? "#15803d" : "#34d399",
+                      border: isC1 ? "1px solid #bbf7d0" : "1px solid rgba(16, 185, 129, 0.25)",
                       borderRadius: "999px",
                       padding: "2px 8px",
                       fontSize: "11px",
+                      fontWeight: "600",
                     }}
                   >
                     Audit Synced
                   </span>
                 </div>
-                <p style={{ fontSize: "11px", color: "#94a3b8", margin: "2px 0 0 0" }}>
+                <p style={{ fontSize: "11px", color: isC1 ? "#64748b" : "#94a3b8", margin: "2px 0 0 0" }}>
                   {isC1
                     ? "Authorized to view female electoral college executives across National, Regional, Constituency, External Branches, and TESCON (Presidents & WOCOM)"
                     : "Authorized to inspect and update nationwide party executives"}
@@ -765,7 +812,7 @@ export function AdminShell({
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div className="scenario-b-header-user" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               {isPasswordLocked ? (
                 <div
                   title="Your personal password has already been set and is locked under system security policy."
@@ -775,9 +822,9 @@ export function AdminShell({
                     gap: "6px",
                     padding: "6px 12px",
                     borderRadius: "6px",
-                    background: "rgba(16, 185, 129, 0.1)",
-                    color: "#34d399",
-                    border: "1px solid rgba(16, 185, 129, 0.25)",
+                    background: isC1 ? "#f0fdf4" : "rgba(16, 185, 129, 0.1)",
+                    color: isC1 ? "#15803d" : "#34d399",
+                    border: isC1 ? "1px solid #bbf7d0" : "1px solid rgba(16, 185, 129, 0.25)",
                     fontSize: "12px",
                     fontWeight: "500",
                     cursor: "default",
@@ -801,9 +848,9 @@ export function AdminShell({
                     gap: "6px",
                     padding: "6px 12px",
                     borderRadius: "6px",
-                    background: "rgba(59, 130, 246, 0.12)",
-                    color: "#60a5fa",
-                    border: "1px solid rgba(59, 130, 246, 0.3)",
+                    background: isC1 ? "#f1f5f9" : "rgba(59, 130, 246, 0.12)",
+                    color: isC1 ? "#334155" : "#60a5fa",
+                    border: isC1 ? "1px solid #cbd5e1" : "1px solid rgba(59, 130, 246, 0.3)",
                     fontSize: "12px",
                     fontWeight: "600",
                     cursor: "pointer",
@@ -815,11 +862,11 @@ export function AdminShell({
                 </button>
               )}
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "12px", fontWeight: "600", color: "#f8fafc" }}>
-                  {currentUser?.name || "National Officer"}
+                <div style={{ fontSize: "12px", fontWeight: "600", color: isC1 ? "#0f172a" : "#f8fafc" }}>
+                  {currentUser?.name || (isC1 ? "All Women Officer" : "National Officer")}
                 </div>
                 <div style={{ fontSize: "10px", color: "#64748b" }}>
-                  {currentUser?.email || "officer@ec-data.gov.gh"}
+                  {currentUser?.email || (isC1 ? "all_women@ec-data.gov.gh" : "officer@ec-data.gov.gh")}
                 </div>
               </div>
               <button
@@ -830,9 +877,9 @@ export function AdminShell({
                   gap: "6px",
                   padding: "6px 12px",
                   borderRadius: "6px",
-                  background: "rgba(239, 68, 68, 0.15)",
-                  color: "#f87171",
-                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                  background: isC1 ? "#fef2f2" : "rgba(239, 68, 68, 0.15)",
+                  color: isC1 ? "#dc2626" : "#f87171",
+                  border: isC1 ? "1px solid #fecaca" : "1px solid rgba(239, 68, 68, 0.3)",
                   fontSize: "12px",
                   fontWeight: "600",
                   cursor: "pointer",
@@ -872,11 +919,11 @@ export function AdminShell({
             style={{
               width: "100%",
               maxWidth: "420px",
-              background: "#0f172a",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
+              background: isC1 ? "#ffffff" : "#0f172a",
+              border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.12)",
               borderRadius: "14px",
               padding: "28px",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)",
+              boxShadow: isC1 ? "0 25px 50px -12px rgba(0, 0, 0, 0.15)" : "0 25px 50px -12px rgba(0, 0, 0, 0.7)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
@@ -900,10 +947,10 @@ export function AdminShell({
                   )}
                 </div>
                 <div>
-                  <h3 style={{ fontSize: "16px", fontWeight: "700", margin: 0, color: "#f8fafc" }}>
+                  <h3 style={{ fontSize: "16px", fontWeight: "700", margin: 0, color: isC1 ? "#0f172a" : "#f8fafc" }}>
                     {modalStep === "prompt" ? "Security Confirmation" : "Change Password"}
                   </h3>
-                  <p style={{ fontSize: "11px", color: "#94a3b8", margin: "2px 0 0 0" }}>
+                  <p style={{ fontSize: "11px", color: isC1 ? "#64748b" : "#94a3b8", margin: "2px 0 0 0" }}>
                     {modalStep === "prompt"
                       ? "Confirm whether to change or keep your password"
                       : "Update your account access credentials"}
@@ -917,7 +964,7 @@ export function AdminShell({
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#94a3b8",
+                  color: isC1 ? "#64748b" : "#94a3b8",
                   cursor: "pointer",
                   padding: "4px",
                 }}
@@ -964,8 +1011,8 @@ export function AdminShell({
                 <div
                   style={{
                     padding: "14px 16px",
-                    background: "rgba(56, 189, 248, 0.08)",
-                    border: "1px solid rgba(56, 189, 248, 0.2)",
+                    background: isC1 ? "#f0f9ff" : "rgba(56, 189, 248, 0.08)",
+                    border: isC1 ? "1px solid #bae6fd" : "1px solid rgba(56, 189, 248, 0.2)",
                     borderRadius: "10px",
                     marginBottom: "20px",
                     display: "flex",
@@ -975,10 +1022,10 @@ export function AdminShell({
                 >
                   <ShieldAlert size={20} color="#38bdf8" style={{ flexShrink: 0, marginTop: "2px" }} />
                   <div>
-                    <h4 style={{ fontSize: "13px", fontWeight: "700", color: "#f8fafc", margin: "0 0 4px 0" }}>
+                    <h4 style={{ fontSize: "13px", fontWeight: "700", color: isC1 ? "#0369a1" : "#f8fafc", margin: "0 0 4px 0" }}>
                       Password Update Notice
                     </h4>
-                    <p style={{ fontSize: "12px", color: "#cbd5e1", margin: 0, lineHeight: 1.5 }}>
+                    <p style={{ fontSize: "12px", color: isC1 ? "#0284c7" : "#cbd5e1", margin: 0, lineHeight: 1.5 }}>
                       You logged in without changing your password. Would you like to set a new password now or keep your current password?
                     </p>
                   </div>
@@ -998,9 +1045,9 @@ export function AdminShell({
                     style={{
                       padding: "11px 14px",
                       borderRadius: "8px",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      background: "rgba(255, 255, 255, 0.05)",
-                      color: "#cbd5e1",
+                      border: isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                      background: isC1 ? "#f1f5f9" : "rgba(255, 255, 255, 0.05)",
+                      color: isC1 ? "#334155" : "#cbd5e1",
                       fontSize: "13px",
                       fontWeight: "600",
                       cursor: "pointer",
@@ -1043,7 +1090,7 @@ export function AdminShell({
               /* ================= STAGE 2: FORM ================= */
               <form onSubmit={handleChangePassword}>
                 <div style={{ marginBottom: "14px" }}>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#cbd5e1", marginBottom: "5px" }}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: isC1 ? "#334155" : "#cbd5e1", marginBottom: "5px" }}>
                     Current Password
                   </label>
                   <div style={{ position: "relative" }}>
@@ -1057,9 +1104,9 @@ export function AdminShell({
                         width: "100%",
                         padding: "10px 38px 10px 12px",
                         borderRadius: "6px",
-                        background: "rgba(2, 6, 23, 0.7)",
-                        border: "1px solid rgba(255, 255, 255, 0.15)",
-                        color: "#ffffff",
+                        background: isC1 ? "#f8fafc" : "rgba(2, 6, 23, 0.7)",
+                        border: isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                        color: isC1 ? "#0f172a" : "#ffffff",
                         fontSize: "13px",
                         outline: "none",
                         boxSizing: "border-box",
@@ -1075,7 +1122,7 @@ export function AdminShell({
                         transform: "translateY(-50%)",
                         background: "transparent",
                         border: "none",
-                        color: "#94a3b8",
+                        color: isC1 ? "#64748b" : "#94a3b8",
                         cursor: "pointer",
                         padding: "4px",
                         display: "flex",
@@ -1088,7 +1135,7 @@ export function AdminShell({
                 </div>
 
                 <div style={{ marginBottom: "14px" }}>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#cbd5e1", marginBottom: "5px" }}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: isC1 ? "#334155" : "#cbd5e1", marginBottom: "5px" }}>
                     New Password (min 8 characters)
                   </label>
                   <div style={{ position: "relative" }}>
@@ -1103,9 +1150,9 @@ export function AdminShell({
                         width: "100%",
                         padding: "10px 38px 10px 12px",
                         borderRadius: "6px",
-                        background: "rgba(2, 6, 23, 0.7)",
-                        border: "1px solid rgba(255, 255, 255, 0.15)",
-                        color: "#ffffff",
+                        background: isC1 ? "#f8fafc" : "rgba(2, 6, 23, 0.7)",
+                        border: isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                        color: isC1 ? "#0f172a" : "#ffffff",
                         fontSize: "13px",
                         outline: "none",
                         boxSizing: "border-box",
@@ -1121,7 +1168,7 @@ export function AdminShell({
                         transform: "translateY(-50%)",
                         background: "transparent",
                         border: "none",
-                        color: "#94a3b8",
+                        color: isC1 ? "#64748b" : "#94a3b8",
                         cursor: "pointer",
                         padding: "4px",
                         display: "flex",
@@ -1134,7 +1181,7 @@ export function AdminShell({
                 </div>
 
                 <div style={{ marginBottom: "20px" }}>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#cbd5e1", marginBottom: "5px" }}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: isC1 ? "#334155" : "#cbd5e1", marginBottom: "5px" }}>
                     Confirm New Password
                   </label>
                   <div style={{ position: "relative" }}>
@@ -1149,9 +1196,9 @@ export function AdminShell({
                         width: "100%",
                         padding: "10px 38px 10px 12px",
                         borderRadius: "6px",
-                        background: "rgba(2, 6, 23, 0.7)",
-                        border: "1px solid rgba(255, 255, 255, 0.15)",
-                        color: "#ffffff",
+                        background: isC1 ? "#f8fafc" : "rgba(2, 6, 23, 0.7)",
+                        border: isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                        color: isC1 ? "#0f172a" : "#ffffff",
                         fontSize: "13px",
                         outline: "none",
                         boxSizing: "border-box",
@@ -1167,7 +1214,7 @@ export function AdminShell({
                         transform: "translateY(-50%)",
                         background: "transparent",
                         border: "none",
-                        color: "#94a3b8",
+                        color: isC1 ? "#64748b" : "#94a3b8",
                         cursor: "pointer",
                         padding: "4px",
                         display: "flex",
@@ -1187,9 +1234,9 @@ export function AdminShell({
                     style={{
                       padding: "8px 16px",
                       borderRadius: "6px",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      background: "transparent",
-                      color: "#cbd5e1",
+                      border: isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                      background: isC1 ? "#f1f5f9" : "transparent",
+                      color: isC1 ? "#334155" : "#cbd5e1",
                       fontSize: "13px",
                       cursor: "pointer",
                     }}
