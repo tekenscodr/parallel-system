@@ -5,6 +5,12 @@ import ExcelJS from "exceljs";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { canAccessAlbums } from "@/lib/album-access";
+import {
+  CANONICAL_LEVEL_ORDER,
+  compareAlbumDelegates,
+  getTesconInstitution,
+  normalizePositionRank,
+} from "@/lib/album-hierarchy";
 import { resolveAlbumImage } from "@/lib/album-images";
 import { ALBUM_PRINT_SCRIPT } from "@/lib/album-print";
 import { withEcSql } from "@/lib/db-ec";
@@ -133,46 +139,6 @@ async function getLogoWebpDataUri(): Promise<string> {
     // fallback if file read or conversion fails
   }
   return LOGO_WEBP_DATA_URI;
-}
-
-const CANONICAL_LEVEL_ORDER: Record<string, number> = {
-  national: 1,
-  region: 2,
-  regional: 2,
-  "external branch": 3,
-  constituency: 4,
-  tescon: 5,
-};
-
-function normalizePositionRank(pos: string | null): number {
-  const s = String(pos || "").trim().toLowerCase();
-  if (s.includes("chairperson") || s.includes("chairman")) {
-    if (s.includes("1st") || s.includes("first")) return 2;
-    if (s.includes("2nd") || s.includes("second")) return 3;
-    if (s.includes("3rd") || s.includes("third")) return 4;
-    return 1;
-  }
-  if (s.includes("financial secretary")) return 11;
-  if (s.includes("deputy secretary") || s.includes("assistant secretary") || s.includes("deputy general secretary")) return 5;
-  if (s.includes("secretary")) return 4; // General Secretary or Secretary
-  if (s.includes("treasurer")) return 6;
-  if (s.includes("deputy organiser") || s.includes("deputy organizer")) return 16;
-  if (s.includes("organiser") || s.includes("organizer")) return 7;
-  if (s.includes("deputy women")) return 17;
-  if (s.includes("women")) return 8;
-  if (s.includes("deputy youth")) return 18;
-  if (s.includes("youth")) return 9;
-  if (s.includes("deputy nasara")) return 19;
-  if (s.includes("nasara")) return 10;
-  if (s.includes("electoral")) return 12;
-  if (s.includes("communication")) return 13;
-  if (s.includes("research")) return 14;
-  if (s.includes("pwd") || s.includes("disability")) return 15;
-  if (s.includes("special duties")) return 20;
-  if (s.includes("legal")) return 21;
-  if (s.includes("president")) return 22; // TESCON President
-  if (s.includes("wocom")) return 23; // TESCON WOCOM
-  return 30;
 }
 
 function normalizeCanonicalPosition(pos: string | null, level: string | null): string {
@@ -648,7 +614,7 @@ export async function GET(req: NextRequest) {
     });
 
     // 4. Sort strictly by 2-Stage Hierarchy:
-    // Stage 1: Level (National -> Regional -> Constituency -> TESCON)
+    // Stage 1: Level (National -> Regional -> Constituency, including External Branch -> TESCON)
     // Stage 2: Positional Rank within each level
     const delegates = contestFiltered
       .map((r) => {
@@ -700,24 +666,7 @@ export async function GET(req: NextRequest) {
           position_rank: posRank,
         };
       })
-      .sort((a, b) => {
-        // Stage 1: Level
-        if (a.level_rank !== b.level_rank) return a.level_rank - b.level_rank;
-        // Sub-sort by Region (if not National)
-        if (a.level_rank > 1) {
-          const rCmp = a.region.localeCompare(b.region);
-          if (rCmp !== 0) return rCmp;
-        }
-        // Sub-sort by Constituency (if Constituency)
-        if (a.level_rank === 4) {
-          const cCmp = a.constituency.localeCompare(b.constituency);
-          if (cCmp !== 0) return cCmp;
-        }
-        // Stage 2: Positional Rank
-        if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
-        // Tie-breaker: Name
-        return a.executive_name.localeCompare(b.executive_name);
-      });
+      .sort(compareAlbumDelegates);
 
     // 5. Compute Comprehensive Metrics
     const isCustom = isCustomContest && customPositionKeys.length > 0;
@@ -2170,16 +2119,7 @@ function generateAlbumHtml(
   }
 
   const cardPages: CardPageSpec[] = [];
-  const directoryItems: Array<{
-    name: string;
-    capital: string;
-    count: number;
-    startPage: number;
-    endPage: number;
-    status: string;
-  }> = [];
-
-  let currentCardPageNum = 4; // Page 1: Cover, Page 2: Metrics, Page 3: Directory Index
+  let currentCardPageNum = 3; // Page 1: Cover, Page 2: Metrics, Pages 3..N: Cards
 
   // Partition delegates into administrative levels
   const nationalDelegates = delegates.filter(
@@ -2203,7 +2143,6 @@ function generateAlbumHtml(
 
   // 1. National Level Pages (if present)
   if (nationalDelegates.length > 0) {
-    const startPage = currentCardPageNum;
     for (let i = 0; i < nationalDelegates.length; i += 10) {
       const chunk = nationalDelegates.slice(i, i + 10);
       const partIdx = Math.floor(i / 10) + 1;
@@ -2217,58 +2156,49 @@ function generateAlbumHtml(
       });
       currentCardPageNum++;
     }
-    directoryItems.push({
-      name: "National Leadership / Council",
-      capital: "Party Headquarters, Accra",
-      count: nationalDelegates.length,
-      startPage,
-      endPage: currentCardPageNum - 1,
-      status: "Certified Roll",
-    });
   }
 
   // 2. Regional Level Pages (Separated from Constituency)
   if (regionalDelegates.length > 0) {
-    const startPage = currentCardPageNum;
-    const regLabel = (region === "all" ? (regionalDelegates[0]?.region || "NATIONAL") : region).toUpperCase();
-    for (let i = 0; i < regionalDelegates.length; i += 10) {
-      const chunk = regionalDelegates.slice(i, i + 10);
-      const partIdx = Math.floor(i / 10) + 1;
-      chunk.forEach((d) => {
-        d.page_number = currentCardPageNum;
-      });
-      cardPages.push({
-        headerSubTitle: `${regLabel} REGION · REGIONAL EXECUTIVES (PART ${partIdx})`,
-        footerLabel: `REGIONAL EXECUTIVES`,
-        cards: chunk,
-      });
-      currentCardPageNum++;
+    const regionalGroups = new Map<string, any[]>();
+    for (const delegate of regionalDelegates) {
+      const regionName = String(delegate.region || "Unassigned").trim();
+      if (!regionalGroups.has(regionName)) regionalGroups.set(regionName, []);
+      regionalGroups.get(regionName)!.push(delegate);
     }
-    directoryItems.push({
-      name: `Regional Leadership (${regLabel} Region)`,
-      capital: "Regional Secretariat",
-      count: regionalDelegates.length,
-      startPage,
-      endPage: currentCardPageNum - 1,
-      status: "Certified Roll",
-    });
+    for (const [regionName, regionDelegates] of regionalGroups) {
+      for (let i = 0; i < regionDelegates.length; i += 10) {
+        const chunk = regionDelegates.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `${regionName.toUpperCase()} REGION · REGIONAL EXECUTIVES (PART ${partIdx})`,
+          footerLabel: `${regionName.toUpperCase()} REGIONAL EXECUTIVES`,
+          cards: chunk,
+        });
+        currentCardPageNum++;
+      }
+    }
   }
 
   // 3. Constituency Level Pages (Dedicated 2 Pages per Constituency)
   if (constituencyDelegates.length > 0) {
-    const constituencyMap = new Map<string, any[]>();
+    const constituencyMap = new Map<string, { name: string; region: string; delegates: any[] }>();
     for (const d of constituencyDelegates) {
       const cName = d.constituency?.trim() || "Unknown Constituency";
-      if (!constituencyMap.has(cName)) {
-        constituencyMap.set(cName, []);
+      const regionName = d.region?.trim() || "Unassigned";
+      const key = `${regionName.toLowerCase()}\u0000${cName.toLowerCase()}`;
+      if (!constituencyMap.has(key)) {
+        constituencyMap.set(key, { name: cName, region: regionName, delegates: [] });
       }
-      constituencyMap.get(cName)!.push(d);
+      constituencyMap.get(key)!.delegates.push(d);
     }
 
-    for (const [cName, cList] of constituencyMap.entries()) {
-      const startPage = currentCardPageNum;
+    for (const { name: cName, region: constituencyRegion, delegates: cList } of constituencyMap.values()) {
       const capital = getConstituencyCapital(cName);
-      const regLabel = (cList[0]?.region || (region === "all" ? "" : region)).toUpperCase();
+      const regLabel = constituencyRegion.toUpperCase();
       const regionPrefix = regLabel ? `${regLabel} REGION · ` : "";
 
       // Dedicated Page 1: Up to 10 cards
@@ -2298,73 +2228,65 @@ function generateAlbumHtml(
         totalConstituencyExecutives: cList.length,
       });
       currentCardPageNum++;
-
-      directoryItems.push({
-        name: cName,
-        capital: capital,
-        count: cList.length,
-        startPage,
-        endPage: currentCardPageNum - 1,
-        status: albumType === "provisional" ? "Provisional Register" : "Constituency Validated",
-      });
     }
   }
 
-  // 4. TESCON Level Pages
-  if (tesconDelegates.length > 0) {
-    const startPage = currentCardPageNum;
-    const regLabel = (region === "all" ? "NATIONAL" : region).toUpperCase();
-    for (let i = 0; i < tesconDelegates.length; i += 10) {
-      const chunk = tesconDelegates.slice(i, i + 10);
-      const partIdx = Math.floor(i / 10) + 1;
-      chunk.forEach((d) => {
-        d.page_number = currentCardPageNum;
-      });
-      cardPages.push({
-        headerSubTitle: `${regLabel} REGION · TESCON EXECUTIVES (PART ${partIdx})`,
-        footerLabel: `TESCON EXECUTIVES`,
-        cards: chunk,
-      });
-      currentCardPageNum++;
-    }
-    directoryItems.push({
-      name: "TESCON Accredited Institutions",
-      capital: "Higher Education Institutions",
-      count: tesconDelegates.length,
-      startPage,
-      endPage: currentCardPageNum - 1,
-      status: "Certified Roll",
-    });
-  }
-
-  // 5. Other / Diaspora / External Branches Pages
+  // 3b. External Branches retain constituency status and follow domestic constituencies.
   if (otherDelegates.length > 0) {
-    const startPage = currentCardPageNum;
-    for (let i = 0; i < otherDelegates.length; i += 10) {
-      const chunk = otherDelegates.slice(i, i + 10);
-      const partIdx = Math.floor(i / 10) + 1;
-      chunk.forEach((d) => {
-        d.page_number = currentCardPageNum;
-      });
-      cardPages.push({
-        headerSubTitle: `EXTERNAL BRANCHES (DIASPORA) · (PART ${partIdx})`,
-        footerLabel: `EXTERNAL BRANCHES`,
-        cards: chunk,
-      });
-      currentCardPageNum++;
+    const branchGroups = new Map<string, any[]>();
+    for (const delegate of otherDelegates) {
+      const branchName = String(delegate.constituency || "Unassigned External Branch").trim();
+      if (!branchGroups.has(branchName)) branchGroups.set(branchName, []);
+      branchGroups.get(branchName)!.push(delegate);
     }
-    directoryItems.push({
-      name: "External Branches (Diaspora)",
-      capital: "Diaspora Chapters",
-      count: otherDelegates.length,
-      startPage,
-      endPage: currentCardPageNum - 1,
-      status: "Certified Roll",
-    });
+    for (const [branchName, branchDelegates] of branchGroups) {
+      for (let i = 0; i < branchDelegates.length; i += 10) {
+        const chunk = branchDelegates.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `EXTERNAL BRANCH · ${branchName.toUpperCase()} (PART ${partIdx})`,
+          footerLabel: `${branchName.toUpperCase()} EXTERNAL BRANCH`,
+          cards: chunk,
+        });
+        currentCardPageNum++;
+      }
+    }
   }
 
-  // Page calculation: Cover + Metrics + Directory + Card Pages + Final Audit (legacy: const totalPages = 2 + delegatePages.length + 1;)
-  const totalPages = 3 + cardPages.length + 1; // Page 1: Cover, Page 2: Metrics, Page 3: Directory, Pages 4..N: Cards, Final: Stats
+  // 4. TESCON Level Pages (region, then institution, then position)
+  if (tesconDelegates.length > 0) {
+    const institutionGroups = new Map<string, { region: string; institution: string; delegates: any[] }>();
+    for (const delegate of tesconDelegates) {
+      const regionName = String(delegate.region || "Unassigned").trim();
+      const institution = getTesconInstitution(delegate);
+      const key = `${regionName.toLowerCase()}\u0000${institution.toLowerCase()}`;
+      if (!institutionGroups.has(key)) {
+        institutionGroups.set(key, { region: regionName, institution, delegates: [] });
+      }
+      institutionGroups.get(key)!.delegates.push(delegate);
+    }
+    for (const { region: regionName, institution, delegates: institutionDelegates } of institutionGroups.values()) {
+      for (let i = 0; i < institutionDelegates.length; i += 10) {
+        const chunk = institutionDelegates.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `${regionName.toUpperCase()} REGION · TESCON · ${institution.toUpperCase()} (PART ${partIdx})`,
+          footerLabel: `${institution.toUpperCase()} · TESCON`,
+          cards: chunk,
+        });
+        currentCardPageNum++;
+      }
+    }
+  }
+
+  // Page calculation: Cover + Metrics + Card Pages + Final Audit
+  const totalPages = 2 + cardPages.length + 1; // Page 1: Cover, Page 2: Metrics, Pages 3..N: Cards, Final: Stats
 
   const isExtScope =
     region.toLowerCase().includes("external") ||
@@ -2387,7 +2309,7 @@ function generateAlbumHtml(
 
   const delegatePagesHtml = cardPages
     .map((spec, pageIdx) => {
-      const pageNum = pageIdx + 4;
+      const pageNum = pageIdx + 3;
       const cardsHtml = spec.cards.map(renderVoterCard).join("\n");
 
       let slot10Html = "";
@@ -2468,128 +2390,6 @@ function generateAlbumHtml(
     `;
     })
     .join("\n");
-
-  let directoryContentHtml = "";
-  if (directoryItems.length > 20) {
-    const half = Math.ceil(directoryItems.length / 2);
-    const col1 = directoryItems.slice(0, half);
-    const col2 = directoryItems.slice(half);
-
-    const renderSubTable = (items: typeof directoryItems, offset: number) => `
-      <table class="stats-table compact">
-        <thead>
-          <tr>
-            <th style="width: 24px; text-align: center;">#</th>
-            <th>Jurisdiction</th>
-            <th>Capital</th>
-            <th style="text-align: right;">Del.</th>
-            <th style="text-align: center;">Pages</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${items
-            .map((item, i) => {
-              const pageRangeText = item.startPage === item.endPage ? `P.${item.startPage}` : `P.${item.startPage}-${item.endPage}`;
-              return `
-              <tr>
-                <td style="text-align: center; font-weight: 800; color: #64748B;">${String(offset + i + 1).padStart(2, "0")}</td>
-                <td><strong>${item.name}</strong></td>
-                <td>${item.capital}</td>
-                <td style="text-align: right; font-weight: 800; color: #003399;">${item.count}</td>
-                <td style="text-align: center; font-weight: 800;"><span class="page-range-tag">${pageRangeText}</span></td>
-              </tr>
-              `;
-            })
-            .join("\n")}
-        </tbody>
-      </table>
-    `;
-
-    directoryContentHtml = `
-      <div class="two-col-audit-grid">
-        ${renderSubTable(col1, 0)}
-        ${renderSubTable(col2, half)}
-      </div>
-    `;
-  } else {
-    directoryContentHtml = `
-      <table class="stats-table directory-table">
-        <thead>
-          <tr>
-            <th style="width: 36px; text-align: center;">#</th>
-            <th>Administrative Jurisdiction / Body</th>
-            <th>Administrative Capital / Base</th>
-            <th style="text-align: right;">Confirmed Delegates</th>
-            <th style="text-align: center;">Album Pages</th>
-            <th style="text-align: center;">Audit Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${directoryItems
-            .map((item, idx) => {
-              const pageRangeText = item.startPage === item.endPage ? `Page ${item.startPage}` : `Pages ${item.startPage} – ${item.endPage}`;
-              return `
-            <tr>
-              <td style="text-align: center; font-weight: 800; color: #64748B;">${String(idx + 1).padStart(2, "0")}</td>
-              <td><strong>${item.name}</strong></td>
-              <td>${item.capital}</td>
-              <td style="text-align: right; font-weight: 800; color: #003399;">${item.count.toLocaleString()}</td>
-              <td style="text-align: center; font-weight: 800;"><span class="page-range-tag">${pageRangeText}</span></td>
-              <td style="text-align: center;"><span class="status-verified-pill">${item.status}</span></td>
-            </tr>
-              `;
-            })
-            .join("\n")}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td style="text-align: center;">TOT</td>
-            <td><strong>TOTAL ELECTORATE ALLOCATION</strong></td>
-            <td><strong>${directoryItems.length} Administrative Units</strong></td>
-            <td style="text-align: right; font-weight: 900; color: #003399;">${delegates.length.toLocaleString()}</td>
-            <td style="text-align: center; font-weight: 800;">${cardPages.length > 0 ? `Pages 4 – ${currentCardPageNum - 1}` : "None"}</td>
-            <td style="text-align: center; font-weight: 800; color: #003399;">100% Allocated</td>
-          </tr>
-        </tfoot>
-      </table>
-    `;
-  }
-
-  const directoryPageHtml = `
-  <!-- PAGE 3: ELECTORAL COLLEGE DIRECTORY & PAGE ALLOCATION -->
-  <div class="album-page metrics-page">
-    <header class="page-header">
-      <div class="header-content">
-        ${logoDataUri ? `<img class="npp-logo header-npp-logo" src="${logoDataUri}" alt="NPP" />` : `<div class="party-seal-mini">NPP</div>`}
-        <div class="header-text">
-          <h1 class="page-title">ELECTORAL COLLEGE DIRECTORY &amp; PAGE ALLOCATION</h1>
-          <h2 class="page-sub">Comprehensive Index of Jurisdictions, Administrative Capitals, Delegate Counts &amp; Assigned Pages</h2>
-        </div>
-      </div>
-      <div class="header-rule"></div>
-    </header>
-
-    <div class="table-container" style="flex: 1; display: flex; flex-direction: column;">
-      ${directoryContentHtml}
-
-      <div class="proclamation-box" style="margin-top: auto; margin-bottom: 4px;">
-        <h3>STATUTORY DIRECTORY DIRECTIVE</h3>
-        <p>
-          This index serves as the official navigational and jurisdictional guide for certified delegates. Each assigned page range corresponds strictly to the photographic roll of accredited officers within that jurisdiction. No delegate may be reassigned or transferred across pages without express written authorization from the National Elections Committee.
-        </p>
-      </div>
-    </div>
-
-    <footer class="page-footer">
-      <div class="footer-rule"></div>
-      <div class="footer-content">
-        <span>PROVISIONAL ELECTORAL COLLEGE ALBUM · DIRECTORY INDEX</span>
-        <span class="footer-page-pill">3</span>
-        <span>NATIONAL ELECTIONS COMMITTEE</span>
-      </div>
-    </footer>
-  </div>
-  `;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -3179,9 +2979,7 @@ function generateAlbumHtml(
     </footer>
   </div>
 
-  ${directoryPageHtml}
-
-  <!-- PAGES 4+: VOTER CARDS -->
+  <!-- PAGES 3+: VOTER CARDS -->
   ${delegatePagesHtml}
 
   <!-- FINAL PAGE: DEEP DIVE REGIONAL STATS -->

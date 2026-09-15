@@ -43,19 +43,18 @@ test("Election album route file enforces the 6 user design rules", () => {
     "Regional executives must be partitioned separately from constituencies"
   );
 
-  // Rule 3: Directory Table on Page 3 capturing delegates and their assigned pages
+  // Rule 3: Page 3 Directory removed per user request; voter card pages start directly at Page 3
   assert.ok(
-    code.includes("ELECTORAL COLLEGE DIRECTORY &amp; PAGE ALLOCATION"),
-    "Page 3 must render the Electoral College Directory & Page Allocation index"
+    !code.includes("ELECTORAL COLLEGE DIRECTORY &amp; PAGE ALLOCATION"),
+    "Page 3 Electoral College Directory & Page Allocation index must be removed"
   );
   assert.ok(
     code.includes("d.page_number = currentCardPageNum;"),
     "Each delegate must be assigned their corresponding album page number"
   );
   assert.ok(
-    code.includes("PROVISIONAL ELECTORAL COLLEGE ALBUM · DIRECTORY INDEX") ||
-      code.includes("ELECTORAL COLLEGE ALBUM · DIRECTORY INDEX"),
-    "Page 3 footer must identify the Directory Index"
+    code.includes("let currentCardPageNum = 3;"),
+    "Voter card pages must start on Page 3 immediately following Executive Metrics"
   );
 
   // Rule 4: Dynamic Header with Constituency and Region names
