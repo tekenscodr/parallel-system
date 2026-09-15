@@ -36,13 +36,16 @@ export async function sendOtpSms(
   const normPhone = normalizePhoneNumber(phone);
   const message = `Your NPP National Elections voter verification code is: ${otp}. Valid for 10 minutes. Do not share this code.`;
 
-  // Check for SMS API integration (e.g. Arkesel, Hubtel, generic webhook)
-  const apiKey = process.env.ARKESEL_API_KEY || process.env.SMS_API_KEY;
-  const senderId = process.env.SMS_SENDER_ID || "NPP ELECTIONS";
+  // Primary SMS API key configuration
+  const apiKey = process.env.SMS_API_KEY || process.env.ARKESEL_API_KEY;
+  // NCA Ghana telecom limits alphanumeric Sender ID to a maximum of 11 characters
+  const senderId = (process.env.SMS_SENDER_ID || "NPP").slice(0, 11);
+  const apiUrl = process.env.SMS_API_URL || "https://sms.arkesel.com/api/v2/sms/send";
 
   if (apiKey) {
     try {
-      const response = await fetch("https://sms.arkesel.com/api/v2/sms/send", {
+      const recipient = normPhone.startsWith("0") ? "233" + normPhone.slice(1) : normPhone;
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "api-key": apiKey,
@@ -51,13 +54,13 @@ export async function sendOtpSms(
         body: JSON.stringify({
           sender: senderId,
           message,
-          recipients: [normPhone.startsWith("0") ? "233" + normPhone.slice(1) : normPhone],
+          recipients: [recipient],
         }),
       });
 
       if (!response.ok) {
         const errText = await response.text();
-        console.error("[SMS SERVICE] Failed to send via Arkesel:", errText);
+        console.error("[SMS SERVICE] Failed to send SMS:", errText);
       } else {
         return { success: true, messageId: `sms_${Date.now()}` };
       }

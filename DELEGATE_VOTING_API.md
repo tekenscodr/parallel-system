@@ -409,6 +409,7 @@ def get_confirmation(token: str):
 2. **Replay Protection**: Verified OTPs are flagged immediately and cannot be re-used.
 3. **Session Expiry**: Session tokens are cryptographically signed using HMAC SHA-256 and expire after 4 hours.
 4. **Environment Variables**:
-   - `SESSION_SECRET`: Secret key for signing tokens.
-   - `ARKESEL_API_KEY`: API key for Ghana SMS delivery via Arkesel.
-   - `SMS_SENDER_ID`: Custom alphanumeric SMS sender tag (default: `NPP ELECTIONS`).
+   - `SMS_API_KEY`: API key for SMS OTP delivery.
+   - `SMS_SENDER_ID`: Custom alphanumeric SMS sender tag (default: `NPP`, max 11 chars).
+   - `SESSION_SECRET` / `AUTH_SECRET`: Secret key for signing delegate session tokens.
+   - `DATABASE_URL`: PostgreSQL database connection string.
