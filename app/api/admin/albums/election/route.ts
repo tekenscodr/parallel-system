@@ -1054,25 +1054,19 @@ export async function GET(req: NextRequest) {
               selectedRegion.toLowerCase().includes(String(d.region || "").toLowerCase().trim()))
         );
         if (tesconInReg.length > 0) {
-          const instMap = new Map<string, any[]>();
-          for (const td of tesconInReg) {
-            const inst = (td.polling_station || td.constituency || "Accredited Tertiary Institution").trim();
-            if (!instMap.has(inst)) instMap.set(inst, []);
-            instMap.get(inst)!.push(td);
-          }
-          let tIdx = 1;
-          for (const [instName, tList] of instMap.entries()) {
-            auditItems.push({
-              isRegional: false,
-              num: `T${tIdx++}`,
-              name: `${instName} (TESCON)`,
-              level: "TESCON",
-              confirmed: tList.length,
-              target: tList.length,
-              variance: "0",
-              rate: "100%",
-            });
-          }
+          const instCount = new Set(
+            tesconInReg.map((td) => (td.polling_station || td.constituency || "").trim()).filter(Boolean)
+          ).size;
+          auditItems.push({
+            isRegional: false,
+            num: "T",
+            name: `${selectedRegion} TESCON Executives (${instCount} Accredited Institutions)`,
+            level: "TESCON",
+            confirmed: tesconInReg.length,
+            target: tesconInReg.length,
+            variance: "0",
+            rate: "100%",
+          });
         }
       }
 
@@ -1085,7 +1079,7 @@ export async function GET(req: NextRequest) {
       const numTesconInAudit = auditItems.filter((it) => it.level === "TESCON").length;
       const summaryUnitsLabel = isExternalScope
         ? "30 EXTERNAL BRANCHES / COUNTRIES"
-        : `${numConstituenciesInAudit} CONSTITUENCIES${includeRegional ? " + REGIONAL EXEC" : ""}${numTesconInAudit > 0 ? ` + ${numTesconInAudit} TESCON INST.` : ""}`;
+        : `${numConstituenciesInAudit} CONSTITUENCIES${includeRegional ? " + REGIONAL EXEC" : ""}${numTesconInAudit > 0 ? " + TESCON EXECUTIVES" : ""}`;
 
       const titleSuffix = isExternalScope
         ? "STATUTORY AUDIT & SIGN-OFF"
