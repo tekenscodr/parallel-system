@@ -639,6 +639,8 @@ export async function GET(req: NextRequest) {
         const conName = String(r.constituency || "").trim();
         const age = calculateAgeIn2026(r.date_of_birth, r.age);
         const hasVoterId = Boolean(r.voter_id && String(r.voter_id).trim().length === 10);
+        const isTescon = lvl === "tescon";
+        const institution = isTescon ? getTesconInstitution(r as any) : "";
         const photoUrl = r.image_url && String(r.image_url).trim().length > 5 ? r.image_url.trim() : null;
         const avatarSvg = generateSvgAvatar(r.executive_name, canonPos);
 
@@ -650,6 +652,7 @@ export async function GET(req: NextRequest) {
           executive_level: levelGroup,
           region: regName,
           constituency: conName,
+          institution,
           polling_station: r.polling_station ? String(r.polling_station).trim() : "",
           voter_id: r.voter_id ? String(r.voter_id).trim() : "—",
           has_voter_id: hasVoterId,
@@ -2086,6 +2089,10 @@ function generateAlbumHtml(
   // Render individual voter card (Level only, no jurisdiction suffix)
   function renderVoterCard(d: any): string {
     const photoSrc = d.webp_base64 || d.avatar_svg;
+    const isTescon = String(d.executive_level || "").toLowerCase().trim() === "tescon";
+    const institution = isTescon
+      ? String(d.institution || getTesconInstitution(d) || "").trim()
+      : "";
     return `
         <div class="voter-card">
           <div class="card-details">
@@ -2094,6 +2101,11 @@ function generateAlbumHtml(
             <div class="detail-line">
               <span class="lbl">Level:</span> <span class="val">${d.executive_level}</span>
             </div>
+            ${isTescon && institution ? `
+            <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${institution}">
+              <span class="lbl">Institution:</span> <span class="val" style="font-weight: 700;">${institution}</span>
+            </div>
+            ` : ""}
             <div class="detail-line">
               <span class="lbl">Voter ID:</span> <span class="val mono">${d.voter_id}</span>
             </div>
@@ -2256,28 +2268,36 @@ function generateAlbumHtml(
     }
   }
 
-  // 4. TESCON Level Pages (region, then institution, then position)
+  // 4. TESCON Level Pages (Grouped together contiguously, 10 per page, not split per school)
   if (tesconDelegates.length > 0) {
-    const institutionGroups = new Map<string, { region: string; institution: string; delegates: any[] }>();
+    const institutionGroups = new Map<string, { region: string; delegates: any[] }>();
     for (const delegate of tesconDelegates) {
       const regionName = String(delegate.region || "Unassigned").trim();
       const institution = getTesconInstitution(delegate);
-      const key = `${regionName.toLowerCase()}\u0000${institution.toLowerCase()}`;
-      if (!institutionGroups.has(key)) {
-        institutionGroups.set(key, { region: regionName, institution, delegates: [] });
+      delegate.institution = institution;
+      if (!institutionGroups.has(regionName)) {
+        institutionGroups.set(regionName, { region: regionName, delegates: [] });
       }
-      institutionGroups.get(key)!.delegates.push(delegate);
+      institutionGroups.get(regionName)!.delegates.push(delegate);
     }
-    for (const { region: regionName, institution, delegates: institutionDelegates } of institutionGroups.values()) {
-      for (let i = 0; i < institutionDelegates.length; i += 10) {
-        const chunk = institutionDelegates.slice(i, i + 10);
+    for (const { region: regionName, delegates: regTesconDelegates } of institutionGroups.values()) {
+      const regPrefix =
+        regionName && regionName.toLowerCase() !== "unassigned" && regionName.toLowerCase() !== "national"
+          ? `${regionName.toUpperCase()} REGION · `
+          : "";
+      const regFooter =
+        regionName && regionName.toLowerCase() !== "unassigned" && regionName.toLowerCase() !== "national"
+          ? `${regionName.toUpperCase()} `
+          : "";
+      for (let i = 0; i < regTesconDelegates.length; i += 10) {
+        const chunk = regTesconDelegates.slice(i, i + 10);
         const partIdx = Math.floor(i / 10) + 1;
         chunk.forEach((d) => {
           d.page_number = currentCardPageNum;
         });
         cardPages.push({
-          headerSubTitle: `${regionName.toUpperCase()} REGION · TESCON · ${institution.toUpperCase()} (PART ${partIdx})`,
-          footerLabel: `${institution.toUpperCase()} · TESCON`,
+          headerSubTitle: `${regPrefix}TESCON EXECUTIVES (PART ${partIdx})`,
+          footerLabel: `${regFooter}TESCON EXECUTIVES`,
           cards: chunk,
         });
         currentCardPageNum++;
@@ -2286,7 +2306,8 @@ function generateAlbumHtml(
   }
 
   // Page calculation: Cover + Metrics + Card Pages + Final Audit
-  const totalPages = 2 + cardPages.length + 1; // Page 1: Cover, Page 2: Metrics, Pages 3..N: Cards, Final: Stats
+  const delegatePages = cardPages;
+  const totalPages = 2 + delegatePages.length + 1; // Page 1: Cover, Page 2: Metrics, Pages 3..N: Cards, Final: Stats
 
   const isExtScope =
     region.toLowerCase().includes("external") ||
