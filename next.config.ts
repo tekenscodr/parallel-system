@@ -14,6 +14,17 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  async redirects() {
+    return [
+      { source: "/dashboard", destination: "/admin/dashboard", permanent: false },
+      { source: "/campaigns", destination: "/admin/dashboard", permanent: false },
+      { source: "/send-message", destination: "/admin/dashboard", permanent: false },
+      { source: "/contacts", destination: "/admin/dashboard", permanent: false },
+      { source: "/reports", destination: "/admin/dashboard", permanent: false },
+      { source: "/locations", destination: "/admin/dashboard", permanent: false },
+      { source: "/message-history", destination: "/admin/dashboard", permanent: false },
+    ];
+  },
 };
 
 export default nextConfig;

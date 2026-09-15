@@ -372,20 +372,10 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Invalid executive ID" }, { status: 400 });
     }
 
-    // 1. Fetch current record snapshot for audit logging
+    // 1. Fetch complete record snapshot for auxiliary archiving and audit logging
     const existingRow = await withEcSql(async (sql) => {
       const rows = await sql`
-        SELECT 
-          id,
-          executive_name as "executiveName",
-          position,
-          executive_level as "executiveLevel",
-          region,
-          constituency,
-          electoral_area as "electoralArea",
-          polling_station as "pollingStation",
-          voter_id as "voterId",
-          status
+        SELECT *
         FROM executives_all
         WHERE id = ${id}
         LIMIT 1
@@ -397,13 +387,78 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Executive record not found" }, { status: 404 });
     }
 
-    // 2. Perform deletion
+    const clientIp = getClientIp(req);
+
+    // 2. Perform archiving into auxiliary table and deletion from active table
     await withEcSql(async (sql) => {
+      await sql`
+        INSERT INTO deleted_voters (
+          original_id,
+          executive_level,
+          slot_status,
+          region,
+          constituency,
+          electoral_area,
+          polling_station,
+          position,
+          executive_name,
+          membership_id,
+          phone,
+          email,
+          ghana_card,
+          voter_id,
+          gender,
+          date_of_birth,
+          age,
+          is_youth_organiser,
+          is_age_adjusted,
+          record_entered_by,
+          status,
+          image_url,
+          deleted_at,
+          deleted_by_id,
+          deleted_by_name,
+          deleted_by_email,
+          deleted_by_role,
+          deleted_ip,
+          revert_status
+        ) VALUES (
+          ${existingRow.id},
+          ${existingRow.executive_level},
+          ${existingRow.slot_status},
+          ${existingRow.region},
+          ${existingRow.constituency},
+          ${existingRow.electoral_area},
+          ${existingRow.polling_station},
+          ${existingRow.position},
+          ${existingRow.executive_name},
+          ${existingRow.membership_id},
+          ${existingRow.phone},
+          ${existingRow.email},
+          ${existingRow.ghana_card},
+          ${existingRow.voter_id},
+          ${existingRow.gender},
+          ${existingRow.date_of_birth},
+          ${existingRow.age},
+          ${existingRow.is_youth_organiser},
+          ${existingRow.is_age_adjusted},
+          ${existingRow.record_entered_by},
+          ${existingRow.status},
+          ${existingRow.image_url},
+          NOW(),
+          ${session.user.id},
+          ${session.user.name},
+          ${session.user.email},
+          ${session.user.role},
+          ${clientIp},
+          'DELETED'
+        )
+      `;
+
       await sql`DELETE FROM executives_all WHERE id = ${id}`;
     });
 
     // 3. Log AuditEvent
-    const clientIp = getClientIp(req);
     await logAuditEvent({
       req,
       actorId: session.user.id,
@@ -417,12 +472,14 @@ export async function DELETE(req: Request, { params }: RouteParams) {
         userEmail: session.user.email,
         userName: session.user.name,
         userRole: session.user.role,
+        archivedIn: "deleted_voters",
       },
     });
 
+    const execName = existingRow.executive_name || existingRow.executiveName || "Executive";
     return NextResponse.json({
       success: true,
-      message: `Executive "${existingRow.executiveName}" was deleted successfully.`,
+      message: `Executive "${execName}" was deleted and archived successfully. It can be reverted by a super user.`,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Error deleting executive";

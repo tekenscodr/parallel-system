@@ -458,7 +458,11 @@ export async function GET(req: NextRequest) {
     // 2. Filter valid (non-vacant)
     const validRows = rawRows.filter((r) => {
       const name = String(r.executive_name || "").trim();
-      return name && !/^(vacant|vacancy|unknown|n\/?a|not available)/i.test(name);
+      return (
+        name &&
+        !/^(vacant|vacancy|unknown|not available)\b/i.test(name) &&
+        !/^n\/?a$/i.test(name)
+      );
     });
 
     // 3. Apply contest eligibility rules

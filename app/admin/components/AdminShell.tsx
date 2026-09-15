@@ -10,7 +10,6 @@ import {
   Layers,
   FileText,
   LogOut,
-  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -527,34 +526,17 @@ export function AdminShell({
                 <span style={{ fontFamily: "monospace", color: "#38bdf8" }}>IP Synced</span>
               </div>
 
-              {/* Navigation & Logout Buttons */}
-              <div style={{ display: "flex", gap: "8px" }}>
-                <Link
-                  href="/dashboard"
-                  style={{
-                    flex: 1,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "5px",
-                    padding: "7px",
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    color: "#94a3b8",
-                    fontSize: "11px",
-                    textDecoration: "none",
-                  }}
-                >
-                  <ArrowLeft size={12} /> Standard App
-                </Link>
+              {/* Logout Button */}
+              <div>
                 <button
                   onClick={handleLogout}
                   style={{
+                    width: "100%",
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "5px",
-                    padding: "7px 12px",
+                    gap: "6px",
+                    padding: "8px 12px",
                     borderRadius: "6px",
                     background: "rgba(239, 68, 68, 0.15)",
                     color: "#f87171",
@@ -832,22 +814,6 @@ export function AdminShell({
                   <span>Change Password</span>
                 </button>
               )}
-              <Link
-                href="/dashboard"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  color: "#94a3b8",
-                  fontSize: "12px",
-                  textDecoration: "none",
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                }}
-              >
-                <ArrowLeft size={13} /> Standard App
-              </Link>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: "12px", fontWeight: "600", color: "#f8fafc" }}>
                   {currentUser?.name || "National Officer"}

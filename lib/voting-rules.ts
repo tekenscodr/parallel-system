@@ -53,7 +53,7 @@ export function buildVotingReport(source: VotingSource[]) {
     const rawLvl = norm(row.executive_level);
     const lvl = rawLvl === 'externalbranch' ? 'constituency' : rawLvl;
     if (!['constituency', 'region', 'regional', 'national', 'tescon'].includes(lvl)) continue;
-    if (!clean(row.executive_name) || /^(vacant|vacancy|unknown|n\/?a|not available|representative)\b/i.test(clean(row.executive_name))) { excludedVacancies++; continue; }
+    if (!clean(row.executive_name) || /^(vacant|vacancy|unknown|not available|representative)\b/i.test(clean(row.executive_name)) || /^n\/?a$/i.test(clean(row.executive_name))) { excludedVacancies++; continue; }
     const vid = clean(row.voter_id).replace(/\s/g, '');
     const member = clean(row.membership_id);
     const key = /^\d{10}$/.test(vid) ? `voter:${vid}` : member ? `member:${member}` : `record:${row.id}`;
