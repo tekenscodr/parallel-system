@@ -11,6 +11,8 @@ const albumFiles: Record<string, string> = {
   "NPP_Ahafo_Region_Election_Album_2026.pdf": "application/pdf",
   "NPP_National_Youth_Organiser_Election_Album_2026.pdf": "application/pdf",
   "NPP_National_Youth_Organiser_Electorate_Directory_2026.pdf": "application/pdf",
+  "NPP_Regional_and_Wings_Statutory_Audit_Statistics_2026.xlsx":
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 };
 
 export async function GET(request: Request, context: { params: Promise<{ filename: string }> }) {
@@ -21,9 +23,11 @@ export async function GET(request: Request, context: { params: Promise<{ filenam
   if (!Object.hasOwn(albumFiles, filename)) return new Response("Not found", { status: 404 });
   try {
     const file = await readFile(path.join(process.cwd(), "exports", "albums", filename));
+    const isAttachment = filename.endsWith(".xlsx") || filename.endsWith(".pdf");
     return new Response(file, {
       headers: {
         "Content-Type": albumFiles[filename],
+        "Content-Disposition": isAttachment ? `attachment; filename="${filename}"` : "inline",
         "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
         "X-Robots-Tag": "noindex, nofollow",

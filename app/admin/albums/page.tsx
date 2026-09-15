@@ -364,6 +364,11 @@ export default function PositionAlbumsPage() {
             <p className="text-sm text-muted-foreground">Select a portfolio or wing extraction and region to preview, review, and export your album.</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300">
+              <a href="/api/admin/albums/audit-statistics/export" download="NPP_Regional_and_Wings_Statutory_Audit_Statistics_2026.xlsx">
+                <Table2 className="size-4" /> Regional &amp; Wings Audit Stats (.xlsx)
+              </a>
+            </Button>
             <Button asChild variant="outline" disabled={!data || !delegates.length}>
               <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${region}_Voter_Directory_2026.xlsx`}>
                 <Download className="size-4" /> Download Excel (.xlsx)
@@ -963,11 +968,18 @@ export default function PositionAlbumsPage() {
                           Audit individual constituencies against statutory quotas (Target: 19 per Constituency [11 Elected + 8 Appointed] · Regional: 21 per Region)
                         </CardDescription>
                       </div>
-                      <Button asChild variant="outline" size="sm">
-                        <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${region}_Voter_Directory_2026.xlsx`}>
-                          <Download className="size-4 mr-1.5" /> Export Excel (.xlsx)
-                        </a>
-                      </Button>
+                      <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300">
+                          <a href="/api/admin/albums/audit-statistics/export" download="NPP_Regional_and_Wings_Statutory_Audit_Statistics_2026.xlsx">
+                            <Table2 className="size-4 mr-1.5" /> All Regional &amp; Wings Audit Stats (.xlsx)
+                          </a>
+                        </Button>
+                        <Button asChild variant="outline" size="sm">
+                          <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${region}_Voter_Directory_2026.xlsx`}>
+                            <Download className="size-4 mr-1.5" /> Export Current Scope (.xlsx)
+                          </a>
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">

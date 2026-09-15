@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 import {
   CONTEST_LIST,
+  GENERAL_CONTEST_LIST,
   CUSTOM_CONTEST,
   getCanonicalPositionsForSelection,
   isElectedConstituencyPosition,

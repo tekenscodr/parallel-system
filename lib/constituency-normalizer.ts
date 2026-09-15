@@ -444,6 +444,44 @@ export function isValidConstituency(name: string): boolean {
   return CANONICAL_SET.has(norm) || EXTERNAL_BRANCH_LOOKUP.has(norm.toUpperCase());
 }
 
+export const GHANA_REGIONS_ORDER: readonly string[] = [
+  "Ahafo",
+  "Ashanti",
+  "Bono",
+  "Bono East",
+  "Central",
+  "Eastern",
+  "Greater Accra",
+  "North East",
+  "Northern",
+  "Oti",
+  "Savannah",
+  "Upper East",
+  "Upper West",
+  "Volta",
+  "Western",
+  "Western North",
+];
+
+export const REGIONAL_CONSTITUENCY_COUNTS: Record<string, number> = {
+  "Ahafo": 6,
+  "Ashanti": 47,
+  "Bono": 12,
+  "Bono East": 11,
+  "Central": 23,
+  "Eastern": 33,
+  "Greater Accra": 34,
+  "North East": 6,
+  "Northern": 18,
+  "Oti": 9,
+  "Savannah": 7,
+  "Upper East": 15,
+  "Upper West": 11,
+  "Volta": 18,
+  "Western": 17,
+  "Western North": 9,
+};
+
 export const OFFICIAL_CONSTITUENCIES_BY_REGION: Record<string, string[]> = {
   "Ahafo": [
     "ASUNAFO NORTH",
