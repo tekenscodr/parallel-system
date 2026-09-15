@@ -2422,7 +2422,7 @@ export default function NationalAdminDashboard() {
                   <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Voter ID</TableHead>
                   <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Name</TableHead>
                   <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Age / DOB</TableHead>
-                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Phone</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Phone / Gender</TableHead>
                   <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Region</TableHead>
                   <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Constituency</TableHead>
                   <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Level</TableHead>
@@ -2534,29 +2534,66 @@ export default function NationalAdminDashboard() {
                           </div>
                         </TableCell>
 
-                        {/* 4. Phone */}
-                        <TableCell style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
-                          {row.phone ? (
-                            <a
-                              href={`tel:${row.phone}`}
-                              onClick={(e) => e.stopPropagation()}
-                              style={{
-                                color: "#38bdf8",
-                                textDecoration: "none",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "5px",
-                                fontSize: "12px"
-                              }}
-                              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-                              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-                            >
-                              <Phone size={12} style={{ opacity: 0.8 }} />
-                              <span>{row.phone}</span>
-                            </a>
-                          ) : (
-                            <span style={{ color: "#64748b" }}>—</span>
-                          )}
+                        {/* 4. Phone & Gender */}
+                        <TableCell style={{ padding: "10px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                            {row.phone ? (
+                              <a
+                                href={`tel:${row.phone}`}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  color: "#38bdf8",
+                                  textDecoration: "none",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "5px",
+                                  fontSize: "12px",
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                                onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                              >
+                                <Phone size={12} style={{ opacity: 0.8 }} />
+                                <span>{row.phone}</span>
+                              </a>
+                            ) : (
+                              <span style={{ color: "#64748b", fontSize: "12px" }}>—</span>
+                            )}
+                            {row.gender && row.gender.trim() !== "" ? (
+                              <div style={{ display: "inline-flex", alignItems: "center" }}>
+                                <span
+                                  style={{
+                                    fontSize: "11px",
+                                    fontWeight: 500,
+                                    color:
+                                      row.gender.toLowerCase() === "female"
+                                        ? "#f472b6"
+                                        : row.gender.toLowerCase() === "male"
+                                        ? "#60a5fa"
+                                        : "#94a3b8",
+                                    backgroundColor:
+                                      row.gender.toLowerCase() === "female"
+                                        ? "rgba(244, 114, 182, 0.12)"
+                                        : row.gender.toLowerCase() === "male"
+                                        ? "rgba(96, 165, 250, 0.12)"
+                                        : "rgba(148, 163, 184, 0.1)",
+                                    border:
+                                      row.gender.toLowerCase() === "female"
+                                        ? "1px solid rgba(244, 114, 182, 0.25)"
+                                        : row.gender.toLowerCase() === "male"
+                                        ? "1px solid rgba(96, 165, 250, 0.25)"
+                                        : "1px solid rgba(148, 163, 184, 0.2)",
+                                    borderRadius: "4px",
+                                    padding: "1px 6px",
+                                    textTransform: "capitalize",
+                                    lineHeight: "1.3",
+                                    display: "inline-block",
+                                  }}
+                                >
+                                  {row.gender}
+                                </span>
+                              </div>
+                            ) : null}
+                          </div>
                         </TableCell>
 
                         {/* 5. Region */}
