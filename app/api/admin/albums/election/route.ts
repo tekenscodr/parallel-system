@@ -141,6 +141,79 @@ async function getLogoWebpDataUri(): Promise<string> {
   return LOGO_WEBP_DATA_URI;
 }
 
+let ELEPHANT_SEAL_DATA_URI = "";
+function getElephantSealDataUriSync(): string {
+  if (ELEPHANT_SEAL_DATA_URI) return ELEPHANT_SEAL_DATA_URI;
+  try {
+    const candidatePaths = [
+      path.join(process.cwd(), "public/assets/npp_elephant_circle.png"),
+      path.join(process.cwd(), "outputs/assets/npp_elephant_circle.png"),
+    ];
+    const filePath = candidatePaths.find((p) => fs.existsSync(p));
+    if (filePath) {
+      const rawBuf = fs.readFileSync(filePath);
+      ELEPHANT_SEAL_DATA_URI = "data:image/png;base64," + rawBuf.toString("base64");
+    }
+  } catch {
+    // fallback if file read fails
+  }
+  return ELEPHANT_SEAL_DATA_URI;
+}
+
+async function getElephantSealDataUri(): Promise<string> {
+  if (ELEPHANT_SEAL_DATA_URI) return ELEPHANT_SEAL_DATA_URI;
+  try {
+    const candidatePaths = [
+      path.join(process.cwd(), "public/assets/npp_elephant_circle.png"),
+      path.join(process.cwd(), "outputs/assets/npp_elephant_circle.png"),
+    ];
+    const filePath = candidatePaths.find((p) => fs.existsSync(p));
+    if (filePath) {
+      const rawBuf = fs.readFileSync(filePath);
+      const pngBuf = await sharp(rawBuf)
+        .resize(160, 160, {
+          fit: "inside",
+          withoutEnlargement: true,
+          background: { r: 255, g: 255, b: 255, alpha: 0 },
+        })
+        .png({ quality: 95 })
+        .toBuffer();
+      ELEPHANT_SEAL_DATA_URI = "data:image/png;base64," + pngBuf.toString("base64");
+    }
+  } catch {
+    return getElephantSealDataUriSync();
+  }
+  return ELEPHANT_SEAL_DATA_URI;
+}
+
+function renderCurvedText(
+  text: string,
+  cx: number,
+  cy: number,
+  r: number,
+  startAngle: number,
+  endAngle: number,
+  color: string,
+  fontSize: number,
+  isBottom = false
+): string {
+  const chars = text.split("");
+  const totalAngle = endAngle - startAngle;
+  const step = totalAngle / (chars.length - 1);
+  return chars
+    .map((ch, i) => {
+      if (ch === " ") return "";
+      const angle = startAngle + i * step;
+      const rot = isBottom ? angle - 90 : angle + 90;
+      const rad = (angle * Math.PI) / 180;
+      const x = cx + r * Math.cos(rad);
+      const y = cy + r * Math.sin(rad);
+      return `<text x="${x.toFixed(2)}" y="${y.toFixed(2)}" fill="${color}" font-size="${fontSize}" font-weight="900" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="central" transform="rotate(${rot.toFixed(2)}, ${x.toFixed(2)}, ${y.toFixed(2)})">${ch}</text>`;
+    })
+    .filter(Boolean)
+    .join("\n              ");
+}
+
 function normalizeCanonicalPosition(pos: string | null, level: string | null): string {
   const s = String(pos || "").trim().toLowerCase();
   const lvl = String(level || "").toLowerCase();
@@ -1730,6 +1803,7 @@ export async function GET(req: NextRequest) {
     if (format === "html") {
       // Pre-convert logo to WebP
       const logoDataUri = await getLogoWebpDataUri();
+      const elephantSealDataUri = await getElephantSealDataUri();
 
       // Pre-convert all delegate images to WebP data URIs before rendering
       await convertDelegatesImagesToWebp(delegates);
@@ -1743,7 +1817,8 @@ export async function GET(req: NextRequest) {
         regionalBreakdown,
         logoDataUri,
         levelAudit,
-        albumType
+        albumType,
+        elephantSealDataUri
       );
 
       const headers: Record<string, string> = {
@@ -2078,8 +2153,13 @@ function generateAlbumHtml(
   regionalBreakdown: any[],
   logoDataUri?: string,
   levelAudit?: any,
-  albumType: string = "provisional"
+  albumType: string = "provisional",
+  elephantSealDataUri?: string
 ): string {
+  const effectiveElephantSealUri = elephantSealDataUri || getElephantSealDataUriSync();
+  const sealTopSvg = renderCurvedText("NATIONAL ELECTIONS COMMITTEE", 60, 60, 42.5, -156, -24, "#003399", 5.6, false);
+  const sealBottomSvg = renderCurvedText("OFFICIAL SEAL · ELECTIONS 2026", 60, 60, 42.5, 156, 24, "#C8102E", 5.1, true);
+
   // Render individual voter card (Level only, no jurisdiction suffix)
   function renderVoterCard(d: any): string {
     const photoSrc = d.webp_base64 || d.avatar_svg;
@@ -2906,22 +2986,17 @@ function generateAlbumHtml(
         <div class="signature-section">
           <div class="seal-container">
             <svg width="74" height="74" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="60" cy="60" r="56" fill="#FFFFFF" stroke="#003399" stroke-width="4" stroke-dasharray="6,3"/>
-              <circle cx="60" cy="60" r="48" fill="#F8FAFC" stroke="#C8102E" stroke-width="2"/>
-              <path id="curve-seal" d="M 22 60 A 38 38 0 1 1 98 60" fill="none"/>
-              <text font-size="8" font-weight="900" fill="#003399" letter-spacing="0.5">
-                <textPath href="#curve-seal" startOffset="50%" text-anchor="middle">NATIONAL ELECTIONS COMMITTEE</textPath>
-              </text>
-              <path id="curve-seal2" d="M 22 60 A 38 38 0 0 0 98 60" fill="none"/>
-              <text font-size="7.5" font-weight="800" fill="#C8102E" letter-spacing="0.5">
-                <textPath href="#curve-seal2" startOffset="50%" text-anchor="middle">OFFICIAL SEAL · ELECTIONS 2026</textPath>
-              </text>
+              <circle cx="60" cy="60" r="56" fill="#FFFFFF" stroke="#003399" stroke-width="4.5" stroke-dasharray="6,3"/>
+              <circle cx="60" cy="60" r="48" fill="#FFFFFF" stroke="#C8102E" stroke-width="2"/>
+              ${sealTopSvg}
+              ${sealBottomSvg}
+              ${effectiveElephantSealUri ? `<image href="${effectiveElephantSealUri}" x="37.5" y="27.5" width="45" height="45" />` : `
               <g transform="translate(46, 38) scale(0.65)">
                 <path d="M20,2 C15,2 10,6 8,11 C6,16 6,24 6,28 C6,30 4,32 2,33 C1,33.5 0,35 0,37 C0,39 2,40 4,39 C7,38 9,35 10,31 C11,31 12,32 13,32 L13,42 L17,42 L17,31 C19,31 22,31 24,31 L24,42 L28,42 L28,29 C34,28 38,24 38,18 C38,8 30,2 20,2 Z" fill="#003399"/>
                 <circle cx="12" cy="11" r="1.5" fill="#FFFFFF"/>
                 <path d="M10,22 C13,22 15,19 16,16" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
-              </g>
-              <text x="60" y="77" fill="#003399" font-size="7" font-weight="bold" text-anchor="middle">CERTIFIED</text>
+              </g>`}
+              <text x="60" y="77" fill="#003399" font-size="7" font-weight="900" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif" letter-spacing="0.8" text-anchor="middle">CERTIFIED</text>
             </svg>
           </div>
           <div class="sig-block">

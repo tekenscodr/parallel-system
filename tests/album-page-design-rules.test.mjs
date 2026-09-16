@@ -109,3 +109,34 @@ test("Election album route file enforces the 6 user design rules", () => {
     "SVG seal must contain elephant silhouette emblem"
   );
 });
+
+test("Election album official seal features authentic NPP Elephant and mathematically curved text", () => {
+  const routePath = path.join(process.cwd(), "app/api/admin/albums/election/route.ts");
+  const code = fs.readFileSync(routePath, "utf8");
+
+  assert.ok(
+    code.includes("getElephantSealDataUri"),
+    "Route must include getElephantSealDataUri helper"
+  );
+  assert.ok(
+    code.includes("renderCurvedText"),
+    "Route must include renderCurvedText helper for mathematical glyph placement"
+  );
+  assert.ok(
+    code.includes('effectiveElephantSealUri ? `<image href="${effectiveElephantSealUri}" x="37.5" y="27.5" width="45" height="45" />`'),
+    "SVG seal must embed authentic NPP Elephant image via data URI"
+  );
+  assert.ok(
+    code.includes('renderCurvedText("NATIONAL ELECTIONS COMMITTEE"'),
+    "SVG seal must render curved unclipped top arc for NATIONAL ELECTIONS COMMITTEE"
+  );
+  assert.ok(
+    code.includes('renderCurvedText("OFFICIAL SEAL · ELECTIONS 2026"'),
+    "SVG seal must render curved unclipped bottom arc for OFFICIAL SEAL · ELECTIONS 2026"
+  );
+  assert.ok(
+    code.includes('>CERTIFIED</text>'),
+    "SVG seal must render CERTIFIED text beneath the elephant"
+  );
+});
+
