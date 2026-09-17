@@ -126,6 +126,19 @@ test("Voting entitlement correctly resolves portfolios for each executive catego
   };
   assert.equal(isTesconPatron(tesconPatron), true);
   assert.equal(getDelegateEntitledPositions(tesconPatron).length, 0, "TESCON Patron must have 0 voting entitlements");
+
+  // 7. Former National Youth Organiser - Barred from Youth voting entitlement
+  const formerYouthOfficer = {
+    executive_name: "KWABENA FORMER",
+    executive_level: "National",
+    position: "Former National Youth Organiser",
+    gender: "Male",
+    age: 46,
+    date_of_birth: "1980-04-12",
+    voter_id: "7089900456",
+  };
+  const formerPositions = getDelegateEntitledPositions(formerYouthOfficer);
+  assert.equal(formerPositions.some((p) => p.id === "youth_organiser"), false, "Former Youth Organiser must not qualify for youth voting");
 });
 
 test("Phone normalization and masking utility works for Ghana numbers", () => {

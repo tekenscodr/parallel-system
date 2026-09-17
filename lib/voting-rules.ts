@@ -81,12 +81,13 @@ export function buildVotingReport(source: VotingSource[]) {
     };
     const core = rows.some(r=>['constituency','region','regional','national'].includes(getRowLevel(r)));
     const tescon = rows.filter(r=>norm(r.executive_level)==='tescon' && !/patron/i.test(clean(r.position)));
-    const hasYouthPortfolio = rows.some(r => /youth\s*organi[sz]er/i.test(clean(r.position)) || /former.*youth/i.test(clean(r.position)));
+    const hasYouthPortfolio = rows.some(r => /youth\s*organi[sz]er/i.test(clean(r.position)) && !/former/i.test(clean(r.position)));
     if (core && age === null && !hasYouthPortfolio) issues.push('DOB missing, invalid or conflicting: youth eligibility unresolved');
     if (core && !gender) issues.push('Gender missing or conflicting: women eligibility unresolved');
+    const isFormerOfficer = rows.some(r => /former/i.test(clean(r.position)));
     const flags = {
       general: !identityConflict && (core || tescon.some(r=>norm(r.position)==='president')),
-      youth: !identityConflict && (tescon.length > 0 || hasYouthPortfolio || (core && age !== null && age < 40)),
+      youth: !identityConflict && !isFormerOfficer && (tescon.length > 0 || hasYouthPortfolio || (core && age !== null && age < 40)),
       women: !identityConflict && ((core && gender==='female') || tescon.some(r=>['wocom','womencommissioner','womenscommissioner'].includes(norm(r.position)))),
       nasara: !identityConflict && rows.some(r=>/nasara/i.test(clean(r.position)) && !(norm(r.executive_level)==='tescon' && /patron/i.test(clean(r.position)))),
     };

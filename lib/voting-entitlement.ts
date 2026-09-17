@@ -79,29 +79,33 @@ export function getDelegateEntitledPositions(delegate: DelegateRecord): Entitled
   }
 
   // 2. Youth Organiser Contest
-  // Qualifies if: TESCON executive (excluding patrons) OR Youth portfolio OR core executive under 40
-  const hasYouthPortfolio = /youth\s*organi[sz]er/i.test(pos) || /former.*youth/i.test(pos);
-  if (isTescon) {
-    entitled.push({
-      id: "youth_organiser",
-      title: "National Youth Organiser",
-      category: "youth",
-      reason: "Accredited TESCON Tertiary Institution Executive",
-    });
-  } else if (hasYouthPortfolio) {
-    entitled.push({
-      id: "youth_organiser",
-      title: "National Youth Organiser",
-      category: "youth",
-      reason: "Ex-officio Youth Organiser portfolio",
-    });
-  } else if (isCore && isUnder40) {
-    entitled.push({
-      id: "youth_organiser",
-      title: "National Youth Organiser",
-      category: "youth",
-      reason: `Youth wing eligible (age ${resolvedAge} < 40 in 2026)`,
-    });
+  // Qualifies if: TESCON executive (excluding patrons) OR substantive Youth portfolio OR core executive under 40
+  // Former officers are strictly excluded from youth voting eligibility
+  const isFormer = /former/i.test(pos);
+  const hasYouthPortfolio = /youth\s*organi[sz]er/i.test(pos) && !isFormer;
+  if (!isFormer) {
+    if (isTescon) {
+      entitled.push({
+        id: "youth_organiser",
+        title: "National Youth Organiser",
+        category: "youth",
+        reason: "Accredited TESCON Tertiary Institution Executive",
+      });
+    } else if (hasYouthPortfolio) {
+      entitled.push({
+        id: "youth_organiser",
+        title: "National Youth Organiser",
+        category: "youth",
+        reason: "Ex-officio Youth Organiser portfolio",
+      });
+    } else if (isCore && isUnder40) {
+      entitled.push({
+        id: "youth_organiser",
+        title: "National Youth Organiser",
+        category: "youth",
+        reason: `Youth wing eligible (age ${resolvedAge} < 40 in 2026)`,
+      });
+    }
   }
 
   // 3. Women Organiser Contest

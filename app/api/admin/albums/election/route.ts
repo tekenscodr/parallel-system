@@ -770,10 +770,10 @@ export async function GET(req: NextRequest) {
         }
         // Core levels:
         if (["national", "region", "regional", "constituency"].includes(lvl)) {
-          // Youth organisers & deputies vote ex-officio
-          if (/youth/i.test(posLower)) return true;
-          // Former national youth organisers
-          if (/former.*youth/i.test(posLower)) return true;
+          // Youth organisers & deputies vote ex-officio (excluding former officers)
+          if (/youth/i.test(posLower) && !posLower.includes("former")) return true;
+          // Former officers are excluded
+          if (posLower.includes("former")) return false;
           // Anyone under 40
           const age = calculateAgeIn2026(r.date_of_birth, r.age);
           if (age !== null && age < 40) return true;
