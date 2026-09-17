@@ -581,8 +581,11 @@ export async function GET(req: NextRequest) {
     (matchedContest === "Youth Organisers & Deputies" ||
       matchedContest === "Women Organisers & Deputies" ||
       matchedContest === "Nasara Coordinators & Deputies" ||
-      (scopeQuery === "organisers_only" &&
-        !GENERAL_CONTEST_LIST.includes(matchedContest as any)));
+      matchedContest === "Nasara Organiser" ||
+      ((matchedContest === "Youth Organiser" ||
+        matchedContest === "Women Organiser" ||
+        scopeQuery === "organisers_only") &&
+        scopeQuery !== "all_voters"));
 
 
   return withEcSql(async (sql) => {
@@ -696,7 +699,10 @@ export async function GET(req: NextRequest) {
       // Wing-specific extraction (Organisers & Deputies Only):
 
       if (isWingOrganisers) {
-        if (matchedContest === "Youth Organisers & Deputies") {
+        if (
+          matchedContest === "Youth Organisers & Deputies" ||
+          matchedContest === "Youth Organiser"
+        ) {
           return (
             (posLower.includes("youth organiser") ||
               posLower.includes("youth organizer") ||
@@ -708,7 +714,10 @@ export async function GET(req: NextRequest) {
           );
         }
 
-        if (matchedContest === "Women Organisers & Deputies") {
+        if (
+          matchedContest === "Women Organisers & Deputies" ||
+          matchedContest === "Women Organiser"
+        ) {
           return (
             (posLower.includes("women organiser") ||
               posLower.includes("women organizer") ||
@@ -721,7 +730,10 @@ export async function GET(req: NextRequest) {
           );
         }
 
-        if (matchedContest === "Nasara Coordinators & Deputies") {
+        if (
+          matchedContest === "Nasara Coordinators & Deputies" ||
+          matchedContest === "Nasara Organiser"
+        ) {
           return (
             posLower.includes("nasara") &&
             !posLower.includes("former") &&
@@ -961,11 +973,36 @@ export async function GET(req: NextRequest) {
     } else {
       // Nationwide (all regions)
       if (isWingOrganisers) {
-        expectedCount =
-          (hasConstituency ? 276 * 2 : 0) +
-          (hasRegional ? 16 * 3 : 0) +
-          (hasNational ? 3 : 0) +
-          (hasExternal ? 30 * 2 : 0);
+        if (selectedLevels.length === 0 || selectedLevels.length === 5) {
+          if (
+            matchedContest === "Youth Organisers & Deputies" ||
+            matchedContest === "Youth Organiser"
+          ) {
+            expectedCount = 624;
+          } else if (
+            matchedContest === "Women Organisers & Deputies" ||
+            matchedContest === "Women Organiser"
+          ) {
+            expectedCount = 863;
+          } else if (
+            matchedContest === "Nasara Coordinators & Deputies" ||
+            matchedContest === "Nasara Organiser"
+          ) {
+            expectedCount = 852;
+          } else {
+            expectedCount =
+              (hasConstituency ? 276 * 2 : 0) +
+              (hasRegional ? 16 * 3 : 0) +
+              (hasNational ? 3 : 0) +
+              (hasExternal ? 30 * 2 : 0);
+          }
+        } else {
+          expectedCount =
+            (hasConstituency ? 276 * 2 : 0) +
+            (hasRegional ? 16 * 3 : 0) +
+            (hasNational ? 3 : 0) +
+            (hasExternal ? 30 * 2 : 0);
+        }
       } else if (isCustomContest) {
         expectedCount =
           (hasRegional ? 16 * regionalTargetPerUnit : 0) +

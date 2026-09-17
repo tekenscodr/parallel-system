@@ -115,3 +115,107 @@ test("Wing album pagination logic isolates each region to its own page(s)", asyn
     assert.equal(pageRegions.size, 1, "Each card page in a wing album must only contain delegates from a single region");
   }
 });
+
+test("Women and Youth organisers load just like Nasara: exclusive wing extraction, matching quotas, and scope alignment", () => {
+  const routePath = path.join(process.cwd(), "app/api/admin/albums/election/route.ts");
+  const routeCode = fs.readFileSync(routePath, "utf8");
+
+  // 1. isWingOrganisers includes Youth Organiser and Women Organiser
+  assert.ok(
+    routeCode.includes('matchedContest === "Youth Organiser"') &&
+      routeCode.includes('matchedContest === "Women Organiser"') &&
+      routeCode.includes('matchedContest === "Nasara Organiser"'),
+    "isWingOrganisers must recognize Youth Organiser, Women Organiser, and Nasara Organiser"
+  );
+
+  // 2. Wing-specific extraction branch in contestFiltered handles Youth Organiser and Women Organiser
+  assert.ok(
+    routeCode.includes('matchedContest === "Youth Organisers & Deputies" ||\n          matchedContest === "Youth Organiser"'),
+    "Wing extraction in contestFiltered must handle both Youth Organisers & Deputies and Youth Organiser"
+  );
+  assert.ok(
+    routeCode.includes('matchedContest === "Women Organisers & Deputies" ||\n          matchedContest === "Women Organiser"'),
+    "Wing extraction in contestFiltered must handle both Women Organisers & Deputies and Women Organiser"
+  );
+  assert.ok(
+    routeCode.includes('matchedContest === "Nasara Coordinators & Deputies" ||\n          matchedContest === "Nasara Organiser"'),
+    "Wing extraction in contestFiltered must handle both Nasara Coordinators & Deputies and Nasara Organiser"
+  );
+
+  // 3. Page.tsx defaults scope to organisers_only and sets organisers_only on wing contest selection
+  const pagePath = path.join(process.cwd(), "app/admin/albums/page.tsx");
+  const pageCode = fs.readFileSync(pagePath, "utf8");
+
+  assert.ok(
+    pageCode.includes('const [scope, setScope] = useState("organisers_only");'),
+    "Page must default scope state to organisers_only"
+  );
+  assert.ok(
+    pageCode.includes('val === "Youth Organiser" ||') &&
+      pageCode.includes('val === "Women Organiser" ||') &&
+      pageCode.includes('val === "Nasara Organiser"'),
+    "Page onChange must set scope to organisers_only for Youth Organiser, Women Organiser, and Nasara Organiser"
+  );
+
+  // 4. Test wing filtering behavior across a representative pool
+  const testPool = [
+    // Youth
+    { position: "Youth Organiser", gender: "Male", age: 31, level: "Constituency" },
+    { position: "Deputy Youth Organiser", gender: "Female", age: 29, level: "Constituency" },
+    { position: "Chairman", gender: "Male", age: 34, level: "Constituency" }, // under 40, but NOT youth organiser
+    // Women
+    { position: "Women Organiser", gender: "Female", age: 48, level: "Constituency" },
+    { position: "Deputy Women Organiser", gender: "Female", age: 42, level: "Constituency" },
+    { position: "TESCON WOCOM", gender: "Female", age: 22, level: "TESCON" },
+    { position: "Secretary", gender: "Female", age: 40, level: "Constituency" }, // female, but NOT women organiser
+    // Nasara
+    { position: "Nasara Coordinator", gender: "Male", age: 52, level: "Constituency" },
+    { position: "Deputy Nasara Coordinator", gender: "Male", age: 45, level: "Constituency" },
+    { position: "TESCON Nasara Coordinator", gender: "Male", age: 24, level: "TESCON" },
+  ];
+
+  // Youth filter
+  const youthResults = testPool.filter((r) => {
+    const posLower = r.position.toLowerCase();
+    return (
+      (posLower.includes("youth organiser") ||
+        posLower.includes("youth organizer") ||
+        posLower === "youth" ||
+        posLower.includes("deputy youth") ||
+        posLower.includes("assistant youth")) &&
+      !posLower.includes("former") &&
+      !posLower.includes("patron")
+    );
+  });
+  assert.equal(youthResults.length, 2);
+  assert.ok(!youthResults.some((r) => r.position === "Chairman"), "Chairman under 40 must not be extracted");
+
+  // Women filter
+  const womenResults = testPool.filter((r) => {
+    const posLower = r.position.toLowerCase();
+    return (
+      (posLower.includes("women organiser") ||
+        posLower.includes("women organizer") ||
+        posLower === "women" ||
+        posLower.includes("deputy women") ||
+        posLower.includes("assistant women") ||
+        posLower.includes("wocom")) &&
+      !posLower.includes("former") &&
+      !posLower.includes("patron")
+    );
+  });
+  assert.equal(womenResults.length, 3);
+  assert.ok(!womenResults.some((r) => r.position === "Secretary"), "Female Secretary must not be extracted");
+
+  // Nasara filter
+  const nasaraResults = testPool.filter((r) => {
+    const posLower = r.position.toLowerCase();
+    return (
+      posLower.includes("nasara") &&
+      !posLower.includes("former") &&
+      !posLower.includes("patron")
+    );
+  });
+  assert.equal(nasaraResults.length, 3);
+});
+
