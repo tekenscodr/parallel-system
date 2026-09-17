@@ -111,7 +111,9 @@ export async function GET(req: Request) {
             COUNT(CASE WHEN gender = 'Female' THEN 1 END)::int as women,
             COUNT(CASE WHEN position ILIKE '%nasara%' THEN 1 END)::int as nasara,
             COUNT(CASE WHEN slot_status ILIKE '%Appointed%' OR status ILIKE '%Appointed%' THEN 1 END)::int as appointed,
-            COUNT(CASE WHEN slot_status NOT ILIKE '%Appointed%' AND status NOT ILIKE '%Appointed%' THEN 1 END)::int as elected
+            COUNT(CASE WHEN slot_status NOT ILIKE '%Appointed%' AND status NOT ILIKE '%Appointed%' THEN 1 END)::int as elected,
+            COUNT(CASE WHEN image_url IS NULL OR trim(image_url) = '' OR image_url ILIKE 'https://app.newpatrioticparty.org%' OR image_url NOT ILIKE 'https://%' THEN 1 END)::int as missing_photos,
+            COUNT(CASE WHEN image_url ILIKE 'https://cms.newpatrioticparty.org%' THEN 1 END)::int as verified_photos
           FROM executives_all
           ${whereClause}
         `,

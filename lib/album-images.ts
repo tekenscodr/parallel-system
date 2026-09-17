@@ -15,7 +15,23 @@ async function readSource(url: string): Promise<Buffer | null> {
       : Buffer.from(decodeURIComponent(url.slice(comma + 1)));
   }
 
+  // Check if this URL corresponds to a local file in public/ before hitting the network
+  const pathname = decodeURIComponent(url.split(/[?#]/, 1)[0]);
+  const filename = path.basename(pathname);
+  if (filename && filename.length > 3) {
+    const publicRoot = path.join(process.cwd(), "public");
+    const candidateLocalPaths = [
+      path.join(publicRoot, "cdn", "executives", "volta", filename),
+      path.join(publicRoot, "cdn", "executives", filename),
+      path.join(publicRoot, "cdn", "delegates", filename),
+    ];
+    for (const candidate of candidateLocalPaths) {
+      try { return await fs.readFile(candidate); } catch { /* try next candidate */ }
+    }
+  }
+
   if (/^https?:\/\//i.test(url)) {
+    if (/app\.newpatrioticparty\.org/i.test(url)) return null;
     for (let attempt = 0; attempt < 3; attempt++) {
       const controller = new AbortController();
       // Keep the timeout active until the response body finishes downloading.
@@ -39,14 +55,13 @@ async function readSource(url: string): Promise<Buffer | null> {
   }
 
   // Public URLs may contain escaped spaces, cache-busting queries or fragments.
-  const pathname = decodeURIComponent(url.split(/[?#]/, 1)[0]);
   const publicRoot = path.join(process.cwd(), "public");
   const relative = pathname.replace(/^\/+/, "");
   const roots = pathname.startsWith("/") ? [publicRoot] : [publicRoot, process.cwd()];
   for (const root of roots) {
-    const filename = path.resolve(root, relative);
-    if (!filename.startsWith(root + path.sep)) continue;
-    try { return await fs.readFile(filename); } catch { /* try the next local source */ }
+    const filenamePath = path.resolve(root, relative);
+    if (!filenamePath.startsWith(root + path.sep)) continue;
+    try { return await fs.readFile(filenamePath); } catch { /* try the next local source */ }
   }
   return null;
 }

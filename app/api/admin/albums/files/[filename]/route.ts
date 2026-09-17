@@ -13,6 +13,12 @@ const albumFiles: Record<string, string> = {
   "NPP_National_Youth_Organiser_Electorate_Directory_2026.pdf": "application/pdf",
   "NPP_Regional_and_Wings_Statutory_Audit_Statistics_2026.xlsx":
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "NPP_Electoral_Roll_Incomplete_Audit_and_Comprehensive_Statistics_2026.xlsx":
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "Volta_Region_Executives_National_Regional_Constituency_2026.xlsx":
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "Volta_Executives_Located_in_EC_Registers_2026.xlsx":
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 };
 
 export async function GET(request: Request, context: { params: Promise<{ filename: string }> }) {

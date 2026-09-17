@@ -109,3 +109,35 @@ test("Both Add and Edit modals bind position select options to their respective 
     "Edit modal select should map over editPositionList"
   );
 });
+
+test("POSITIONS_BY_LEVEL.National includes National Council of Elders and National Council of Patrons", async () => {
+  assert.ok(
+    pageContent.includes('"National Council of Elders"'),
+    "Expected POSITIONS_BY_LEVEL.National to include National Council of Elders"
+  );
+  assert.ok(
+    pageContent.includes('"National Council of Patrons"'),
+    "Expected POSITIONS_BY_LEVEL.National to include National Council of Patrons"
+  );
+
+  const { normalizePosition, getPositionRank } = await import("../lib/position-matcher.ts");
+  assert.equal(
+    normalizePosition("Council of Elders", "National"),
+    "National Council of Elders"
+  );
+  assert.equal(
+    normalizePosition("National Council of Elders"),
+    "National Council of Elders"
+  );
+  assert.equal(
+    normalizePosition("Council of Patrons", "National"),
+    "National Council of Patrons"
+  );
+  assert.equal(
+    normalizePosition("National Council of Patrons"),
+    "National Council of Patrons"
+  );
+
+  assert.ok(getPositionRank("National Council of Elders") < 300);
+  assert.ok(getPositionRank("National Council of Patrons") < 300);
+});

@@ -39,6 +39,7 @@ export async function GET(req: Request) {
     const search = url.searchParams.get("search")?.trim() || "";
     const cohort = url.searchParams.get("cohort")?.trim() || "";
     const slot = url.searchParams.get("slot")?.trim() || "";
+    const missingImages = url.searchParams.get("missingImages") === "true" || url.searchParams.get("missingPhotos") === "true";
 
     const rows = await withEcSql(async (sql) => {
       const conditions = [];
@@ -67,6 +68,10 @@ export async function GET(req: Request) {
       if (position) {
         const pCond = buildPositionCondition(sql, position);
         if (pCond) conditions.push(pCond);
+      }
+
+      if (missingImages) {
+        conditions.push(sql`(image_url IS NULL OR trim(image_url) = '' OR image_url ILIKE 'https://app.newpatrioticparty.org%' OR image_url NOT ILIKE 'https://%')`);
       }
 
       const whereClause = conditions.length > 0

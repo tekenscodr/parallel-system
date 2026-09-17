@@ -22,6 +22,19 @@ interface ExecutiveAvatarProps {
 // In-memory set of known dead/0-byte URLs so normal rendering doesn't re-choke the browser pool
 const knownBrokenUrls = new Set<string>();
 
+export function clearBrokenPhotoCache(): void {
+  knownBrokenUrls.clear();
+}
+
+export function getBrokenPhotoUrls(): Set<string> {
+  return new Set(knownBrokenUrls);
+}
+
+export function isBrokenPhotoUrl(url?: string | null): boolean {
+  if (!url) return false;
+  return knownBrokenUrls.has(url.trim());
+}
+
 export function ExecutiveAvatar({
   imageUrl,
   name,

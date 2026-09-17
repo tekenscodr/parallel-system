@@ -19,14 +19,14 @@ test("Election album route file enforces the 6 user design rules", () => {
   const routePath = path.join(process.cwd(), "app/api/admin/albums/election/route.ts");
   const code = fs.readFileSync(routePath, "utf8");
 
-  // Rule 1: Voter Profile shows ONLY level (no jurisdiction suffix)
+  // Rule 1: Voter Profile shows Level with jurisdiction suffix for wing albums (Nasara, Women, Youth)
   assert.ok(
-    code.includes('<span class="lbl">Level:</span> <span class="val">${d.executive_level}</span>'),
-    "Voter card Level must show only ${d.executive_level} without jurisdiction suffix"
+    code.includes('<span class="lbl">Level:</span> <span class="val">${d.executive_level}${jurisdictionSuffix}</span>'),
+    "Voter card Level must show ${d.executive_level}${jurisdictionSuffix}"
   );
   assert.ok(
-    !code.includes('${d.executive_level}${d.constituency'),
-    "Voter card must not append constituency or region to Level"
+    code.includes("jurisdictionSuffix =") && code.includes("isWingAlbum"),
+    "Route must calculate jurisdictionSuffix based on isWingAlbum"
   );
 
   // Rule 2: Dedicated 2 pages per constituency & separation of regional executives

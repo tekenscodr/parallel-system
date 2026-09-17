@@ -126,7 +126,17 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   // 21. National Council Rep
   if (/^national\s+council\s+rep(?:resentative)?$/i.test(p)) return "National Council Representative";
 
-  // 22. Foundation Member
+  // 22. National Council of Elders
+  if (/^(?:national\s+)?council\s+of\s+elders$/i.test(p) || (level === "National" && /^elders?$/i.test(p))) {
+    return "National Council of Elders";
+  }
+
+  // 23. National Council of Patrons
+  if (/^(?:national\s+)?council\s+of\s+patrons$/i.test(p) || (level === "National" && /^patrons?$/i.test(p))) {
+    return "National Council of Patrons";
+  }
+
+  // 24. Foundation Member
   if (/^foundation\s+member$/i.test(p)) return "Foundation Member";
 
   return p;
@@ -337,9 +347,11 @@ export function getPositionRank(pos?: string | null, level?: string | null): num
   // 9. Special Duties, Legal & Council
   if (p.includes("special duties")) return 130;
   if (p.includes("legal")) return 140;
+  if (p.includes("national council rep")) return 150;
+  if (p.includes("national council of elders") || p.includes("council of elders") || p.includes("elders")) return 152;
+  if (p.includes("national council of patrons") || p.includes("council of patrons")) return 154;
   if (p.includes("national council")) return 150;
   if (p.includes("patron")) return 160;
-  if (p.includes("council of elders") || p.includes("elders")) return 170;
   if (p.includes("foundation member")) return 180;
   if (p.includes("coordinator")) return 190;
   if (p.includes("officer")) return 200;

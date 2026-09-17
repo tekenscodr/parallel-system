@@ -40,9 +40,10 @@ import {
   RotateCw,
   Archive,
   Undo2,
+  ImageOff,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
-import { ExecutiveAvatar } from "@/app/admin/components/ExecutiveAvatar";
+import { ExecutiveAvatar, clearBrokenPhotoCache } from "@/app/admin/components/ExecutiveAvatar";
 import {
   Table,
   TableHeader,
@@ -65,6 +66,8 @@ type OverviewData = {
     nasara: number;
     appointed: number;
     elected: number;
+    missing_photos?: number;
+    verified_photos?: number;
   };
   tiers: Array<{ level: string; count: number; women: number }>;
   genderDistribution: Array<{ label: string; count: number }>;
@@ -193,6 +196,8 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Deputy Communication Director",
     "Director of Research and Elections",
     "National Council Representative",
+    "National Council of Elders",
+    "National Council of Patrons",
     "Foundation Member",
   ],
   Region: [
@@ -372,6 +377,14 @@ export default function NationalAdminDashboard() {
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  // Missing images filter & reload state
+  const [filterMissingImages, setFilterMissingImages] = useState<boolean>(false);
+  const [rosterImageReloadKey, setRosterImageReloadKey] = useState<number>(0);
+
+  // Full data reload state
+  const [reloadingFullData, setReloadingFullData] = useState<boolean>(false);
+  const [fullReloadToast, setFullReloadToast] = useState<string>("");
 
   // Roster table state
   const [rows, setRows] = useState<ExecutiveRow[]>([]);
@@ -647,7 +660,7 @@ export default function NationalAdminDashboard() {
       });
   }, []);
 
-  const loadOverview = useCallback((reg?: string, consti?: string, lvl?: string, pos?: string) => {
+  const loadOverview = useCallback((reg?: string, consti?: string, lvl?: string, pos?: string, forceFresh?: boolean) => {
     setLoadingOverview(true);
     const params = new URLSearchParams();
     const r = reg !== undefined ? reg : selectedRegion;
@@ -658,10 +671,12 @@ export default function NationalAdminDashboard() {
     if (c) params.set("constituency", c);
     if (l) params.set("level", l);
     if (p) params.set("position", p);
+    if (forceFresh) params.set("_t", String(Date.now()));
 
-    fetch(`/api/admin/overview?${params.toString()}`, {
+    return fetch(`/api/admin/overview?${params.toString()}`, {
       credentials: "include",
       headers: getAuthHeaders(),
+      cache: forceFresh ? "no-store" : "default",
     })
       .then((r) => r.json())
       .then((data) => {
@@ -669,8 +684,12 @@ export default function NationalAdminDashboard() {
           setOverview(data);
         }
         setLoadingOverview(false);
+        return data;
       })
-      .catch(() => setLoadingOverview(false));
+      .catch((err) => {
+        setLoadingOverview(false);
+        throw err;
+      });
   }, [selectedRegion, selectedConstituency, selectedLevel, selectedPosition]);
 
   useEffect(() => {
@@ -680,7 +699,7 @@ export default function NationalAdminDashboard() {
   }, [currentUser, selectedRegion, selectedConstituency, selectedLevel, selectedPosition, loadOverview]);
 
   // Fetch paginated roster
-  const fetchRoster = useCallback(() => {
+  const fetchRoster = useCallback((forceFresh?: boolean) => {
     const requestId = ++rosterRequestId.current;
     setLoadingRows(true);
     const params = new URLSearchParams({
@@ -694,33 +713,82 @@ export default function NationalAdminDashboard() {
     if (selectedCohort) params.set("cohort", selectedCohort);
     if (selectedSlot) params.set("slot", selectedSlot);
     if (debouncedSearch) params.set("search", debouncedSearch);
+    if (filterMissingImages) params.set("missingImages", "true");
+    if (forceFresh) params.set("_t", String(Date.now()));
 
-    fetch(`/api/admin/executives?${params.toString()}`, {
+    return fetch(`/api/admin/executives?${params.toString()}`, {
       credentials: "include",
       headers: getAuthHeaders(),
+      cache: forceFresh ? "no-store" : "default",
     })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load directory");
         return res.json();
       })
       .then((res) => {
-        if (requestId !== rosterRequestId.current) return;
+        if (requestId !== rosterRequestId.current) return res;
         setRows(sortRosterRows(res.data || [], selectedLevel));
         setTotalRows(res.pagination?.total || 0);
         setTotalPages(res.pagination?.totalPages || 1);
         setLoadingRows(false);
+        return res;
       })
-      .catch(() => {
+      .catch((err) => {
         if (requestId !== rosterRequestId.current) return;
         setLoadingRows(false);
+        throw err;
       });
-  }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedPosition, selectedCohort, selectedSlot, debouncedSearch]);
+  }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedPosition, selectedCohort, selectedSlot, debouncedSearch, filterMissingImages]);
 
   useEffect(() => {
     if (currentUser) {
       fetchRoster();
     }
   }, [currentUser, fetchRoster]);
+
+  // Toggle missing images filter & reload missing portraits
+  const handleToggleMissingImages = () => {
+    const nextState = !filterMissingImages;
+    setFilterMissingImages(nextState);
+    setPage(1);
+    clearBrokenPhotoCache();
+    setRosterImageReloadKey(Date.now());
+    if (nextState) {
+      setFullReloadToast("Missing images filter enabled • Retrying portraits");
+    } else {
+      setFullReloadToast("Showing all executives");
+    }
+    setTimeout(() => {
+      setFullReloadToast("");
+    }, 3000);
+  };
+
+  // Force reload full data from database and reset client image cache
+  const handleReloadFullData = async () => {
+    if (reloadingFullData) return;
+    setReloadingFullData(true);
+    setFullReloadToast("Refreshing database records and statistics...");
+    try {
+      clearBrokenPhotoCache();
+      const freshTimestamp = Date.now();
+      setRosterImageReloadKey(freshTimestamp);
+
+      // Parallel fresh fetch of overview and roster
+      await Promise.all([
+        loadOverview(undefined, undefined, undefined, undefined, true),
+        fetchRoster(true),
+      ]);
+      setFullReloadToast("Full data & statistics successfully reloaded!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to reload";
+      setFullReloadToast(`Reload notice: ${msg}`);
+    } finally {
+      setReloadingFullData(false);
+      setTimeout(() => {
+        setFullReloadToast("");
+      }, 3500);
+    }
+  };
 
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
@@ -1513,7 +1581,7 @@ export default function NationalAdminDashboard() {
     ? TIERS.filter((t) => t.id !== "Electoral Area" && t.id !== "Polling Station")
     : TIERS;
 
-  const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&position=${encodeURIComponent(selectedPosition)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}`;
+  const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&position=${encodeURIComponent(selectedPosition)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}${filterMissingImages ? "&missingImages=true" : ""}`;
 
   const handleExportClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (exportCooldownSec > 0) {
@@ -2290,6 +2358,136 @@ export default function NationalAdminDashboard() {
                   )}
                 </button>
               )}
+
+              {/* Toggle to Reload Missing Images */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={filterMissingImages}
+                onClick={handleToggleMissingImages}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "9px 13px",
+                  borderRadius: "8px",
+                  background: filterMissingImages
+                    ? "rgba(245, 158, 11, 0.18)"
+                    : "rgba(15, 23, 42, 0.8)",
+                  border: filterMissingImages
+                    ? "1px solid rgba(245, 158, 11, 0.55)"
+                    : "1px solid rgba(255, 255, 255, 0.15)",
+                  color: filterMissingImages ? "#fbbf24" : "#cbd5e1",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  boxShadow: filterMissingImages ? "0 0 10px rgba(245, 158, 11, 0.25)" : "none",
+                }}
+                title={
+                  filterMissingImages
+                    ? "Missing images mode active. Click to show all executives."
+                    : "Toggle to filter and reload executives with missing, unmigrated, or broken portraits"
+                }
+              >
+                {/* Visual switch indicator */}
+                <div
+                  style={{
+                    width: "26px",
+                    height: "15px",
+                    borderRadius: "10px",
+                    background: filterMissingImages ? "#f59e0b" : "rgba(255, 255, 255, 0.2)",
+                    position: "relative",
+                    transition: "background 0.2s ease",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "11px",
+                      height: "11px",
+                      borderRadius: "50%",
+                      background: "#ffffff",
+                      position: "absolute",
+                      top: "2px",
+                      left: filterMissingImages ? "13px" : "2px",
+                      transition: "left 0.2s ease",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+                    }}
+                  />
+                </div>
+                <ImageOff size={14} color={filterMissingImages ? "#fbbf24" : "#94a3b8"} />
+                <span>{filterMissingImages ? "Missing Images" : "Reload Missing Images"}</span>
+                {overview?.totals?.missing_photos != null && overview.totals.missing_photos > 0 && (
+                  <span
+                    style={{
+                      padding: "1px 6px",
+                      borderRadius: "10px",
+                      background: filterMissingImages ? "#b45309" : "rgba(255, 255, 255, 0.1)",
+                      color: filterMissingImages ? "#ffffff" : "#94a3b8",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {overview.totals.missing_photos.toLocaleString()}
+                  </span>
+                )}
+              </button>
+
+              {/* Reload Full Data Button */}
+              <button
+                type="button"
+                onClick={handleReloadFullData}
+                disabled={reloadingFullData}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "7px",
+                  padding: "9px 14px",
+                  borderRadius: "8px",
+                  background: reloadingFullData
+                    ? "rgba(59, 130, 246, 0.2)"
+                    : "rgba(30, 41, 59, 0.8)",
+                  border: "1px solid rgba(59, 130, 246, 0.35)",
+                  color: "#93c5fd",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: reloadingFullData ? "not-allowed" : "pointer",
+                  transition: "all 0.15s ease",
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                  opacity: reloadingFullData ? 0.75 : 1,
+                }}
+                title="Reload full roster data and overview statistics directly from the database"
+              >
+                <RotateCw
+                  size={14}
+                  color="#60a5fa"
+                  style={{
+                    animation: reloadingFullData ? "spin 1s linear infinite" : undefined,
+                  }}
+                />
+                <span>{reloadingFullData ? "Reloading..." : "Reload Full Data"}</span>
+              </button>
+
+              {fullReloadToast && (
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "7px 12px",
+                    borderRadius: "8px",
+                    background: "rgba(16, 185, 129, 0.15)",
+                    border: "1px solid rgba(16, 185, 129, 0.35)",
+                    color: "#34d399",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                  }}
+                >
+                  <CheckCircle2 size={13} color="#34d399" />
+                  <span>{fullReloadToast}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -2485,7 +2683,7 @@ export default function NationalAdminDashboard() {
             </select>
 
             {/* Clear All Filters Button */}
-            {(selectedLevel || selectedRegion || selectedConstituency || selectedPosition || selectedCohort || selectedSlot || debouncedSearch) && (
+            {(selectedLevel || selectedRegion || selectedConstituency || selectedPosition || selectedCohort || selectedSlot || debouncedSearch || filterMissingImages) && (
               <button
                 className="dash-filter-select"
                 onClick={() => {
@@ -2496,6 +2694,7 @@ export default function NationalAdminDashboard() {
                   setSelectedCohort("");
                   setSelectedSlot("");
                   setSearchQuery("");
+                  setFilterMissingImages(false);
                   setPage(1);
                 }}
                 style={{
@@ -2521,6 +2720,82 @@ export default function NationalAdminDashboard() {
             </div>
           </div>
         </section>
+
+        {/* Missing Images Active Notice */}
+        {filterMissingImages && (
+          <div
+            style={{
+              marginBottom: "16px",
+              padding: "12px 18px",
+              borderRadius: "8px",
+              background: "rgba(245, 158, 11, 0.12)",
+              border: "1px solid rgba(245, 158, 11, 0.35)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "12px",
+              color: "#fbbf24",
+              fontSize: "13px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <ImageOff size={18} color="#fbbf24" />
+              <div>
+                <span style={{ fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  Missing Images Filter Active:
+                </span>{" "}
+                <span style={{ color: "#fef3c7" }}>
+                  Displaying executives whose portraits are missing, unmigrated, or pending reload.
+                </span>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  clearBrokenPhotoCache();
+                  setRosterImageReloadKey(Date.now());
+                  setFullReloadToast("Retrying all visible portraits with fresh cache...");
+                  setTimeout(() => setFullReloadToast(""), 3000);
+                }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  background: "rgba(245, 158, 11, 0.25)",
+                  border: "1px solid rgba(245, 158, 11, 0.5)",
+                  color: "#ffffff",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
+                <RotateCw size={13} color="#fef3c7" />
+                <span>Force Retry Photos</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterMissingImages(false);
+                  setPage(1);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#fde68a",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Show All Executives
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Executive Roster Grid Table with 'Level' Column and Action Buttons */}
         <section style={{
@@ -2619,6 +2894,7 @@ export default function NationalAdminDashboard() {
                                 region={row.region}
                                 constituency={row.constituency}
                                 size={40}
+                                reloadKey={rosterImageReloadKey}
                               />
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -2952,6 +3228,7 @@ export default function NationalAdminDashboard() {
                     region={activeExecutive.region}
                     constituency={activeExecutive.constituency}
                     size={48}
+                    reloadKey={rosterImageReloadKey}
                   />
                 )}
                 <div>

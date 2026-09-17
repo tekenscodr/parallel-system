@@ -37,6 +37,40 @@ import { getConstituencyCapital } from "@/lib/constituency-capitals";
 const ahafoPhotosByVoterId = new Map<string, string>();
 const ahafoPhotosByName = new Map<string, string>();
 
+// Local disk photo index: voter_id -> full file path, and filename -> full file path
+const localPhotosByVoterId = new Map<string, string>();
+const localPhotosByFilename = new Map<string, string>();
+const base64PhotoCache = new Map<string, string>();
+
+function indexLocalPhotos(dir: string) {
+  if (!fs.existsSync(dir)) return;
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        indexLocalPhotos(fullPath);
+      } else if (/\.(webp|jpg|jpeg|png)$/i.test(entry.name)) {
+        const ext = path.extname(entry.name);
+        const base = path.basename(entry.name, ext);
+        localPhotosByFilename.set(entry.name.toLowerCase(), fullPath);
+        const digits = base.match(/\b\d{8,10}\b/);
+        if (digits) {
+          localPhotosByVoterId.set(digits[0], fullPath);
+        }
+      }
+    }
+  } catch {
+    // Non-fatal
+  }
+}
+
+try {
+  indexLocalPhotos(path.join(process.cwd(), "public", "cdn"));
+} catch {
+  // Non-fatal
+}
+
 try {
   const candidatePaths = [
     path.join(process.cwd(), "exports/albums/ahafo_album_data.json"),
@@ -297,14 +331,42 @@ function generateSvgAvatar(name: string, role: string): string {
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
 
+async function resolveLocalPhotoAsWebpDataUri(localPath: string): Promise<string | null> {
+  const cached = base64PhotoCache.get(localPath);
+  if (cached) return cached;
+  try {
+    const ext = path.extname(localPath).toLowerCase();
+    if (ext === ".webp") {
+      const buf = await fs.promises.readFile(localPath);
+      const dataUri = "data:image/webp;base64," + buf.toString("base64");
+      base64PhotoCache.set(localPath, dataUri);
+      return dataUri;
+    } else {
+      const buf = await fs.promises.readFile(localPath);
+      const webpBuf = await sharp(buf)
+        .rotate()
+        .resize(240, 300, { fit: "cover", position: "top" })
+        .webp({ quality: 80, effort: 4 })
+        .toBuffer();
+      const dataUri = "data:image/webp;base64," + webpBuf.toString("base64");
+      base64PhotoCache.set(localPath, dataUri);
+      return dataUri;
+    }
+  } catch {
+    return null;
+  }
+}
+
 async function resolveDelegateWebpImage(
   imageUrl: string | null,
   voterId?: string | null,
   name?: string | null
 ): Promise<string | null> {
+  const cleanVoterId = voterId && voterId !== "—" ? voterId.trim() : null;
+
   // 1. Instant check: Ahafo pre-indexed WebP portraits (by voter ID or executive name)
-  if (voterId && voterId !== "—") {
-    const cachedByVoterId = ahafoPhotosByVoterId.get(voterId.trim());
+  if (cleanVoterId) {
+    const cachedByVoterId = ahafoPhotosByVoterId.get(cleanVoterId);
     if (cachedByVoterId && cachedByVoterId.startsWith("data:image/webp")) {
       return cachedByVoterId;
     }
@@ -322,21 +384,64 @@ async function resolveDelegateWebpImage(
     return imageUrl;
   }
 
-  // 3. Local file portrait (e.g. in public/ directory)
-  if (imageUrl && !/^https?:\/\//i.test(imageUrl)) {
-    try {
-      const buffer = await resolveAlbumImage(imageUrl);
-      if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
-    } catch {
-      // ignore local file read failure
+  // 3. Local disk lookup by Voter ID (e.g. public/cdn/executives/volta/<voter_id>.webp)
+  if (cleanVoterId) {
+    const localPath = localPhotosByVoterId.get(cleanVoterId);
+    if (localPath) {
+      const dataUri = await resolveLocalPhotoAsWebpDataUri(localPath);
+      if (dataUri) return dataUri;
     }
   }
 
-  // 4. Remote HTTP/HTTPS portraits:
-  // Return the direct URL so the client browser loads it asynchronously without
-  // blocking the serverless function or hitting 504 Gateway / 300s timeout.
-  if (imageUrl && /^https?:\/\//i.test(imageUrl)) {
-    return imageUrl;
+  // 4. Local disk lookup by imageUrl (matching filename or embedded voter ID)
+  if (imageUrl) {
+    const cleanUrl = imageUrl.trim();
+
+    // Check if filename in imageUrl matches any local file
+    const urlFilename = path.basename(cleanUrl.split(/[?#]/, 1)[0]).toLowerCase();
+    const localPath = localPhotosByFilename.get(urlFilename);
+    if (localPath) {
+      const dataUri = await resolveLocalPhotoAsWebpDataUri(localPath);
+      if (dataUri) return dataUri;
+    }
+
+    // Check if voter ID is embedded in imageUrl (e.g. /volta/2481017881.webp)
+    const urlVoterMatch = cleanUrl.match(/\b\d{8,10}\b/);
+    if (urlVoterMatch) {
+      const matchedLocalPath = localPhotosByVoterId.get(urlVoterMatch[0]);
+      if (matchedLocalPath) {
+        const dataUri = await resolveLocalPhotoAsWebpDataUri(matchedLocalPath);
+        if (dataUri) return dataUri;
+      }
+    }
+
+    // 5. Local file portrait (e.g. in public/ directory)
+    if (!/^https?:\/\//i.test(cleanUrl)) {
+      try {
+        const buffer = await resolveAlbumImage(cleanUrl);
+        if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
+      } catch {
+        // ignore local file read failure
+      }
+    }
+
+    // 6. Skip unreachable legacy domain immediately without blocking
+    if (/app\.newpatrioticparty\.org/i.test(cleanUrl)) {
+      return null;
+    }
+
+    // 7. Resolve remote URL through resolveAlbumImage
+    try {
+      const buffer = await resolveAlbumImage(cleanUrl);
+      if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
+    } catch {
+      // ignore
+    }
+
+    // If resolveAlbumImage didn't return a buffer, return the remote URL as fallback
+    if (/^https?:\/\//i.test(cleanUrl)) {
+      return cleanUrl;
+    }
   }
 
   return null;
@@ -349,8 +454,8 @@ async function convertDelegatesImagesToWebp(delegates: any[]): Promise<void> {
     await Promise.all(
       chunk.map(async (d) => {
         const webpUri = await resolveDelegateWebpImage(d.image_url, d.voter_id, d.executive_name);
-        d.webp_base64 = webpUri || d.image_url || d.avatar_svg;
-        d.photo_unavailable = !webpUri && !d.image_url;
+        d.webp_base64 = webpUri || d.avatar_svg;
+        d.photo_unavailable = !webpUri;
       })
     );
   }
@@ -2160,20 +2265,36 @@ function generateAlbumHtml(
   const sealTopSvg = renderCurvedText("NATIONAL ELECTIONS COMMITTEE", 60, 60, 42.5, -156, -24, "#003399", 5.6, false);
   const sealBottomSvg = renderCurvedText("OFFICIAL SEAL · ELECTIONS 2026", 60, 60, 42.5, 156, 24, "#C8102E", 5.1, true);
 
-  // Render individual voter card (Level only, no jurisdiction suffix)
+  const isWingAlbum =
+    /(?:youth|women|nasara)/i.test(contest) ||
+    (delegates.length > 0 &&
+      delegates.every((d) =>
+        /(?:youth|women|nasara|wocom)/i.test(String(d.position || d.canonical_position || ""))
+      ));
+
+  // Render individual voter card
   function renderVoterCard(d: any): string {
     const photoSrc = d.webp_base64 || d.avatar_svg;
     const isTescon = String(d.executive_level || "").toLowerCase().trim() === "tescon";
     const institution = isTescon
       ? String(d.institution || getTesconInstitution(d) || "").trim()
       : "";
+    const isConstituency = String(d.executive_level || "").toLowerCase().trim() === "constituency";
+    const isExtBranch = String(d.executive_level || "").toLowerCase().trim() === "external branch";
+
+    // For Nasara, Women and Youth: constituency cards display jurisdiction beside Level
+    const jurisdictionSuffix =
+      isWingAlbum && (isConstituency || isExtBranch) && d.constituency
+        ? ` (${String(d.constituency).trim()})`
+        : "";
+
     return `
         <div class="voter-card">
           <div class="card-details">
             <div class="pos-badge">${d.canonical_position}</div>
             <div class="exec-name">${d.executive_name}</div>
             <div class="detail-line">
-              <span class="lbl">Level:</span> <span class="val">${d.executive_level}</span>
+              <span class="lbl">Level:</span> <span class="val">${d.executive_level}${jurisdictionSuffix}</span>
             </div>
             ${isTescon && institution ? `
             <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${institution}">
@@ -2244,137 +2365,255 @@ function generateAlbumHtml(
     }
   }
 
-  // 2. Regional Level Pages (Separated from Constituency)
-  if (regionalDelegates.length > 0) {
-    const regionalGroups = new Map<string, any[]>();
-    for (const delegate of regionalDelegates) {
-      const regionName = String(delegate.region || "Unassigned").trim();
-      if (!regionalGroups.has(regionName)) regionalGroups.set(regionName, []);
-      regionalGroups.get(regionName)!.push(delegate);
+  if (isWingAlbum) {
+    // When loading for Nasara, Women, and Youth only:
+    // After loading National, each region must start on a new page,
+    // and then followed by its constituencies!
+    const presentRegions: string[] = [];
+    for (const r of GHANA_REGIONS_ORDER) {
+      const has = delegates.some(
+        (d) =>
+          String(d.executive_level || "").toLowerCase().trim() !== "national" &&
+          String(d.region || "").toLowerCase().trim() === r.toLowerCase()
+      );
+      if (has) presentRegions.push(r);
     }
-    for (const [regionName, regionDelegates] of regionalGroups) {
-      for (let i = 0; i < regionDelegates.length; i += 10) {
-        const chunk = regionDelegates.slice(i, i + 10);
+    for (const d of delegates) {
+      const lvl = String(d.executive_level || "").toLowerCase().trim();
+      if (lvl === "national" || lvl === "external branch") continue;
+      const reg = String(d.region || "").trim();
+      if (
+        reg &&
+        !reg.toLowerCase().includes("external") &&
+        !presentRegions.some((r) => r.toLowerCase() === reg.toLowerCase())
+      ) {
+        presentRegions.push(reg);
+      }
+    }
+
+    for (const regionName of presentRegions) {
+      // 1. Regional executives for this region
+      const regExecs = delegates.filter(
+        (d) =>
+          (String(d.executive_level || "").toLowerCase().trim() === "regional" ||
+            String(d.executive_level || "").toLowerCase().trim() === "region") &&
+          String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
+      );
+      regExecs.sort((a, b) => {
+        if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
+        return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+      });
+
+      // 2. Constituency executives for this region
+      const constExecs = delegates.filter(
+        (d) =>
+          String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
+          String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
+      );
+      constExecs.sort((a, b) => {
+        const cA = String(a.constituency || "").trim();
+        const cB = String(b.constituency || "").trim();
+        const cComp = cA.localeCompare(cB);
+        if (cComp !== 0) return cComp;
+        if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
+        return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+      });
+
+      // 3. TESCON executives for this region (if any)
+      const tesconExecs = delegates.filter(
+        (d) =>
+          String(d.executive_level || "").toLowerCase().trim() === "tescon" &&
+          String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
+      );
+      tesconExecs.sort((a, b) => {
+        const instA = getTesconInstitution(a);
+        const instB = getTesconInstitution(b);
+        const iComp = instA.localeCompare(instB);
+        if (iComp !== 0) return iComp;
+        return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+      });
+
+      const regionList = [...regExecs, ...constExecs, ...tesconExecs];
+      if (regionList.length === 0) continue;
+
+      // Each region starts on a new page!
+      for (let i = 0; i < regionList.length; i += 10) {
+        const chunk = regionList.slice(i, i + 10);
         const partIdx = Math.floor(i / 10) + 1;
         chunk.forEach((d) => {
           d.page_number = currentCardPageNum;
         });
         cardPages.push({
-          headerSubTitle: `${regionName.toUpperCase()} REGION · REGIONAL EXECUTIVES (PART ${partIdx})`,
-          footerLabel: `${regionName.toUpperCase()} REGIONAL EXECUTIVES`,
+          headerSubTitle: `${regionName.toUpperCase()} REGION · ${contest.toUpperCase()} (PART ${partIdx})`,
+          footerLabel: `${regionName.toUpperCase()} REGION ELECTORATE`,
           cards: chunk,
         });
         currentCardPageNum++;
       }
     }
-  }
 
-  // 3. Constituency Level Pages (Dedicated 2 Pages per Constituency)
-  if (constituencyDelegates.length > 0) {
-    const constituencyMap = new Map<string, { name: string; region: string; delegates: any[] }>();
-    for (const d of constituencyDelegates) {
-      const cName = d.constituency?.trim() || "Unknown Constituency";
-      const regionName = d.region?.trim() || "Unassigned";
-      const key = `${regionName.toLowerCase()}\u0000${cName.toLowerCase()}`;
-      if (!constituencyMap.has(key)) {
-        constituencyMap.set(key, { name: cName, region: regionName, delegates: [] });
-      }
-      constituencyMap.get(key)!.delegates.push(d);
-    }
-
-    for (const { name: cName, region: constituencyRegion, delegates: cList } of constituencyMap.values()) {
-      const capital = getConstituencyCapital(cName);
-      const regLabel = constituencyRegion.toUpperCase();
-      const regionPrefix = regLabel ? `${regLabel} REGION · ` : "";
-
-      // Dedicated Page 1: Up to 10 cards
-      const part1Cards = cList.slice(0, 10);
-      part1Cards.forEach((d) => {
-        d.page_number = currentCardPageNum;
+    // External Branches (if any)
+    const extBranchDelegates = delegates.filter(
+      (d) =>
+        String(d.executive_level || "").toLowerCase().trim() === "external branch" ||
+        String(d.region || "").toLowerCase().includes("external")
+    );
+    if (extBranchDelegates.length > 0) {
+      extBranchDelegates.sort((a, b) => {
+        const cA = String(a.constituency || "").trim();
+        const cB = String(b.constituency || "").trim();
+        const cComp = cA.localeCompare(cB);
+        if (cComp !== 0) return cComp;
+        if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
+        return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
       });
-      cardPages.push({
-        headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 1)`,
-        footerLabel: `${cName.toUpperCase()}`,
-        cards: part1Cards,
-      });
-      currentCardPageNum++;
-
-      // Dedicated Page 2: Up to 9 cards + 10th slot validation / QR code box
-      const part2Cards = cList.slice(10, 19);
-      part2Cards.forEach((d) => {
-        d.page_number = currentCardPageNum;
-      });
-      cardPages.push({
-        headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 2)`,
-        footerLabel: `${cName.toUpperCase()}`,
-        cards: part2Cards,
-        isConstituencyPart2: true,
-        constituencyName: cName,
-        constituencyCapital: capital,
-        totalConstituencyExecutives: cList.length,
-      });
-      currentCardPageNum++;
-    }
-  }
-
-  // 3b. External Branches retain constituency status and follow domestic constituencies.
-  if (otherDelegates.length > 0) {
-    const branchGroups = new Map<string, any[]>();
-    for (const delegate of otherDelegates) {
-      const branchName = String(delegate.constituency || "Unassigned External Branch").trim();
-      if (!branchGroups.has(branchName)) branchGroups.set(branchName, []);
-      branchGroups.get(branchName)!.push(delegate);
-    }
-    for (const [branchName, branchDelegates] of branchGroups) {
-      for (let i = 0; i < branchDelegates.length; i += 10) {
-        const chunk = branchDelegates.slice(i, i + 10);
+      for (let i = 0; i < extBranchDelegates.length; i += 10) {
+        const chunk = extBranchDelegates.slice(i, i + 10);
         const partIdx = Math.floor(i / 10) + 1;
         chunk.forEach((d) => {
           d.page_number = currentCardPageNum;
         });
         cardPages.push({
-          headerSubTitle: `EXTERNAL BRANCH · ${branchName.toUpperCase()} (PART ${partIdx})`,
-          footerLabel: `${branchName.toUpperCase()} EXTERNAL BRANCH`,
+          headerSubTitle: `EXTERNAL BRANCHES · ${contest.toUpperCase()} (PART ${partIdx})`,
+          footerLabel: `EXTERNAL BRANCHES ELECTORATE`,
           cards: chunk,
         });
         currentCardPageNum++;
       }
     }
-  }
-
-  // 4. TESCON Level Pages (Grouped together contiguously, 10 per page, not split per school)
-  if (tesconDelegates.length > 0) {
-    const institutionGroups = new Map<string, { region: string; delegates: any[] }>();
-    for (const delegate of tesconDelegates) {
-      const regionName = String(delegate.region || "Unassigned").trim();
-      const institution = getTesconInstitution(delegate);
-      delegate.institution = institution;
-      if (!institutionGroups.has(regionName)) {
-        institutionGroups.set(regionName, { region: regionName, delegates: [] });
+  } else {
+    // 2. Regional Level Pages (Separated from Constituency)
+    if (regionalDelegates.length > 0) {
+      const regionalGroups = new Map<string, any[]>();
+      for (const delegate of regionalDelegates) {
+        const regionName = String(delegate.region || "Unassigned").trim();
+        if (!regionalGroups.has(regionName)) regionalGroups.set(regionName, []);
+        regionalGroups.get(regionName)!.push(delegate);
       }
-      institutionGroups.get(regionName)!.delegates.push(delegate);
+      for (const [regionName, regionDelegates] of regionalGroups) {
+        for (let i = 0; i < regionDelegates.length; i += 10) {
+          const chunk = regionDelegates.slice(i, i + 10);
+          const partIdx = Math.floor(i / 10) + 1;
+          chunk.forEach((d) => {
+            d.page_number = currentCardPageNum;
+          });
+          cardPages.push({
+            headerSubTitle: `${regionName.toUpperCase()} REGION · REGIONAL EXECUTIVES (PART ${partIdx})`,
+            footerLabel: `${regionName.toUpperCase()} REGIONAL EXECUTIVES`,
+            cards: chunk,
+          });
+          currentCardPageNum++;
+        }
+      }
     }
-    for (const { region: regionName, delegates: regTesconDelegates } of institutionGroups.values()) {
-      const regPrefix =
-        regionName && regionName.toLowerCase() !== "unassigned" && regionName.toLowerCase() !== "national"
-          ? `${regionName.toUpperCase()} REGION · `
-          : "";
-      const regFooter =
-        regionName && regionName.toLowerCase() !== "unassigned" && regionName.toLowerCase() !== "national"
-          ? `${regionName.toUpperCase()} `
-          : "";
-      for (let i = 0; i < regTesconDelegates.length; i += 10) {
-        const chunk = regTesconDelegates.slice(i, i + 10);
-        const partIdx = Math.floor(i / 10) + 1;
-        chunk.forEach((d) => {
+
+    // 3. Constituency Level Pages (Dedicated 2 Pages per Constituency)
+    if (constituencyDelegates.length > 0) {
+      const constituencyMap = new Map<string, { name: string; region: string; delegates: any[] }>();
+      for (const d of constituencyDelegates) {
+        const cName = d.constituency?.trim() || "Unknown Constituency";
+        const regionName = d.region?.trim() || "Unassigned";
+        const key = `${regionName.toLowerCase()}\u0000${cName.toLowerCase()}`;
+        if (!constituencyMap.has(key)) {
+          constituencyMap.set(key, { name: cName, region: regionName, delegates: [] });
+        }
+        constituencyMap.get(key)!.delegates.push(d);
+      }
+
+      for (const { name: cName, region: constituencyRegion, delegates: cList } of constituencyMap.values()) {
+        const capital = getConstituencyCapital(cName);
+        const regLabel = constituencyRegion.toUpperCase();
+        const regionPrefix = regLabel ? `${regLabel} REGION · ` : "";
+
+        // Dedicated Page 1: Up to 10 cards
+        const part1Cards = cList.slice(0, 10);
+        part1Cards.forEach((d) => {
           d.page_number = currentCardPageNum;
         });
         cardPages.push({
-          headerSubTitle: `${regPrefix}TESCON EXECUTIVES (PART ${partIdx})`,
-          footerLabel: `${regFooter}TESCON EXECUTIVES`,
-          cards: chunk,
+          headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 1)`,
+          footerLabel: `${cName.toUpperCase()}`,
+          cards: part1Cards,
         });
         currentCardPageNum++;
+
+        // Dedicated Page 2: Up to 9 cards + 10th slot validation / QR code box
+        const part2Cards = cList.slice(10, 19);
+        part2Cards.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 2)`,
+          footerLabel: `${cName.toUpperCase()}`,
+          cards: part2Cards,
+          isConstituencyPart2: true,
+          constituencyName: cName,
+          constituencyCapital: capital,
+          totalConstituencyExecutives: cList.length,
+        });
+        currentCardPageNum++;
+      }
+    }
+
+    // 3b. External Branches retain constituency status and follow domestic constituencies.
+    if (otherDelegates.length > 0) {
+      const branchGroups = new Map<string, any[]>();
+      for (const delegate of otherDelegates) {
+        const branchName = String(delegate.constituency || "Unassigned External Branch").trim();
+        if (!branchGroups.has(branchName)) branchGroups.set(branchName, []);
+        branchGroups.get(branchName)!.push(delegate);
+      }
+      for (const [branchName, branchDelegates] of branchGroups) {
+        for (let i = 0; i < branchDelegates.length; i += 10) {
+          const chunk = branchDelegates.slice(i, i + 10);
+          const partIdx = Math.floor(i / 10) + 1;
+          chunk.forEach((d) => {
+            d.page_number = currentCardPageNum;
+          });
+          cardPages.push({
+            headerSubTitle: `EXTERNAL BRANCH · ${branchName.toUpperCase()} (PART ${partIdx})`,
+            footerLabel: `${branchName.toUpperCase()} EXTERNAL BRANCH`,
+            cards: chunk,
+          });
+          currentCardPageNum++;
+        }
+      }
+    }
+
+    // 4. TESCON Level Pages (Grouped together contiguously, 10 per page, not split per school)
+    if (tesconDelegates.length > 0) {
+      const institutionGroups = new Map<string, { region: string; delegates: any[] }>();
+      for (const delegate of tesconDelegates) {
+        const regionName = String(delegate.region || "Unassigned").trim();
+        const institution = getTesconInstitution(delegate);
+        delegate.institution = institution;
+        if (!institutionGroups.has(regionName)) {
+          institutionGroups.set(regionName, { region: regionName, delegates: [] });
+        }
+        institutionGroups.get(regionName)!.delegates.push(delegate);
+      }
+      for (const { region: regionName, delegates: regTesconDelegates } of institutionGroups.values()) {
+        const regPrefix =
+          regionName && regionName.toLowerCase() !== "unassigned" && regionName.toLowerCase() !== "national"
+            ? `${regionName.toUpperCase()} REGION · `
+            : "";
+        const regFooter =
+          regionName && regionName.toLowerCase() !== "unassigned" && regionName.toLowerCase() !== "national"
+            ? `${regionName.toUpperCase()} `
+            : "";
+        for (let i = 0; i < regTesconDelegates.length; i += 10) {
+          const chunk = regTesconDelegates.slice(i, i + 10);
+          const partIdx = Math.floor(i / 10) + 1;
+          chunk.forEach((d) => {
+            d.page_number = currentCardPageNum;
+          });
+          cardPages.push({
+            headerSubTitle: `${regPrefix}TESCON EXECUTIVES (PART ${partIdx})`,
+            footerLabel: `${regFooter}TESCON EXECUTIVES`,
+            cards: chunk,
+          });
+          currentCardPageNum++;
+        }
       }
     }
   }
