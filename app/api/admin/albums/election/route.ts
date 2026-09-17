@@ -26,6 +26,9 @@ import {
   CONSTITUENCY_POSITION_IDS,
   REGIONAL_POSITION_IDS,
   type ContestType,
+  parseVoterDetails,
+  DEFAULT_VOTER_DETAILS,
+  type VoterDetailField,
 } from "@/lib/election-contests";
 import {
   getConstituenciesForRegion,
@@ -489,6 +492,9 @@ export async function GET(req: NextRequest) {
     levelsParam.toLowerCase() !== "all" && levelsParam !== ""
       ? levelsParam.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean)
       : [];
+
+  const detailsParam = searchParams.get("details") ?? searchParams.get("fields");
+  const visibleDetails = parseVoterDetails(detailsParam);
 
   const customPositionKeys = positionsParam
     ? positionsParam.split(",").map((s) => s.trim()).filter(Boolean)
@@ -1923,7 +1929,8 @@ export async function GET(req: NextRequest) {
         logoDataUri,
         levelAudit,
         albumType,
-        elephantSealDataUri
+        elephantSealDataUri,
+        visibleDetails
       );
 
       const headers: Record<string, string> = {
@@ -1947,6 +1954,7 @@ export async function GET(req: NextRequest) {
       delegates,
       constituencyAudit,
       levelAudit,
+      visibleDetails: Array.from(visibleDetails),
       generatedAt: new Date().toISOString(),
     }, { headers: { "Cache-Control": "private, no-store" } });
   });
@@ -2259,7 +2267,8 @@ function generateAlbumHtml(
   logoDataUri?: string,
   levelAudit?: any,
   albumType: string = "provisional",
-  elephantSealDataUri?: string
+  elephantSealDataUri?: string,
+  visibleDetails?: Set<VoterDetailField>
 ): string {
   const effectiveElephantSealUri = elephantSealDataUri || getElephantSealDataUriSync();
   const sealTopSvg = renderCurvedText("NATIONAL ELECTIONS COMMITTEE", 60, 60, 42.5, -156, -24, "#003399", 5.6, false);
@@ -2271,6 +2280,17 @@ function generateAlbumHtml(
       delegates.every((d) =>
         /(?:youth|women|nasara|wocom)/i.test(String(d.position || d.canonical_position || ""))
       ));
+
+  const details = visibleDetails || new Set(DEFAULT_VOTER_DETAILS);
+  const showPhoto = details.has("photo");
+  const showName = details.has("name");
+  const showPosition = details.has("position");
+  const showLevel = details.has("level");
+  const showVoterId = details.has("voter_id");
+  const showPhone = details.has("phone");
+  const showInstitution = details.has("institution");
+  const showDemographics = details.has("demographics");
+  const showPollingStation = details.has("polling_station");
 
   // Render individual voter card
   function renderVoterCard(d: any): string {
@@ -2288,29 +2308,52 @@ function generateAlbumHtml(
         ? ` (${String(d.constituency).trim()})`
         : "";
 
+    const demographicText = [
+      d.gender && d.gender !== "Unknown" ? d.gender : null,
+      d.age !== null && d.age !== undefined ? `${d.age} yrs` : null,
+    ].filter(Boolean).join(" · ");
+
     return `
         <div class="voter-card">
           <div class="card-details">
-            <div class="pos-badge">${d.canonical_position}</div>
-            <div class="exec-name">${d.executive_name}</div>
+            ${showPosition && d.canonical_position ? `<div class="pos-badge">${d.canonical_position}</div>` : ""}
+            ${showName ? `<div class="exec-name">${d.executive_name}</div>` : ""}
+            ${showLevel ? `
             <div class="detail-line">
               <span class="lbl">Level:</span> <span class="val">${d.executive_level}${jurisdictionSuffix}</span>
             </div>
-            ${isTescon && institution ? `
+            ` : ""}
+            ${showInstitution && isTescon && institution ? `
             <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${institution}">
               <span class="lbl">Institution:</span> <span class="val" style="font-weight: 700;">${institution}</span>
             </div>
             ` : ""}
+            ${showVoterId ? `
             <div class="detail-line">
               <span class="lbl">Voter ID:</span> <span class="val mono">${d.voter_id}</span>
             </div>
+            ` : ""}
+            ${showPhone ? `
             <div class="detail-line">
               <span class="lbl">Phone:</span> <span class="val">${d.phone}</span>
             </div>
+            ` : ""}
+            ${showDemographics && demographicText ? `
+            <div class="detail-line">
+              <span class="lbl">Demographics:</span> <span class="val">${demographicText}</span>
+            </div>
+            ` : ""}
+            ${showPollingStation && d.polling_station ? `
+            <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${d.polling_station}">
+              <span class="lbl">Station:</span> <span class="val">${d.polling_station}</span>
+            </div>
+            ` : ""}
           </div>
+          ${showPhoto ? `
           <div class="card-photo">
             <img class="voter-img" src="${photoSrc}" alt="${d.executive_name}" loading="eager" decoding="sync" data-fallback="${d.avatar_svg}" onerror="this.onerror=null; this.src='${d.avatar_svg}';" />
           </div>
+          ` : ""}
         </div>
       `;
   }

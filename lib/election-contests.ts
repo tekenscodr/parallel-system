@@ -426,3 +426,177 @@ export const LEVEL_PRESETS = {
 } as const;
 
 export type LevelPresetKey = keyof typeof LEVEL_PRESETS;
+
+export type VoterDetailField =
+  | "photo"
+  | "name"
+  | "position"
+  | "level"
+  | "voter_id"
+  | "phone"
+  | "institution"
+  | "demographics"
+  | "polling_station";
+
+export interface VoterDetailDefinition {
+  id: VoterDetailField;
+  label: string;
+  shortLabel: string;
+  description: string;
+  category: "identity" | "electoral" | "contact";
+  isStandard: boolean;
+}
+
+export const ALL_VOTER_DETAILS: VoterDetailDefinition[] = [
+  {
+    id: "photo",
+    label: "Portrait Photo",
+    shortLabel: "Photo",
+    description: "Official portrait or biometric avatar image",
+    category: "identity",
+    isStandard: true,
+  },
+  {
+    id: "name",
+    label: "Executive Full Name",
+    shortLabel: "Name",
+    description: "Official executive name in full capital letters",
+    category: "identity",
+    isStandard: true,
+  },
+  {
+    id: "position",
+    label: "Portfolio / Position Badge",
+    shortLabel: "Position",
+    description: "Canonical executive portfolio badge",
+    category: "electoral",
+    isStandard: true,
+  },
+  {
+    id: "level",
+    label: "Administrative Level & Jurisdiction",
+    shortLabel: "Level / Jurisdiction",
+    description: "Level (National, Regional, Constituency) with constituency jurisdiction",
+    category: "electoral",
+    isStandard: true,
+  },
+  {
+    id: "voter_id",
+    label: "EC Voter ID Number",
+    shortLabel: "Voter ID",
+    description: "10-digit official Electoral Commission voter ID",
+    category: "identity",
+    isStandard: true,
+  },
+  {
+    id: "phone",
+    label: "Telephone / Contact Number",
+    shortLabel: "Phone",
+    description: "Executive contact telephone number",
+    category: "contact",
+    isStandard: true,
+  },
+  {
+    id: "institution",
+    label: "Campus Institution (TESCON)",
+    shortLabel: "Institution",
+    description: "Tertiary campus chapter for TESCON delegates",
+    category: "electoral",
+    isStandard: true,
+  },
+  {
+    id: "demographics",
+    label: "Demographics (Gender & Age)",
+    shortLabel: "Demographics",
+    description: "Gender and calculated age in years",
+    category: "identity",
+    isStandard: false,
+  },
+  {
+    id: "polling_station",
+    label: "Polling Station Code / Name",
+    shortLabel: "Polling Station",
+    description: "Registered voting station or center",
+    category: "electoral",
+    isStandard: false,
+  },
+];
+
+export const DEFAULT_VOTER_DETAILS: VoterDetailField[] = [
+  "photo",
+  "name",
+  "position",
+  "level",
+  "voter_id",
+  "phone",
+  "institution",
+];
+
+export const VOTER_DETAIL_PRESETS = {
+  default_standard: {
+    label: "Standard Album (Default)",
+    description: "All 7 standard card details (Photo, Name, Position, Level, Voter ID, Phone, Institution)",
+    ids: ["photo", "name", "position", "level", "voter_id", "phone", "institution"] as VoterDetailField[],
+  },
+  id_verification: {
+    label: "ID Verification",
+    description: "Key electoral roll fields (Photo, Name, Position, Level, Voter ID)",
+    ids: ["photo", "name", "position", "level", "voter_id"] as VoterDetailField[],
+  },
+  photo_badge: {
+    label: "Accreditation / Photo Badge",
+    description: "Badge fields (Photo, Name, Position, Voter ID)",
+    ids: ["photo", "name", "position", "voter_id"] as VoterDetailField[],
+  },
+  contact_directory: {
+    label: "Contact Directory",
+    description: "Directory roster (Name, Position, Level, Phone)",
+    ids: ["name", "position", "level", "phone"] as VoterDetailField[],
+  },
+  full_profile: {
+    label: "Full Profile (All 9)",
+    description: "Includes Demographics and Polling Station",
+    ids: [
+      "photo",
+      "name",
+      "position",
+      "level",
+      "voter_id",
+      "phone",
+      "institution",
+      "demographics",
+      "polling_station",
+    ] as VoterDetailField[],
+  },
+} as const;
+
+export type VoterDetailPresetKey = keyof typeof VOTER_DETAIL_PRESETS;
+
+const VALID_VOTER_DETAIL_SET = new Set<string>(
+  ALL_VOTER_DETAILS.map((d) => d.id.toLowerCase())
+);
+
+export function parseVoterDetails(param?: string | null): Set<VoterDetailField> {
+  if (param === undefined || param === null) {
+    return new Set(DEFAULT_VOTER_DETAILS);
+  }
+  const raw = String(param).trim().toLowerCase();
+  if (raw === "" || raw === "default" || raw === "standard") {
+    return new Set(DEFAULT_VOTER_DETAILS);
+  }
+  if (raw === "all") {
+    return new Set(ALL_VOTER_DETAILS.map((d) => d.id));
+  }
+  if (raw === "none" || raw === "empty") {
+    return new Set<VoterDetailField>();
+  }
+
+  const result = new Set<VoterDetailField>();
+  for (const part of raw.split(",")) {
+    const trimmed = part.trim().toLowerCase();
+    if (VALID_VOTER_DETAIL_SET.has(trimmed)) {
+      result.add(trimmed as VoterDetailField);
+    }
+  }
+  return result;
+}

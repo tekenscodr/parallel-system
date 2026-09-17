@@ -48,10 +48,15 @@ import {
   POSITION_PRESETS,
   ALL_CUSTOMIZABLE_LEVELS,
   LEVEL_PRESETS,
+  ALL_VOTER_DETAILS,
+  DEFAULT_VOTER_DETAILS,
+  VOTER_DETAIL_PRESETS,
   type ContestType,
   type CustomizablePosition,
   type CustomizableLevel,
   type LevelPresetKey,
+  type VoterDetailField,
+  type VoterDetailPresetKey,
 } from "@/lib/election-contests";
 
 const REGION_OPTIONS = [
@@ -129,6 +134,10 @@ export default function PositionAlbumsPage() {
     "External Branch",
     "TESCON",
   ]);
+  const [selectedDetails, setSelectedDetails] = useState<VoterDetailField[]>([
+    ...DEFAULT_VOTER_DETAILS,
+  ]);
+  const [detailsFilterOpen, setDetailsFilterOpen] = useState(false);
   const [customizerOpen, setCustomizerOpen] = useState(false);
   const [positionSearch, setPositionSearch] = useState("");
   const [tab, setTab] = useState("preview");
@@ -168,7 +177,13 @@ export default function PositionAlbumsPage() {
       : level !== "all" && level !== "custom"
       ? `&levels=${encodeURIComponent(level)}`
       : "";
-  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}`;
+  const isCustomDetails =
+    selectedDetails.length !== DEFAULT_VOTER_DETAILS.length ||
+    !DEFAULT_VOTER_DETAILS.every((d) => selectedDetails.includes(d));
+  const detailsQuery = isCustomDetails
+    ? `&details=${encodeURIComponent(selectedDetails.join(","))}`
+    : "";
+  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}${detailsQuery}`;
   const requestKey = `${query}&revision=${retry}`;
   const previewUrl = `/api/admin/albums/election?${requestKey}&format=html`;
   const excelDownloadUrl = `/api/admin/albums/election?${query}&format=excel&download=1`;
@@ -252,6 +267,30 @@ export default function PositionAlbumsPage() {
     } else {
       setSelectedPositions((prev) => Array.from(new Set([...prev, ...catIds])));
     }
+    setPage(1);
+  };
+
+  const toggleDetail = (id: VoterDetailField) => {
+    setSelectedDetails((prev) => {
+      const exists = prev.includes(id);
+      const next = exists ? prev.filter((d) => d !== id) : [...prev, id];
+      return next;
+    });
+    setPage(1);
+  };
+
+  const selectAllDetails = () => {
+    setSelectedDetails(ALL_VOTER_DETAILS.map((d) => d.id));
+    setPage(1);
+  };
+
+  const clearAllDetails = () => {
+    setSelectedDetails([]);
+    setPage(1);
+  };
+
+  const applyDetailPreset = (presetKey: VoterDetailPresetKey) => {
+    setSelectedDetails([...VOTER_DETAIL_PRESETS[presetKey].ids]);
     setPage(1);
   };
 
@@ -390,31 +429,50 @@ export default function PositionAlbumsPage() {
                       <Sparkles className="size-3 text-blue-600" /> Customise Mode
                     </Badge>
                   )}
+                  {isCustomDetails && (
+                    <Badge variant="secondary" className="gap-1 bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300">
+                      <SlidersHorizontal className="size-3 text-indigo-600" /> {selectedDetails.length}/9 Details
+                    </Badge>
+                  )}
                 </div>
-                <CardDescription>Choose an elective portfolio, wing extraction, or select custom positions.</CardDescription>
+                <CardDescription>Choose an elective portfolio, administrative tiers, and individual voter details to display.</CardDescription>
               </div>
-              <Button
-                type="button"
-                variant={isCustom ? "default" : "outline"}
-                size="sm"
-                className="gap-1.5 self-start sm:self-auto"
-                onClick={() => {
-                  if (!isCustom) {
-                    setContest("Custom");
-                    setCustomizerOpen(true);
-                  } else {
-                    setCustomizerOpen(!customizerOpen);
-                  }
-                  setPage(1);
-                }}
-              >
-                <SlidersHorizontal className="size-3.5" />
-                {isCustom
-                  ? customizerOpen
-                    ? "Hide Position Picker"
-                    : `Edit Positions (${selectedPositions.length})`
-                  : "Customise Positions"}
-              </Button>
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <Button
+                  type="button"
+                  variant={detailsFilterOpen ? "default" : "outline"}
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => setDetailsFilterOpen(!detailsFilterOpen)}
+                >
+                  <SlidersHorizontal className="size-3.5" />
+                  {detailsFilterOpen
+                    ? "Hide Detail Filters"
+                    : `Filter Voter Details (${selectedDetails.length}/9)`}
+                </Button>
+                <Button
+                  type="button"
+                  variant={isCustom ? "default" : "outline"}
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => {
+                    if (!isCustom) {
+                      setContest("Custom");
+                      setCustomizerOpen(true);
+                    } else {
+                      setCustomizerOpen(!customizerOpen);
+                    }
+                    setPage(1);
+                  }}
+                >
+                  <SlidersHorizontal className="size-3.5" />
+                  {isCustom
+                    ? customizerOpen
+                      ? "Hide Position Picker"
+                      : `Edit Positions (${selectedPositions.length})`
+                    : "Customise Positions"}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -528,6 +586,120 @@ export default function PositionAlbumsPage() {
                 </div>
               )}
             </div>
+
+            {/* Voter Details Filter Panel */}
+            {detailsFilterOpen && (
+              <div className="rounded-xl border border-indigo-200 bg-indigo-50/40 dark:border-indigo-900/60 dark:bg-indigo-950/20 p-4 shadow-xs space-y-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-indigo-100 dark:border-indigo-900/50 pb-3">
+                  <div>
+                    <h4 className="font-semibold text-xs flex items-center gap-1.5 text-indigo-950 dark:text-indigo-200">
+                      <SlidersHorizontal className="size-3.5 text-indigo-600" />
+                      Filter Individual Voter Profile Details
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Choose which fields to display on the voter cards (HTML/PDF preview &amp; print) and the voter register directory.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] font-medium text-muted-foreground mr-1">Presets:</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs px-2.5 bg-white dark:bg-slate-900"
+                      onClick={() => applyDetailPreset("default_standard")}
+                    >
+                      Default (Standard)
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs px-2.5 bg-white dark:bg-slate-900"
+                      onClick={() => applyDetailPreset("id_verification")}
+                    >
+                      ID Verification
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs px-2.5 bg-white dark:bg-slate-900"
+                      onClick={() => applyDetailPreset("photo_badge")}
+                    >
+                      Accreditation Badge
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs px-2.5 bg-white dark:bg-slate-900"
+                      onClick={() => applyDetailPreset("contact_directory")}
+                    >
+                      Contact Directory
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs px-2.5 bg-white dark:bg-slate-900"
+                      onClick={() => applyDetailPreset("full_profile")}
+                    >
+                      Full Profile (All 9)
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs px-2 text-muted-foreground hover:text-foreground"
+                      onClick={selectAllDetails}
+                    >
+                      Select All
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Detail Checkbox Cards Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  {ALL_VOTER_DETAILS.map((detail) => {
+                    const isSelected = selectedDetails.includes(detail.id);
+                    return (
+                      <button
+                        key={detail.id}
+                        type="button"
+                        onClick={() => toggleDetail(detail.id)}
+                        className={`flex items-start gap-2.5 rounded-lg border p-2.5 text-left transition-all ${
+                          isSelected
+                            ? "border-indigo-500 bg-white dark:bg-slate-900 shadow-2xs text-foreground ring-1 ring-indigo-500/20"
+                            : "border-border/70 bg-card/40 text-muted-foreground hover:bg-muted/50"
+                        }`}
+                      >
+                        <div className="mt-0.5 shrink-0">
+                          {isSelected ? (
+                            <CheckSquare className="size-4 text-indigo-600 dark:text-indigo-400" />
+                          ) : (
+                            <Square className="size-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className={`text-xs font-semibold ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>
+                              {detail.label}
+                            </span>
+                            {detail.isStandard ? (
+                              <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-muted/40 font-normal">Standard</Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-indigo-100 text-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-200 font-normal">Extended</Badge>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{detail.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Position & Level Customizer Panel when in Custom mode */}
             {isCustom && (
@@ -947,11 +1119,37 @@ export default function PositionAlbumsPage() {
                     </div>
 
                     {metrics && <div className="flex flex-wrap gap-2">{Object.entries(metrics.levelBreakdown).map(([name, count]) => <Badge key={name} variant="outline">{name}: {count.toLocaleString()}</Badge>)}</div>}
-                    <div className="rounded-md border"><Table><TableHeader><TableRow><TableHead>#</TableHead><TableHead>Delegate</TableHead><TableHead>Level</TableHead><TableHead>Constituency / Region</TableHead><TableHead>Position</TableHead><TableHead>Voter ID</TableHead><TableHead>Phone</TableHead><TableHead>Demographics</TableHead></TableRow></TableHeader><TableBody>
+                    <div className="rounded-md border"><Table><TableHeader><TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>Delegate</TableHead>
+                      {selectedDetails.includes("level") && <TableHead>Level</TableHead>}
+                      <TableHead>Constituency / Region</TableHead>
+                      {selectedDetails.includes("position") && <TableHead>Position</TableHead>}
+                      {selectedDetails.includes("voter_id") && <TableHead>Voter ID</TableHead>}
+                      {selectedDetails.includes("phone") && <TableHead>Phone</TableHead>}
+                      {selectedDetails.includes("demographics") && <TableHead>Demographics</TableHead>}
+                    </TableRow></TableHeader><TableBody>
                       {rows.length === 0 ? <TableRow><TableCell colSpan={8} className="h-32 text-center text-muted-foreground">No delegates match your filters.</TableCell></TableRow> : rows.map((d, i) => <TableRow key={d.id}>
                         <TableCell className="text-muted-foreground">{(currentPage - 1) * 50 + i + 1}</TableCell>
-                        <TableCell><div className="flex min-w-48 items-center gap-3"><Avatar className="size-8"><AvatarImage src={d.image_url || d.avatar_svg} alt="" className="object-cover" /><AvatarFallback className="bg-muted text-xs">{d.executive_name.split(" ").map((part) => part[0]).slice(0, 2).join("")}</AvatarFallback></Avatar><span className="font-medium">{d.executive_name}</span></div></TableCell>
-                        <TableCell><Badge variant="secondary">{d.executive_level}</Badge></TableCell><TableCell>{[d.constituency, d.region].filter(Boolean).join(" / ")}</TableCell><TableCell>{d.canonical_position}</TableCell><TableCell className="whitespace-nowrap font-mono text-xs">{d.voter_id || "—"}</TableCell><TableCell className="whitespace-nowrap">{d.phone || "—"}</TableCell><TableCell className="whitespace-nowrap">{d.gender || "—"} · {d.age == null ? "Age unknown" : `${d.age} yrs`}</TableCell>
+                        <TableCell>
+                          <div className="flex min-w-48 items-center gap-3">
+                            {selectedDetails.includes("photo") && (
+                              <Avatar className="size-8">
+                                <AvatarImage src={d.image_url || d.avatar_svg} alt="" className="object-cover" />
+                                <AvatarFallback className="bg-muted text-xs">{d.executive_name.split(" ").map((part) => part[0]).slice(0, 2).join("")}</AvatarFallback>
+                              </Avatar>
+                            )}
+                            <span className="font-medium">
+                              {selectedDetails.includes("name") ? d.executive_name : <span className="text-xs font-mono text-muted-foreground">[Name Hidden]</span>}
+                            </span>
+                          </div>
+                        </TableCell>
+                        {selectedDetails.includes("level") && <TableCell><Badge variant="secondary">{d.executive_level}</Badge></TableCell>}
+                        <TableCell>{[d.constituency, d.region].filter(Boolean).join(" / ")}</TableCell>
+                        {selectedDetails.includes("position") && <TableCell>{d.canonical_position}</TableCell>}
+                        {selectedDetails.includes("voter_id") && <TableCell className="whitespace-nowrap font-mono text-xs">{d.voter_id || "—"}</TableCell>}
+                        {selectedDetails.includes("phone") && <TableCell className="whitespace-nowrap">{d.phone || "—"}</TableCell>}
+                        {selectedDetails.includes("demographics") && <TableCell className="whitespace-nowrap">{d.gender || "—"} · {d.age == null ? "Age unknown" : `${d.age} yrs`}</TableCell>}
                       </TableRow>)}
                     </TableBody></Table></div>
                     <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground"><p>{filtered.length ? (currentPage - 1) * 50 + 1 : 0}–{Math.min(currentPage * 50, filtered.length)} of {filtered.length.toLocaleString()} delegates</p><div className="flex items-center gap-2"><Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Previous</Button><span className="px-2 text-xs">Page {currentPage} of {totalPages}</span><Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>Next</Button></div></div>
