@@ -2295,6 +2295,8 @@ function generateAlbumHtml(
   // Render individual voter card
   function renderVoterCard(d: any): string {
     const photoSrc = d.webp_base64 || d.avatar_svg;
+    // When there is no image or when we filter no image, use the initial abbreviation SVG avatar
+    const effectivePhotoSrc = showPhoto ? photoSrc : d.avatar_svg;
     const isTescon = String(d.executive_level || "").toLowerCase().trim() === "tescon";
     const institution = isTescon
       ? String(d.institution || getTesconInstitution(d) || "").trim()
@@ -2349,11 +2351,9 @@ function generateAlbumHtml(
             </div>
             ` : ""}
           </div>
-          ${showPhoto ? `
           <div class="card-photo">
-            <img class="voter-img" src="${photoSrc}" alt="${d.executive_name}" loading="eager" decoding="sync" data-fallback="${d.avatar_svg}" onerror="this.onerror=null; this.src='${d.avatar_svg}';" />
+            <img class="voter-img" src="${effectivePhotoSrc}" alt="${d.executive_name}" loading="eager" decoding="sync" data-fallback="${d.avatar_svg}" onerror="this.onerror=null; this.src='${d.avatar_svg}';" />
           </div>
-          ` : ""}
         </div>
       `;
   }

@@ -111,8 +111,12 @@ test("Election album route integrates voter details filtering", () => {
     "Voter card must conditionally render Phone"
   );
   assert.ok(
-    code.includes("${showPhoto ? `"),
-    "Voter card must conditionally render Photo"
+    code.includes("const effectivePhotoSrc = showPhoto ? photoSrc : d.avatar_svg;"),
+    "When filtering no image or when photo is missing, must use initial abbreviation avatar"
+  );
+  assert.ok(
+    code.includes('src="${effectivePhotoSrc}"'),
+    "Voter card image must use effectivePhotoSrc"
   );
   assert.ok(
     code.includes("${showDemographics && demographicText ? `"),

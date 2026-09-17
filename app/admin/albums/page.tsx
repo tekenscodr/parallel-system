@@ -1133,12 +1133,16 @@ export default function PositionAlbumsPage() {
                         <TableCell className="text-muted-foreground">{(currentPage - 1) * 50 + i + 1}</TableCell>
                         <TableCell>
                           <div className="flex min-w-48 items-center gap-3">
-                            {selectedDetails.includes("photo") && (
-                              <Avatar className="size-8">
-                                <AvatarImage src={d.image_url || d.avatar_svg} alt="" className="object-cover" />
-                                <AvatarFallback className="bg-muted text-xs">{d.executive_name.split(" ").map((part) => part[0]).slice(0, 2).join("")}</AvatarFallback>
-                              </Avatar>
-                            )}
+                            <Avatar className="size-8">
+                              <AvatarImage
+                                src={selectedDetails.includes("photo") ? (d.image_url || d.avatar_svg) : d.avatar_svg}
+                                alt=""
+                                className="object-cover"
+                              />
+                              <AvatarFallback className="bg-muted text-xs">
+                                {d.executive_name.split(" ").map((part) => part[0]).slice(0, 2).join("")}
+                              </AvatarFallback>
+                            </Avatar>
                             <span className="font-medium">
                               {selectedDetails.includes("name") ? d.executive_name : <span className="text-xs font-mono text-muted-foreground">[Name Hidden]</span>}
                             </span>
