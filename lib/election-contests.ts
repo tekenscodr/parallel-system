@@ -79,8 +79,8 @@ export const CUSTOM_POSITION_CATEGORIES: PositionCategoryGroup[] = [
     category: "Communications & Strategy",
     positions: [
       { id: "communication_officer", label: "Communication Officer", canonicalName: "Communication Officer", synonyms: ["communication officer", "communications officer", "communication director"] },
-      { id: "electoral_affairs", label: "Electoral Affairs Officer", canonicalName: "Electoral Affairs Officer", synonyms: ["electoral affairs officer", "electoral affairs", "elections officer", "director of research and elections"] },
-      { id: "research_officer", label: "Research Officer", canonicalName: "Research Officer", synonyms: ["research officer"] },
+      { id: "electoral_affairs", label: "Electoral Affairs Officer", canonicalName: "Electoral Affairs Officer", synonyms: ["electoral affairs officer", "electoral affairs", "elections officer", "director of research and elections", "director of elections"] },
+      { id: "research_officer", label: "Research Officer", canonicalName: "Research Officer", synonyms: ["research officer", "director of research"] },
     ],
   },
   {
@@ -255,36 +255,111 @@ export function isElectedConstituencyPosition(pos: string | null | undefined): b
 export function normalizeCanonicalPosition(pos: string | null, level: string | null): string {
   const s = String(pos || "").trim().toLowerCase();
   const lvl = String(level || "").toLowerCase();
+
+  // 1. Dignitaries & Former Officers
+  if (s.includes("former president")) return "Former President";
+  if (s.includes("vice president") || s.includes("flagbearer")) return pos || "Current Flagbearer / Former Vice President";
+  if (s.includes("running mate")) return "Former Running Mate";
+  if (s.includes("past national chairman") || s.includes("past national chairperson")) return "Past National Chairman";
+  if (s.includes("past general secretary")) return "Past General Secretary";
+  if (s.includes("past national officer") || s.includes("council of elders")) return pos || "Council of Elders / Past National Officer";
+  if (s.includes("national council representative")) return "National Council Representative";
+  if (s.includes("national council of patrons")) return "National Council of Patrons";
+  if (s.includes("national council of elders")) return "National Council of Elders";
+  if (s.includes("foundation member")) return "Foundation Member";
+
+  // 2. Legal Committee & Legal Affairs
+  if (s.includes("chairman of the legal committee") || (s.includes("legal committee") && s.includes("chair"))) {
+    return "Chairman of The Legal Committee";
+  }
+  if (s.includes("director of legal affairs") || s.includes("director of legal")) {
+    return "Director of Legal Affairs";
+  }
+
+  // 3. National Directors & Specialized Officers
+  if (s.includes("director of elections") || s.includes("director of research and elections")) {
+    return lvl === "national" ? "Director of Elections" : "Electoral Affairs Officer";
+  }
+  if (s.includes("director of research")) {
+    return lvl === "national" ? "Director of Research" : "Research Officer";
+  }
+  if (s.includes("director of finance")) {
+    return "Director of Finance and Administration";
+  }
+  if (s.includes("deputy communication director") || (lvl === "national" && s.includes("deputy") && s.includes("communication"))) {
+    return "Deputy Communication Director";
+  }
+  if (s.includes("national communication director") || (lvl === "national" && s.includes("communication"))) {
+    return "National Communication Director";
+  }
+  if (s.includes("deputy director of it") || s.includes("deputy it director")) {
+    return "Deputy Director of IT";
+  }
+  if (s.includes("director of it") || s.includes("it director")) {
+    return "Director of IT";
+  }
+  if (s.includes("deputy director of protocol") || s.includes("deputy protocol director")) {
+    return "Deputy Director of Protocol";
+  }
+  if (s.includes("director of protocol") || s.includes("protocol director")) {
+    return "Director of Protocol";
+  }
+  if (s.includes("deputy external relations")) {
+    return "Deputy External Relations Officer";
+  }
+  if (s.includes("external relations")) {
+    return "External Relations Officer";
+  }
+
+  // 4. Wings (Youth, Women, Nasara, Organiser) & Deputies
+  if (lvl === "national") {
+    if (s.includes("deputy") && s.includes("youth")) return "Deputy National Youth Organiser";
+    if (s.includes("youth")) return "National Youth Organiser";
+    if (s.includes("deputy") && s.includes("women")) return "Deputy National Women Organiser";
+    if (s.includes("women")) return "National Women Organiser";
+    if (s.includes("deputy") && (s.includes("organiser") || s.includes("organizer"))) return "Deputy National Organiser";
+    if (s.includes("organiser") || s.includes("organizer")) return "National Organiser";
+    if (s.includes("deputy") && s.includes("nasara")) return "Deputy National Nasara Coordinator";
+    if (s.includes("nasara")) return "National Nasara Coordinator";
+    if (s.includes("deputy") && s.includes("treasurer")) return "Deputy National Treasurer";
+    if (s.includes("treasurer")) return "National Treasurer";
+  } else {
+    if (s.includes("deputy") && s.includes("youth")) return "Deputy Youth Organiser";
+    if (s.includes("youth")) return "Youth Organiser";
+    if (s.includes("deputy") && s.includes("women")) return "Deputy Women Organiser";
+    if (s.includes("women")) return "Women Organiser";
+    if (s.includes("deputy") && (s.includes("organiser") || s.includes("organizer"))) return "Deputy Organiser";
+    if (s.includes("organiser") || s.includes("organizer")) return "Organiser";
+    if (s.includes("deputy") && s.includes("nasara")) return lvl === "region" ? "Deputy Nasara Coordinator" : "Deputy Nasara Organiser";
+    if (s.includes("nasara")) return lvl === "region" ? "Nasara Coordinator" : "Nasara Organiser";
+    if (s.includes("treasurer")) return "Treasurer";
+  }
+
+  // 5. Chairpersons & Vice Chairpersons
   if (s.includes("chairperson") || s.includes("chairman")) {
     if (s.includes("1st") || s.includes("first")) return "1st Vice Chairperson";
     if (s.includes("2nd") || s.includes("second")) return "2nd Vice Chairperson";
     if (s.includes("3rd") || s.includes("third")) return "3rd Vice Chairperson";
     return lvl === "national" ? "National Chairperson" : "Chairperson";
   }
+
+  // 6. Secretariat & Financial Secretary
   if (s.includes("financial secretary")) return "Financial Secretary";
   if (s.includes("deputy general secretary")) return "Deputy General Secretary";
   if (s.includes("deputy secretary") || s.includes("assistant secretary")) return "Deputy Secretary";
   if (s.includes("secretary")) return lvl === "national" ? "General Secretary" : "Secretary";
-  if (s.includes("treasurer")) return "Treasurer";
-  if (s.includes("deputy women")) return "Deputy Women Organiser";
-  if (s.includes("women")) return "Women Organiser";
-  if (s.includes("deputy youth")) return "Deputy Youth Organiser";
-  if (s.includes("youth")) return "Youth Organiser";
-  if (s.includes("deputy nasara")) return lvl === "region" || lvl === "national" ? "Deputy Nasara Coordinator" : "Deputy Nasara Organiser";
-  if (s.includes("nasara")) return lvl === "region" || lvl === "national" ? "Nasara Coordinator" : "Nasara Organiser";
-  if (s.includes("deputy organiser") || s.includes("deputy organizer")) return "Deputy Organiser";
-  if (s.includes("organiser") || s.includes("organizer")) return "Organiser";
-  if (s.includes("electoral")) return "Electoral Affairs Officer";
-  if (s.includes("communication")) return "Communication Officer";
-  if (s.includes("research")) return "Research Officer";
+
+  // 7. General Officers & TESCON
+  if (s.includes("wocom")) return "TESCON WOCOM";
+  if ((lvl === "tescon" || s.includes("tescon")) && s.includes("president")) return "TESCON President";
+  if (lvl === "national" && s.includes("president")) return "President";
   if (s.includes("pwd") || s.includes("disability")) return lvl === "region" || lvl === "national" ? "PWD Officer" : "PWD Coordinator";
   if (s.includes("special duties")) return "Special Duties Officer";
   if (s.includes("legal")) return "Legal Representative Officer";
-  if (s.includes("former president")) return "Former President";
-  if (s.includes("vice president") || s.includes("flagbearer")) return pos || "Former Vice President";
-  if (lvl === "national" && s.includes("president")) return "President";
-  if ((lvl === "tescon" || s.includes("tescon")) && s.includes("president")) return "TESCON President";
-  if (s.includes("wocom")) return "TESCON WOCOM";
+  if (s.includes("electoral") || s.includes("elections")) return "Electoral Affairs Officer";
+  if (s.includes("communication")) return "Communication Officer";
+  if (s.includes("research")) return "Research Officer";
+
   return pos || "Executive Member";
 }
 
@@ -308,30 +383,30 @@ export function getCanonicalPositionsForSelection(selected: string[]): {
   }
 
   const CANONICAL_MAP: Record<string, string[]> = {
-    chairperson: ["Chairperson", "National Chairperson"],
+    chairperson: ["Chairperson", "National Chairperson", "Past National Chairman", "Chairman of The Legal Committee"],
     "1st_vice": ["1st Vice Chairperson"],
     "2nd_vice": ["2nd Vice Chairperson", "3rd Vice Chairperson"],
-    secretary: ["Secretary", "General Secretary"],
+    secretary: ["Secretary", "General Secretary", "Past General Secretary"],
     deputy_secretary: ["Deputy Secretary", "Deputy General Secretary"],
-    treasurer: ["Treasurer"],
+    treasurer: ["Treasurer", "National Treasurer", "Deputy National Treasurer"],
     financial_secretary: ["Financial Secretary"],
-    organiser: ["Organiser"],
-    deputy_organiser: ["Deputy Organiser"],
-    women_organiser: ["Women Organiser"],
-    deputy_women_organiser: ["Deputy Women Organiser"],
-    youth_organiser: ["Youth Organiser"],
-    deputy_youth_organiser: ["Deputy Youth Organiser"],
-    nasara_coordinator: ["Nasara Coordinator", "Nasara Organiser"],
-    deputy_nasara_coordinator: ["Deputy Nasara Coordinator", "Deputy Nasara Organiser"],
-    communication_officer: ["Communication Officer"],
-    electoral_affairs: ["Electoral Affairs Officer"],
-    research_officer: ["Research Officer"],
+    organiser: ["Organiser", "National Organiser"],
+    deputy_organiser: ["Deputy Organiser", "Deputy National Organiser"],
+    women_organiser: ["Women Organiser", "National Women Organiser"],
+    deputy_women_organiser: ["Deputy Women Organiser", "Deputy National Women Organiser"],
+    youth_organiser: ["Youth Organiser", "National Youth Organiser"],
+    deputy_youth_organiser: ["Deputy Youth Organiser", "Deputy National Youth Organiser"],
+    nasara_coordinator: ["Nasara Coordinator", "Nasara Organiser", "National Nasara Coordinator", "National Nasara Organiser"],
+    deputy_nasara_coordinator: ["Deputy Nasara Coordinator", "Deputy Nasara Organiser", "Deputy National Nasara Coordinator", "Deputy National Nasara Organiser"],
+    communication_officer: ["Communication Officer", "National Communication Director", "Deputy Communication Director"],
+    electoral_affairs: ["Electoral Affairs Officer", "Director of Elections", "Director of Research and Elections"],
+    research_officer: ["Research Officer", "Director of Research"],
     pwd_officer: ["PWD Officer", "PWD Coordinator"],
     special_duties: ["Special Duties Officer"],
-    legal_officer: ["Legal Representative Officer"],
+    legal_officer: ["Legal Representative Officer", "Director of Legal Affairs", "Chairman of The Legal Committee"],
     tescon_president: ["TESCON President"],
     tescon_wocom: ["TESCON WOCOM"],
-    tescon_nasara: ["Nasara Coordinator", "Nasara Organiser"],
+    tescon_nasara: ["Nasara Coordinator", "Nasara Organiser", "TESCON Nasara Coordinator"],
   };
 
   const processedIds = new Set<string>();

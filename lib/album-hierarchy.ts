@@ -37,16 +37,16 @@ export function normalizePositionRank(position: string | null): number {
   if (value.includes("treasurer")) return 6;
 
   // Match qualified organiser roles before the generic organiser label.
-  if (value.includes("deputy women")) return 17;
-  if (value.includes("deputy youth")) return 18;
-  if (value.includes("deputy nasara")) return 19;
-  if (value.includes("deputy organiser") || value.includes("deputy organizer")) return 16;
+  if (value.includes("deputy") && value.includes("women")) return 17;
+  if (value.includes("deputy") && value.includes("youth")) return 18;
+  if (value.includes("deputy") && value.includes("nasara")) return 19;
+  if (value.includes("deputy") && (value.includes("organiser") || value.includes("organizer"))) return 16;
   if (value.includes("women") || value.includes("wocom")) return 8;
   if (value.includes("youth")) return 9;
   if (value.includes("nasara")) return 10;
   if (value.includes("organiser") || value.includes("organizer")) return 7;
 
-  if (value.includes("electoral")) return 12;
+  if (value.includes("electoral") || value.includes("elections")) return 12;
   if (value.includes("communication")) return 13;
   if (value.includes("research")) return 14;
   if (value.includes("pwd") || value.includes("disability")) return 15;

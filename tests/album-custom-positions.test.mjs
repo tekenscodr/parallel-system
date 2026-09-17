@@ -137,3 +137,91 @@ test("normalizeCanonicalPosition properly isolates National dignitaries from TES
   assert.equal(canonicalSet.has(akufoAddoCanon), false, "Akufo-Addo must not match TESCON President contest");
 });
 
+test("Director of Elections and Director of Research are properly normalized and categorized", () => {
+  assert.equal(
+    normalizeCanonicalPosition("Director of Elections", "National"),
+    "Director of Elections"
+  );
+  assert.equal(
+    normalizeCanonicalPosition("Director of Research", "National"),
+    "Director of Research"
+  );
+
+  const electoralSelection = getCanonicalPositionsForSelection(["electoral_affairs"]);
+  assert.ok(electoralSelection.canonicalSet.has("Director of Elections"));
+
+  const researchSelection = getCanonicalPositionsForSelection(["research_officer"]);
+  assert.ok(researchSelection.canonicalSet.has("Director of Research"));
+});
+
+test("National executives preserve authentic designations without collapsing to generic roles", () => {
+  const nationalTests = [
+    { raw: "Director of Elections", expected: "Director of Elections" },
+    { raw: "Director of Research", expected: "Director of Research" },
+    { raw: "Chairman of The Legal Committee", expected: "Chairman of The Legal Committee" },
+    { raw: "Director of Legal Affairs", expected: "Director of Legal Affairs" },
+    { raw: "Past National Chairman", expected: "Past National Chairman" },
+    { raw: "Past General Secretary", expected: "Past General Secretary" },
+    { raw: "National Youth Organiser", expected: "National Youth Organiser" },
+    { raw: "Deputy National Youth Organiser", expected: "Deputy National Youth Organiser" },
+    { raw: "National Women Organiser", expected: "National Women Organiser" },
+    { raw: "Deputy National Women Organiser", expected: "Deputy National Women Organiser" },
+    { raw: "National Organiser", expected: "National Organiser" },
+    { raw: "Deputy National Organiser", expected: "Deputy National Organiser" },
+    { raw: "National Nasara Coordinator", expected: "National Nasara Coordinator" },
+    { raw: "Deputy National Nasara Coordinator", expected: "Deputy National Nasara Coordinator" },
+    { raw: "National Communication Director", expected: "National Communication Director" },
+    { raw: "Deputy Communication Director", expected: "Deputy Communication Director" },
+    { raw: "National Treasurer", expected: "National Treasurer" },
+    { raw: "Director of IT", expected: "Director of IT" },
+    { raw: "Deputy Director of IT", expected: "Deputy Director of IT" },
+    { raw: "Director of Protocol", expected: "Director of Protocol" },
+    { raw: "Deputy Director of Protocol", expected: "Deputy Director of Protocol" },
+    { raw: "Director of Finance and Administration", expected: "Director of Finance and Administration" },
+    { raw: "External Relations Officer", expected: "External Relations Officer" },
+    { raw: "Deputy External Relations Officer", expected: "Deputy External Relations Officer" },
+    { raw: "National Council Representative", expected: "National Council Representative" },
+  ];
+
+  for (const t of nationalTests) {
+    const actual = normalizeCanonicalPosition(t.raw, "National");
+    assert.equal(
+      actual,
+      t.expected,
+      `Position "${t.raw}" at National level should normalize to "${t.expected}" but got "${actual}"`
+    );
+  }
+
+  // Verify custom portfolio selectors map correctly to both national and regional titles
+  const youthSelection = getCanonicalPositionsForSelection(["youth_organiser"]);
+  assert.ok(youthSelection.canonicalSet.has("Youth Organiser"));
+  assert.ok(youthSelection.canonicalSet.has("National Youth Organiser"));
+
+  const depYouthSelection = getCanonicalPositionsForSelection(["deputy_youth_organiser"]);
+  assert.ok(depYouthSelection.canonicalSet.has("Deputy Youth Organiser"));
+  assert.ok(depYouthSelection.canonicalSet.has("Deputy National Youth Organiser"));
+
+  const womenSelection = getCanonicalPositionsForSelection(["women_organiser"]);
+  assert.ok(womenSelection.canonicalSet.has("Women Organiser"));
+  assert.ok(womenSelection.canonicalSet.has("National Women Organiser"));
+
+  const depWomenSelection = getCanonicalPositionsForSelection(["deputy_women_organiser"]);
+  assert.ok(depWomenSelection.canonicalSet.has("Deputy Women Organiser"));
+  assert.ok(depWomenSelection.canonicalSet.has("Deputy National Women Organiser"));
+
+  const commSelection = getCanonicalPositionsForSelection(["communication_officer"]);
+  assert.ok(commSelection.canonicalSet.has("Communication Officer"));
+  assert.ok(commSelection.canonicalSet.has("National Communication Director"));
+
+  const treasurerSelection = getCanonicalPositionsForSelection(["treasurer"]);
+  assert.ok(treasurerSelection.canonicalSet.has("Treasurer"));
+  assert.ok(treasurerSelection.canonicalSet.has("National Treasurer"));
+
+  const legalSelection = getCanonicalPositionsForSelection(["legal_officer"]);
+  assert.ok(legalSelection.canonicalSet.has("Legal Representative Officer"));
+  assert.ok(legalSelection.canonicalSet.has("Director of Legal Affairs"));
+  assert.ok(legalSelection.canonicalSet.has("Chairman of The Legal Committee"));
+});
+
+
+

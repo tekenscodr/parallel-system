@@ -1160,7 +1160,7 @@ export default function PositionAlbumsPage() {
                         </TableCell>
                         {selectedDetails.includes("level") && <TableCell><Badge variant="secondary">{d.executive_level}</Badge></TableCell>}
                         <TableCell>{[d.constituency, d.region].filter(Boolean).join(" / ")}</TableCell>
-                        {selectedDetails.includes("position") && <TableCell>{d.canonical_position}</TableCell>}
+                        {selectedDetails.includes("position") && <TableCell>{d.canonical_position || (d as any).position}</TableCell>}
                         {selectedDetails.includes("voter_id") && <TableCell className="whitespace-nowrap font-mono text-xs">{d.voter_id || "—"}</TableCell>}
                         {selectedDetails.includes("phone") && <TableCell className="whitespace-nowrap">{d.phone || "—"}</TableCell>}
                         {selectedDetails.includes("demographics") && <TableCell className="whitespace-nowrap">{d.gender || "—"} · {d.age == null ? "Age unknown" : `${d.age} yrs`}</TableCell>}

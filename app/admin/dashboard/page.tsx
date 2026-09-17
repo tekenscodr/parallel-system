@@ -176,6 +176,9 @@ const TIERS = [
 
 const POSITIONS_BY_LEVEL: Record<string, string[]> = {
   National: [
+    "Former President",
+    "Current Flagbearer / Former Vice President",
+    "Former Running Mate",
     "National Chairperson",
     "1st Vice-Chairperson",
     "2nd Vice-Chairperson",
@@ -190,14 +193,32 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Deputy National Women Organiser",
     "National Youth Organiser",
     "Deputy National Youth Organiser",
+    "National Nasara Coordinator",
+    "Deputy National Nasara Coordinator",
     "National Nasara Organiser",
     "Deputy National Nasara Organiser",
+    "Director of Finance and Administration",
+    "Director of Elections",
+    "Director of Research",
+    "Director of Research and Elections",
+    "Research Officer",
     "National Communication Director",
     "Deputy Communication Director",
-    "Director of Research and Elections",
+    "External Relations Officer",
+    "Deputy External Relations Officer",
+    "Director of IT",
+    "Deputy Director of IT",
+    "Director of Protocol",
+    "Deputy Director of Protocol",
+    "Chairman of The Legal Committee",
+    "Director of Legal Affairs",
     "National Council Representative",
     "National Council of Elders",
     "National Council of Patrons",
+    "Past National Chairman",
+    "Past General Secretary",
+    "Council of Elders / Past National Officer",
+    "Past National Officer / Elder",
     "Foundation Member",
   ],
   Region: [
@@ -222,6 +243,7 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Deputy Nasara Coordinator",
     "Special Duties Officer",
     "Legal Representative Officer",
+    "Regional TESCON Coordinator",
   ],
   Constituency: [
     "Chairperson",
@@ -248,10 +270,16 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
   ],
   "Electoral Area": [
     "Chairperson",
+    "Coordinator",
     "Secretary",
     "Organiser",
+    "Women Organiser",
+    "Youth Organiser",
     "Communication Officer",
     "Electoral Affairs Officer",
+    "Nasara Coordinator",
+    "Treasurer",
+    "Financial Secretary",
   ],
   "Polling Station": [
     "Chairperson",
@@ -261,6 +289,9 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Youth Organiser",
     "Communication Officer",
     "Electoral Affairs Officer",
+    "Nasara Coordinator",
+    "Treasurer",
+    "Financial Secretary",
   ],
   "External Branch": [
     "Chairperson",
@@ -287,9 +318,19 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
   ],
   TESCON: [
     "President",
+    "TESCON President",
     "WOCOM",
+    "TESCON WOCOM",
     "Nasara Coordinator",
+    "TESCON Nasara Coordinator",
+    "Secretary",
+    "Organiser",
+    "Treasurer",
+    "Financial Secretary",
+    "Communication Officer",
+    "Electoral Affairs Officer",
     "Patron",
+    "TESCON Patron",
     "Regional TESCON Coordinator",
   ],
 };
@@ -900,6 +941,7 @@ export default function NationalAdminDashboard() {
           nextPos = levelPositions[0] || "";
         }
       }
+      setEditPositionList(levelPositions);
 
       const { age, dob } = computeExecutiveAgeAndDob(
         activeExecutive.dateOfBirth,
@@ -5607,6 +5649,7 @@ export default function NationalAdminDashboard() {
                         }
                         const norm = normalizeLevelKey(newLevel);
                         const validPositions = POSITIONS_BY_LEVEL[norm] || POSITIONS_BY_LEVEL[newLevel] || [];
+                        setAddPositionList(validPositions);
                         let nextPos = newExecPosition;
                         if (!isCustomPosition) {
                           if (!validPositions.includes(newExecPosition)) {

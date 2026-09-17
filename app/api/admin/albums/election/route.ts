@@ -22,6 +22,7 @@ import {
   GENERAL_CONTEST_LIST,
   CUSTOM_CONTEST,
   getCanonicalPositionsForSelection,
+  normalizeCanonicalPosition,
   isElectedConstituencyPosition,
   CONSTITUENCY_POSITION_IDS,
   REGIONAL_POSITION_IDS,
@@ -251,41 +252,6 @@ function renderCurvedText(
     .join("\n              ");
 }
 
-function normalizeCanonicalPosition(pos: string | null, level: string | null): string {
-  const s = String(pos || "").trim().toLowerCase();
-  const lvl = String(level || "").toLowerCase();
-  if (s.includes("chairperson") || s.includes("chairman")) {
-    if (s.includes("1st") || s.includes("first")) return "1st Vice Chairperson";
-    if (s.includes("2nd") || s.includes("second")) return "2nd Vice Chairperson";
-    if (s.includes("3rd") || s.includes("third")) return "3rd Vice Chairperson";
-    return lvl === "national" ? "National Chairperson" : "Chairperson";
-  }
-  if (s.includes("financial secretary")) return "Financial Secretary";
-  if (s.includes("deputy general secretary")) return "Deputy General Secretary";
-  if (s.includes("deputy secretary") || s.includes("assistant secretary")) return "Deputy Secretary";
-  if (s.includes("secretary")) return lvl === "national" ? "General Secretary" : "Secretary";
-  if (s.includes("treasurer")) return "Treasurer";
-  if (s.includes("deputy women")) return "Deputy Women Organiser";
-  if (s.includes("women")) return "Women Organiser";
-  if (s.includes("deputy youth")) return "Deputy Youth Organiser";
-  if (s.includes("youth")) return "Youth Organiser";
-  if (s.includes("deputy nasara")) return lvl === "region" || lvl === "national" ? "Deputy Nasara Coordinator" : "Deputy Nasara Organiser";
-  if (s.includes("nasara")) return lvl === "region" || lvl === "national" ? "Nasara Coordinator" : "Nasara Organiser";
-  if (s.includes("deputy organiser") || s.includes("deputy organizer")) return "Deputy Organiser";
-  if (s.includes("organiser") || s.includes("organizer")) return "Organiser";
-  if (s.includes("electoral")) return "Electoral Affairs Officer";
-  if (s.includes("communication")) return "Communication Officer";
-  if (s.includes("research")) return "Research Officer";
-  if (s.includes("pwd") || s.includes("disability")) return lvl === "region" || lvl === "national" ? "PWD Officer" : "PWD Coordinator";
-  if (s.includes("special duties")) return "Special Duties Officer";
-  if (s.includes("legal")) return "Legal Representative Officer";
-  if (s.includes("former president")) return "Former President";
-  if (s.includes("vice president") || s.includes("flagbearer")) return pos || "Former Vice President";
-  if (lvl === "national" && s.includes("president")) return "President";
-  if ((lvl === "tescon" || s.includes("tescon")) && s.includes("president")) return "TESCON President";
-  if (s.includes("wocom")) return "TESCON WOCOM";
-  return pos || "Executive Member";
-}
 
 function calculateAgeIn2026(dob: string | null, ageCol: number | null | undefined): number | null {
   if (dob) {
@@ -2382,7 +2348,7 @@ function generateAlbumHtml(
     return `
         <div class="voter-card">
           <div class="card-details">
-            ${showPosition && d.canonical_position ? `<div class="pos-badge">${d.canonical_position}</div>` : ""}
+            ${showPosition && (d.canonical_position || d.position) ? `<div class="pos-badge">${d.canonical_position || d.position}</div>` : ""}
             ${showName ? `<div class="exec-name">${d.executive_name}</div>` : ""}
             ${showLevel ? `
             <div class="detail-line">
