@@ -21,6 +21,10 @@ export const CANONICAL_LEVEL_ORDER: Record<string, number> = {
 
 export function normalizePositionRank(position: string | null): number {
   const value = String(position || "").trim().toLowerCase();
+  if (!value) return 99;
+  if (value.includes("former president")) return 0.1;
+  if (value.includes("flagbearer") || value.includes("vice president")) return 0.2;
+  if (value.includes("president") && !value.includes("tescon")) return 0.3;
   if (value.includes("chairperson") || value.includes("chairman")) {
     if (value.includes("1st") || value.includes("first")) return 2;
     if (value.includes("2nd") || value.includes("second")) return 3;

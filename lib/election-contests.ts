@@ -280,7 +280,10 @@ export function normalizeCanonicalPosition(pos: string | null, level: string | n
   if (s.includes("pwd") || s.includes("disability")) return lvl === "region" || lvl === "national" ? "PWD Officer" : "PWD Coordinator";
   if (s.includes("special duties")) return "Special Duties Officer";
   if (s.includes("legal")) return "Legal Representative Officer";
-  if (s.includes("president")) return "TESCON President";
+  if (s.includes("former president")) return "Former President";
+  if (s.includes("vice president") || s.includes("flagbearer")) return pos || "Former Vice President";
+  if (lvl === "national" && s.includes("president")) return "President";
+  if ((lvl === "tescon" || s.includes("tescon")) && s.includes("president")) return "TESCON President";
   if (s.includes("wocom")) return "TESCON WOCOM";
   return pos || "Executive Member";
 }

@@ -134,6 +134,10 @@ test("Women and Youth organisers load just like Nasara: exclusive wing extractio
     "Wing extraction in contestFiltered must handle both Youth Organisers & Deputies and Youth Organiser"
   );
   assert.ok(
+    routeCode.includes('/president|wocom|women|nasara/i.test(posLower)'),
+    "Youth wing extraction must include TESCON President, WOCOM, and Nasara Coordinator"
+  );
+  assert.ok(
     routeCode.includes('matchedContest === "Women Organisers & Deputies" ||\n          matchedContest === "Women Organiser"'),
     "Wing extraction in contestFiltered must handle both Women Organisers & Deputies and Women Organiser"
   );
@@ -159,7 +163,7 @@ test("Women and Youth organisers load just like Nasara: exclusive wing extractio
 
   // 4. Test wing filtering behavior across a representative pool
   const testPool = [
-    // Youth
+    // Youth Core
     { position: "Youth Organiser", gender: "Male", age: 31, level: "Constituency" },
     { position: "Deputy Youth Organiser", gender: "Female", age: 29, level: "Constituency" },
     { position: "Chairman", gender: "Male", age: 34, level: "Constituency" }, // under 40, but NOT youth organiser
@@ -172,11 +176,22 @@ test("Women and Youth organisers load just like Nasara: exclusive wing extractio
     { position: "Nasara Coordinator", gender: "Male", age: 52, level: "Constituency" },
     { position: "Deputy Nasara Coordinator", gender: "Male", age: 45, level: "Constituency" },
     { position: "TESCON Nasara Coordinator", gender: "Male", age: 24, level: "TESCON" },
+    // TESCON President & Patron
+    { position: "TESCON President", gender: "Male", age: 23, level: "TESCON" },
+    { position: "TESCON Patron", gender: "Male", age: 52, level: "TESCON" },
   ];
 
-  // Youth filter
+  // Youth filter (Constituency/Regional Youth Organisers & Deputies + TESCON President, WOCOM, Nasara)
   const youthResults = testPool.filter((r) => {
+    const lvl = (r.level || "").toLowerCase();
     const posLower = r.position.toLowerCase();
+    if (lvl === "tescon") {
+      return (
+        /president|wocom|women|nasara/i.test(posLower) &&
+        !posLower.includes("patron") &&
+        !posLower.includes("former")
+      );
+    }
     return (
       (posLower.includes("youth organiser") ||
         posLower.includes("youth organizer") ||
@@ -187,7 +202,13 @@ test("Women and Youth organisers load just like Nasara: exclusive wing extractio
       !posLower.includes("patron")
     );
   });
-  assert.equal(youthResults.length, 2);
+  assert.equal(youthResults.length, 5, "Youth wing must extract 2 core youth + 3 TESCON executives");
+  assert.ok(youthResults.some((r) => r.position === "Youth Organiser"));
+  assert.ok(youthResults.some((r) => r.position === "Deputy Youth Organiser"));
+  assert.ok(youthResults.some((r) => r.position === "TESCON President"), "TESCON President must be included");
+  assert.ok(youthResults.some((r) => r.position === "TESCON WOCOM"), "TESCON WOCOM must be included");
+  assert.ok(youthResults.some((r) => r.position === "TESCON Nasara Coordinator"), "TESCON Nasara must be included");
+  assert.ok(!youthResults.some((r) => r.position === "TESCON Patron"), "TESCON Patron must be excluded");
   assert.ok(!youthResults.some((r) => r.position === "Chairman"), "Chairman under 40 must not be extracted");
 
   // Women filter

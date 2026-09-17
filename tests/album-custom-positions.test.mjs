@@ -9,6 +9,7 @@ import {
   ALL_CUSTOMIZABLE_POSITIONS,
   POSITION_PRESETS,
   getCanonicalPositionsForSelection,
+  normalizeCanonicalPosition,
 } from "../lib/election-contests.ts";
 
 test("lib/election-contests exports custom position definitions, presets and resolvers", () => {
@@ -92,3 +93,47 @@ test("Custom position matching strictly isolates selected portfolios and exclude
     );
   }
 });
+
+test("normalizeCanonicalPosition properly isolates National dignitaries from TESCON Presidents", () => {
+  // National Former Presidents must NOT be normalized to TESCON President
+  assert.equal(
+    normalizeCanonicalPosition("Former President", "National"),
+    "Former President",
+    "Former President at National level must remain Former President"
+  );
+
+  // Flagbearer / Former Vice President must not be TESCON President
+  assert.equal(
+    normalizeCanonicalPosition("Current Flagbearer / Former Vice President", "National"),
+    "Current Flagbearer / Former Vice President"
+  );
+
+  // National President
+  assert.equal(
+    normalizeCanonicalPosition("President", "National"),
+    "President"
+  );
+
+  // TESCON Presidents must be properly normalized
+  assert.equal(
+    normalizeCanonicalPosition("President", "TESCON"),
+    "TESCON President"
+  );
+  assert.equal(
+    normalizeCanonicalPosition("TESCON President", "TESCON"),
+    "TESCON President"
+  );
+  assert.equal(
+    normalizeCanonicalPosition("TESCON President", "Constituency"),
+    "TESCON President"
+  );
+
+  // Custom contest selection for tescon_president must exclude Former Presidents
+  const { canonicalSet } = getCanonicalPositionsForSelection(["tescon_president"]);
+  assert.ok(canonicalSet.has("TESCON President"));
+  assert.ok(!canonicalSet.has("Former President"));
+
+  const akufoAddoCanon = normalizeCanonicalPosition("Former President", "National");
+  assert.equal(canonicalSet.has(akufoAddoCanon), false, "Akufo-Addo must not match TESCON President contest");
+});
+

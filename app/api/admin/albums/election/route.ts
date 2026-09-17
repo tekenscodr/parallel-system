@@ -279,7 +279,10 @@ function normalizeCanonicalPosition(pos: string | null, level: string | null): s
   if (s.includes("pwd") || s.includes("disability")) return lvl === "region" || lvl === "national" ? "PWD Officer" : "PWD Coordinator";
   if (s.includes("special duties")) return "Special Duties Officer";
   if (s.includes("legal")) return "Legal Representative Officer";
-  if (s.includes("president")) return "TESCON President";
+  if (s.includes("former president")) return "Former President";
+  if (s.includes("vice president") || s.includes("flagbearer")) return pos || "Former Vice President";
+  if (lvl === "national" && s.includes("president")) return "President";
+  if ((lvl === "tescon" || s.includes("tescon")) && s.includes("president")) return "TESCON President";
   if (s.includes("wocom")) return "TESCON WOCOM";
   return pos || "Executive Member";
 }
@@ -703,6 +706,16 @@ export async function GET(req: NextRequest) {
           matchedContest === "Youth Organisers & Deputies" ||
           matchedContest === "Youth Organiser"
         ) {
+          // TESCON Level: President, WOCOM, Nasara Coordinator (patrons strictly excluded)
+          if (lvl === "tescon") {
+            return (
+              /president|wocom|women|nasara/i.test(posLower) &&
+              !posLower.includes("patron") &&
+              !posLower.includes("former")
+            );
+          }
+
+          // Core & External Levels: Youth Organisers and Deputies
           return (
             (posLower.includes("youth organiser") ||
               posLower.includes("youth organizer") ||
@@ -978,7 +991,7 @@ export async function GET(req: NextRequest) {
             matchedContest === "Youth Organisers & Deputies" ||
             matchedContest === "Youth Organiser"
           ) {
-            expectedCount = 624;
+            expectedCount = 1382;
           } else if (
             matchedContest === "Women Organisers & Deputies" ||
             matchedContest === "Women Organiser"
@@ -997,11 +1010,25 @@ export async function GET(req: NextRequest) {
               (hasExternal ? 30 * 2 : 0);
           }
         } else {
+          const tesconWingTarget =
+            hasTescon
+              ? matchedContest === "Youth Organisers & Deputies" ||
+                matchedContest === "Youth Organiser"
+                ? 746
+                : matchedContest === "Women Organisers & Deputies" ||
+                  matchedContest === "Women Organiser"
+                ? 247
+                : matchedContest === "Nasara Coordinators & Deputies" ||
+                  matchedContest === "Nasara Organiser"
+                ? 244
+                : 0
+              : 0;
           expectedCount =
             (hasConstituency ? 276 * 2 : 0) +
             (hasRegional ? 16 * 3 : 0) +
             (hasNational ? 3 : 0) +
-            (hasExternal ? 30 * 2 : 0);
+            (hasExternal ? 30 * 2 : 0) +
+            tesconWingTarget;
         }
       } else if (isCustomContest) {
         expectedCount =
@@ -1030,7 +1057,7 @@ export async function GET(req: NextRequest) {
       } else if (matchedContest === "Nasara Organiser") {
         expectedCount = 852;
       } else if (matchedContest === "Youth Organisers & Deputies") {
-        expectedCount = 624;
+        expectedCount = 1382;
       } else if (matchedContest === "Women Organisers & Deputies") {
         expectedCount = 863;
       } else if (matchedContest === "Nasara Coordinators & Deputies") {
