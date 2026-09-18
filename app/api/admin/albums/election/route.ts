@@ -483,8 +483,6 @@ export async function GET(req: NextRequest) {
     matchedContest = "Custom";
   } else if (/national\s+chairperson|general\s+officers/i.test(normalizedPositionQuery)) {
     matchedContest = "National Chairperson & General Officers";
-  } else if (/women.*organisers?\s*&\s*deput/i.test(normalizedPositionQuery)) {
-    matchedContest = "Women Organisers & Deputies";
   } else if (/women/i.test(normalizedPositionQuery)) {
     matchedContest = "Women Organiser";
   } else if (/youth.*organisers?\s*&\s*deput/i.test(normalizedPositionQuery)) {
@@ -547,8 +545,8 @@ export async function GET(req: NextRequest) {
   const isWingOrganisers =
     !isCustomContest &&
     matchedContest !== "Women Organiser" &&
+    matchedContest !== "Women Organisers & Deputies" &&
     (matchedContest === "Youth Organisers & Deputies" ||
-      matchedContest === "Women Organisers & Deputies" ||
       matchedContest === "Nasara Coordinators & Deputies" ||
       scopeQuery === "organisers_only");
 
@@ -687,16 +685,20 @@ export async function GET(req: NextRequest) {
 
         if (matchedContest === "Women Organisers & Deputies") {
           if (g !== "female") return false;
-          return (
-            (posLower.includes("women organiser") ||
-              posLower.includes("women organizer") ||
-              posLower === "women" ||
-              posLower.includes("deputy women") ||
-              posLower.includes("assistant women") ||
-              posLower.includes("wocom")) &&
-            !posLower.includes("former") &&
-            !posLower.includes("patron")
-          );
+          if (
+            ["national", "region", "regional", "constituency"].includes(lvl) ||
+            rawLvl === "external branch" ||
+            rawLvl === "external" ||
+            rawLvl.includes("external") ||
+            String(r.region || "").toLowerCase().includes("external")
+          ) {
+            return true;
+          }
+          if (lvl === "tescon") {
+            if (posLower.includes("patron")) return false;
+            return /wocom|women|president/i.test(posLower);
+          }
+          return false;
         }
 
         if (

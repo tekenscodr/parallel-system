@@ -16,11 +16,11 @@ function parseConnectionString(raw: string) {
     const sslMode = parsed.searchParams.get("sslmode")?.toLowerCase();
     const sslParam = parsed.searchParams.get("ssl")?.toLowerCase();
 
-    let ssl: boolean | "require" | "prefer" = isLocal ? false : "prefer";
-    if (sslMode === "disable" || sslParam === "false" || sslParam === "0") {
-      ssl = false;
-    } else if (sslMode === "require" || sslParam === "true" || sslParam === "1") {
+    let ssl: boolean | "require" | "prefer" = false;
+    if (sslMode === "require" || sslParam === "true" || sslParam === "1") {
       ssl = "require";
+    } else if (sslMode === "prefer") {
+      ssl = "prefer";
     }
 
     // Strip parameters that postgres.js passes to PostgreSQL as GUC options,
