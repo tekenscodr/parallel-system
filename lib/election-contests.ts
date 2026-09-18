@@ -330,8 +330,9 @@ export function normalizeCanonicalPosition(pos: string | null, level: string | n
     if (s.includes("deputy") && s.includes("women")) return "Deputy Women Organiser";
     if (s.includes("women")) return "Women Organiser";
     // Nasara must be checked BEFORE generic organiser (both contain "organiser")
-    if (s.includes("deputy") && s.includes("nasara")) return lvl === "region" ? "Deputy Nasara Coordinator" : "Deputy Nasara Organiser";
-    if (s.includes("nasara")) return lvl === "region" ? "Nasara Coordinator" : "Nasara Organiser";
+    const isRegionalTier = lvl === "region" || lvl === "regional";
+    if (s.includes("deputy") && s.includes("nasara")) return isRegionalTier ? "Deputy Nasara Coordinator" : "Deputy Nasara Organiser";
+    if (s.includes("nasara")) return isRegionalTier ? "Nasara Coordinator" : "Nasara Organiser";
     if (s.includes("deputy") && (s.includes("organiser") || s.includes("organizer"))) return "Deputy Organiser";
     if (s.includes("organiser") || s.includes("organizer")) return "Organiser";
     if (s.includes("treasurer")) return "Treasurer";

@@ -126,7 +126,7 @@ test('Election album statutory audit table renders TESCON institution count and 
   );
 });
 
-test('Election album route filters Women Organiser electorate to regional, constituency, and TESCON females (excluding national)', () => {
+test('Election album route filters Women Organiser electorate to all females across national, regional, constituency, and TESCON levels', () => {
   const routePath = path.join(process.cwd(), 'app/api/admin/albums/election/route.ts');
   const fileContent = fs.readFileSync(routePath, 'utf8');
 
@@ -135,8 +135,12 @@ test('Election album route filters Women Organiser electorate to regional, const
     'Route must define Women Organiser contest branch'
   );
   assert.ok(
-    fileContent.includes('["region", "regional", "constituency"].includes(lvl)'),
-    'Women Organiser must only include regional and constituency (including external branch) levels, excluding national'
+    fileContent.includes('["national", "region", "regional", "constituency"].includes(lvl)'),
+    'Women Organiser must include national, regional, and constituency levels'
+  );
+  assert.ok(
+    fileContent.includes('g !== "female"') || fileContent.includes('g === "female"'),
+    'Women Organiser must strictly filter to females only'
   );
 });
 

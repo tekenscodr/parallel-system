@@ -121,7 +121,7 @@ export default function PositionAlbumsPage() {
   const currentUser = useAlbumUser();
   const [contest, setContest] = useState<ContestType>("Women Organiser");
   const [region, setRegion] = useState("all");
-  const [scope, setScope] = useState("organisers_only");
+  const [scope, setScope] = useState("all_voters");
   const [selectedPositions, setSelectedPositions] = useState<string[]>([
     "chairperson",
     "secretary",
@@ -165,16 +165,9 @@ export default function PositionAlbumsPage() {
       contest === "Women Organiser" ||
       contest === "Nasara Organiser");
 
-  const effectiveScope = (
-    WING_PORTFOLIOS.includes(contest as any) ||
-    contest === "Youth Organiser" ||
-    contest === "Women Organiser" ||
-    contest === "Nasara Organiser"
-  )
+  const effectiveScope = WING_PORTFOLIOS.includes(contest as any)
     ? (scope === "all_voters" ? "all_voters" : "organisers_only")
-    : GENERAL_CONTEST_LIST.includes(contest as any)
-    ? (scope === "organisers_only" ? "organisers_only" : "all_voters")
-    : scope;
+    : (scope === "organisers_only" ? "organisers_only" : "all_voters");
   const positionsQuery = isCustom ? `&positions=${encodeURIComponent(selectedPositions.join(","))}` : "";
   const levelsQuery =
     selectedLevels.length > 0 && selectedLevels.length < ALL_CUSTOMIZABLE_LEVELS.length
@@ -493,12 +486,7 @@ export default function PositionAlbumsPage() {
                     if (val === "Custom") {
                       setCustomizerOpen(true);
                     }
-                    if (
-                      WING_PORTFOLIOS.includes(val as any) ||
-                      val === "Youth Organiser" ||
-                      val === "Women Organiser" ||
-                      val === "Nasara Organiser"
-                    ) {
+                    if (WING_PORTFOLIOS.includes(val as any)) {
                       setScope("organisers_only");
                     } else {
                       setScope("all_voters");
