@@ -957,6 +957,7 @@ export async function GET(req: NextRequest) {
         matchedContest === "Organiser" ||
         matchedContest === "Youth Organiser" ||
         matchedContest === "Women Organiser" ||
+        matchedContest === "Women Organisers & Deputies" ||
         matchedContest === "Nasara Organiser"
       ) {
         expectedCount =
@@ -1033,14 +1034,15 @@ export async function GET(req: NextRequest) {
         expectedCount = 6449;
       } else if (matchedContest === "Youth Organiser") {
         expectedCount = 2722;
-      } else if (matchedContest === "Women Organiser") {
+      } else if (
+        matchedContest === "Women Organiser" ||
+        matchedContest === "Women Organisers & Deputies"
+      ) {
         expectedCount = 1323;
       } else if (matchedContest === "Nasara Organiser") {
         expectedCount = 852;
       } else if (matchedContest === "Youth Organisers & Deputies") {
         expectedCount = 1382;
-      } else if (matchedContest === "Women Organisers & Deputies") {
-        expectedCount = 863;
       } else if (matchedContest === "Nasara Coordinators & Deputies") {
         expectedCount = 852;
       } else {

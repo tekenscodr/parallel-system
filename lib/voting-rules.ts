@@ -88,7 +88,7 @@ export function buildVotingReport(source: VotingSource[]) {
     const flags = {
       general: !identityConflict && (core || tescon.some(r=>norm(r.position)==='president')),
       youth: !identityConflict && !isFormerOfficer && (tescon.length > 0 || hasYouthPortfolio || (core && age !== null && age < 40)),
-      women: !identityConflict && ((core && gender==='female') || tescon.some(r=>['wocom','womencommissioner','womenscommissioner'].includes(norm(r.position)))),
+      women: !identityConflict && ((core && gender==='female') || tescon.some(r=>['wocom','womencommissioner','womenscommissioner'].includes(norm(r.position)) || (norm(r.position)==='president' && gender==='female'))),
       nasara: !identityConflict && rows.some(r=>/nasara/i.test(clean(r.position)) && !(norm(r.executive_level)==='tescon' && /patron/i.test(clean(r.position)))),
     };
     const regions = unique(rows.map(r => norm(r.executive_level)==='national' ? 'National' : clean(r.region).replace(/-/g,' ')));

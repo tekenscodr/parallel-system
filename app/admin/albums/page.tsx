@@ -165,9 +165,12 @@ export default function PositionAlbumsPage() {
       contest === "Women Organiser" ||
       contest === "Nasara Organiser");
 
-  const effectiveScope = WING_PORTFOLIOS.includes(contest as any)
-    ? (scope === "all_voters" ? "all_voters" : "organisers_only")
-    : (scope === "organisers_only" ? "organisers_only" : "all_voters");
+  const effectiveScope =
+    contest === "Women Organiser" || contest === "Women Organisers & Deputies"
+      ? "all_voters"
+      : WING_PORTFOLIOS.includes(contest as any)
+      ? (scope === "all_voters" ? "all_voters" : "organisers_only")
+      : (scope === "organisers_only" ? "organisers_only" : "all_voters");
   const positionsQuery = isCustom ? `&positions=${encodeURIComponent(selectedPositions.join(","))}` : "";
   const levelsQuery =
     selectedLevels.length > 0 && selectedLevels.length < ALL_CUSTOMIZABLE_LEVELS.length
@@ -486,7 +489,9 @@ export default function PositionAlbumsPage() {
                     if (val === "Custom") {
                       setCustomizerOpen(true);
                     }
-                    if (WING_PORTFOLIOS.includes(val as any)) {
+                    if (val === "Women Organiser" || val === "Women Organisers & Deputies") {
+                      setScope("all_voters");
+                    } else if (WING_PORTFOLIOS.includes(val as any)) {
                       setScope("organisers_only");
                     } else {
                       setScope("all_voters");
@@ -499,12 +504,20 @@ export default function PositionAlbumsPage() {
                   </optgroup>
                   <optgroup label="Wing Organisers & Deputies (Exclusive Extraction)">
                     {WING_PORTFOLIOS.map((item) => (
-                      <option key={item} value={item}>{item}</option>
+                      <option key={item} value={item}>
+                        {item === "Women Organisers & Deputies"
+                          ? "Women Organiser (All Female Electoral College)"
+                          : item}
+                      </option>
                     ))}
                   </optgroup>
                   <optgroup label="General Election Contests">
                     {GENERAL_CONTEST_LIST.map((item) => (
-                      <option key={item} value={item}>{item}</option>
+                      <option key={item} value={item}>
+                        {item === "Women Organiser"
+                          ? "Women Organiser (All Female Electoral College)"
+                          : item}
+                      </option>
                     ))}
                   </optgroup>
                 </NativeSelect>
@@ -560,8 +573,14 @@ export default function PositionAlbumsPage() {
                       setPage(1);
                     }}
                   >
-                    <option value="all_voters">Full Voting College (All Eligible Voters)</option>
-                    <option value="organisers_only">Organisers & Deputies Only (Wing Executives)</option>
+                    <option value="all_voters">
+                      {contest === "Women Organiser" || contest === "Women Organisers & Deputies"
+                        ? "All Females in Electoral College (All Eligible Women)"
+                        : "Full Voting College (All Eligible Voters)"}
+                    </option>
+                    {contest !== "Women Organiser" && contest !== "Women Organisers & Deputies" && (
+                      <option value="organisers_only">Organisers & Deputies Only (Wing Executives)</option>
+                    )}
                   </NativeSelect>
                 </div>
               ) : isCustom ? (
