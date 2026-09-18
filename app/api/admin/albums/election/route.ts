@@ -759,14 +759,23 @@ export async function GET(req: NextRequest) {
         return false;
       }
 
-      if (matchedContest === "Women Organiser") {
+      if (
+        matchedContest === "Women Organiser" ||
+        matchedContest === "Women Organisers & Deputies"
+      ) {
         // For women organiser position we strictly only want all females across the electoral college
         if (g !== "female") {
           return false;
         }
 
-        // All females in National (all 28), Regional, Constituency, and External Branch levels
-        if (["national", "region", "regional", "constituency"].includes(lvl)) {
+        // All females in National, Regional, Constituency, and External Branch levels
+        if (
+          ["national", "region", "regional", "constituency"].includes(lvl) ||
+          rawLvl === "external branch" ||
+          rawLvl === "external" ||
+          rawLvl.includes("external") ||
+          String(r.region || "").toLowerCase().includes("external")
+        ) {
           return true;
         }
 
