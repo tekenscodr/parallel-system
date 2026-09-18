@@ -16,6 +16,7 @@ import { ALBUM_PRINT_SCRIPT } from "@/lib/album-print";
 import { withEcSql } from "@/lib/db-ec";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 import {
   CONTEST_LIST,
@@ -1949,8 +1950,10 @@ export async function GET(req: NextRequest) {
       const logoDataUri = await getLogoWebpDataUri();
       const elephantSealDataUri = await getElephantSealDataUri();
 
-      // Pre-convert all delegate images to WebP data URIs before rendering
-      await convertDelegatesImagesToWebp(delegates);
+      // Pre-convert all delegate images to WebP data URIs before rendering (only if photos are visible)
+      if (visibleDetails.has("photo")) {
+        await convertDelegatesImagesToWebp(delegates);
+      }
 
       // Return renderable HTML directly
       const html = generateAlbumHtml(
