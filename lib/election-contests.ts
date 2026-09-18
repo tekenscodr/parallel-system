@@ -317,10 +317,11 @@ export function normalizeCanonicalPosition(pos: string | null, level: string | n
     if (s.includes("youth")) return "National Youth Organiser";
     if (s.includes("deputy") && s.includes("women")) return "Deputy National Women Organiser";
     if (s.includes("women")) return "National Women Organiser";
-    if (s.includes("deputy") && (s.includes("organiser") || s.includes("organizer"))) return "Deputy National Organiser";
-    if (s.includes("organiser") || s.includes("organizer")) return "National Organiser";
+    // Nasara must be checked BEFORE generic organiser (both contain "organiser")
     if (s.includes("deputy") && s.includes("nasara")) return "Deputy National Nasara Coordinator";
     if (s.includes("nasara")) return "National Nasara Coordinator";
+    if (s.includes("deputy") && (s.includes("organiser") || s.includes("organizer"))) return "Deputy National Organiser";
+    if (s.includes("organiser") || s.includes("organizer")) return "National Organiser";
     if (s.includes("deputy") && s.includes("treasurer")) return "Deputy National Treasurer";
     if (s.includes("treasurer")) return "National Treasurer";
   } else {
@@ -328,10 +329,11 @@ export function normalizeCanonicalPosition(pos: string | null, level: string | n
     if (s.includes("youth")) return "Youth Organiser";
     if (s.includes("deputy") && s.includes("women")) return "Deputy Women Organiser";
     if (s.includes("women")) return "Women Organiser";
-    if (s.includes("deputy") && (s.includes("organiser") || s.includes("organizer"))) return "Deputy Organiser";
-    if (s.includes("organiser") || s.includes("organizer")) return "Organiser";
+    // Nasara must be checked BEFORE generic organiser (both contain "organiser")
     if (s.includes("deputy") && s.includes("nasara")) return lvl === "region" ? "Deputy Nasara Coordinator" : "Deputy Nasara Organiser";
     if (s.includes("nasara")) return lvl === "region" ? "Nasara Coordinator" : "Nasara Organiser";
+    if (s.includes("deputy") && (s.includes("organiser") || s.includes("organizer"))) return "Deputy Organiser";
+    if (s.includes("organiser") || s.includes("organizer")) return "Organiser";
     if (s.includes("treasurer")) return "Treasurer";
   }
 

@@ -321,14 +321,14 @@ export function getPositionRank(pos?: string | null, level?: string | null): num
   if (p.includes("deputy treasurer")) return 31;
   if (p.includes("treasurer") || p.includes("treasure")) return 30;
 
-  // 4. Organisers and deputies
-  if (p.includes("deputy organiser") || p.includes("deputy organizer") || p.includes("assistant organiser")) return 41;
+  // 4. Organisers and deputies — Nasara must be checked before generic organiser
   if (p.includes("deputy women") || p.includes("assistant women")) return 51;
   if (p.includes("women organiser") || p.includes("women organizer") || p.includes("women's organiser") || p === "women") return 50;
   if (p.includes("deputy youth") || p.includes("assistant youth")) return 61;
   if (p.includes("youth organiser") || p.includes("youth organizer") || p === "youth") return 60;
   if (p.includes("deputy nasara")) return 71;
   if (p.includes("nasara")) return 70;
+  if (p.includes("deputy organiser") || p.includes("deputy organizer") || p.includes("assistant organiser")) return 41;
   if (p.includes("organiser") || p.includes("organizer")) return 40;
 
   // 6. Communication
