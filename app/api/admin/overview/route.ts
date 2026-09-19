@@ -89,6 +89,8 @@ export async function GET(req: Request) {
                 AND executive_level NOT ILIKE '%external branch%' 
                 AND region NOT ILIKE '%external branch%' 
                 AND (date_of_birth IS NOT NULL OR age IS NOT NULL) THEN 1
+              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+                AND date_of_birth > '1986-08-21' THEN 1
               WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND (age + 2) < 40 THEN 1
             END)::int as under_40,
@@ -96,6 +98,8 @@ export async function GET(req: Request) {
               WHEN position ILIKE '%youth%' 
                 AND executive_level NOT ILIKE '%external branch%' 
                 AND region NOT ILIKE '%external branch%' THEN NULL
+              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+                AND date_of_birth BETWEEN '1985-08-22' AND '1986-08-21' THEN 1
               WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) = 40 THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND (age + 2) = 40 THEN 1
             END)::int as equal_40,
@@ -121,7 +125,11 @@ export async function GET(req: Request) {
           SELECT 
             executive_level as level,
             COUNT(*)::int as count,
-            COUNT(CASE WHEN age < 40 THEN 1 END)::int as under_40,
+            COUNT(CASE 
+              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND date_of_birth > '1986-08-21' THEN 1
+              WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
+              WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND age < 40 THEN 1
+            END)::int as under_40,
             COUNT(CASE WHEN gender = 'Female' THEN 1 END)::int as women
           FROM executives_all
           ${whereClause}
@@ -141,7 +149,11 @@ export async function GET(req: Request) {
           SELECT 
             COALESCE(NULLIF(constituency, ''), 'Unassigned') as region,
             COUNT(*)::int as count,
-            COUNT(CASE WHEN age < 40 THEN 1 END)::int as under_40
+            COUNT(CASE 
+              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND date_of_birth > '1986-08-21' THEN 1
+              WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
+              WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND age < 40 THEN 1
+            END)::int as under_40
           FROM executives_all
           ${whereClause}
           GROUP BY constituency
@@ -151,7 +163,11 @@ export async function GET(req: Request) {
           SELECT 
             COALESCE(NULLIF(region, ''), 'National/Unassigned') as region,
             COUNT(*)::int as count,
-            COUNT(CASE WHEN age < 40 THEN 1 END)::int as under_40
+            COUNT(CASE 
+              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND date_of_birth > '1986-08-21' THEN 1
+              WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
+              WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND age < 40 THEN 1
+            END)::int as under_40
           FROM executives_all
           ${whereClause}
           GROUP BY region
@@ -164,6 +180,7 @@ export async function GET(req: Request) {
             COUNT(CASE 
               WHEN executive_level = 'TESCON' THEN 1
               WHEN position ILIKE '%youth%' THEN 1
+              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND date_of_birth > '1986-08-21' THEN 1
               WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND age < 40 THEN 1
             END)::int as youth_voters,

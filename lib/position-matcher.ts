@@ -235,6 +235,12 @@ export function buildPositionCondition(sql: any, position: string) {
     variants.add("Pwd");
   }
 
+  // 9. Member of Parliament variations
+  if (/member of parliament|^mp$/i.test(p)) {
+    variants.add("Member of Parliament");
+    variants.add("MP");
+  }
+
   const conds = Array.from(variants).map((v) => sql`position ILIKE ${v}`);
   return sql`(${conds.reduce((prev: any, curr: any) => sql`${prev} OR ${curr}`)})`;
 }
@@ -249,6 +255,9 @@ export function getPositionRank(pos?: string | null, level?: string | null): num
   const tier = String(level || "").trim().toLowerCase();
 
   if (tier === "region" || tier === "regional" || tier === "constituency") {
+    // 0. Member of Parliament
+    if (p.includes("member of parliament") || p === "mp") return 0;
+
     // 1. Chairperson / Chairman
     if (p.includes("1st vice") || p.includes("first vice")) return 2;
     if (p.includes("2nd vice") || p.includes("second vice")) return 3;

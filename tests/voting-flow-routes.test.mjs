@@ -36,6 +36,7 @@ function load(relativePath, mocks = {}) {
 }
 
 const { getDelegateEntitledPositions, isTesconPatron } = load("lib/voting-entitlement.ts");
+const { calculateExactAge, ageIn2026, isUnder40AsOfCutoff, isUnder40AsOf3MonthsAgo } = load("lib/voting-rules.ts");
 const { normalizePhoneNumber, maskPhoneNumber } = load("lib/sms.ts");
 const { createOtp, verifyOtp, signDelegateSession, verifyDelegateSession } = load("lib/delegate-auth.ts");
 
@@ -116,6 +117,33 @@ test("Voting entitlement correctly resolves portfolios for each executive catego
   assert.equal(tesconWocomPositions.some((p) => p.id === "women_organiser"), true, "TESCON WOCOM votes for Women Organiser");
   assert.equal(tesconWocomPositions.length, 2);
 
+  // 5b. Female TESCON Nasara Coordinator - votes for Nasara, Youth, and Women Organiser
+  const tesconFemaleNasara = {
+    executive_name: "RUKAYA IBRAHIM",
+    executive_level: "TESCON",
+    position: "Nasara Coordinator",
+    gender: "Female",
+    voter_id: "3334749999",
+  };
+  const tesconFemaleNasaraPositions = getDelegateEntitledPositions(tesconFemaleNasara);
+  assert.equal(tesconFemaleNasaraPositions.some((p) => p.id === "women_organiser"), true, "Female TESCON Nasara votes for Women Organiser");
+  assert.equal(tesconFemaleNasaraPositions.some((p) => p.id === "nasara_coordinator"), true, "TESCON Nasara votes for Nasara Coordinator");
+  assert.equal(tesconFemaleNasaraPositions.some((p) => p.id === "youth_organiser"), true, "TESCON executive votes for Youth Organiser");
+  assert.equal(tesconFemaleNasaraPositions.some((p) => p.id === "chairperson"), false, "TESCON non-president does not vote for General Officers");
+
+  // 5c. Male TESCON Nasara Coordinator - votes for Nasara and Youth, but NOT Women Organiser
+  const tesconMaleNasara = {
+    executive_name: "ALI MOHAMMED",
+    executive_level: "TESCON",
+    position: "Nasara Coordinator",
+    gender: "Male",
+    voter_id: "3334749998",
+  };
+  const tesconMaleNasaraPositions = getDelegateEntitledPositions(tesconMaleNasara);
+  assert.equal(tesconMaleNasaraPositions.some((p) => p.id === "women_organiser"), false, "Male TESCON Nasara does NOT vote for Women Organiser");
+  assert.equal(tesconMaleNasaraPositions.some((p) => p.id === "nasara_coordinator"), true, "Male TESCON Nasara votes for Nasara Coordinator");
+  assert.equal(tesconMaleNasaraPositions.some((p) => p.id === "youth_organiser"), true, "Male TESCON Nasara votes for Youth Organiser");
+
   // 6. TESCON Patron - Constitutionally barred from voting
   const tesconPatron = {
     executive_name: "PROF PATRON",
@@ -139,6 +167,62 @@ test("Voting entitlement correctly resolves portfolios for each executive catego
   };
   const formerPositions = getDelegateEntitledPositions(formerYouthOfficer);
   assert.equal(formerPositions.some((p) => p.id === "youth_organiser"), false, "Former Youth Organiser must not qualify for youth voting");
+});
+
+test("Age calculation respects full date and 21st August 2026 cutoff for under 40 eligibility", () => {
+  const asOfDate = new Date("2026-09-19T14:22:09Z");
+  const cutoffAug21 = new Date("2026-08-21T00:00:00Z");
+
+  // 1. Someone born on 24th November 1986 is NOT yet 40 years old today (age 39)
+  const ageNov1986 = calculateExactAge("1986-11-24", asOfDate);
+  assert.equal(ageNov1986, 39, "Person born on 24th Nov 1986 must be 39 on 19th Sept 2026");
+  assert.equal(isUnder40AsOfCutoff("1986-11-24", null, cutoffAug21), true);
+
+  // 2. Someone born on 22nd August 1986 was 39 as at 21st August 2026 (turns 40 on 22nd Aug)
+  const ageAug22_1986 = calculateExactAge("1986-08-22", asOfDate);
+  assert.equal(ageAug22_1986, 40, "Person born on 22nd August 1986 is 40 today");
+  assert.equal(isUnder40AsOfCutoff("1986-08-22", null, cutoffAug21), true, "Must qualify under 21st August 2026 cutoff rule");
+
+  // 3. Someone born on 15th August 1986 was already 40 as at 21st August 2026
+  const ageAug15_1986 = calculateExactAge("1986-08-15", asOfDate);
+  assert.equal(ageAug15_1986, 40, "Person born on 15th August 1986 is 40 today");
+  assert.equal(isUnder40AsOfCutoff("1986-08-15", null, cutoffAug21), false, "Must not qualify because was already 40 on 21st August 2026");
+
+  // 4. Delegate born on 24th November 1986 receives Youth Organiser voting entitlement
+  const delegateNov1986 = {
+    executive_name: "KWAME NOV",
+    executive_level: "Constituency",
+    position: "Secretary",
+    gender: "Male",
+    date_of_birth: "1986-11-24",
+    voter_id: "8888001122",
+  };
+  const positionsNov = getDelegateEntitledPositions(delegateNov1986);
+  assert.equal(positionsNov.some((p) => p.id === "youth_organiser"), true, "Nov 1986 delegate must qualify for youth organiser");
+
+  // 5. Delegate born on 22nd August 1986 receives Youth Organiser voting entitlement under 21st August cutoff rule
+  const delegateAug22_1986 = {
+    executive_name: "KOFI AUG",
+    executive_level: "Constituency",
+    position: "Secretary",
+    gender: "Male",
+    date_of_birth: "1986-08-22",
+    voter_id: "8888001123",
+  };
+  const positionsAug22 = getDelegateEntitledPositions(delegateAug22_1986);
+  assert.equal(positionsAug22.some((p) => p.id === "youth_organiser"), true, "Aug 22 1986 delegate must qualify for youth organiser under Aug 21 cutoff");
+
+  // 6. Delegate born on 15th August 1986 does not qualify for Youth Organiser
+  const delegateAug15_1986 = {
+    executive_name: "YAW AUG",
+    executive_level: "Constituency",
+    position: "Secretary",
+    gender: "Male",
+    date_of_birth: "1986-08-15",
+    voter_id: "8888001124",
+  };
+  const positionsAug15 = getDelegateEntitledPositions(delegateAug15_1986);
+  assert.equal(positionsAug15.some((p) => p.id === "youth_organiser"), false, "Aug 15 1986 delegate was already 40 on 21st August 2026 and must not qualify");
 });
 
 test("Phone normalization and masking utility works for Ghana numbers", () => {

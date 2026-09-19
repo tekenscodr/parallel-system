@@ -321,8 +321,8 @@ The API enforces the official NPP National Constitution and Electoral College re
 | Category | Contested Portfolios | Who Is Entitled to Vote |
 | :--- | :--- | :--- |
 | **General Contests** (`general`) | - National Chairperson<br>- 1st Vice Chairperson<br>- 2nd Vice Chairperson<br>- General Secretary<br>- National Treasurer<br>- National Organiser<br>- National Communication Officer | 1. All **National** executives.<br>2. All **Regional** executives.<br>3. All **Constituency** executives.<br>4. All **External Branch** (Diaspora) executives.<br>5. **TESCON Institutional Presidents**.<br>*(Note: TESCON non-presidents do not vote in General Contests)*. |
-| **Youth Wing** (`youth`) | - National Youth Organiser | 1. Any delegate holding a **Youth portfolio** (e.g. Youth Organiser, Deputy Youth Organiser).<br>2. **All TESCON tertiary executives** (excluding patrons).<br>3. Any core executive aged **under 40 in 2026** (`age < 40`). |
-| **Women's Wing** (`women`) | - National Women Organiser | 1. All **female** core executives (National, Regional, Constituency, External Branch).<br>2. **TESCON Women Commissioners (WOCOM)**.<br>3. **Female TESCON Presidents**. |
+| **Youth Wing** (`youth`) | - National Youth Organiser | 1. Any delegate holding a **Youth portfolio** (e.g. Youth Organiser, Deputy Youth Organiser).<br>2. **All TESCON tertiary executives** (excluding patrons).<br>3. Any core executive aged **under 40 as at 21st August, 2026** (evaluated using exact date of birth; e.g. born after 21st August 1986). |
+| **Women's Wing** (`women`) | - National Women Organiser | 1. All **female** core executives (National, Regional, Constituency, External Branch).<br>2. **TESCON Women Commissioners (WOCOM)**.<br>3. **Female TESCON Presidents**.<br>4. **Female TESCON Nasara Coordinators**. |
 | **Nasara Wing** (`nasara`) | - National Nasara Coordinator | 1. All **Nasara Coordinators** and **Deputy Nasara Coordinators** across National, Regional, Constituency, and TESCON levels. |
 | **Non-Voting** | *None* | **TESCON Patrons** are advisory officers and are strictly excluded from voting. |
 

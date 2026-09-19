@@ -175,6 +175,106 @@ const WOMEN_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
   "External Branch": 130,
 };
 
+const GENERAL_OFFICERS_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
+  "Ahafo": 136,
+  "Ashanti": 940,
+  "Bono": 254,
+  "Bono East": 232,
+  "Central": 463,
+  "Eastern": 663,
+  "Greater Accra": 692,
+  "North East": 135,
+  "Northern": 370,
+  "Oti": 192,
+  "Savannah": 154,
+  "Upper East": 310,
+  "Upper West": 233,
+  "Volta": 369,
+  "Western": 348,
+  "Western North": 193,
+  "External Branch": 570,
+};
+
+const YOUTH_WING_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
+  "Ahafo": 40,
+  "Ashanti": 242,
+  "Bono": 81,
+  "Bono East": 50,
+  "Central": 96,
+  "Eastern": 141,
+  "Greater Accra": 180,
+  "North East": 27,
+  "Northern": 98,
+  "Oti": 30,
+  "Savannah": 41,
+  "Upper East": 66,
+  "Upper West": 64,
+  "Volta": 72,
+  "Western": 74,
+  "Western North": 37,
+  "External Branch": 60,
+};
+
+const YOUTH_GENERAL_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
+  "Ahafo": 68,
+  "Ashanti": 435,
+  "Bono": 129,
+  "Bono East": 100,
+  "Central": 180,
+  "Eastern": 261,
+  "Greater Accra": 321,
+  "North East": 58,
+  "Northern": 200,
+  "Oti": 83,
+  "Savannah": 97,
+  "Upper East": 134,
+  "Upper West": 107,
+  "Volta": 153,
+  "Western": 161,
+  "Western North": 71,
+  "External Branch": 175,
+};
+
+const NASARA_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
+  "Ahafo": 21,
+  "Ashanti": 138,
+  "Bono": 41,
+  "Bono East": 31,
+  "Central": 62,
+  "Eastern": 91,
+  "Greater Accra": 106,
+  "North East": 17,
+  "Northern": 57,
+  "Oti": 21,
+  "Savannah": 24,
+  "Upper East": 41,
+  "Upper West": 36,
+  "Volta": 42,
+  "Western": 45,
+  "Western North": 23,
+  "External Branch": 60,
+};
+
+const FULL_DIRECTORY_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
+  "Ahafo": 155,
+  "Ashanti": 1059,
+  "Bono": 305,
+  "Bono East": 251,
+  "Central": 499,
+  "Eastern": 722,
+  "Greater Accra": 787,
+  "North East": 140,
+  "Northern": 429,
+  "Oti": 195,
+  "Savannah": 190,
+  "Upper East": 341,
+  "Upper West": 269,
+  "Volta": 321,
+  "Western": 377,
+  "Western North": 187,
+  "External Branch": 570,
+};
+
 let LOGO_WEBP_DATA_URI = "";
 async function getLogoWebpDataUri(): Promise<string> {
   if (LOGO_WEBP_DATA_URI) return LOGO_WEBP_DATA_URI;
@@ -274,13 +374,43 @@ function renderCurvedText(
 }
 
 
-function calculateAgeIn2026(dob: string | null, ageCol: number | null | undefined): number | null {
+function calculateAgeIn2026(dob: string | null, ageCol: number | null | undefined, asOfDate: Date = new Date()): number | null {
   if (dob) {
     const s = String(dob).trim();
-    const match = s.match(/\b(19\d\d|20[0-2]\d)\b/);
-    if (match) {
-      const year = parseInt(match[1], 10);
-      if (year >= 1910 && year <= 2026) return 2026 - year;
+    let year: number | null = null;
+    let month: number | null = null;
+    let day: number | null = null;
+
+    const isoMatch = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (isoMatch) {
+      year = parseInt(isoMatch[1], 10);
+      month = parseInt(isoMatch[2], 10);
+      day = parseInt(isoMatch[3], 10);
+    } else {
+      const slashMatch = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+      if (slashMatch) {
+        day = parseInt(slashMatch[1], 10);
+        month = parseInt(slashMatch[2], 10);
+        year = parseInt(slashMatch[3], 10);
+      } else {
+        const match = s.match(/\b(19\d\d|20[0-2]\d)\b/);
+        if (match) {
+          year = parseInt(match[1], 10);
+        }
+      }
+    }
+
+    if (year && year >= 1906 && year <= asOfDate.getFullYear() + 1) {
+      if (month && day && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        let age = asOfDate.getFullYear() - year;
+        const curMonth = asOfDate.getMonth() + 1;
+        const curDay = asOfDate.getDate();
+        if (curMonth < month || (curMonth === month && curDay < day)) {
+          age--;
+        }
+        return age;
+      }
+      return asOfDate.getFullYear() - year;
     }
   }
   if (ageCol !== null && ageCol !== undefined) {
@@ -291,6 +421,28 @@ function calculateAgeIn2026(dob: string | null, ageCol: number | null | undefine
   }
   return null;
 }
+
+const DEFAULT_ALBUM_YOUTH_CUTOFF = new Date("2026-08-21T00:00:00Z");
+
+function isUnder40AsOfCutoff(
+  dob: string | null,
+  ageCol: number | null | undefined,
+  cutoffDate: Date = DEFAULT_ALBUM_YOUTH_CUTOFF
+): boolean {
+  if (dob) {
+    const ageAtCutoff = calculateAgeIn2026(dob, null, cutoffDate);
+    if (ageAtCutoff !== null) {
+      return ageAtCutoff < 40;
+    }
+  }
+  if (ageCol !== null && ageCol !== undefined) {
+    const num = Number(ageCol);
+    if (Number.isFinite(num)) return num < 40;
+  }
+  return false;
+}
+
+const isUnder40AsOf3MonthsAgo = isUnder40AsOfCutoff;
 
 function generateSvgAvatar(name: string, role: string): string {
   const cleanName = String(name || "")
@@ -716,7 +868,7 @@ export async function GET(req: NextRequest) {
           }
           if (lvl === "tescon") {
             if (posLower.includes("patron")) return false;
-            return /wocom|women|president/i.test(posLower);
+            return /wocom|women|president|nasara/i.test(posLower);
           }
           return false;
         }
@@ -772,9 +924,8 @@ export async function GET(req: NextRequest) {
           if (posLower.includes("former")) return false;
           // Youth organisers & deputies vote ex-officio (regardless of age)
           if (/youth/i.test(posLower)) return true;
-          // Anyone under 40 (age < 40 in 2026)
-          const age = calculateAgeIn2026(r.date_of_birth, r.age);
-          if (age !== null && age < 40) return true;
+          // Anyone under 40 (all those who were not 40 as at 21st August 2026)
+          if (isUnder40AsOfCutoff(r.date_of_birth, r.age)) return true;
         }
         return false;
       }
@@ -799,10 +950,10 @@ export async function GET(req: NextRequest) {
           return true;
         }
 
-        // TESCON: strictly female Presidents & WOCOMs (patrons strictly excluded)
+        // TESCON: strictly female executives (Presidents, WOCOMs, and Nasara Coordinators; patrons strictly excluded)
         if (lvl === "tescon") {
           if (posLower.includes("patron")) return false;
-          return /wocom|women|president/i.test(posLower);
+          return /wocom|women|president|nasara/i.test(posLower);
         }
 
         return false;
@@ -873,7 +1024,7 @@ export async function GET(req: NextRequest) {
           phone: r.phone && String(r.phone).trim() !== "None" ? String(r.phone).trim() : "—",
           gender: r.gender ? String(r.gender).trim() : "Unknown",
           age,
-          is_under_40: age !== null ? age < 40 : false,
+          is_under_40: isUnder40AsOfCutoff(r.date_of_birth, r.age),
           image_url: photoUrl,
           webp_image_url: photoUrl
             ? `/api/admin/albums/image?url=${encodeURIComponent(photoUrl)}&w=240&h=300`
@@ -959,30 +1110,6 @@ export async function GET(req: NextRequest) {
         matchedContest === "Women Organisers & Deputies"
       ) {
         expectedCount = WOMEN_REGIONAL_STATUTORY_QUOTAS["External Branch"] || 130;
-      } else {
-        expectedCount = 30 * externalTargetPerUnit;
-      }
-    } else if (regionQuery !== "all" && regionQuery !== "") {
-      const regConCount =
-        REGIONAL_CONSTITUENCY_COUNTS[regionQuery] ||
-        (getConstituenciesForRegion(regionQuery).length || 0);
-
-      if (isWingOrganisers) {
-        expectedCount =
-          (hasRegional ? 3 : 0) + (hasConstituency ? regConCount * 2 : 0);
-      } else if (isCustomContest) {
-        expectedCount =
-          (hasRegional ? regionalTargetPerUnit : 0) +
-          (hasConstituency ? regConCount * constituencyTargetPerUnit : 0);
-      } else if (
-        matchedContest === "Women Organiser" ||
-        matchedContest === "Women Organisers & Deputies"
-      ) {
-        const regKey = Object.keys(WOMEN_REGIONAL_STATUTORY_QUOTAS).find(
-          (k) => k.toLowerCase() === regionQuery.toLowerCase().trim()
-        );
-        const regTarget = regKey ? WOMEN_REGIONAL_STATUTORY_QUOTAS[regKey] : regConCount * 4;
-        expectedCount = regTarget + (hasNational ? 26 : 0);
       } else if (
         matchedContest === "National Chairperson & General Officers" ||
         matchedContest === "Chairperson" ||
@@ -990,18 +1117,102 @@ export async function GET(req: NextRequest) {
         matchedContest === "General Secretary" ||
         matchedContest === "Treasurer" ||
         matchedContest === "Communication Officer" ||
-        matchedContest === "Organiser" ||
-        matchedContest === "Youth Organiser" ||
-        matchedContest === "Nasara Organiser"
+        matchedContest === "Organiser"
       ) {
+        expectedCount = 570;
+      } else if (matchedContest === "Youth Organisers & Deputies") {
+        expectedCount = 60;
+      } else if (matchedContest === "Youth Organiser") {
+        expectedCount = 175;
+      } else if (
+        matchedContest === "Nasara Organiser" ||
+        matchedContest === "Nasara Coordinators & Deputies"
+      ) {
+        expectedCount = 60;
+      } else if (isCustomContest) {
+        expectedCount = 30 * externalTargetPerUnit;
+      } else {
+        expectedCount = 570;
+      }
+    } else if (regionQuery !== "all" && regionQuery !== "") {
+      const regConCount =
+        REGIONAL_CONSTITUENCY_COUNTS[regionQuery] ||
+        (getConstituenciesForRegion(regionQuery).length || 0);
+
+      const regKey = Object.keys(REGIONAL_CONSTITUENCY_COUNTS).find(
+        (k) => k.toLowerCase() === regionQuery.toLowerCase().trim()
+      ) || regionQuery;
+
+      if (isCustomContest) {
         expectedCount =
-          (hasRegional ? 1 : 0) + (hasConstituency ? regConCount * 1 : 0);
+          (hasRegional ? regionalTargetPerUnit : 0) +
+          (hasConstituency ? regConCount * constituencyTargetPerUnit : 0);
+      } else if (isRegionalOnly) {
+        if (
+          matchedContest === "Youth Organisers & Deputies" ||
+          matchedContest === "Nasara Coordinators & Deputies"
+        ) {
+          expectedCount = 3;
+        } else if (
+          matchedContest === "Women Organiser" ||
+          matchedContest === "Women Organisers & Deputies"
+        ) {
+          expectedCount = 4;
+        } else {
+          expectedCount = regionalTargetPerUnit;
+        }
+      } else if (isConstituencyOnly) {
+        if (
+          matchedContest === "Youth Organisers & Deputies" ||
+          matchedContest === "Nasara Coordinators & Deputies"
+        ) {
+          expectedCount = regConCount * 2;
+        } else if (
+          matchedContest === "Women Organiser" ||
+          matchedContest === "Women Organisers & Deputies"
+        ) {
+          expectedCount = regConCount * 4;
+        } else {
+          expectedCount = regConCount * constituencyTargetPerUnit;
+        }
+      } else if (isTesconOnly) {
+        expectedCount = totalActual;
+      } else if (
+        matchedContest === "Women Organiser" ||
+        matchedContest === "Women Organisers & Deputies"
+      ) {
+        const regTarget = WOMEN_REGIONAL_STATUTORY_QUOTAS[regKey] || regConCount * 4;
+        expectedCount = regTarget + (hasNational ? 26 : 0);
+      } else if (matchedContest === "Youth Organisers & Deputies") {
+        const regTarget = YOUTH_WING_REGIONAL_STATUTORY_QUOTAS[regKey] || (regConCount * 2 + 3);
+        expectedCount = regTarget + (hasNational ? 3 : 0);
+      } else if (matchedContest === "Youth Organiser") {
+        const regTarget = YOUTH_GENERAL_REGIONAL_STATUTORY_QUOTAS[regKey] || (regConCount * 7 + 5);
+        expectedCount = regTarget + (hasNational ? 7 : 0);
+      } else if (
+        matchedContest === "Nasara Organiser" ||
+        matchedContest === "Nasara Coordinators & Deputies"
+      ) {
+        const regTarget = NASARA_REGIONAL_STATUTORY_QUOTAS[regKey] || (regConCount * 2 + 3);
+        expectedCount = regTarget + (hasNational ? 4 : 0);
+      } else if (
+        matchedContest === "National Chairperson & General Officers" ||
+        matchedContest === "Chairperson" ||
+        matchedContest === "Vice Chairperson" ||
+        matchedContest === "General Secretary" ||
+        matchedContest === "Treasurer" ||
+        matchedContest === "Communication Officer" ||
+        matchedContest === "Organiser"
+      ) {
+        const regTarget = GENERAL_OFFICERS_REGIONAL_STATUTORY_QUOTAS[regKey] || (regConCount * 19 + 21);
+        expectedCount = regTarget + (hasNational ? 174 : 0);
       } else {
         // Full Directory / Standard Single Region:
         // Regional Quota = 21, Constituency Quota = 19 (11 elected + 8 appointed)
         const regQuota = hasRegional ? regionalTargetPerUnit : 0;
         const conQuota = hasConstituency ? regConCount * constituencyTargetPerUnit : 0;
-        expectedCount = regQuota + conQuota;
+        const regBase = FULL_DIRECTORY_REGIONAL_STATUTORY_QUOTAS[regKey];
+        expectedCount = regBase ? regBase + (hasNational ? 174 : 0) : regQuota + conQuota;
       }
     } else {
       // Nationwide (all regions)
@@ -1011,14 +1222,14 @@ export async function GET(req: NextRequest) {
             matchedContest === "Youth Organisers & Deputies" ||
             matchedContest === "Youth Organiser"
           ) {
-            expectedCount = 1382;
+            expectedCount = 1400;
           } else if (matchedContest === "Women Organisers & Deputies") {
-            expectedCount = 863;
+            expectedCount = 1323;
           } else if (
             matchedContest === "Nasara Coordinators & Deputies" ||
             matchedContest === "Nasara Organiser"
           ) {
-            expectedCount = 852;
+            expectedCount = 870;
           } else {
             expectedCount =
               (hasConstituency ? 276 * 2 : 0) +
@@ -1067,27 +1278,22 @@ export async function GET(req: NextRequest) {
       ) {
         expectedCount = 6449;
       } else if (matchedContest === "Youth Organiser") {
-        expectedCount = 2722;
+        expectedCount = 2800;
       } else if (
         matchedContest === "Women Organiser" ||
         matchedContest === "Women Organisers & Deputies"
       ) {
         expectedCount = 1323;
-      } else if (matchedContest === "Nasara Organiser") {
-        expectedCount = 852;
+      } else if (
+        matchedContest === "Nasara Organiser" ||
+        matchedContest === "Nasara Coordinators & Deputies"
+      ) {
+        expectedCount = 870;
       } else if (matchedContest === "Youth Organisers & Deputies") {
-        expectedCount = 1382;
-      } else if (matchedContest === "Nasara Coordinators & Deputies") {
-        expectedCount = 852;
+        expectedCount = 1400;
       } else {
         // Full Directory (All Executives) Nationwide:
-        // Core regional (16 * 21 = 336) + constituency (276 * 19 = 5,244) = 5,580
-        const regQuota = hasRegional ? 16 * 21 : 0;
-        const conQuota = hasConstituency ? 276 * 19 : 0;
-        const natQuota = hasNational ? 30 : 0;
-        const extQuota = hasExternal ? 30 * externalTargetPerUnit : 0;
-        const tesconQuota = hasTescon ? 248 : 0;
-        expectedCount = regQuota + conQuota + natQuota + extQuota + tesconQuota;
+        expectedCount = 7150;
       }
     }
 
@@ -1112,8 +1318,8 @@ export async function GET(req: NextRequest) {
 
     const ageCounts = delegates.reduce(
       (acc, d) => {
-        if (d.age === null) acc.pending++;
-        else if (d.age < 40) acc.under40++;
+        if (d.is_under_40) acc.under40++;
+        else if (d.age === null) acc.pending++;
         else acc.fortyPlus++;
         return acc;
       },
@@ -1279,7 +1485,7 @@ export async function GET(req: NextRequest) {
           confirmed: regConfirmed,
           target: regTarget,
           variance: regVariance > 0 ? `-${regVariance}` : "0",
-          rate: regTarget > 0 ? ((regConfirmed / regTarget) * 100).toFixed(1) + "%" : "100%",
+          rate: regTarget > 0 ? Math.min(100, Math.max(0, (regConfirmed / regTarget) * 100)).toFixed(1) + "%" : "100%",
         });
       }
 
@@ -1311,7 +1517,7 @@ export async function GET(req: NextRequest) {
             confirmed,
             target,
             variance: variance > 0 ? `-${variance}` : "0",
-            rate: target > 0 ? ((confirmed / target) * 100).toFixed(1) + "%" : "100%",
+            rate: target > 0 ? Math.min(100, Math.max(0, (confirmed / target) * 100)).toFixed(1) + "%" : "100%",
           });
         }
       }
@@ -1344,7 +1550,7 @@ export async function GET(req: NextRequest) {
       const sumItemConfirmed = auditItems.reduce((acc, it) => acc + it.confirmed, 0);
       const sumItemTarget = auditItems.reduce((acc, it) => acc + it.target, 0);
       const sumItemVariance = sumItemTarget - sumItemConfirmed;
-      const sumItemRate = sumItemTarget > 0 ? ((sumItemConfirmed / sumItemTarget) * 100).toFixed(1) + "%" : "100%";
+      const sumItemRate = sumItemTarget > 0 ? Math.min(100, Math.max(0, (sumItemConfirmed / sumItemTarget) * 100)).toFixed(1) + "%" : "100%";
 
       const numConstituenciesInAudit = auditItems.filter((it) => it.level === "Constituency" || it.level === "External Branch").length;
       const numTesconInAudit = auditItems.filter((it) => it.level === "TESCON").length;
@@ -1554,7 +1760,7 @@ export async function GET(req: NextRequest) {
             <td style="text-align: center;">${r.regConfirmed.toLocaleString()}</td>
             <td style="text-align: center;">${r.regTarget}</td>
             <td style="text-align: center;">${r.regTarget - r.regConfirmed > 0 ? `-${r.regTarget - r.regConfirmed}` : "0"}</td>
-            <td style="text-align: center;">${r.regTarget > 0 ? ((r.regConfirmed / r.regTarget) * 100).toFixed(1) + "%" : "100%"}</td>
+            <td style="text-align: center;">${r.regTarget > 0 ? Math.min(100, Math.max(0, (r.regConfirmed / r.regTarget) * 100)).toFixed(1) + "%" : "100%"}</td>
           </tr>
         `
           )
@@ -1565,14 +1771,14 @@ export async function GET(req: NextRequest) {
             <td style="text-align: center;"><strong>${sumRegConfirmed.toLocaleString()}</strong></td>
             <td style="text-align: center;"><strong>${sumRegTarget.toLocaleString()}</strong></td>
             <td style="text-align: center;"><strong>${sumRegTarget - sumRegConfirmed > 0 ? `-${sumRegTarget - sumRegConfirmed}` : "0"}</strong></td>
-            <td style="text-align: center;"><strong>${sumRegTarget > 0 ? ((sumRegConfirmed / sumRegTarget) * 100).toFixed(1) + "%" : "100%"}</strong></td>
+            <td style="text-align: center;"><strong>${sumRegTarget > 0 ? Math.min(100, Math.max(0, (sumRegConfirmed / sumRegTarget) * 100)).toFixed(1) + "%" : "100%"}</strong></td>
           </tr>
         `,
         auditRows: regionalRows.map((r) => ({
           region: `${r.region} Region`,
           confirmed: r.regConfirmed,
           target: r.regTarget,
-          complianceRate: r.regTarget > 0 ? ((r.regConfirmed / r.regTarget) * 100).toFixed(1) + "%" : "100%",
+          complianceRate: r.regTarget > 0 ? Math.min(100, Math.max(0, (r.regConfirmed / r.regTarget) * 100)).toFixed(1) + "%" : "100%",
         })),
       };
     } else if (isConstituencyOnly) {
@@ -1599,7 +1805,7 @@ export async function GET(req: NextRequest) {
             <td style="text-align: center;">${r.numConstituencies}</td>
             <td style="text-align: center;">${r.conConfirmed.toLocaleString()}</td>
             <td style="text-align: center;">${r.conTarget.toLocaleString()}</td>
-            <td style="text-align: center;">${r.conTarget > 0 ? ((r.conConfirmed / r.conTarget) * 100).toFixed(1) + "%" : "100%"}</td>
+            <td style="text-align: center;">${r.conTarget > 0 ? Math.min(100, Math.max(0, (r.conConfirmed / r.conTarget) * 100)).toFixed(1) + "%" : "100%"}</td>
           </tr>
         `
           )
@@ -1610,14 +1816,14 @@ export async function GET(req: NextRequest) {
             <td style="text-align: center;"><strong>${sumConstituencies}</strong></td>
             <td style="text-align: center;"><strong>${sumConConfirmed.toLocaleString()}</strong></td>
             <td style="text-align: center;"><strong>${sumConTarget.toLocaleString()}</strong></td>
-            <td style="text-align: center;"><strong>${sumConTarget > 0 ? ((sumConConfirmed / sumConTarget) * 100).toFixed(1) + "%" : "100%"}</strong></td>
+            <td style="text-align: center;"><strong>${sumConTarget > 0 ? Math.min(100, Math.max(0, (sumConConfirmed / sumConTarget) * 100)).toFixed(1) + "%" : "100%"}</strong></td>
           </tr>
         `,
         auditRows: regionalRows.map((r) => ({
           region: r.region,
           confirmed: r.conConfirmed,
           target: r.conTarget,
-          complianceRate: r.conTarget > 0 ? ((r.conConfirmed / r.conTarget) * 100).toFixed(1) + "%" : "100%",
+          complianceRate: r.conTarget > 0 ? Math.min(100, Math.max(0, (r.conConfirmed / r.conTarget) * 100)).toFixed(1) + "%" : "100%",
         })),
       };
     } else if (isTesconOnly) {
@@ -1789,7 +1995,7 @@ export async function GET(req: NextRequest) {
             region: r.region,
             confirmed: r.totalConfirmed,
             target: r.totalTarget,
-            complianceRate: r.totalTarget > 0 ? ((r.totalConfirmed / r.totalTarget) * 100).toFixed(1) + "%" : "100%",
+            complianceRate: r.totalTarget > 0 ? Math.min(100, Math.max(0, (r.totalConfirmed / r.totalTarget) * 100)).toFixed(1) + "%" : "100%",
           }))
           .concat(
             extCount > 0
@@ -1800,7 +2006,7 @@ export async function GET(req: NextRequest) {
                     target: extConstituencyTarget,
                     complianceRate:
                       extConstituencyTarget > 0
-                        ? ((extCount / extConstituencyTarget) * 100).toFixed(1) + "%"
+                        ? Math.min(100, Math.max(0, (extCount / extConstituencyTarget) * 100)).toFixed(1) + "%"
                         : "100%",
                   },
                 ]
@@ -1857,25 +2063,25 @@ export async function GET(req: NextRequest) {
       expectedFigures: expectedCount,
       actualFigures: totalActual,
       variance: Math.max(0, expectedCount - totalActual),
-      complianceRate: expectedCount > 0 ? ((totalActual / expectedCount) * 100).toFixed(1) + "%" : "100%",
+      complianceRate: expectedCount > 0 ? Math.min(100, Math.max(0, (totalActual / expectedCount) * 100)).toFixed(1) + "%" : "100%",
       quorumRequirement: Math.ceil(totalActual * (2 / 3)), // 2/3 constitutional quorum
       levelBreakdown: levelCounts,
       genderBreakdown: {
         male: genderCounts.male,
         female: genderCounts.female,
         unknown: genderCounts.unknown,
-        femalePercentage: totalActual > 0 ? ((genderCounts.female / totalActual) * 100).toFixed(1) + "%" : "0%",
+        femalePercentage: totalActual > 0 ? Math.min(100, Math.max(0, (genderCounts.female / totalActual) * 100)).toFixed(1) + "%" : "0%",
       },
       ageBreakdown: {
         under40: ageCounts.under40,
         fortyPlus: ageCounts.fortyPlus,
         pending: ageCounts.pending,
-        under40Percentage: totalActual > 0 ? ((ageCounts.under40 / totalActual) * 100).toFixed(1) + "%" : "0%",
+        under40Percentage: totalActual > 0 ? Math.min(100, Math.max(0, (ageCounts.under40 / totalActual) * 100)).toFixed(1) + "%" : "0%",
       },
       biometricVerification: {
         verified: verifiedVoterIds,
         pending: totalActual - verifiedVoterIds,
-        verificationRate: totalActual > 0 ? ((verifiedVoterIds / totalActual) * 100).toFixed(1) + "%" : "0%",
+        verificationRate: totalActual > 0 ? Math.min(100, Math.max(0, (verifiedVoterIds / totalActual) * 100)).toFixed(1) + "%" : "0%",
       },
       regionalQuota: regionalTargetPerUnit,
       constituencyQuota: constituencyTargetPerUnit,
@@ -1953,7 +2159,7 @@ export async function GET(req: NextRequest) {
         const targetAppointed = isCustom || isRegExternal ? Math.max(0, target - targetElected) : 8;
 
         const variance = target - conConfirmed;
-        const complianceRate = target > 0 ? ((conConfirmed / target) * 100).toFixed(1) + "%" : "100%";
+        const complianceRate = target > 0 ? Math.min(100, Math.max(0, (conConfirmed / target) * 100)).toFixed(1) + "%" : "100%";
         const status: "Compliant" | "Under Quota" | "Over Quota" =
           conConfirmed === target
             ? "Compliant"
@@ -2234,7 +2440,7 @@ async function generateAlbumExcel(
   metricsSheet.addRow([
     "Biometric Verification Rate",
     metrics.biometricVerification?.verificationRate ?? "0%",
-    "Under 40 Proportion",
+    "Under 40 Proportion (Cutoff: 21 Aug 2026)",
     metrics.ageBreakdown?.under40Percentage ?? "0%",
   ]);
 
@@ -3428,7 +3634,7 @@ function generateAlbumHtml(
         <tbody>
           <tr><td><strong>Male Electorate</strong></td><td>${metrics.genderBreakdown.male}</td><td>${((metrics.genderBreakdown.male / metrics.actualFigures) * 100).toFixed(1)}%</td><td>Verified Gender</td></tr>
           <tr><td><strong>Female Electorate</strong></td><td>${metrics.genderBreakdown.female}</td><td>${metrics.genderBreakdown.femalePercentage}</td><td>Verified Gender</td></tr>
-          <tr><td><strong>Youth Ratio (Under 40 in 2026)</strong></td><td>${metrics.ageBreakdown.under40}</td><td>${metrics.ageBreakdown.under40Percentage}</td><td>Article 17 Age Rule</td></tr>
+          <tr><td><strong>Youth Ratio (Under 40 as at 21 Aug 2026)</strong></td><td>${metrics.ageBreakdown.under40}</td><td>${metrics.ageBreakdown.under40Percentage}</td><td>Statutory Cutoff (21 Aug 2026)</td></tr>
           <tr><td><strong>Biometric Voter ID Verified</strong></td><td>${metrics.biometricVerification.verified}</td><td>${metrics.biometricVerification.verificationRate}</td><td>Matched to EC Register</td></tr>
         </tbody>
       </table>

@@ -15,31 +15,95 @@ export type Electorate = 'general' | 'youth' | 'women' | 'nasara';
 const clean = (v: unknown) => String(v ?? '').trim();
 const norm = (v: unknown) => clean(v).toLowerCase().replace(/[^a-z0-9]/g, '');
 const unique = (v: string[]) => [...new Set(v.filter(Boolean))];
-export function ageIn2026(dob: string | null): number | null {
+export function calculateExactAge(dob: string | null | undefined, asOfDate: Date = new Date()): number | null {
   const s = clean(dob);
   let year: number, month: number, day: number;
+  let hasMonthDay = false;
+
   // Full date: YYYY-MM-DD
-  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:T.*)?$/);
-  if (m) { year = +m[1]; month = +m[2]; day = +m[3]; }
-  else {
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/);
+  if (m) {
+    year = +m[1];
+    month = +m[2];
+    day = +m[3];
+    hasMonthDay = true;
+  } else {
     // Full date: DD/MM/YYYY or DD-MM-YYYY
     m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
-    if (m) { day = +m[1]; month = +m[2]; year = +m[3]; }
-    else {
+    if (m) {
+      day = +m[1];
+      month = +m[2];
+      year = +m[3];
+      hasMonthDay = true;
+    } else {
       // Year-only: "1988"
-      m = s.match(/^(\d{4})$/);
+      m = s.match(/\b(19\d\d|20[0-2]\d)\b/);
       if (m) {
         year = +m[1];
-        if (year >= 1906 && year <= 2026) return 2026 - year;
+        if (year >= 1906 && year <= asOfDate.getFullYear() + 1) return asOfDate.getFullYear() - year;
         return null;
       }
       return null;
     }
   }
-  const d = new Date(Date.UTC(year, month - 1, day));
-  if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day || year > 2026 || year < 1906) return null;
-  return 2026 - year;
+
+  // Validate date range and components
+  if (year < 1906 || year > asOfDate.getFullYear() + 1) return null;
+  if (hasMonthDay) {
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+    const d = new Date(Date.UTC(year, month - 1, day));
+    if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day) return null;
+  }
+
+  let age = asOfDate.getFullYear() - year;
+  if (hasMonthDay) {
+    const curMonth = asOfDate.getMonth() + 1;
+    const curDay = asOfDate.getDate();
+    if (curMonth < month || (curMonth === month && curDay < day)) {
+      age--;
+    }
+  }
+  return age;
 }
+
+export const ageIn2026 = (dob: string | null | undefined, asOfDate: Date = new Date()): number | null =>
+  calculateExactAge(dob, asOfDate);
+
+export const DEFAULT_YOUTH_CUTOFF_DATE = new Date("2026-08-21T00:00:00Z");
+
+/**
+ * Determines whether an individual qualifies as "under 40" for youth eligibility.
+ * All under 40s are calculated as all those who were not 40 as at the cutoff date: 21st August, 2026.
+ * E.g., someone born on 24th November 1986 is 39 on 21st August 2026 (under 40).
+ * Someone born on 22nd August 1986 is 39 on 21st August 2026, so they qualify.
+ * Someone born on 15th August 1986 had already celebrated their 40th birthday on 21st August 2026.
+ */
+export function isUnder40AsOfCutoff(
+  dob: string | null | undefined,
+  fallbackAge?: number | null,
+  cutoffDate: Date = DEFAULT_YOUTH_CUTOFF_DATE
+): boolean {
+  if (dob) {
+    const ageAtCutoff = calculateExactAge(dob, cutoffDate);
+    if (ageAtCutoff !== null) {
+      return ageAtCutoff < 40;
+    }
+  }
+
+  if (fallbackAge !== null && fallbackAge !== undefined && Number.isFinite(fallbackAge)) {
+    return fallbackAge < 40;
+  }
+
+  return false;
+}
+
+/** Alias for backward compatibility */
+export const isUnder40AsOf3MonthsAgo = (
+  dob: string | null | undefined,
+  fallbackAge?: number | null,
+  cutoffDate: Date = DEFAULT_YOUTH_CUTOFF_DATE
+): boolean => isUnder40AsOfCutoff(dob, fallbackAge, cutoffDate);
+
 /** Resolve age: DOB-based age first, then fall back to DB stored age column. */
 function resolveAge(dobAge: number | null, dbAge: number | null | undefined): number | null {
   if (dobAge !== null) return dobAge;
@@ -82,13 +146,14 @@ export function buildVotingReport(source: VotingSource[]) {
     const core = rows.some(r=>['constituency','region','regional','national'].includes(getRowLevel(r)));
     const tescon = rows.filter(r=>norm(r.executive_level)==='tescon' && !/patron/i.test(clean(r.position)));
     const hasYouthPortfolio = rows.some(r => /youth\s*organi[sz]er/i.test(clean(r.position)) && !/former/i.test(clean(r.position)));
+    const isUnder40 = rows.some(r => isUnder40AsOf3MonthsAgo(r.date_of_birth, r.age));
     if (core && age === null && !hasYouthPortfolio) issues.push('DOB missing, invalid or conflicting: youth eligibility unresolved');
     if (core && !gender) issues.push('Gender missing or conflicting: women eligibility unresolved');
     const isFormerOfficer = rows.some(r => /former/i.test(clean(r.position)));
     const flags = {
       general: !identityConflict && (core || tescon.some(r=>norm(r.position)==='president')),
-      youth: !identityConflict && !isFormerOfficer && (tescon.length > 0 || hasYouthPortfolio || (core && age !== null && age < 40)),
-      women: !identityConflict && ((core && gender==='female') || tescon.some(r=>['wocom','womencommissioner','womenscommissioner'].includes(norm(r.position)) || (norm(r.position)==='president' && gender==='female'))),
+      youth: !identityConflict && !isFormerOfficer && (tescon.length > 0 || hasYouthPortfolio || (core && isUnder40)),
+      women: !identityConflict && ((core && gender==='female') || tescon.some(r=>['wocom','womencommissioner','womenscommissioner'].includes(norm(r.position)) || ((norm(r.position)==='president' || norm(r.position).includes('nasara')) && gender==='female'))),
       nasara: !identityConflict && rows.some(r=>/nasara/i.test(clean(r.position)) && !(norm(r.executive_level)==='tescon' && /patron/i.test(clean(r.position)))),
     };
     const regions = unique(rows.map(r => norm(r.executive_level)==='national' ? 'National' : clean(r.region).replace(/-/g,' ')));
@@ -106,8 +171,8 @@ export function buildVotingReport(source: VotingSource[]) {
       dob: unique(rows.map(r=>clean(r.date_of_birth))).join('; '), age, gender,
       recordIds: rows.map(r=>r.id).join('; '), sourceRecords:rows.length, flags, issues,
       reasons: {general: flags.general ? (core ? 'Constituency/regional/national executive' : 'TESCON President') : '',
-        youth: flags.youth ? (hasYouthPortfolio ? 'Ex-officio Youth Organiser' : (tescon.length ? 'TESCON executive excluding patron' : (ageSource === 'db' ? 'DB age below 40 (DOB missing)' : 'DOB age below 40'))) : '',
-        women: flags.women ? (core && gender==='female' ? 'Female executive' : 'TESCON WOCOM') : '',
+        youth: flags.youth ? (hasYouthPortfolio ? 'Ex-officio Youth Organiser' : (tescon.length ? 'TESCON executive excluding patron' : (age !== null && age < 40 ? 'Exact age below 40' : 'Under 40 as at 21st August 2026'))) : '',
+        women: flags.women ? (core && gender==='female' ? 'Female executive' : (tescon.some(r=>norm(r.position).includes('nasara') && gender==='female') ? 'Female TESCON Nasara' : (tescon.some(r=>norm(r.position)==='president' && gender==='female') ? 'Female TESCON President' : 'TESCON WOCOM'))) : '',
         nasara: flags.nasara ? 'Nasara office' : ''},
     };
   }).sort((a,b)=>a.region.localeCompare(b.region)||a.constituency.localeCompare(b.constituency)||a.name.localeCompare(b.name));

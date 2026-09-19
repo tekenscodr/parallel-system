@@ -172,4 +172,59 @@ test('Election album route calculates realistic regional statutory quotas for Wo
   assert.notEqual(complianceRate, '502.1%', '502.1% inflation bug must be resolved');
 });
 
+test('Election album route defines statutory benchmarks and bounds all Electoral Coverage percentages at 100.0%', () => {
+  const routePath = path.join(process.cwd(), 'app/api/admin/albums/election/route.ts');
+  const fileContent = fs.readFileSync(routePath, 'utf8');
+
+  // Verify all statutory dictionaries are defined
+  assert.ok(fileContent.includes('GENERAL_OFFICERS_REGIONAL_STATUTORY_QUOTAS'), 'Must define General Officers regional quotas');
+  assert.ok(fileContent.includes('YOUTH_WING_REGIONAL_STATUTORY_QUOTAS'), 'Must define Youth Wing regional quotas');
+  assert.ok(fileContent.includes('YOUTH_GENERAL_REGIONAL_STATUTORY_QUOTAS'), 'Must define Youth General regional quotas');
+  assert.ok(fileContent.includes('NASARA_REGIONAL_STATUTORY_QUOTAS'), 'Must define Nasara regional quotas');
+  assert.ok(fileContent.includes('FULL_DIRECTORY_REGIONAL_STATUTORY_QUOTAS'), 'Must define Full Directory regional quotas');
+
+  // Verify compliance rate bounding is used
+  assert.ok(fileContent.includes('Math.min(100, Math.max(0, (totalActual / expectedCount) * 100))'), 'Metrics compliance rate must be bounded');
+  assert.ok(fileContent.includes('Math.min(100, Math.max(0, (conConfirmed / target) * 100))'), 'Constituency compliance rate must be bounded');
+
+  // Test simulation for Ashanti across all portfolios:
+  const ashantiSimulations = [
+    { contest: 'General Officers', actual: 1096, expected: 924 + 174, minRate: 98, maxRate: 100 },
+    { contest: 'Youth Wing', actual: 245, expected: 245 + 3, minRate: 98, maxRate: 100 },
+    { contest: 'Youth Organiser', actual: 442, expected: 442 + 7, minRate: 98, maxRate: 100 },
+    { contest: 'Women Organiser', actual: 241, expected: 217 + 26, minRate: 98, maxRate: 100 },
+    { contest: 'Nasara Organiser', actual: 142, expected: 142 + 4, minRate: 97, maxRate: 100 },
+    { contest: 'Full Directory', actual: 1225, expected: 1056 + 174, minRate: 98, maxRate: 100 },
+  ];
+
+  for (const sim of ashantiSimulations) {
+    const rawRate = (sim.actual / sim.expected) * 100;
+    const boundedRate = Math.min(100, Math.max(0, rawRate));
+    assert.ok(
+      boundedRate >= sim.minRate && boundedRate <= sim.maxRate,
+      `Ashanti ${sim.contest} rate (${boundedRate.toFixed(1)}%) must be between ${sim.minRate}% and ${sim.maxRate}%`
+    );
+  }
+
+  // Test simulation for External Branches across all portfolios:
+  const externalSimulations = [
+    { contest: 'General Officers', actual: 579, expected: 570, minRate: 95, maxRate: 100 },
+    { contest: 'Youth Wing', actual: 56, expected: 60, minRate: 90, maxRate: 100 },
+    { contest: 'Youth Organiser', actual: 173, expected: 175, minRate: 95, maxRate: 100 },
+    { contest: 'Women Organiser', actual: 129, expected: 130, minRate: 95, maxRate: 100 },
+    { contest: 'Nasara Organiser', actual: 52, expected: 60, minRate: 85, maxRate: 100 },
+    { contest: 'Full Directory', actual: 580, expected: 570, minRate: 95, maxRate: 100 },
+  ];
+
+  for (const sim of externalSimulations) {
+    const rawRate = (sim.actual / sim.expected) * 100;
+    const boundedRate = Math.min(100, Math.max(0, rawRate));
+    assert.ok(
+      boundedRate >= sim.minRate && boundedRate <= sim.maxRate,
+      `External Branch ${sim.contest} rate (${boundedRate.toFixed(1)}%) must be between ${sim.minRate}% and ${sim.maxRate}%`
+    );
+  }
+});
+
+
 

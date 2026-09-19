@@ -99,6 +99,12 @@ export const CUSTOM_POSITION_CATEGORIES: PositionCategoryGroup[] = [
       { id: "tescon_nasara", label: "TESCON Nasara Coordinator", canonicalName: "TESCON Nasara Coordinator", synonyms: ["tescon nasara coordinator", "tescon nasara"] },
     ],
   },
+  {
+    category: "Parliamentary Group",
+    positions: [
+      { id: "member_of_parliament", label: "Member of Parliament (MP)", canonicalName: "Member of Parliament", synonyms: ["member of parliament", "mp", "sitting mp", "parliamentarian"] },
+    ],
+  },
 ];
 
 export const ALL_CUSTOMIZABLE_POSITIONS: CustomizablePosition[] =

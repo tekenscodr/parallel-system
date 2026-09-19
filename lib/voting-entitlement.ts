@@ -1,4 +1,4 @@
-import { ageIn2026 } from "./voting-rules";
+import { ageIn2026, isUnder40AsOf3MonthsAgo } from "./voting-rules";
 
 export interface EntitledPosition {
   id: string;
@@ -54,7 +54,7 @@ export function getDelegateEntitledPositions(delegate: DelegateRecord): Entitled
   // Resolve age
   const dobAge = delegate.date_of_birth ? ageIn2026(delegate.date_of_birth) : null;
   const resolvedAge = dobAge !== null ? dobAge : (delegate.age ?? null);
-  const isUnder40 = resolvedAge !== null && resolvedAge < 40;
+  const isUnder40 = isUnder40AsOf3MonthsAgo(delegate.date_of_birth, resolvedAge);
 
   const entitled: EntitledPosition[] = [];
 
@@ -103,14 +103,17 @@ export function getDelegateEntitledPositions(delegate: DelegateRecord): Entitled
         id: "youth_organiser",
         title: "National Youth Organiser",
         category: "youth",
-        reason: `Youth wing eligible (age ${resolvedAge} < 40 in 2026)`,
+        reason: resolvedAge !== null && resolvedAge < 40
+          ? `Youth wing eligible (age ${resolvedAge} < 40)`
+          : "Youth wing eligible (under 40 as at 21st August 2026)",
       });
     }
   }
 
   // 3. Women Organiser Contest
-  // Qualifies if: core female executive OR TESCON WOCOM OR female TESCON President
+  // Qualifies if: core female executive OR TESCON WOCOM OR female TESCON President OR female TESCON Nasara Coordinator
   const isTesconWocom = isTescon && (posNorm.includes("wocom") || posNorm.includes("women"));
+  const isTesconNasara = isTescon && posNorm.includes("nasara");
   if (isCore && gender === "female") {
     entitled.push({
       id: "women_organiser",
@@ -131,6 +134,13 @@ export function getDelegateEntitledPositions(delegate: DelegateRecord): Entitled
       title: "National Women Organiser",
       category: "women",
       reason: "Female TESCON President",
+    });
+  } else if (isTesconNasara && gender === "female") {
+    entitled.push({
+      id: "women_organiser",
+      title: "National Women Organiser",
+      category: "women",
+      reason: "Female TESCON Nasara Coordinator",
     });
   }
 
