@@ -155,6 +155,26 @@ const REGIONAL_CONSTITUENCY_COUNTS: Record<string, number> = {
   "Western North": 9,
 };
 
+const WOMEN_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
+  "Ahafo": 30,
+  "Ashanti": 217,
+  "Bono": 68,
+  "Bono East": 46,
+  "Central": 101,
+  "Eastern": 114,
+  "Greater Accra": 185,
+  "North East": 21,
+  "Northern": 63,
+  "Oti": 26,
+  "Savannah": 25,
+  "Upper East": 53,
+  "Upper West": 44,
+  "Volta": 61,
+  "Western": 81,
+  "Western North": 27,
+  "External Branch": 130,
+};
+
 let LOGO_WEBP_DATA_URI = "";
 async function getLogoWebpDataUri(): Promise<string> {
   if (LOGO_WEBP_DATA_URI) return LOGO_WEBP_DATA_URI;
@@ -934,7 +954,14 @@ export async function GET(req: NextRequest) {
       : constituencyTargetPerUnit;
 
     if (isExternalScope) {
-      expectedCount = 30 * externalTargetPerUnit;
+      if (
+        matchedContest === "Women Organiser" ||
+        matchedContest === "Women Organisers & Deputies"
+      ) {
+        expectedCount = WOMEN_REGIONAL_STATUTORY_QUOTAS["External Branch"] || 130;
+      } else {
+        expectedCount = 30 * externalTargetPerUnit;
+      }
     } else if (regionQuery !== "all" && regionQuery !== "") {
       const regConCount =
         REGIONAL_CONSTITUENCY_COUNTS[regionQuery] ||
@@ -948,6 +975,15 @@ export async function GET(req: NextRequest) {
           (hasRegional ? regionalTargetPerUnit : 0) +
           (hasConstituency ? regConCount * constituencyTargetPerUnit : 0);
       } else if (
+        matchedContest === "Women Organiser" ||
+        matchedContest === "Women Organisers & Deputies"
+      ) {
+        const regKey = Object.keys(WOMEN_REGIONAL_STATUTORY_QUOTAS).find(
+          (k) => k.toLowerCase() === regionQuery.toLowerCase().trim()
+        );
+        const regTarget = regKey ? WOMEN_REGIONAL_STATUTORY_QUOTAS[regKey] : regConCount * 4;
+        expectedCount = regTarget + (hasNational ? 26 : 0);
+      } else if (
         matchedContest === "National Chairperson & General Officers" ||
         matchedContest === "Chairperson" ||
         matchedContest === "Vice Chairperson" ||
@@ -956,8 +992,6 @@ export async function GET(req: NextRequest) {
         matchedContest === "Communication Officer" ||
         matchedContest === "Organiser" ||
         matchedContest === "Youth Organiser" ||
-        matchedContest === "Women Organiser" ||
-        matchedContest === "Women Organisers & Deputies" ||
         matchedContest === "Nasara Organiser"
       ) {
         expectedCount =
@@ -1117,6 +1151,10 @@ export async function GET(req: NextRequest) {
       activeRegions.push(regionQuery);
     }
 
+    const isWomenContest =
+      matchedContest === "Women Organiser" ||
+      matchedContest === "Women Organisers & Deputies";
+
     const regionalRows = activeRegions.map((reg) => {
       const regConfirmed = delegates.filter(
         (d) =>
@@ -1132,8 +1170,8 @@ export async function GET(req: NextRequest) {
       ).length;
 
       const numConstituencies = REGIONAL_CONSTITUENCY_COUNTS[reg] || 0;
-      const regTarget = regionalTargetPerUnit;
-      const conTarget = numConstituencies * constituencyTargetPerUnit;
+      const regTarget = isWomenContest ? 4 : regionalTargetPerUnit;
+      const conTarget = isWomenContest ? numConstituencies * 4 : numConstituencies * constituencyTargetPerUnit;
       const totalConfirmed = regConfirmed + conConfirmed;
       const totalTarget = regTarget + conTarget;
 
@@ -1231,7 +1269,7 @@ export async function GET(req: NextRequest) {
             (String(d.region || "").toLowerCase().trim() === selectedRegion.toLowerCase().trim() ||
               selectedRegion.toLowerCase().includes(String(d.region || "").toLowerCase().trim()))
         ).length;
-        const regTarget = regionalTargetPerUnit;
+        const regTarget = isWomenContest ? 4 : regionalTargetPerUnit;
         const regVariance = regTarget - regConfirmed;
         auditItems.push({
           isRegional: true,
@@ -1261,7 +1299,9 @@ export async function GET(req: NextRequest) {
                 selectedRegion.toLowerCase().trim() === "external branch" ||
                 String(d.region).toLowerCase().trim() === selectedRegion.toLowerCase().trim())
           ).length;
-          const target = isExternalScope ? externalTargetPerUnit : constituencyTargetPerUnit;
+          const target = isExternalScope
+            ? (isWomenContest ? 4 : externalTargetPerUnit)
+            : (isWomenContest ? 4 : constituencyTargetPerUnit);
           const variance = target - confirmed;
           auditItems.push({
             isRegional: false,
@@ -1321,7 +1361,11 @@ export async function GET(req: NextRequest) {
         : "CONSTITUENCY LEADERSHIP";
 
       const subDetail = isExternalScope
-        ? `30 External Chapters / Countries · Statutory Quota Distribution (@ ${externalTargetPerUnit} per Chapter)`
+        ? (isWomenContest
+            ? `30 External Chapters / Countries · Female Electoral College Statutory Distribution`
+            : `30 External Chapters / Countries · Statutory Quota Distribution (@ ${externalTargetPerUnit} per Chapter)`)
+        : isWomenContest
+        ? `Female Electoral College Statutory Distribution (Regional Quota: 4 · Constituency Quotas: 4 per Constituency)`
         : includeRegional && includeConstituency
         ? `Regional Executive Quota (${regionalTargetPerUnit}) & Constituency Quotas (${constituencyTargetPerUnit} per Constituency: 11 Elected + 8 Appointed)`
         : includeRegional

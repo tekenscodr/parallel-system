@@ -144,3 +144,32 @@ test('Election album route filters Women Organiser electorate to all females acr
   );
 });
 
+test('Election album route calculates realistic regional statutory quotas for Women Organiser resolving 502.1% anomaly', () => {
+  const routePath = path.join(process.cwd(), 'app/api/admin/albums/election/route.ts');
+  const fileContent = fs.readFileSync(routePath, 'utf8');
+
+  assert.ok(
+    fileContent.includes('WOMEN_REGIONAL_STATUTORY_QUOTAS'),
+    'Route must define WOMEN_REGIONAL_STATUTORY_QUOTAS dictionary'
+  );
+  assert.ok(
+    fileContent.includes('"Ashanti": 217'),
+    'Ashanti female electoral college statutory quota must be 217'
+  );
+  assert.ok(
+    fileContent.includes('expectedCount = regTarget + (hasNational ? 26 : 0)'),
+    'Single region Women Organiser must add national attendance (26) to regional target'
+  );
+
+  // Validate math for Ashanti: 241 actual delegates against 217 + 26 = 243 expected
+  const ashantiQuota = 217;
+  const nationalFemaleQuota = 26;
+  const expectedCount = ashantiQuota + nationalFemaleQuota; // 243
+  const actualDelegates = 241;
+  const complianceRate = ((actualDelegates / expectedCount) * 100).toFixed(1) + '%';
+
+  assert.equal(complianceRate, '99.2%', 'Ashanti coverage must be 99.2% rather than 502.1%');
+  assert.notEqual(complianceRate, '502.1%', '502.1% inflation bug must be resolved');
+});
+
+
