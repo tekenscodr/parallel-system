@@ -93,7 +93,7 @@ const REGION_OPTIONS = [
 type Delegate = {
   id: string; executive_name: string; executive_level: string; region: string;
   constituency: string; canonical_position: string; voter_id: string; phone: string;
-  gender: string; age: number | null; image_url: string; avatar_svg: string;
+  gender: string; age: number | null; is_under_40?: boolean; image_url: string; avatar_svg: string;
 };
 
 type ConstituencyAuditItem = {
@@ -147,6 +147,7 @@ export default function PositionAlbumsPage() {
   const [selectedRegions, setSelectedRegions] = useState<string[]>([...ALL_JURISDICTION_IDS]);
   const [albumType, setAlbumType] = useState<"provisional" | "final">("provisional");
   const [gender, setGender] = useState<"all" | "male" | "female">("all");
+  const [under40, setUnder40] = useState<boolean>(false);
   const [scope, setScope] = useState("all_voters");
   const [selectedPositions, setSelectedPositions] = useState<string[]>([
     "chairperson",
@@ -172,6 +173,7 @@ export default function PositionAlbumsPage() {
     levels: true,
     edition: false,
     gender: false,
+    age: false,
     details: false,
   });
   const [tab, setTab] = useState("preview");
@@ -224,12 +226,13 @@ export default function PositionAlbumsPage() {
     ? `&details=${encodeURIComponent(selectedDetails.join(","))}`
     : "";
   const genderQuery = gender !== "all" ? `&gender=${encodeURIComponent(gender)}` : "";
+  const under40Query = under40 ? "&under40=true" : "";
   const regionsQuery =
     selectedRegions.length > 0 && selectedRegions.length < ALL_JURISDICTION_IDS.length
       ? `&regions=${encodeURIComponent(selectedRegions.join(","))}`
       : "";
   const albumTypeQuery = albumType === "final" ? "&album_type=final" : "";
-  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}${detailsQuery}${genderQuery}${regionsQuery}${albumTypeQuery}`;
+  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}${detailsQuery}${genderQuery}${under40Query}${regionsQuery}${albumTypeQuery}`;
   const requestKey = `${query}&revision=${retry}`;
   const previewUrl = `/api/admin/albums/election?${requestKey}&format=html`;
   const excelDownloadUrl = `/api/admin/albums/election?${query}&format=excel&download=1`;
@@ -351,6 +354,7 @@ export default function PositionAlbumsPage() {
       levels: true,
       edition: true,
       gender: true,
+      age: true,
       details: true,
     });
   };
@@ -362,6 +366,7 @@ export default function PositionAlbumsPage() {
       levels: false,
       edition: false,
       gender: false,
+      age: false,
       details: false,
     });
   };
@@ -411,6 +416,7 @@ export default function PositionAlbumsPage() {
     setRegion("all");
     setSelectedRegions([...ALL_JURISDICTION_IDS]);
     setGender("all");
+    setUnder40(false);
     setScope("all_voters");
     setLevel("all");
     setSelectedLevels(ALL_CUSTOMIZABLE_LEVELS.map((l) => l.id));
@@ -460,6 +466,9 @@ export default function PositionAlbumsPage() {
         ? true
         : String(d.gender || "").toLowerCase() === gender.toLowerCase();
 
+    const matchesUnder40 =
+      !under40 || Boolean(d.is_under_40);
+
     const matchesRegion =
       selectedRegions.length === 0 ||
       selectedRegions.length >= ALL_JURISDICTION_IDS.length
@@ -469,6 +478,7 @@ export default function PositionAlbumsPage() {
     return (
       matchesLevel &&
       matchesGender &&
+      matchesUnder40 &&
       matchesRegion &&
       [d.executive_name, d.voter_id, d.constituency, d.region, d.canonical_position].some((value) =>
         String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())
@@ -572,6 +582,7 @@ export default function PositionAlbumsPage() {
 
           const isEditionActive = albumType === "final";
           const isGenderActive = gender !== "all";
+          const isUnder40Active = under40;
           const isPortfolioActive = isCustom || isWingContest || contest === "All Men" || contest === "All Women";
           const isDetailsActive = isCustomDetails;
 
@@ -581,6 +592,7 @@ export default function PositionAlbumsPage() {
             (isLevelsActive ? 1 : 0) +
             (isEditionActive ? 1 : 0) +
             (isGenderActive ? 1 : 0) +
+            (isUnder40Active ? 1 : 0) +
             (isDetailsActive ? 1 : 0);
 
           return (
@@ -608,6 +620,11 @@ export default function PositionAlbumsPage() {
                           Provisional Draft Edition
                         </Badge>
                       )}
+                      {under40 && (
+                        <Badge variant="secondary" className="gap-1 bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300">
+                          <Sparkles className="size-3 text-emerald-600" /> Under 40 (Youth)
+                        </Badge>
+                      )}
                       {isCustom && (
                         <Badge variant="secondary" className="gap-1 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300">
                           <Sparkles className="size-3 text-blue-600" /> Customise Mode
@@ -625,6 +642,19 @@ export default function PositionAlbumsPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant={under40 ? "default" : "outline"}
+                      size="sm"
+                      className={`h-8 text-xs gap-1.5 ${under40 ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "border-emerald-500/40 text-emerald-700 dark:text-emerald-300"}`}
+                      onClick={() => {
+                        setUnder40(!under40);
+                        setPage(1);
+                      }}
+                      title="Filter album to Under 40 executives as at 21st August 2026"
+                    >
+                      <Sparkles className="size-3.5" /> {under40 ? "Under 40: Active" : "Filter Under 40"}
+                    </Button>
                     <Button
                       type="button"
                       variant="outline"
@@ -697,7 +727,7 @@ export default function PositionAlbumsPage() {
 
               <CardContent className="space-y-4 pt-4">
                 {/* Accordion Column Status Overview Strip */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 p-2.5 rounded-lg bg-muted/40 border border-muted text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 p-2.5 rounded-lg bg-muted/40 border border-muted text-xs">
                   <button
                     type="button"
                     onClick={() => toggleAccordion("portfolio")}
@@ -769,8 +799,22 @@ export default function PositionAlbumsPage() {
                     <span className="font-medium truncate text-foreground">
                       {gender === "all" ? "All Genders" : gender === "male" ? "Men Only" : "Women Only"}
                     </span>
-                    <span className={`text-[11px] mt-0.5 font-medium ${isGenderActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500"}`}>
+                    <span className={`text-[11px] mt-0.5 font-medium ${isGenderActive ? "text-purple-600 dark:text-purple-400" : "text-slate-500"}`}>
                       {isGenderActive ? "Active" : "Dormant"}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => toggleAccordion("age")}
+                    className="flex flex-col text-left p-2 rounded-md hover:bg-background transition-colors"
+                  >
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">6. Age (Under 40)</span>
+                    <span className="font-medium truncate text-foreground">
+                      {under40 ? "Under 40 Only" : "All Ages"}
+                    </span>
+                    <span className={`text-[11px] mt-0.5 font-medium ${isUnder40Active ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-slate-500"}`}>
+                      {isUnder40Active ? "Active (< 40)" : "Dormant (All)"}
                     </span>
                   </button>
 
@@ -779,7 +823,7 @@ export default function PositionAlbumsPage() {
                     onClick={() => toggleAccordion("details")}
                     className="flex flex-col text-left p-2 rounded-md hover:bg-background transition-colors"
                   >
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">6. Details</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">7. Details</span>
                     <span className="font-medium truncate text-foreground">{selectedDetails.length}/9 Fields</span>
                     <span className={`text-[11px] mt-0.5 font-medium ${isDetailsActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500"}`}>
                       {isDetailsActive ? "Active" : "Dormant"}
@@ -787,7 +831,7 @@ export default function PositionAlbumsPage() {
                   </button>
                 </div>
 
-                {/* The 6 Accordion Panels */}
+                {/* The 7 Accordion Panels */}
                 <div className="space-y-3">
                   {/* Accordion 1: Portfolio & Wing Scope */}
                   <div className={`rounded-xl border transition-all ${openAccordions.portfolio ? "border-blue-300 dark:border-blue-900/70 bg-card shadow-2xs" : "border-border/60 bg-muted/20"}`}>
@@ -1799,7 +1843,107 @@ export default function PositionAlbumsPage() {
                     )}
                   </div>
 
-                  {/* Accordion 6: Voter Profile Details (9 Card Fields) */}
+                  {/* Accordion 6: Age & Youth Roll Filter (Under 40 Cutoff) */}
+                  <div className={`rounded-xl border transition-all ${openAccordions.age ? "border-emerald-300 dark:border-emerald-900/70 bg-card shadow-2xs" : "border-border/60 bg-muted/20"}`}>
+                    <button
+                      type="button"
+                      onClick={() => toggleAccordion("age")}
+                      className="w-full flex items-center justify-between p-3.5 text-left select-none"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 font-semibold text-xs">
+                          6
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-sm text-foreground flex items-center gap-1.5">
+                            <Sparkles className="size-3.5 text-emerald-600" />
+                            <span>Age &amp; Youth Roll Filter (Under 40)</span>
+                          </h3>
+                          <p className="text-xs text-muted-foreground">
+                            Constitutional cutoff: all officers not yet 40 as at 21st August 2026 (born after 21 Aug 1986)
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isUnder40Active ? (
+                          <Badge className="bg-emerald-600 text-white text-xs">
+                            Active: Under 40 (Youth) Only
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-muted-foreground text-xs">
+                            Dormant: All Ages (Composite Roll)
+                          </Badge>
+                        )}
+                        {openAccordions.age ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
+                      </div>
+                    </button>
+
+                    {openAccordions.age && (
+                      <div className="px-4 pb-4 pt-1 border-t border-emerald-100 dark:border-emerald-950 space-y-3.5">
+                        <div className="grid gap-2.5 sm:grid-cols-2 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUnder40(false);
+                              setPage(1);
+                            }}
+                            className={`p-3 rounded-lg border text-left transition-all ${
+                              !under40
+                                ? "border-emerald-500 bg-white dark:bg-slate-900 shadow-2xs ring-1 ring-emerald-500/20 text-foreground font-semibold"
+                                : "border-border/60 bg-muted/20 text-muted-foreground hover:bg-muted/40"
+                            }`}
+                          >
+                            <span className="block text-xs font-semibold">All Ages (Composite Roll)</span>
+                            <span className="text-[11px] font-normal text-muted-foreground block mt-0.5">
+                              Complete roll including all executives regardless of age
+                            </span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUnder40(true);
+                              setPage(1);
+                            }}
+                            className={`p-3 rounded-lg border text-left transition-all ${
+                              under40
+                                ? "border-emerald-500 bg-white dark:bg-slate-900 shadow-2xs ring-1 ring-emerald-500/20 text-foreground font-semibold"
+                                : "border-border/60 bg-muted/20 text-muted-foreground hover:bg-muted/40"
+                            }`}
+                          >
+                            <span className="block text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                              <Sparkles className="size-3.5" />
+                              <span>Under 40 Only (Youth Statutory Cutoff)</span>
+                            </span>
+                            <span className="text-[11px] font-normal text-muted-foreground block mt-0.5">
+                              Strictly officers not 40 as at 21st August 2026
+                            </span>
+                          </button>
+                        </div>
+
+                        {/* Native Select for age filter compatibility */}
+                        <div className="pt-2 border-t flex flex-wrap items-center gap-3">
+                          <label htmlFor="under40" className="text-xs font-semibold text-muted-foreground">
+                            Age / Cohort Filter:
+                          </label>
+                          <NativeSelect
+                            id="under40"
+                            value={under40 ? "under_40" : "all"}
+                            onChange={(e) => {
+                              setUnder40(e.target.value === "under_40");
+                              setPage(1);
+                            }}
+                            className="w-72 text-xs"
+                          >
+                            <option value="all">All Ages (Composite Roll)</option>
+                            <option value="under_40">Under 40 Only (Youth Cutoff 21 Aug 2026)</option>
+                          </NativeSelect>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Accordion 7: Voter Profile Details (9 Card Fields) */}
                   <div className={`rounded-xl border transition-all ${openAccordions.details ? "border-indigo-300 dark:border-indigo-900/70 bg-card shadow-2xs" : "border-border/60 bg-muted/20"}`}>
                     <button
                       type="button"
@@ -1808,7 +1952,7 @@ export default function PositionAlbumsPage() {
                     >
                       <div className="flex items-center gap-2.5">
                         <div className="flex size-7 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300 font-semibold text-xs">
-                          6
+                          7
                         </div>
                         <div>
                           <h3 className="font-semibold text-sm text-foreground">
@@ -2011,6 +2155,20 @@ export default function PositionAlbumsPage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" /><Input aria-label="Search delegates" placeholder="Search name, voter ID, position…" className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} /></div>
                       <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          type="button"
+                          variant={under40 ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => {
+                            setUnder40(!under40);
+                            setPage(1);
+                          }}
+                          className={under40 ? "bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5" : "text-emerald-700 dark:text-emerald-300 border-emerald-500/40 gap-1.5"}
+                          title="Toggle Under 40 (Youth) filter"
+                        >
+                          <Sparkles className="size-3.5" />
+                          {under40 ? "Under 40 (Active)" : "Filter Under 40"}
+                        </Button>
                         <NativeSelect
                           aria-label="Filter by administrative level"
                           className="sm:w-48"
@@ -2077,7 +2235,18 @@ export default function PositionAlbumsPage() {
                         {selectedDetails.includes("position") && <TableCell>{d.canonical_position || (d as any).position}</TableCell>}
                         {selectedDetails.includes("voter_id") && <TableCell className="whitespace-nowrap font-mono text-xs">{d.voter_id || "—"}</TableCell>}
                         {selectedDetails.includes("phone") && <TableCell className="whitespace-nowrap">{d.phone || "—"}</TableCell>}
-                        {selectedDetails.includes("demographics") && <TableCell className="whitespace-nowrap">{d.gender || "—"} · {d.age == null ? "Age unknown" : `${d.age} yrs`}</TableCell>}
+                        {selectedDetails.includes("demographics") && (
+                          <TableCell className="whitespace-nowrap">
+                            <div className="flex items-center gap-1.5">
+                              <span>{d.gender || "—"} · {d.age == null ? "Age unknown" : `${d.age} yrs`}</span>
+                              {d.is_under_40 && (
+                                <Badge variant="outline" className="border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10px] px-1.5 py-0 font-semibold">
+                                  &lt; 40
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                        )}
                       </TableRow>)}
                     </TableBody></Table></div>
                     <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground"><p>{filtered.length ? (currentPage - 1) * 50 + 1 : 0}–{Math.min(currentPage * 50, filtered.length)} of {filtered.length.toLocaleString()} delegates</p><div className="flex items-center gap-2"><Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Previous</Button><span className="px-2 text-xs">Page {currentPage} of {totalPages}</span><Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>Next</Button></div></div>

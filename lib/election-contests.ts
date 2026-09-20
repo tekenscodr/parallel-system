@@ -205,6 +205,28 @@ export const POSITION_PRESETS = {
       "pwd_officer",
     ],
   },
+  regional_rec_17: {
+    label: "Regional Executive Committee (17)",
+    ids: [
+      "chairperson",
+      "1st_vice",
+      "2nd_vice",
+      "secretary",
+      "deputy_secretary",
+      "treasurer",
+      "financial_secretary",
+      "organiser",
+      "deputy_organiser",
+      "women_organiser",
+      "deputy_women_organiser",
+      "youth_organiser",
+      "deputy_youth_organiser",
+      "nasara_coordinator",
+      "deputy_nasara_coordinator",
+      "communication_officer",
+      "research_officer",
+    ],
+  },
   regional_slate: {
     label: "Full Regional Slate (21)",
     ids: [
@@ -284,6 +306,47 @@ export const POSITION_PRESETS = {
 
 export const CONSTITUENCY_POSITION_IDS = new Set<string>(POSITION_PRESETS.constituency_slate.ids);
 export const REGIONAL_POSITION_IDS = new Set<string>(POSITION_PRESETS.regional_slate.ids);
+export const REGIONAL_SLATE_21_IDS = new Set<string>(POSITION_PRESETS.regional_slate.ids);
+export const REGIONAL_REC_17_IDS = new Set<string>(POSITION_PRESETS.regional_rec_17.ids);
+
+export function isRecognizedRegionalExecutive(pos: string | null | undefined): boolean {
+  const s = String(pos || "").trim().toLowerCase();
+  if (
+    s.includes("tescon coordinator") ||
+    /regional.*tescon.*coord/i.test(s) ||
+    /tescon.*regional.*coord/i.test(s)
+  ) {
+    return false;
+  }
+  return true;
+}
+
+export const isStatutoryRegionalREC = isRecognizedRegionalExecutive;
+
+export function isElectedRegionalPosition(pos: string | null | undefined): boolean {
+  const s = String(pos || "").trim().toLowerCase();
+  if (!isRecognizedRegionalExecutive(pos)) return false;
+  // The 10 elected regional officers: Chairperson, 1st Vice, 2nd Vice, Secretary, Assistant/Deputy Secretary, Treasurer, Organiser, Women Organiser, Youth Organiser, Nasara Coordinator
+  // The 11 appointed functional regional officers:
+  if (
+    s.includes("financial secretary") ||
+    s.includes("deputy organiser") ||
+    s.includes("deputy organizer") ||
+    s.includes("deputy women") ||
+    s.includes("deputy youth") ||
+    s.includes("deputy nasara") ||
+    s.includes("communication") ||
+    s.includes("research") ||
+    s.includes("electoral affairs") ||
+    s.includes("pwd") ||
+    s.includes("disability") ||
+    s.includes("special duties") ||
+    s.includes("legal")
+  ) {
+    return false;
+  }
+  return true;
+}
 
 export function isElectedConstituencyPosition(pos: string | null | undefined): boolean {
   const s = String(pos || "").trim().toLowerCase();

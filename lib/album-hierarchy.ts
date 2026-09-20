@@ -103,7 +103,8 @@ export function getRegionalSectionRank(delegate: {
   const canon = String(delegate.canonical_position || "").trim().toLowerCase();
   const lvl = String(delegate.executive_level || "").trim().toLowerCase();
 
-  // 1. Regional Executives (Regional tier officers excluding Council reps, Foundation members, and MPs)
+  // 1. Regional Executives (The 21 Recognized Regional Executive Committee officers: 10 Elected + 11 Appointed)
+  // Strictly excludes roles outside the 21 (specifically Regional TESCON Coordinator, which is not an electoral college member)
   if (
     (lvl === "region" || lvl === "regional") &&
     !pos.includes("national council") &&
@@ -114,6 +115,14 @@ export function getRegionalSectionRank(delegate: {
     !canon.includes("member of parliament") &&
     pos !== "mp"
   ) {
+    if (
+      pos.includes("tescon coordinator") ||
+      canon.includes("tescon coordinator") ||
+      /regional.*tescon.*coord/i.test(pos) ||
+      /tescon.*regional.*coord/i.test(pos)
+    ) {
+      return 8; // Outside the 21 recognized regional executives
+    }
     return 1;
   }
 

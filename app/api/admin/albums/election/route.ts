@@ -672,6 +672,9 @@ export async function GET(req: NextRequest) {
       ? "female"
       : null;
 
+  const under40Query = (searchParams.get("under40") || searchParams.get("cohort") || searchParams.get("age") || "").trim().toLowerCase();
+  const filterUnder40 = under40Query === "true" || under40Query === "1" || under40Query === "under_40" || under40Query === "youth";
+
   const levelsParam = (searchParams.get("levels") || searchParams.get("level") || "all").trim();
   const selectedLevels =
     levelsParam.toLowerCase() !== "all" && levelsParam !== ""
@@ -773,6 +776,10 @@ export async function GET(req: NextRequest) {
     effectiveContestName = `${effectiveContestName} (All Women)`;
   }
 
+  if (filterUnder40 && !/youth/i.test(effectiveContestName)) {
+    effectiveContestName = `${effectiveContestName} (Under 40)`;
+  }
+
   const isWingOrganisers =
     !isCustomContest &&
     matchedContest !== "All Men" &&
@@ -831,6 +838,11 @@ export async function GET(req: NextRequest) {
 
       // Universal Gender Filter (if gender query param is provided)
       if (filterGender && g !== filterGender) {
+        return false;
+      }
+
+      // Universal Under 40 (Youth) Filter (if under40 query param is provided)
+      if (filterUnder40 && !isUnder40AsOfCutoff(r.date_of_birth, r.age)) {
         return false;
       }
 

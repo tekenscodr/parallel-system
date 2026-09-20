@@ -2830,11 +2830,51 @@ export default function NationalAdminDashboard() {
                 cursor: "pointer"
               }}
             >
-              <option value="">All Demographics</option>
+              <option value="">Demographics: All</option>
               <option value="under_40">Under 40 (Youth)</option>
               <option value="women">Women Executives</option>
               <option value="nasara">Nasara Officers</option>
             </select>
+
+            {/* Dedicated Quick Under 40 Button in Filter Row */}
+            <button
+              type="button"
+              onClick={handleToggleUnder40}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "7px",
+                padding: "8px 13px",
+                borderRadius: "6px",
+                background: isUnder40Active ? "rgba(16, 185, 129, 0.25)" : "rgba(2, 6, 23, 0.8)",
+                border: isUnder40Active ? "1.5px solid #10b981" : "1px solid rgba(52, 211, 153, 0.4)",
+                color: isUnder40Active ? "#34d399" : "#a7f3d0",
+                fontSize: "13px",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                whiteSpace: "nowrap",
+                boxShadow: isUnder40Active ? "0 0 10px rgba(16, 185, 129, 0.3)" : "none"
+              }}
+              title="Click to toggle Under 40 (Youth) filter"
+            >
+              <Sparkles size={14} color="#34d399" />
+              <span>Under 40 {isUnder40Active ? "✓ Active" : ""}</span>
+              {overview?.totals?.under_40 != null && (
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: "700",
+                    padding: "1px 6px",
+                    borderRadius: "8px",
+                    background: isUnder40Active ? "#047857" : "rgba(52, 211, 153, 0.2)",
+                    color: isUnder40Active ? "#ffffff" : "#6ee7b7"
+                  }}
+                >
+                  {overview.totals.under_40.toLocaleString()}
+                </span>
+              )}
+            </button>
 
             {/* Slot Type */}
             <select

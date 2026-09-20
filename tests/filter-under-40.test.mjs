@@ -71,3 +71,36 @@ test("Dashboard page.tsx implements complete Under 40 filter UI and state", () =
   // Clear filters
   assert.ok(file.includes('setFilterUnder40(false)'), "Clear All Filters resets filterUnder40");
 });
+
+test("/api/admin/albums/election supports under40 query parameter", () => {
+  const file = fs.readFileSync(path.join(rootDir, "app/api/admin/albums/election/route.ts"), "utf8");
+  assert.ok(file.includes('searchParams.get("under40")'), "Parses under40 query parameter in album election API");
+  assert.ok(file.includes('filterUnder40 = under40Query === "true"'), "Detects filterUnder40 flag from query params");
+  assert.ok(file.includes('filterUnder40 && !isUnder40AsOfCutoff(r.date_of_birth, r.age)'), "Filters delegates using isUnder40AsOfCutoff");
+  assert.ok(file.includes('(Under 40)'), "Appends (Under 40) to effectiveContestName");
+});
+
+test("Album page.tsx implements complete Under 40 filter UI and state", () => {
+  const file = fs.readFileSync(path.join(rootDir, "app/admin/albums/page.tsx"), "utf8");
+
+  // State & imports
+  assert.ok(file.includes("const [under40, setUnder40] = useState<boolean>(false);"), "Declares under40 state in albums page");
+  assert.ok(file.includes("is_under_40?: boolean;"), "Delegate interface includes is_under_40");
+
+  // Accordion 6
+  assert.ok(file.includes("Age & Youth Roll Filter (Under 40 Cutoff)"), "Has Accordion 6 for Age & Youth Roll Filter");
+  assert.ok(file.includes("openAccordions.age"), "Handles openAccordions.age toggle");
+  assert.ok(file.includes("Under 40 Only (Youth Statutory Cutoff)"), "Has Under 40 option card in Accordion 6");
+  assert.ok(file.includes("Strictly officers not 40 as at 21st August 2026"), "Explains statutory cutoff date in Accordion 6");
+
+  // Header and Table Quick Actions
+  assert.ok(file.includes("Under 40: Active"), "Configuration header includes Under 40 active indicator");
+  assert.ok(file.includes("Toggle Under 40 (Youth) filter"), "Register table includes Under 40 toggle button");
+  assert.ok(file.includes("&lt; 40"), "Register table renders < 40 badge for eligible youth delegates");
+
+  // Query & client-side filtering
+  assert.ok(file.includes("&under40=true"), "Appends under40=true to API query string");
+  assert.ok(file.includes("matchesUnder40"), "Calculates matchesUnder40 in filtered list");
+  assert.ok(file.includes("!under40 || Boolean(d.is_under_40)"), "Applies client-side under40 filter check");
+  assert.ok(file.includes("setUnder40(false);"), "Resets under40 in resetAllFilters");
+});
