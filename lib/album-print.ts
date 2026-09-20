@@ -19,8 +19,10 @@ window.albumReady = (async function () {
   const ready = images.every(function (image) { return image.complete && image.naturalWidth > 0; });
   document.documentElement.dataset.albumReady = ready ? 'true' : 'false';
   const button = document.getElementById('album-print');
-  button.disabled = !ready;
-  button.textContent = ready ? 'PRINT / SAVE AS PDF' : 'IMAGES FAILED TO LOAD - RELOAD ALBUM';
+  if (button) {
+    button.disabled = !ready;
+    button.textContent = ready ? 'PRINT / SAVE AS PDF' : 'IMAGES FAILED TO LOAD - RELOAD ALBUM';
+  }
   return ready;
 })();
 window.printAlbum = async function () {

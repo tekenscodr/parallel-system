@@ -609,10 +609,9 @@ async function resolveDelegateWebpImage(
       // ignore
     }
 
-    // If resolveAlbumImage didn't return a buffer, return the remote URL as fallback
-    if (/^https?:\/\//i.test(cleanUrl)) {
-      return cleanUrl;
-    }
+    // If resolveAlbumImage didn't return a buffer, do not pass failing remote URL to client.
+    // Returning null allows safe fallback to the delegate SVG initials avatar.
+    return null;
   }
 
   return null;

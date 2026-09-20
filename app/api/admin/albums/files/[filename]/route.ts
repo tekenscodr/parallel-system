@@ -31,7 +31,10 @@ export async function GET(request: Request, context: { params: Promise<{ filenam
   if (!Object.hasOwn(albumFiles, filename)) return new Response("Not found", { status: 404 });
   try {
     const file = await readFile(path.join(process.cwd(), "exports", "albums", filename));
-    const isAttachment = filename.endsWith(".xlsx") || filename.endsWith(".pdf");
+    const url = new URL(request.url);
+    const forceDownload = url.searchParams.get("download") === "1";
+    const forceInline = url.searchParams.get("inline") === "1" || url.searchParams.get("view") === "inline";
+    const isAttachment = filename.endsWith(".xlsx") || (filename.endsWith(".pdf") && !forceInline && forceDownload);
     return new Response(file, {
       headers: {
         "Content-Type": albumFiles[filename],

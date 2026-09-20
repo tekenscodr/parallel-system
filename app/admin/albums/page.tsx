@@ -522,23 +522,56 @@ export default function PositionAlbumsPage() {
 
   const handlePreviewLoad = async (frame: HTMLIFrameElement) => {
     const albumWindow = frame.contentWindow as AlbumPrintWindow | null;
-    const ready = await albumWindow?.albumReady;
-    if (iframe.current !== frame) return;
-    if (ready) setPreviewReady(previewUrl);
-    else setPreviewFailure(previewUrl);
+    try {
+      const ready = await albumWindow?.albumReady;
+      if (iframe.current !== frame) return;
+      if (ready) setPreviewReady(previewUrl);
+      else setPreviewFailure(previewUrl);
+    } catch {
+      if (iframe.current === frame) setPreviewFailure(previewUrl);
+    }
   };
 
   useEffect(() => {
-    if (printRequest !== previewUrl || previewReady !== previewUrl) return;
-    const albumWindow = iframe.current?.contentWindow as AlbumPrintWindow | null;
-    if (albumWindow?.document.documentElement.dataset.albumReady === "true") {
-      void albumWindow.printAlbum?.();
-      setPrintRequest("");
+    if (printRequest !== previewUrl) return;
+
+    if (previewReady === previewUrl) {
+      const albumWindow = iframe.current?.contentWindow as AlbumPrintWindow | null;
+      if (albumWindow?.document?.documentElement?.dataset?.albumReady === "true") {
+        try {
+          void albumWindow.printAlbum?.();
+        } catch {
+          window.open(previewUrl, "_blank");
+        }
+        setPrintRequest("");
+        return;
+      }
     }
+
+    // Safety timeout: if images take more than 4s or if preview fails,
+    // open the standalone album in a new tab so the user can immediately print / save as PDF
+    const timer = setTimeout(() => {
+      if (printRequest === previewUrl) {
+        window.open(previewUrl, "_blank");
+        setPrintRequest("");
+      }
+    }, 4000);
+
+    return () => clearTimeout(timer);
   }, [printRequest, previewReady, previewUrl, tab]);
 
   const handlePrintPdf = () => {
     setTab("preview");
+    const albumWindow = iframe.current?.contentWindow as AlbumPrintWindow | null;
+    if (albumWindow?.document?.documentElement?.dataset?.albumReady === "true") {
+      try {
+        void albumWindow.printAlbum?.();
+        return;
+      } catch {
+        window.open(previewUrl, "_blank");
+        return;
+      }
+    }
     setPrintRequest(previewUrl);
   };
 
@@ -563,7 +596,7 @@ export default function PositionAlbumsPage() {
               </a>
             </Button>
             <Button variant="outline" disabled={!data} onClick={exportJson}><Download className="size-4" /> Export JSON</Button>
-            <Button disabled={!data || !delegates.length || printRequest === previewUrl || previewFailure === previewUrl} onClick={handlePrintPdf}><Printer className="size-4" /> {printRequest === previewUrl && previewFailure !== previewUrl ? "Preparing images…" : "Print / Save PDF"}</Button>
+            <Button disabled={!data || !delegates.length || printRequest === previewUrl} onClick={handlePrintPdf} className="gap-1.5" title="Open print dialog to save album as PDF"><Printer className="size-4" /> {printRequest === previewUrl ? "Preparing images…" : "Print / Save PDF"}</Button>
           </div>
         </div>
 
@@ -2132,8 +2165,10 @@ export default function PositionAlbumsPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <Button variant="outline" size="icon" aria-label="Zoom out" disabled={zoom === 50} onClick={() => setZoom((z) => Math.max(50, z - 10))}><Minus /></Button>
                       <Button variant="ghost" className="w-16 tabular-nums" aria-label="Reset zoom to 100 percent" onClick={() => setZoom(100)}>{zoom}%</Button>
-                      <Button variant="outline" size="icon" aria-label="Zoom in" disabled={zoom === 150} onClick={() => setZoom((z) => Math.min(150, z + 10))}><Plus /></Button>
-                      <Button asChild variant="outline"><a href={previewUrl} target="_blank" rel="noreferrer"><ExternalLink /> Open album</a></Button>
+                      <Button variant="default" size="sm" onClick={handlePrintPdf} className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5" title="Open print dialog to save as PDF">
+                        <Printer className="size-3.5" /> Print / Save PDF
+                      </Button>
+                      <Button asChild variant="outline"><a href={previewUrl} target="_blank" rel="noreferrer" title="Open full album in separate tab"><ExternalLink /> Open album</a></Button>
                       <Button asChild variant="outline">
                         <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${region}_Voter_Directory_2026.xlsx`}>
                           <Download /> Download Excel (.xlsx)
