@@ -1,14 +1,15 @@
 # Comprehensive Specification of the NPP Electoral College (2026)
 
-**Document Reference:** EC-SPEC-2026-V1  
+**Document Reference:** EC-SPEC-2026-V2  
 **Authoritative Scope:** National Elections Committee, Internal Elections & Official Album Publication System  
 **Effective Date:** 2026 Internal Executive Elections  
+**Audited Master Pool:** 7,039 Certified Non-Vacant Delegates  
 
 ---
 
 ## 1. Executive Summary & Constitutional Mandate
 
-The **Electoral College** represents the authoritative, constitutionally mandated body of accredited delegates entitled to cast ballots in the internal National Executive Elections of the New Patriotic Party (NPP). 
+The **Electoral College** represents the authoritative, constitutionally mandated body of accredited delegates entitled to cast ballots in the internal National Executive Elections of the New Patriotic Party (NPP).
 
 The National Executive Elections cover **nine (9) distinct elective portfolios**:
 1. **National Chairperson**
@@ -23,11 +24,11 @@ The National Executive Elections cover **nine (9) distinct elective portfolios**
 10. **National Nasara Coordinator** (Specialized Wing)
 
 The Electoral College draws its membership exclusively from accredited executive leadership across **five (5) jurisdictional tiers**:
-- **National Level**
-- **Regional Level** (16 Administrative Regions)
-- **Constituency Level** (276 Administrative Constituencies)
-- **External Branch Level** (30 Diaspora / Overseas Chapters)
-- **TESCON Level** (Tertiary Students Confederacy in Accredited Tertiary Institutions)
+- **National Level** (165 delegates)
+- **Regional Level** (338 certified officers across 16 Administrative Regions)
+- **Constituency Level** (5,206 domestic constituency officers across 276 Constituencies)
+- **External Branch Level** (580 diaspora officers across 30 recognized overseas chapters)
+- **TESCON Level** (750 accredited tertiary executives across recognized institutions)
 
 > [!IMPORTANT]
 > **Grassroots Hierarchy Distinction:**  
@@ -46,6 +47,7 @@ The Electoral College draws its membership exclusively from accredited executive
                                   │      NATIONAL LEVEL         │
                                   │   NEC, National Council,    │
                                   │  Council of Elders, Officers│
+                                  │       (165 Delegates)       │
                                   └──────────────┬──────────────┘
                                                  │
                   ┌──────────────────────────────┼──────────────────────────────┐
@@ -54,6 +56,7 @@ The Electoral College draws its membership exclusively from accredited executive
     │      REGIONAL LEVEL       │  │    CONSTITUENCY LEVEL     │  │  EXTERNAL BRANCH (DIASPORA│
     │   16 Regions · 21/Region  │  │ 276 Constituencies · 19/Con│  │   30 Countries · 19/Branch │
     │   (336 Statutory Seats)   │  │  (5,244 Statutory Seats)  │  │    (570 Statutory Seats)  │
+    │    [338 Actual Gazetted]  │  │   [5,206 Actual Gazetted]  │  │    [580 Actual Gazetted]   │
     └─────────────┬─────────────┘  └─────────────┬─────────────┘  └─────────────┬─────────────┘
                   │                              │                              │
                   └──────────────────────────────┼──────────────────────────────┘
@@ -62,17 +65,18 @@ The Electoral College draws its membership exclusively from accredited executive
                                   │        TESCON LEVEL         │
                                   │  Accredited Universities,   │
                                   │    Colleges & Institutes    │
-                                  │ (Presidents, WOCOM, Nasara) │
+                                  │    [750 Non-Patron Execs]   │
                                   └─────────────────────────────┘
 ```
 
 ### 2.1. Tier 1: National Level
 - **Composition:** Substantive National Officers, members of the National Executive Committee (NEC), members of the National Council, past National Chairpersons and General Secretaries, and accredited members of the Council of Elders.
 - **Gazetted Count:** 165 certified national delegates.
-- **Voting Rights:** Entitled to vote across all General Contests, and across Wing Contests subject to individual demographic/portfolio qualifications.
+- **Voting Rights:** Entitled to vote across all General Contests (165), and across Wing Contests subject to individual demographic/portfolio qualifications (4 Youth, 26 Women, 3 Nasara).
 
 ### 2.2. Tier 2: Regional Level (16 Administrative Regions)
 - **Statutory Quota:** **21 executive officers per region**, establishing a statutory nationwide baseline of **336 regional seats** ($16 \times 21 = 336$).
+- **Actual Certified Executives:** **338 active officers** (accounting for gazetted regional appointments and 1 vacancy in Western Region PWD Coordinator).
 - **Constituent Portfolios (21 Statutory Officers):**
   1. Regional Chairperson
   2. 1st Regional Vice Chairperson
@@ -98,6 +102,7 @@ The Electoral College draws its membership exclusively from accredited executive
 
 ### 2.3. Tier 3: Constituency Level (276 Constituencies)
 - **Statutory Quota:** **19 executive officers per constituency** (comprising 11 elected officers and 8 appointed functional officers), establishing a nationwide baseline of **5,244 statutory seats** ($276 \times 19 = 5,244$).
+- **Actual Certified Domestic Executives:** **5,206 active officers** across the 276 administrative constituencies.
 - **Constituent Portfolios (19 Statutory Officers):**
   1. Constituency Chairperson
   2. 1st Constituency Vice Chairperson
@@ -122,20 +127,21 @@ The Electoral College draws its membership exclusively from accredited executive
 ### 2.4. Tier 4: External Branch Level (Diaspora)
 - **Jurisdiction:** 30 recognized diaspora country chapters (e.g. United Kingdom, United States, Germany, Canada, France, Italy, South Africa, China, Australia, etc.).
 - **Constitutional Status:** External Branches hold **Constituency-equivalent status** within the Electoral College.
-- **Statutory Target:** Up to 19 executive officers per recognized external country branch ($30 \times 19 = 570$).
-- **Voting Rights:** Fully incorporated into the electoral college rolls, voting for all national executive positions following constituency rules.
+- **Statutory Baseline:** Up to 19 executive officers per recognized external country branch ($30 \times 19 = 570$).
+- **Actual Certified Diaspora Executives:** **580 active officers** incorporated into the electoral college rolls, voting for all national executive positions following constituency rules.
 
 ### 2.5. Tier 5: TESCON Level (Tertiary Students Confederacy)
 - **Jurisdiction:** Recognized, accredited tertiary institutions across Ghana (Universities, Technical Universities, Colleges of Education, Nursing & Midwifery Training Colleges).
 - **Core Portfolios Recognized:**
-  1. **Institutional President**
-  2. **Women Commissioner (WOCOM)**
-  3. **Nasara Coordinator**
-- **Disqualification:** **TESCON Patrons** (both academic and institutional) are strictly advisory and are constitutionally excluded from the electoral roll.
+  1. **Institutional President** (votes in General Contests, Youth Wing)
+  2. **Women Commissioner (WOCOM)** (votes in Women's Wing, Youth Wing)
+  3. **Nasara Coordinator** (votes in Nasara Wing, Youth Wing, and Women's Wing if female)
+- **Actual Certified Non-Patron Executives:** **750 active tertiary officers**.
+- **Disqualification:** **TESCON Patrons** (172 records) are strictly advisory and are constitutionally excluded from all voting rolls.
 
 ---
 
-## 3. Contest Electorate Rules & Entitlement Matrix
+## 3. Contest Electorate Rules & Audited Entitlement Matrix
 
 The National Electoral College does not vote as a uniform monolithic block for every seat. While General Executive Officers are elected by all executive tiers, the three wing contests (**Youth**, **Women**, and **Nasara**) are governed by specialized entitlement rules:
 
@@ -145,13 +151,13 @@ The National Electoral College does not vote as a uniform monolithic block for e
 ├──────────────────────────┬─────────────────────────────────┬───────────────┬────────────────┤
 │ Contest Category         │ Eligible Voter Composition      │ Verified Pool │ Excluded Roles │
 ├──────────────────────────┼─────────────────────────────────┼───────────────┼────────────────┤
-│ General Officers         │ • National Executives           │ 6,529 voters  │ • Polling Stn  │
+│ General Officers         │ • National Executives           │ 6,544 voters  │ • Polling Stn  │
 │ (Chairperson, GS,        │ • Regional Executives (16 Regs) │               │ • Elec Area    │
 │  Organiser, Treasurer,   │ • Constituency Execs (276 Cons) │               │ • TESCON Patrons│
 │  Communications, Vices)  │ • External Branch Executives    │               │ • TESCON Non-  │
 │                          │ • TESCON Presidents (substantive)│              │   Presidents   │
 ├──────────────────────────┼─────────────────────────────────┼───────────────┼────────────────┤
-│ Youth Wing               │ • All Core Execs Aged < 40      │ 2,853 voters  │ • Core Age 40+ │
+│ Youth Wing               │ • All Core Execs Aged < 40      │ 2,850 voters  │ • Core Age 40+ │
 │ (National Youth          │ • Youth Organisers (ex-officio) │               │   (no youth pos│
 │  Organiser)              │ • Deputy Youth Org (ex-officio) │               │ • Former Youth │
 │                          │ • ALL TESCON Tertiary Execs     │               │ • TESCON Patrons│
@@ -167,66 +173,35 @@ The National Electoral College does not vote as a uniform monolithic block for e
 └──────────────────────────┴─────────────────────────────────┴───────────────┴────────────────┘
 ```
 
-### 3.1. General Executive Officers Election
-- **Elective Portfolios:** National Chairperson, 1st Vice Chairperson, 2nd Vice Chairperson, General Secretary, National Treasurer, National Organiser, National Communication Officer.
-- **Entitled Electorate:**
-  1. All certified National executives.
-  2. All certified Regional executives across all 16 regions.
-  3. All certified Constituency executives across all 276 constituencies.
-  4. All certified External Branch executives across the diaspora.
-  5. **Substantive Institutional Presidents of accredited TESCON chapters.**
-- **Exclusion Rule:** Non-presidential TESCON executives (e.g. WOCOM, Nasara, Secretary) do not vote for General Executive Officers under party constitutional limits.
-
-### 3.2. National Youth Organiser Election (Youth Wing)
-- **Entitled Electorate:**
-  1. **Executives Under 40:** Any certified National, Regional, Constituency, or External Branch executive aged strictly **under 40 years** as of **21st August, 2026** (anyone born after 21st August 1986).
-  2. **Ex-Officio Youth Leadership:** All substantive **Youth Organisers** and **Deputy Youth Organisers** across all levels qualify ex-officio, regardless of date-of-birth records or age.
-  3. **Tertiary Student Confederacy (TESCON):** **All accredited TESCON executives** (Presidents, Women Commissioners, Nasara Coordinators) qualify automatically by virtue of holding tertiary leadership.
-- **Exclusion Rule:** Core executives aged 40 and above holding non-youth portfolios, Former National Youth Organisers, and TESCON Patrons.
-
-### 3.3. National Women Organiser Election (Women's Wing)
-- **Entitled Electorate:**
-  1. **All Female Core Executives:** Every confirmed female executive officer across National, Regional, Constituency, and External Branch levels.
-  2. **TESCON Women Commissioners (WOCOM):** Substantive WOCOM officers from all accredited tertiary institutions.
-  3. **Female TESCON Presidents:** Accredited female chapter presidents.
-  4. **Female TESCON Nasara Coordinators:** Accredited female tertiary Nasara coordinators.
-- **Exclusion Rule:** All male executives, TESCON Patrons, and unaccredited grassroots officers.
-
-### 3.4. National Nasara Coordinator Election (Nasara Wing)
-- **Entitled Electorate:**
-  1. **Core Nasara Leadership:** All substantive **Nasara Coordinators / Organisers** and **Deputy Nasara Coordinators / Organisers** across National, Regional, Constituency, and External Branch levels.
-  2. **Tertiary Nasara Leadership:** All accredited **TESCON Nasara Coordinators** from recognized tertiary institutions.
-- **Exclusion Rule:** Any executive not holding a substantive or deputy Nasara portfolio; all TESCON Patrons.
-
 ---
 
-## 4. Regional Breakdown & Electoral College Distribution
+## 4. Audited Regional Breakdown & Electoral College Distribution
 
-Authoritative distribution of certified delegates across all sixteen (16) regions, Diaspora External Branches, and National Headquarters in the current master register:
+Authoritative, deduplicated distribution of the **7,039 certified delegates** across all sixteen (16) administrative regions, Diaspora External Branches, and National Headquarters:
 
-| Jurisdiction / Region | Total Delegates | Regional Execs | Constituency Execs | TESCON Execs | Female Ratio | Male Ratio |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Ashanti** | 1,100 | 21 | 899 | 180 | 246 (22.4%) | 849 (77.2%) |
-| **Greater Accra** | 802 | 20 | 651 | 131 | 194 (24.2%) | 605 (75.4%) |
-| **Eastern** | 755 | 21 | 650 | 84 | 126 (16.7%) | 622 (82.4%) |
-| **External Branch (Diaspora)** | 580 | 0 | 579 | 0 | 129 (22.2%) | 451 (77.8%) |
-| **Central** | 513 | 21 | 436 | 56 | 107 (20.9%) | 406 (79.1%) |
-| **Northern** | 445 | 20 | 345 | 80 | 71 (16.0%) | 372 (83.6%) |
-| **Western** | 389 | 20 | 321 | 48 | 85 (21.9%) | 303 (77.9%) |
-| **Upper East** | 351 | 21 | 285 | 45 | 56 (16.0%) | 295 (84.0%) |
-| **Volta** | 331 | 11 | 266 | 54 | 67 (20.2%) | 250 (75.5%) |
-| **Bono** | 316 | 21 | 229 | 66 | 69 (21.8%) | 246 (77.8%) |
-| **Upper West** | 279 | 21 | 209 | 49 | 44 (15.8%) | 235 (84.2%) |
-| **Bono East** | 262 | 21 | 210 | 31 | 51 (19.5%) | 211 (80.5%) |
-| **Oti** | 205 | 21 | 171 | 13 | 26 (12.7%) | 168 (82.0%) |
-| **Savannah** | 201 | 20 | 151 | 30 | 25 (12.4%) | 175 (87.1%) |
-| **Western North** | 198 | 21 | 153 | 24 | 32 (16.2%) | 165 (83.3%) |
-| **Ahafo** | 166 | 22 | 115 | 29 | 32 (19.3%) | 132 (79.5%) |
-| **National Headquarters** | 165 | 0 | 0 | 0 | 26 (15.8%) | 139 (84.2%) |
-| **North East** | 153 | 21 | 115 | 17 | 21 (13.7%) | 132 (86.3%) |
-| **Total Nationwide** | **7,211** | **323** | **5,785** | **937** | **1,407 (19.5%)** | **5,756 (79.8%)** |
+| Jurisdiction / Region | Total Pool | Regional Execs | Constituency Execs | TESCON Execs | National Execs | Female Ratio | Male Ratio | General Voters | Youth Voters | Women Voters | Nasara Voters |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Ashanti** | **1,069** | 23 | 899 | 147 | 0 | 241 (22.5%) | 826 (77.3%) | 973 | 452 | 241 | 139 |
+| **Greater Accra** | **781** | 21 | 651 | 109 | 0 | 193 (24.7%) | 585 (74.9%) | 708 | 330 | 193 | 107 |
+| **Eastern** | **743** | 22 | 650 | 71 | 0 | 125 (16.8%) | 612 (82.4%) | 696 | 271 | 125 | 92 |
+| **External Branch (Diaspora)** | **580** | 0 | 580 | 0 | 0 | 129 (22.2%) | 451 (77.8%) | 580 | 177 | 129 | 52 |
+| **Central** | **504** | 22 | 436 | 46 | 0 | 106 (21.0%) | 398 (79.0%) | 473 | 186 | 106 | 63 |
+| **Northern** | **425** | 20 | 345 | 60 | 0 | 69 (16.2%) | 354 (83.3%) | 385 | 209 | 69 | 58 |
+| **Western** | **379** | 20 | 321 | 38 | 0 | 82 (21.6%) | 296 (78.1%) | 355 | 169 | 82 | 46 |
+| **Upper East** | **340** | 22 | 285 | 33 | 0 | 56 (16.5%) | 284 (83.5%) | 320 | 139 | 56 | 42 |
+| **Volta** | **320** | 11 | 266 | 43 | 0 | 66 (20.6%) | 240 (75.0%) | 292 | 159 | 66 | 43 |
+| **Bono** | **305** | 22 | 229 | 54 | 0 | 67 (22.0%) | 238 (78.0%) | 266 | 136 | 67 | 42 |
+| **Upper West** | **270** | 22 | 209 | 39 | 0 | 44 (16.3%) | 226 (83.7%) | 244 | 114 | 44 | 37 |
+| **Bono East** | **257** | 22 | 210 | 25 | 0 | 51 (19.8%) | 206 (80.2%) | 241 | 107 | 51 | 32 |
+| **Oti** | **202** | 23 | 171 | 8 | 0 | 26 (12.9%) | 165 (81.7%) | 197 | 86 | 26 | 22 |
+| **Savannah** | **194** | 21 | 151 | 22 | 0 | 25 (12.9%) | 168 (86.6%) | 180 | 100 | 25 | 25 |
+| **Western North** | **193** | 22 | 153 | 18 | 0 | 31 (16.1%) | 161 (83.4%) | 181 | 77 | 31 | 24 |
+| **Ahafo** | **163** | 23 | 115 | 25 | 0 | 32 (19.6%) | 129 (79.1%) | 147 | 73 | 32 | 22 |
+| **North East** | **149** | 22 | 115 | 12 | 0 | 21 (14.1%) | 128 (85.9%) | 141 | 61 | 21 | 18 |
+| **National Headquarters** | **165** | 0 | 0 | 0 | 165 | 26 (15.8%) | 139 (84.2%) | 165 | 4 | 26 | 3 |
+| **Total Nationwide** | **7,039** | **338** | **5,786** | **750** | **165** | **1,390 (19.7%)** | **5,606 (79.6%)** | **6,544** | **2,850** | **1,390** | **867** |
 
-*(Note: Data reflects verified non-vacant executives with active portfolios. The 48 remaining records represent pending gender/demographic reconciliations).*
+*(Note: Total Nationwide includes 43 records where gender is currently unrecorded/pending gazette update. All percentages reflect proportion of certified delegates in each jurisdiction).*
 
 ---
 
@@ -273,12 +248,12 @@ flowchart TD
 
 2. **Age Verification & Statutory Cutoff:**
    - Evaluated strictly using exact date of birth with a fixed statutory cutoff as of **21st August, 2026**.
-   - Formula: $\text{Age} = \text{DateDifference}(\text{DOB}, \text{2026-08-21})$.
-   - Executives born on or after 22nd August 1986 are eligible under the general $< 40$ rule for the Youth Organiser contest.
+   - Formula: Executives born on or after 22nd August 1986 qualify under the general $< 40$ rule for the Youth Organiser contest.
+   - Non-zero-padded single digit months/days (e.g. `1986-9-10`) are handled cleanly and normalized.
 
 3. **Gender Identity Assurance:**
    - Determined strictly from authoritative recorded metadata (`Male` or `Female`), never inferred algorithmically from names or photographs.
-   - Strictly controls access to the Women Organiser roll.
+   - Access to the Women Organiser electoral roll strictly requires `gender = 'Female'`.
 
 4. **Vacancy Management:**
-   - Unfilled seats, placeholders, deceased officers, or entries recorded as `vacant`, `vacancy`, `unknown`, or `not available` are omitted from voter rolls and reported explicitly in statutory audit tables as vacancies.
+   - Unfilled seats, placeholders, deceased officers, or entries recorded as `vacant`, `vacancy`, `unknown`, or `not available` are omitted from voter rolls and reported explicitly in statutory audit tables as vacancies (e.g. Western Region PWD Coordinator vacancy).

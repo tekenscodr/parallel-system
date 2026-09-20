@@ -55,12 +55,13 @@ export async function GET(req: Request) {
       // Electoral College Conditions (for National Elections)
       const ecConditions = [
         sql`(
-          executive_level IN ('Constituency', 'National', 'External Branch', 'Region')
-          OR (executive_level = 'TESCON' AND (
-            (position ILIKE '%President%' AND position NOT ILIKE '%Patron%')
-            OR position IN ('WOCOM', 'Women Commissioner')
-            OR position IN ('Tescon Nasara', 'Nasara Coordinator')
-          ))
+          executive_name IS NOT NULL 
+          AND trim(executive_name) != '' 
+          AND lower(executive_name) !~ '^(vacant|vacancy|unknown|not available|n/a)'
+          AND (
+            executive_level IN ('Constituency', 'National', 'External Branch', 'Region')
+            OR (executive_level = 'TESCON' AND position NOT ILIKE '%patron%')
+          )
         )`
       ];
       if (isC1) {
@@ -89,18 +90,34 @@ export async function GET(req: Request) {
                 AND executive_level NOT ILIKE '%external branch%' 
                 AND region NOT ILIKE '%external branch%' 
                 AND (date_of_birth IS NOT NULL OR age IS NOT NULL) THEN 1
-              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
-                AND date_of_birth > '1986-08-21' THEN 1
-              WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int > 1986 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int = 1986 AND (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int > 8
+                OR (
+                  substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                  AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int >= 22
+                )
+              ) THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND (age + 2) < 40 THEN 1
             END)::int as under_40,
             COUNT(CASE 
               WHEN position ILIKE '%youth%' 
                 AND executive_level NOT ILIKE '%external branch%' 
                 AND region NOT ILIKE '%external branch%' THEN NULL
-              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
-                AND date_of_birth BETWEEN '1985-08-22' AND '1986-08-21' THEN 1
-              WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) = 40 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int = 1986 AND (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int < 8
+                OR (
+                  substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                  AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int < 22
+                )
+              ) THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int = 1985 AND (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int > 8
+                OR (
+                  substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                  AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int >= 22
+                )
+              ) THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND (age + 2) = 40 THEN 1
             END)::int as equal_40,
             COUNT(CASE 
@@ -126,8 +143,14 @@ export async function GET(req: Request) {
             executive_level as level,
             COUNT(*)::int as count,
             COUNT(CASE 
-              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND date_of_birth > '1986-08-21' THEN 1
-              WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int > 1986 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int = 1986 AND (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int > 8
+                OR (
+                  substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                  AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int >= 22
+                )
+              ) THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND age < 40 THEN 1
             END)::int as under_40,
             COUNT(CASE WHEN gender = 'Female' THEN 1 END)::int as women
@@ -150,8 +173,14 @@ export async function GET(req: Request) {
             COALESCE(NULLIF(constituency, ''), 'Unassigned') as region,
             COUNT(*)::int as count,
             COUNT(CASE 
-              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND date_of_birth > '1986-08-21' THEN 1
-              WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int > 1986 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int = 1986 AND (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int > 8
+                OR (
+                  substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                  AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int >= 22
+                )
+              ) THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND age < 40 THEN 1
             END)::int as under_40
           FROM executives_all
@@ -164,8 +193,14 @@ export async function GET(req: Request) {
             COALESCE(NULLIF(region, ''), 'National/Unassigned') as region,
             COUNT(*)::int as count,
             COUNT(CASE 
-              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND date_of_birth > '1986-08-21' THEN 1
-              WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int > 1986 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int = 1986 AND (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int > 8
+                OR (
+                  substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                  AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int >= 22
+                )
+              ) THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND age < 40 THEN 1
             END)::int as under_40
           FROM executives_all
@@ -178,28 +213,40 @@ export async function GET(req: Request) {
             COUNT(*)::int as total_delegates,
             COUNT(CASE WHEN executive_level IN ('Constituency', 'National', 'External Branch', 'Region') OR (executive_level = 'TESCON' AND position ILIKE '%President%' AND position NOT ILIKE '%Patron%') THEN 1 END)::int as general_voters,
             COUNT(CASE 
+              WHEN position ILIKE '%former%' THEN NULL
               WHEN executive_level = 'TESCON' AND position NOT ILIKE '%patron%' THEN 1
               WHEN position ILIKE '%youth%' THEN 1
-              WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND date_of_birth > '1986-08-21' THEN 1
-              WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int > 1986 THEN 1
+              WHEN substring(date_of_birth from '^([0-9]{4})')::int = 1986 AND (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int > 8
+                OR (
+                  substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                  AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int >= 22
+                )
+              ) THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND age < 40 THEN 1
             END)::int as youth_voters,
             COUNT(CASE 
-              WHEN executive_level = 'TESCON' AND (
-                position IN ('WOCOM', 'Women Commissioner') 
-                OR (position ILIKE '%President%' AND gender = 'Female')
-                OR ((position ILIKE '%Nasara%' OR position IN ('Tescon Nasara', 'Nasara Coordinator')) AND gender = 'Female')
+              WHEN gender = 'Female' AND (
+                executive_level != 'TESCON'
+                OR (
+                  executive_level = 'TESCON' AND (
+                    position IN ('WOCOM', 'Women Commissioner') 
+                    OR position ILIKE '%wocom%'
+                    OR position ILIKE '%women%'
+                    OR position ILIKE '%President%'
+                    OR position ILIKE '%Nasara%'
+                  )
+                )
               ) THEN 1
-              WHEN executive_level != 'TESCON' AND gender = 'Female' THEN 1
             END)::int as women_voters,
             COUNT(CASE 
-              WHEN executive_level = 'TESCON' AND position IN ('Tescon Nasara', 'Nasara Coordinator') THEN 1
-              WHEN executive_level != 'TESCON' AND position ILIKE '%Nasara%' THEN 1
+              WHEN position NOT ILIKE '%former%' AND position ILIKE '%Nasara%' AND position NOT ILIKE '%patron%' THEN 1
             END)::int as nasara_voters,
             COUNT(CASE WHEN executive_level = 'TESCON' AND position ILIKE '%President%' AND position NOT ILIKE '%Patron%' THEN 1 END)::int as tescon_presidents,
-            COUNT(CASE WHEN executive_level = 'TESCON' AND position IN ('WOCOM', 'Women Commissioner') THEN 1 END)::int as tescon_wocom,
-            COUNT(CASE WHEN executive_level = 'TESCON' AND position IN ('Tescon Nasara', 'Nasara Coordinator') THEN 1 END)::int as tescon_nasara,
-            COUNT(CASE WHEN executive_level = 'Constituency' THEN 1 END)::int as constituency_execs,
+            COUNT(CASE WHEN executive_level = 'TESCON' AND (position IN ('WOCOM', 'Women Commissioner') OR position ILIKE '%wocom%' OR position ILIKE '%women%') THEN 1 END)::int as tescon_wocom,
+            COUNT(CASE WHEN executive_level = 'TESCON' AND position ILIKE '%Nasara%' THEN 1 END)::int as tescon_nasara,
+            COUNT(CASE WHEN executive_level = 'Constituency' AND region != 'External Branch' THEN 1 END)::int as constituency_execs,
             COUNT(CASE WHEN region = 'External Branch' OR executive_level = 'External Branch' THEN 1 END)::int as external_branch_execs
           FROM executives_all
           ${ecWhereClause}

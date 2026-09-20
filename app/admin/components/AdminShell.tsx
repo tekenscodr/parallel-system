@@ -20,6 +20,8 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
+  Award,
+  GitPullRequest,
 } from "lucide-react";
 import { initClientIpDetection } from "@/lib/client-device";
 import { canAccessAlbums } from "@/lib/album-access";
@@ -241,6 +243,18 @@ export function AdminShell({
       label: "Executives Directory",
       icon: Layers,
       description: "261k+ nationwide executive registry & updates",
+    },
+    {
+      href: "/admin/accreditation",
+      label: "Accreditation & Badges",
+      icon: Award,
+      description: "Media, Security & Protocol credentials & pass printing",
+    },
+    {
+      href: "/admin/update-requests",
+      label: "Update Requests",
+      icon: GitPullRequest,
+      description: "Review and approve executive correction submissions",
     },
     {
       href: "/admin/albums",

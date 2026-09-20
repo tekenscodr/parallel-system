@@ -15,6 +15,8 @@ export const GENERAL_CONTEST_LIST = [
   "Youth Organiser",
   "Women Organiser",
   "Nasara Organiser",
+  "All Men",
+  "All Women",
 ] as const;
 
 export const CUSTOM_CONTEST = "Custom" as const;
@@ -513,6 +515,67 @@ export const LEVEL_PRESETS = {
 } as const;
 
 export type LevelPresetKey = keyof typeof LEVEL_PRESETS;
+
+export interface ElectoralJurisdiction {
+  id: string;
+  name: string;
+  shortName: string;
+  belt: "Southern" | "Middle" | "Northern" | "Special";
+  constituencies?: number;
+  description?: string;
+}
+
+export const ALL_ELECTORAL_JURISDICTIONS: ElectoralJurisdiction[] = [
+  { id: "Ahafo", name: "Ahafo Region", shortName: "Ahafo", belt: "Middle", constituencies: 6, description: "Middle Belt · 6 Constituencies" },
+  { id: "Ashanti", name: "Ashanti Region", shortName: "Ashanti", belt: "Middle", constituencies: 47, description: "Middle Belt · 47 Constituencies" },
+  { id: "Bono", name: "Bono Region", shortName: "Bono", belt: "Middle", constituencies: 12, description: "Middle Belt · 12 Constituencies" },
+  { id: "Bono East", name: "Bono East Region", shortName: "Bono East", belt: "Middle", constituencies: 11, description: "Middle Belt · 11 Constituencies" },
+  { id: "Central", name: "Central Region", shortName: "Central", belt: "Southern", constituencies: 23, description: "Southern Belt · 23 Constituencies" },
+  { id: "Eastern", name: "Eastern Region", shortName: "Eastern", belt: "Southern", constituencies: 33, description: "Southern Belt · 33 Constituencies" },
+  { id: "Greater Accra", name: "Greater Accra Region", shortName: "Greater Accra", belt: "Southern", constituencies: 34, description: "Southern Belt · 34 Constituencies" },
+  { id: "North East", name: "North East Region", shortName: "North East", belt: "Northern", constituencies: 6, description: "Northern Belt · 6 Constituencies" },
+  { id: "Northern", name: "Northern Region", shortName: "Northern", belt: "Northern", constituencies: 18, description: "Northern Belt · 18 Constituencies" },
+  { id: "Oti", name: "Oti Region", shortName: "Oti", belt: "Southern", constituencies: 9, description: "Southern Belt · 9 Constituencies" },
+  { id: "Savannah", name: "Savannah Region", shortName: "Savannah", belt: "Northern", constituencies: 7, description: "Northern Belt · 7 Constituencies" },
+  { id: "Upper East", name: "Upper East Region", shortName: "Upper East", belt: "Northern", constituencies: 15, description: "Northern Belt · 15 Constituencies" },
+  { id: "Upper West", name: "Upper West Region", shortName: "Upper West", belt: "Northern", constituencies: 11, description: "Northern Belt · 11 Constituencies" },
+  { id: "Volta", name: "Volta Region", shortName: "Volta", belt: "Southern", constituencies: 18, description: "Southern Belt · 18 Constituencies" },
+  { id: "Western", name: "Western Region", shortName: "Western", belt: "Southern", constituencies: 17, description: "Southern Belt · 17 Constituencies" },
+  { id: "Western North", name: "Western North Region", shortName: "Western North", belt: "Middle", constituencies: 9, description: "Middle Belt · 9 Constituencies" },
+  { id: "External Branch", name: "External Branches (Diaspora)", shortName: "External Branch", belt: "Special", constituencies: 30, description: "Diaspora Chapters · 30 Countries" },
+  { id: "National Headquarters", name: "National Headquarters (Council & Officers)", shortName: "National HQ", belt: "Special", description: "National Council & Party Headquarters" },
+];
+
+export const ALL_JURISDICTION_IDS = ALL_ELECTORAL_JURISDICTIONS.map((j) => j.id);
+
+export const JURISDICTION_PRESETS = {
+  all: {
+    label: "All Ghana (18 Jurisdictions)",
+    ids: [...ALL_JURISDICTION_IDS],
+  },
+  sixteen_regions: {
+    label: "16 Administrative Regions",
+    ids: ALL_ELECTORAL_JURISDICTIONS.filter((j) => j.belt !== "Special").map((j) => j.id),
+  },
+  southern_belt: {
+    label: "Southern Belt (6 Regions)",
+    ids: ["Central", "Eastern", "Greater Accra", "Oti", "Volta", "Western"],
+  },
+  middle_belt: {
+    label: "Middle Belt (5 Regions)",
+    ids: ["Ahafo", "Ashanti", "Bono", "Bono East", "Western North"],
+  },
+  northern_belt: {
+    label: "Northern Belt (5 Regions)",
+    ids: ["Northern", "North East", "Savannah", "Upper East", "Upper West"],
+  },
+  diaspora_and_hq: {
+    label: "Diaspora & National HQ",
+    ids: ["External Branch", "National Headquarters"],
+  },
+} as const;
+
+export type JurisdictionPresetKey = keyof typeof JURISDICTION_PRESETS;
 
 export type VoterDetailField =
   | "photo"

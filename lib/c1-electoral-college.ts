@@ -24,6 +24,7 @@ export function getC1SqlCondition(sql: postgres.Sql) {
           position ILIKE '%president%'
           OR position ILIKE '%wocom%'
           OR position ILIKE '%women%'
+          OR position ILIKE '%nasara%'
         )
       )
     )
@@ -77,9 +78,14 @@ export function isC1FemaleElectoralDelegate(record: CandidateDelegate | null | u
     return false;
   }
 
-  // TESCON level: only female Presidents and WOCOMs
+  // TESCON level: female Presidents, WOCOMs, and Nasara Coordinators
   if (level === "tescon") {
-    return pos.includes("president") || pos.includes("wocom") || pos.includes("women");
+    return (
+      pos.includes("president") ||
+      pos.includes("wocom") ||
+      pos.includes("women") ||
+      pos.includes("nasara")
+    );
   }
 
   // Core Electoral College tiers (National, Region, Constituency, External Branch)
