@@ -21,6 +21,7 @@ const BASELINE_POSITIONS: Record<string, string[]> = {
     "Former President",
     "Current Flagbearer / Former Vice President",
     "Former Running Mate",
+    "Member of Parliament",
     "National Chairperson",
     "1st Vice-Chairperson",
     "2nd Vice-Chairperson",
@@ -88,6 +89,7 @@ const BASELINE_POSITIONS: Record<string, string[]> = {
     "Regional TESCON Coordinator",
   ],
   Constituency: [
+    "Member of Parliament",
     "Chairperson",
     "1st Vice-Chairperson",
     "2nd Vice-Chairperson",

@@ -12,6 +12,12 @@ import {
   getRegionalSectionRank,
   compareRegionalAlbumDelegates,
 } from "../lib/album-hierarchy.ts";
+import {
+  normalizeConstituency,
+  CANONICAL_CONSTITUENCIES,
+  getConstituenciesForRegion,
+} from "../lib/constituency-normalizer.ts";
+import { getConstituencyCapital } from "../lib/constituency-capitals.ts";
 
 test("Position filter includes Member of Parliament, National Council Rep, and Foundation Member", () => {
   const ids = ALL_CUSTOMIZABLE_POSITIONS.map((p) => p.id);
@@ -166,4 +172,37 @@ test("Admin album page includes MPs, Council & Founders preset button", () => {
     code.includes("Regional Leadership (24)"),
     "Album page must offer Regional Leadership (24) preset button"
   );
+});
+
+test("Kwahu East is Abetifi and Kwahu Afram Plains is Afram Plains North", () => {
+  // Normalization
+  assert.equal(normalizeConstituency("Kwahu East"), "ABETIFI");
+  assert.equal(normalizeConstituency("ABETIFI"), "ABETIFI");
+  assert.equal(normalizeConstituency("kwahu east"), "ABETIFI");
+  assert.equal(normalizeConstituency("Kwahu Afram Plains"), "AFRAM PLAINS NORTH");
+  assert.equal(normalizeConstituency("Kwahu Afram Plains North"), "AFRAM PLAINS NORTH");
+  assert.equal(normalizeConstituency("AFRAM PLAINS NORTH"), "AFRAM PLAINS NORTH");
+  assert.equal(normalizeConstituency("kwahu afram plains"), "AFRAM PLAINS NORTH");
+
+  // Canonical set integrity
+  assert.ok(CANONICAL_CONSTITUENCIES.length >= 275, "Must maintain all canonical constituencies");
+  assert.ok(CANONICAL_CONSTITUENCIES.includes("ABETIFI"), "ABETIFI must be canonical");
+  assert.ok(CANONICAL_CONSTITUENCIES.includes("AFRAM PLAINS NORTH"), "AFRAM PLAINS NORTH must be canonical");
+  assert.ok(!CANONICAL_CONSTITUENCIES.includes("KWAHU EAST"), "KWAHU EAST must not be in canonical list");
+  assert.ok(!CANONICAL_CONSTITUENCIES.includes("KWAHU AFRAM PLAINS NORTH"), "KWAHU AFRAM PLAINS NORTH must not be in canonical list");
+
+  // Eastern region (33 total)
+  const eastern = getConstituenciesForRegion("Eastern");
+  assert.equal(eastern.length, 33, "Eastern region must have exactly 33 constituencies");
+  assert.ok(eastern.includes("ABETIFI"), "Eastern must include ABETIFI");
+  assert.ok(eastern.includes("AFRAM PLAINS NORTH"), "Eastern must include AFRAM PLAINS NORTH");
+  assert.ok(!eastern.includes("KWAHU EAST"), "Eastern must not include KWAHU EAST");
+  assert.ok(!eastern.includes("KWAHU AFRAM PLAINS NORTH"), "Eastern must not include KWAHU AFRAM PLAINS NORTH");
+
+  // Administrative Capitals
+  assert.equal(getConstituencyCapital("Abetifi"), "Abetifi");
+  assert.equal(getConstituencyCapital("Kwahu East"), "Abetifi");
+  assert.equal(getConstituencyCapital("Afram Plains North"), "Donkorkrom");
+  assert.equal(getConstituencyCapital("Kwahu Afram Plains"), "Donkorkrom");
+  assert.equal(getConstituencyCapital("Kwahu Afram Plains North"), "Donkorkrom");
 });

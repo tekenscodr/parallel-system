@@ -25,6 +25,7 @@ export async function GET(req: Request) {
     const search = url.searchParams.get("search")?.trim() || "";
     const cohort = url.searchParams.get("cohort")?.trim() || "";
     const slot = url.searchParams.get("slot")?.trim() || "";
+    const under40 = url.searchParams.get("under40")?.trim() || "";
     const missingImages = url.searchParams.get("missingImages") === "true" || url.searchParams.get("missingPhotos") === "true";
 
     const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
@@ -68,6 +69,40 @@ export async function GET(req: Request) {
         conditions.push(sql`gender = 'Female'`);
       } else if (cohort === "nasara") {
         conditions.push(sql`position ILIKE '%nasara%'`);
+      } else if (cohort === "under_40" || cohort === "youth") {
+        conditions.push(sql`
+          (
+            (date_of_birth ~ '^[0-9]{4}' AND substring(date_of_birth from '^([0-9]{4})')::int > 1986)
+            OR (date_of_birth ~ '^[0-9]{4}' AND substring(date_of_birth from '^([0-9]{4})')::int = 1986 AND (
+              substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int > 8
+              OR (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int >= 22
+              )
+            ))
+            OR (date_of_birth ~ '[0-9]{4}$' AND substring(date_of_birth from '([0-9]{4})$')::int > 1986)
+            OR ((date_of_birth IS NULL OR trim(date_of_birth) = '' OR NOT (date_of_birth ~ '[0-9]{4}')) AND age IS NOT NULL AND (age + 2) < 40)
+          )
+        `);
+      }
+
+      if (under40 === "true" || under40 === "1" || under40 === "under_40") {
+        if (cohort !== "under_40" && cohort !== "youth") {
+          conditions.push(sql`
+            (
+              (date_of_birth ~ '^[0-9]{4}' AND substring(date_of_birth from '^([0-9]{4})')::int > 1986)
+              OR (date_of_birth ~ '^[0-9]{4}' AND substring(date_of_birth from '^([0-9]{4})')::int = 1986 AND (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int > 8
+                OR (
+                  substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                  AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int >= 22
+                )
+              ))
+              OR (date_of_birth ~ '[0-9]{4}$' AND substring(date_of_birth from '([0-9]{4})$')::int > 1986)
+              OR ((date_of_birth IS NULL OR trim(date_of_birth) = '' OR NOT (date_of_birth ~ '[0-9]{4}')) AND age IS NOT NULL AND (age + 2) < 40)
+            )
+          `);
+        }
       }
 
       if (position) {
@@ -86,6 +121,9 @@ export async function GET(req: Request) {
       // Position hierarchy ranking based on official constitutional hierarchy
       const positionRankSql = sql`
         CASE 
+          /* 0. Member of Parliament */
+          WHEN position ILIKE '%Member of Parliament%' OR position ILIKE '%MP%' OR position ILIKE '%Parliamentarian%' THEN 0
+
           /* Prescribed Region and Constituency table order */
           WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%1st%Vice%', '%First%Vice%']) THEN 2
           WHEN (executive_level ILIKE 'Region%' OR executive_level ILIKE 'Constituency') AND position ILIKE ANY (ARRAY['%2nd%Vice%', '%Second%Vice%']) THEN 3

@@ -20,6 +20,8 @@ export async function GET(req: Request) {
     const constituency = url.searchParams.get("constituency")?.trim() || "";
     const level = url.searchParams.get("level")?.trim() || "";
     const position = url.searchParams.get("position")?.trim() || "";
+    const cohort = url.searchParams.get("cohort")?.trim() || "";
+    const under40 = url.searchParams.get("under40")?.trim() || "";
 
     // Run parallel queries on ec-data in scoped connection
     const result = await withEcSql(async (sql) => {
@@ -46,6 +48,46 @@ export async function GET(req: Request) {
       if (position) {
         const pCond = buildPositionCondition(sql, position);
         if (pCond) conditions.push(pCond);
+      }
+
+      if (cohort === "women") {
+        conditions.push(sql`gender = 'Female'`);
+      } else if (cohort === "nasara") {
+        conditions.push(sql`position ILIKE '%nasara%'`);
+      } else if (cohort === "under_40" || cohort === "youth") {
+        conditions.push(sql`
+          (
+            (date_of_birth ~ '^[0-9]{4}' AND substring(date_of_birth from '^([0-9]{4})')::int > 1986)
+            OR (date_of_birth ~ '^[0-9]{4}' AND substring(date_of_birth from '^([0-9]{4})')::int = 1986 AND (
+              substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int > 8
+              OR (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int >= 22
+              )
+            ))
+            OR (date_of_birth ~ '[0-9]{4}$' AND substring(date_of_birth from '([0-9]{4})$')::int > 1986)
+            OR ((date_of_birth IS NULL OR trim(date_of_birth) = '' OR NOT (date_of_birth ~ '[0-9]{4}')) AND age IS NOT NULL AND (age + 2) < 40)
+          )
+        `);
+      }
+
+      if (under40 === "true" || under40 === "1" || under40 === "under_40") {
+        if (cohort !== "under_40" && cohort !== "youth") {
+          conditions.push(sql`
+            (
+              (date_of_birth ~ '^[0-9]{4}' AND substring(date_of_birth from '^([0-9]{4})')::int > 1986)
+              OR (date_of_birth ~ '^[0-9]{4}' AND substring(date_of_birth from '^([0-9]{4})')::int = 1986 AND (
+                substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int > 8
+                OR (
+                  substring(date_of_birth from '^[0-9]{4}-([0-9]{1,2})')::int = 8 
+                  AND substring(date_of_birth from '^[0-9]{4}-[0-9]{1,2}-([0-9]{1,2})')::int >= 22
+                )
+              ))
+              OR (date_of_birth ~ '[0-9]{4}$' AND substring(date_of_birth from '([0-9]{4})$')::int > 1986)
+              OR ((date_of_birth IS NULL OR trim(date_of_birth) = '' OR NOT (date_of_birth ~ '[0-9]{4}')) AND age IS NOT NULL AND (age + 2) < 40)
+            )
+          `);
+        }
       }
 
       const whereClause = conditions.length > 0
@@ -269,7 +311,9 @@ export async function GET(req: Request) {
           region: region || null,
           constituency: constituency || null,
           level: level || null,
-          position: position || null
+          position: position || null,
+          cohort: cohort || null,
+          under40: (under40 === "true" || under40 === "1" || under40 === "under_40" || cohort === "under_40" || cohort === "youth") ? true : null
         }
       };
     });

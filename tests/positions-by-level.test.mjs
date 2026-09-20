@@ -141,3 +141,25 @@ test("POSITIONS_BY_LEVEL.National includes National Council of Elders and Nation
   assert.ok(getPositionRank("National Council of Elders") < 300);
   assert.ok(getPositionRank("National Council of Patrons") < 300);
 });
+
+test("POSITIONS_BY_LEVEL includes Member of Parliament at Constituency and National levels", async () => {
+  const { normalizePosition, getPositionRank } = await import("../lib/position-matcher.ts");
+  assert.ok(
+    pageContent.includes('"Member of Parliament"'),
+    "Expected page.tsx to include Member of Parliament"
+  );
+
+  const positionsApiContent = fs.readFileSync(
+    path.resolve(process.cwd(), "app/api/admin/positions/route.ts"),
+    "utf8"
+  );
+  assert.ok(
+    positionsApiContent.includes('"Member of Parliament"'),
+    "Expected positions API route to include Member of Parliament"
+  );
+
+  assert.equal(normalizePosition("Member of Parliament", "Constituency"), "Member of Parliament");
+  assert.equal(normalizePosition("MP", "Constituency"), "Member of Parliament");
+  assert.equal(getPositionRank("Member of Parliament", "Constituency"), 0);
+  assert.equal(getPositionRank("MP", "Constituency"), 0);
+});

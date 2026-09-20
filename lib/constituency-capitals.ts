@@ -107,10 +107,12 @@ export const CONSTITUENCY_CAPITALS: Record<string, string> = {
   "WEIJA-GBAWE": "Gbawe",
 
   // EASTERN REGION
+  "ABETIFI": "Abetifi",
   "ABIREM": "Abirem",
   "ABUAKWA NORTH": "Kukurantumi",
   "ABUAKWA SOUTH": "Kibi",
   "ACHIASE": "Achiase",
+  "AFRAM PLAINS NORTH": "Donkorkrom",
   "AFRAM PLAINS SOUTH": "Tease",
   "AKIM ODA": "Akim Oda",
   "AKIM SWEDRU": "Akim Swedru",
@@ -125,6 +127,7 @@ export const CONSTITUENCY_CAPITALS: Record<string, string> = {
   "FANTEAKWA NORTH": "Begoro",
   "FANTEAKWA SOUTH": "Osino",
   "KADE": "Kade",
+  "KWAHU AFRAM PLAINS": "Donkorkrom",
   "KWAHU AFRAM PLAINS NORTH": "Donkorkrom",
   "KWAHU EAST": "Abetifi",
   "LOWER MANYA KROBO": "Krobo Odumase",

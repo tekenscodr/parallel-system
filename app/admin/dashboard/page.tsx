@@ -41,6 +41,7 @@ import {
   Archive,
   Undo2,
   ImageOff,
+  Sparkles,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 import { ExecutiveAvatar, clearBrokenPhotoCache } from "@/app/admin/components/ExecutiveAvatar";
@@ -56,7 +57,7 @@ import { getClientHeaders } from "@/lib/client-device";
 import { checkClientRateLimit } from "@/lib/client-rate-limit";
 import { getPositionRank } from "@/lib/position-matcher";
 import { getConstituenciesForRegion } from "@/lib/constituency-normalizer";
-import { computeExecutiveAgeAndDob } from "@/lib/voting-rules";
+import { computeExecutiveAgeAndDob, isUnder40AsOfCutoff } from "@/lib/voting-rules";
 import { logoutAndRedirect, saveClientSession, SESSION_TOKEN_KEY } from "@/lib/client-session";
 
 type OverviewData = {
@@ -66,6 +67,7 @@ type OverviewData = {
     nasara: number;
     appointed: number;
     elected: number;
+    under_40?: number;
     missing_photos?: number;
     verified_photos?: number;
   };
@@ -88,6 +90,9 @@ type OverviewData = {
     region: string | null;
     constituency: string | null;
     level: string | null;
+    position?: string | null;
+    cohort?: string | null;
+    under40?: boolean | null;
   };
   user: { id: string; email: string; name: string; role: string };
 };
@@ -179,6 +184,7 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Former President",
     "Current Flagbearer / Former Vice President",
     "Former Running Mate",
+    "Member of Parliament",
     "National Chairperson",
     "1st Vice-Chairperson",
     "2nd Vice-Chairperson",
@@ -246,6 +252,7 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Regional TESCON Coordinator",
   ],
   Constituency: [
+    "Member of Parliament",
     "Chairperson",
     "1st Vice-Chairperson",
     "2nd Vice-Chairperson",
@@ -422,6 +429,20 @@ export default function NationalAdminDashboard() {
   // Missing images filter & reload state
   const [filterMissingImages, setFilterMissingImages] = useState<boolean>(false);
   const [rosterImageReloadKey, setRosterImageReloadKey] = useState<number>(0);
+
+  // Under 40 (Youth) filter state
+  const [filterUnder40, setFilterUnder40] = useState<boolean>(false);
+  const isUnder40Active = filterUnder40 || selectedCohort === "under_40";
+
+  const handleToggleUnder40 = () => {
+    if (isUnder40Active) {
+      setFilterUnder40(false);
+      if (selectedCohort === "under_40") setSelectedCohort("");
+    } else {
+      setFilterUnder40(true);
+    }
+    setPage(1);
+  };
 
   // Full data reload state
   const [reloadingFullData, setReloadingFullData] = useState<boolean>(false);
@@ -755,6 +776,7 @@ export default function NationalAdminDashboard() {
     if (selectedSlot) params.set("slot", selectedSlot);
     if (debouncedSearch) params.set("search", debouncedSearch);
     if (filterMissingImages) params.set("missingImages", "true");
+    if (filterUnder40 || selectedCohort === "under_40") params.set("under40", "true");
     if (forceFresh) params.set("_t", String(Date.now()));
 
     return fetch(`/api/admin/executives?${params.toString()}`, {
@@ -779,7 +801,7 @@ export default function NationalAdminDashboard() {
         setLoadingRows(false);
         throw err;
       });
-  }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedPosition, selectedCohort, selectedSlot, debouncedSearch, filterMissingImages]);
+  }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedPosition, selectedCohort, selectedSlot, debouncedSearch, filterMissingImages, filterUnder40]);
 
   useEffect(() => {
     if (currentUser) {
@@ -1623,7 +1645,7 @@ export default function NationalAdminDashboard() {
     ? TIERS.filter((t) => t.id !== "Electoral Area" && t.id !== "Polling Station")
     : TIERS;
 
-  const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&position=${encodeURIComponent(selectedPosition)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}${filterMissingImages ? "&missingImages=true" : ""}`;
+  const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&position=${encodeURIComponent(selectedPosition)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}${filterMissingImages ? "&missingImages=true" : ""}${isUnder40Active ? "&under40=true" : ""}`;
 
   const handleExportClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (exportCooldownSec > 0) {
@@ -2126,6 +2148,38 @@ export default function NationalAdminDashboard() {
               <span style={{ fontSize: "11px", color: "#64748b" }}>Deputies, Officers & Patrons</span>
             </div>
 
+            <div
+              onClick={handleToggleUnder40}
+              style={{
+                background: isUnder40Active ? "rgba(16, 185, 129, 0.15)" : "rgba(30, 41, 59, 0.5)",
+                padding: "16px",
+                borderRadius: "10px",
+                border: isUnder40Active ? "1px solid rgba(52, 211, 153, 0.5)" : "1px solid rgba(255, 255, 255, 0.06)",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                boxShadow: isUnder40Active ? "0 0 12px rgba(16, 185, 129, 0.2)" : "none"
+              }}
+              title="Click to toggle Under 40 (Youth) filter"
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "11px", color: isUnder40Active ? "#6ee7b7" : "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>
+                  Under 40 (Youth)
+                </span>
+                <Sparkles size={15} color={isUnder40Active ? "#34d399" : "#94a3b8"} />
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "4px" }}>
+                <span style={{ fontSize: "22px", fontWeight: "700", color: "#34d399" }}>
+                  {(overview.totals.under_40 ?? 0).toLocaleString()}
+                </span>
+                <span style={{ fontSize: "12px", color: "#34d399" }}>
+                  ({overview.totals.total > 0 ? Math.round(((overview.totals.under_40 ?? 0) / overview.totals.total) * 100) : 0}%)
+                </span>
+              </div>
+              <span style={{ fontSize: "11px", color: isUnder40Active ? "#a7f3d0" : "#64748b" }}>
+                Cutoff: 21 Aug 2026 {isUnder40Active ? "• Active" : "• Click to filter"}
+              </span>
+            </div>
+
             <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Women Executives</span>
@@ -2476,6 +2530,81 @@ export default function NationalAdminDashboard() {
                 )}
               </button>
 
+              {/* Toggle to Filter Under 40 (Youth) */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isUnder40Active}
+                onClick={handleToggleUnder40}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "9px 13px",
+                  borderRadius: "8px",
+                  background: isUnder40Active
+                    ? "rgba(16, 185, 129, 0.18)"
+                    : "rgba(15, 23, 42, 0.8)",
+                  border: isUnder40Active
+                    ? "1px solid rgba(52, 211, 153, 0.55)"
+                    : "1px solid rgba(255, 255, 255, 0.15)",
+                  color: isUnder40Active ? "#34d399" : "#cbd5e1",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  boxShadow: isUnder40Active ? "0 0 10px rgba(16, 185, 129, 0.25)" : "none",
+                }}
+                title={
+                  isUnder40Active
+                    ? "Under 40 (Youth) filter active. Click to show all age cohorts."
+                    : "Toggle to filter executives strictly under 40 as at 21st August 2026"
+                }
+              >
+                {/* Visual switch indicator */}
+                <div
+                  style={{
+                    width: "26px",
+                    height: "15px",
+                    borderRadius: "10px",
+                    background: isUnder40Active ? "#10b981" : "rgba(255, 255, 255, 0.2)",
+                    position: "relative",
+                    transition: "background 0.2s ease",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "11px",
+                      height: "11px",
+                      borderRadius: "50%",
+                      background: "#ffffff",
+                      position: "absolute",
+                      top: "2px",
+                      left: isUnder40Active ? "13px" : "2px",
+                      transition: "left 0.2s ease",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+                    }}
+                  />
+                </div>
+                <Sparkles size={14} color={isUnder40Active ? "#34d399" : "#94a3b8"} />
+                <span>Under 40</span>
+                {overview?.totals?.under_40 != null && (
+                  <span
+                    style={{
+                      padding: "1px 6px",
+                      borderRadius: "10px",
+                      background: isUnder40Active ? "#047857" : "rgba(255, 255, 255, 0.1)",
+                      color: isUnder40Active ? "#ffffff" : "#94a3b8",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {overview.totals.under_40.toLocaleString()}
+                  </span>
+                )}
+              </button>
+
               {/* Reload Full Data Button */}
               <button
                 type="button"
@@ -2681,21 +2810,28 @@ export default function NationalAdminDashboard() {
               className="dash-filter-select"
               value={selectedCohort}
               onChange={(e) => {
-                setSelectedCohort(e.target.value);
+                const val = e.target.value;
+                setSelectedCohort(val);
+                if (val === "under_40") {
+                  setFilterUnder40(true);
+                } else if (filterUnder40 && val !== "under_40") {
+                  setFilterUnder40(false);
+                }
                 setPage(1);
               }}
               style={{
                 padding: "8px 12px",
                 borderRadius: "6px",
-                background: "rgba(2, 6, 23, 0.8)",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
-                color: "#ffffff",
+                background: selectedCohort ? "rgba(16, 185, 129, 0.15)" : "rgba(2, 6, 23, 0.8)",
+                border: selectedCohort ? "1px solid #10b981" : "1px solid rgba(255, 255, 255, 0.12)",
+                color: selectedCohort ? "#34d399" : "#ffffff",
                 fontSize: "13px",
                 outline: "none",
                 cursor: "pointer"
               }}
             >
               <option value="">All Demographics</option>
+              <option value="under_40">Under 40 (Youth)</option>
               <option value="women">Women Executives</option>
               <option value="nasara">Nasara Officers</option>
             </select>
@@ -2725,7 +2861,7 @@ export default function NationalAdminDashboard() {
             </select>
 
             {/* Clear All Filters Button */}
-            {(selectedLevel || selectedRegion || selectedConstituency || selectedPosition || selectedCohort || selectedSlot || debouncedSearch || filterMissingImages) && (
+            {(selectedLevel || selectedRegion || selectedConstituency || selectedPosition || selectedCohort || selectedSlot || debouncedSearch || filterMissingImages || filterUnder40) && (
               <button
                 className="dash-filter-select"
                 onClick={() => {
@@ -2737,6 +2873,7 @@ export default function NationalAdminDashboard() {
                   setSelectedSlot("");
                   setSearchQuery("");
                   setFilterMissingImages(false);
+                  setFilterUnder40(false);
                   setPage(1);
                 }}
                 style={{
@@ -2953,7 +3090,7 @@ export default function NationalAdminDashboard() {
                         {/* 3. Age & Date of Birth */}
                         <TableCell style={{ padding: "10px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
                           <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                            <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                               {row.age != null && row.age > 0 ? (
                                 <span style={{
                                   padding: "2px 7px",
@@ -2967,6 +3104,28 @@ export default function NationalAdminDashboard() {
                                 </span>
                               ) : (
                                 <span style={{ color: "#64748b" }}>—</span>
+                              )}
+                              {isUnder40AsOfCutoff(row.dateOfBirth, row.age) && (
+                                <span
+                                  style={{
+                                    padding: "2px 6px",
+                                    borderRadius: "4px",
+                                    background: "rgba(52, 211, 153, 0.15)",
+                                    border: "1px solid rgba(52, 211, 153, 0.3)",
+                                    color: "#34d399",
+                                    fontSize: "10px",
+                                    fontWeight: "700",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.3px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "3px"
+                                  }}
+                                  title="Under 40 as at 21st August 2026"
+                                >
+                                  <Sparkles size={10} color="#34d399" />
+                                  <span>&lt; 40</span>
+                                </span>
                               )}
                             </div>
                             {row.dateOfBirth && (

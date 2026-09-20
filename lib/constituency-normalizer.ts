@@ -10,6 +10,7 @@
  */
 
 export const CANONICAL_CONSTITUENCIES: readonly string[] = [
+  "ABETIFI",
   "ABIREM",
   "ABLEKUMA CENTRAL",
   "ABLEKUMA NORTH",
@@ -27,6 +28,7 @@ export const CANONICAL_CONSTITUENCIES: readonly string[] = [
   "AFIGYA KWABRE NORTH",
   "AFIGYA KWABRE SOUTH",
   "AFIGYA SEYERE EAST",
+  "AFRAM PLAINS NORTH",
   "AFRAM PLAINS SOUTH",
   "AGONA EAST",
   "AGONA WEST",
@@ -167,9 +169,7 @@ export const CANONICAL_CONSTITUENCIES: readonly string[] = [
   "KUMAWU",
   "KUMBUNGU",
   "KWABRE EAST",
-  "KWADASO MUNICIPAL",
-  "KWAHU AFRAM PLAINS NORTH",
-  "KWAHU EAST",
+  "KWADASO",
   "KWESIMINTSIM",
   "LAMBUSSIE",
   "LAWRA",
@@ -358,9 +358,11 @@ for (const c of CANONICAL_CONSTITUENCIES) {
 
 // Explicit aliases for administrative seats, historical names, and spelling variants
 const EXPLICIT_ALIASES: Record<string, string> = {
-  "AFRAM PLAINS NORTH": "KWAHU AFRAM PLAINS NORTH",
+  "KWAHU EAST": "ABETIFI",
+  "KWAHU AFRAM PLAINS": "AFRAM PLAINS NORTH",
+  "KWAHU AFRAM PLAINS NORTH": "AFRAM PLAINS NORTH",
+  "KWAHU AFRAM PLAINS SOUTH": "AFRAM PLAINS SOUTH",
   "AKIM SWEDRU": "BIRIM SOUTH",
-  "ABETIFI": "KWAHU EAST",
   "KWADASO MUNICIPAL": "KWADASO",
   "ADENTA": "ADENTAN",
   "AFIGYA SEKYERE EAST": "AFIGYA SEYERE EAST",
@@ -593,10 +595,12 @@ export const OFFICIAL_CONSTITUENCIES_BY_REGION: Record<string, string[]> = {
     "UPPER DENKYIRA WEST"
   ],
   "Eastern": [
+    "ABETIFI",
     "ABIREM",
     "ABUAKWA NORTH",
     "ABUAKWA SOUTH",
     "ACHIASE",
+    "AFRAM PLAINS NORTH",
     "AFRAM PLAINS SOUTH",
     "AKIM ODA",
     "AKROPONG",
@@ -611,8 +615,6 @@ export const OFFICIAL_CONSTITUENCIES_BY_REGION: Record<string, string[]> = {
     "FANTEAKWA NORTH",
     "FANTEAKWA SOUTH",
     "KADE",
-    "KWAHU AFRAM PLAINS NORTH",
-    "KWAHU EAST",
     "LOWER MANYA KROBO",
     "LOWER WEST AKIM",
     "MPRAESO",
