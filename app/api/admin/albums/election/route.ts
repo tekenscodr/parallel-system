@@ -683,9 +683,15 @@ export async function GET(req: NextRequest) {
   const detailsParam = searchParams.get("details") ?? searchParams.get("fields");
   const visibleDetails = parseVoterDetails(detailsParam);
 
+  const normalizedPositionQuery = positionQuery.toLowerCase().trim();
+
   const customPositionKeys = positionsParam
     ? positionsParam.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
+
+  if (customPositionKeys.length === 0 && /deputy.*youth/i.test(normalizedPositionQuery)) {
+    customPositionKeys.push("deputy_youth_organiser");
+  }
 
   const isCustomContest =
     positionQuery.toLowerCase() === "custom" ||
@@ -696,7 +702,6 @@ export async function GET(req: NextRequest) {
     : null;
 
   // Match valid contest with robust synonym handling
-  const normalizedPositionQuery = positionQuery.toLowerCase().trim();
   let matchedContest: ContestType = "Youth Organisers & Deputies";
   if (isCustomContest) {
     matchedContest = "Custom";

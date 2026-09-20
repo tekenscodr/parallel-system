@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Building2,
   Check,
@@ -183,6 +183,7 @@ export default function PositionAlbumsPage() {
   const [retry, setRetry] = useState(0);
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState("all");
+  const [tablePositionFilter, setTablePositionFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [constituencySearch, setConstituencySearch] = useState("");
   const [constituencyStatusFilter, setConstituencyStatusFilter] = useState("all");
@@ -422,6 +423,7 @@ export default function PositionAlbumsPage() {
     setSelectedLevels(ALL_CUSTOMIZABLE_LEVELS.map((l) => l.id));
     setAlbumType("provisional");
     setSelectedDetails([...DEFAULT_VOTER_DETAILS]);
+    setTablePositionFilter("all");
     setDetailsFilterOpen(false);
     setCustomizerOpen(false);
     setPage(1);
@@ -469,6 +471,10 @@ export default function PositionAlbumsPage() {
     const matchesUnder40 =
       !under40 || Boolean(d.is_under_40);
 
+    const matchesTablePosition =
+      tablePositionFilter === "all" ||
+      String(d.canonical_position || (d as any).position || "").toLowerCase() === tablePositionFilter.toLowerCase();
+
     const matchesRegion =
       selectedRegions.length === 0 ||
       selectedRegions.length >= ALL_JURISDICTION_IDS.length
@@ -479,12 +485,23 @@ export default function PositionAlbumsPage() {
       matchesLevel &&
       matchesGender &&
       matchesUnder40 &&
+      matchesTablePosition &&
       matchesRegion &&
       [d.executive_name, d.voter_id, d.constituency, d.region, d.canonical_position].some((value) =>
         String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())
       )
     );
   });
+
+  const availablePositions = useMemo(() => {
+    const set = new Set<string>();
+    for (const d of delegates) {
+      const p = d.canonical_position || (d as any).position;
+      if (p) set.add(String(p));
+    }
+    return Array.from(set).sort();
+  }, [delegates]);
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / 50));
   const currentPage = Math.min(page, totalPages);
   const rows = filtered.slice((currentPage - 1) * 50, currentPage * 50);
@@ -915,16 +932,45 @@ export default function PositionAlbumsPage() {
                           <span className="text-xs font-medium text-muted-foreground mr-1">Quick Portfolios:</span>
                           <Button
                             type="button"
-                            variant={contest === "Youth Organisers & Deputies" ? "default" : "outline"}
+                            variant={contest === "Youth Organisers & Deputies" || (isCustom && selectedPositions.includes("youth_organiser") && selectedPositions.includes("deputy_youth_organiser") && selectedPositions.length === 2) ? "default" : "outline"}
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => {
                               setContest("Youth Organisers & Deputies");
+                              setSelectedPositions(["youth_organiser", "deputy_youth_organiser"]);
                               setScope("organisers_only");
                               setPage(1);
                             }}
                           >
-                            Youth Wing
+                            Youth Wing (All)
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser" ? "default" : "outline"}
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              setContest("Custom");
+                              setSelectedPositions(["youth_organiser"]);
+                              setScope("organisers_only");
+                              setPage(1);
+                            }}
+                          >
+                            Youth Organisers Only
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "deputy_youth_organiser" ? "default" : "outline"}
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              setContest("Custom");
+                              setSelectedPositions(["deputy_youth_organiser"]);
+                              setScope("organisers_only");
+                              setPage(1);
+                            }}
+                          >
+                            Deputy Youth Only
                           </Button>
                           <Button
                             type="button"
@@ -1086,6 +1132,167 @@ export default function PositionAlbumsPage() {
                           </div>
                         )}
 
+                        {/* Youth Position Picker (Visible whenever Youth portfolio is selected or youth positions are active) */}
+                        {(contest === "Youth Organisers & Deputies" || contest === "Youth Organiser" || (isCustom && selectedPositions.some((p) => p.includes("youth")))) && (
+                          <div className="rounded-xl border border-sky-300 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 p-4 space-y-3.5 shadow-2xs">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                              <div>
+                                <h4 className="font-semibold text-xs flex items-center gap-1.5 text-sky-950 dark:text-sky-100">
+                                  <SlidersHorizontal className="size-3.5 text-sky-600 dark:text-sky-400" />
+                                  <span>Pick Youth Position(s) for Album:</span>
+                                </h4>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">
+                                  Choose whether your album extracts substantive Youth Organisers, Deputies, TESCON, or both.
+                                </p>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant={contest === "Youth Organisers & Deputies" || (isCustom && selectedPositions.includes("youth_organiser") && selectedPositions.includes("deputy_youth_organiser") && selectedPositions.length === 2) ? "default" : "outline"}
+                                  className={contest === "Youth Organisers & Deputies" || (isCustom && selectedPositions.includes("youth_organiser") && selectedPositions.includes("deputy_youth_organiser") && selectedPositions.length === 2) ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
+                                  onClick={() => {
+                                    setContest("Youth Organisers & Deputies");
+                                    setSelectedPositions(["youth_organiser", "deputy_youth_organiser"]);
+                                    setScope("organisers_only");
+                                    setPage(1);
+                                  }}
+                                >
+                                  All Youth (Organisers &amp; Deputies)
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser" ? "default" : "outline"}
+                                  className={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser" ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
+                                  onClick={() => {
+                                    setContest("Custom");
+                                    setSelectedPositions(["youth_organiser"]);
+                                    setScope("organisers_only");
+                                    setPage(1);
+                                  }}
+                                >
+                                  Youth Organisers Only
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "deputy_youth_organiser" ? "default" : "outline"}
+                                  className={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "deputy_youth_organiser" ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
+                                  onClick={() => {
+                                    setContest("Custom");
+                                    setSelectedPositions(["deputy_youth_organiser"]);
+                                    setScope("organisers_only");
+                                    setPage(1);
+                                  }}
+                                >
+                                  Deputy Youth Only
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Position Checkboxes & Quick Selection */}
+                            <div className="pt-2.5 border-t border-sky-200/80 dark:border-sky-900/60 flex flex-wrap items-center gap-4">
+                              <span className="text-xs font-semibold text-sky-950 dark:text-sky-200">
+                                Included Roles:
+                              </span>
+                              <label className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer text-foreground">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
+                                  checked={contest === "Youth Organisers & Deputies" || selectedPositions.includes("youth_organiser")}
+                                  onChange={(e) => {
+                                    let next = isCustom ? [...selectedPositions] : ["youth_organiser", "deputy_youth_organiser"];
+                                    if (e.target.checked) {
+                                      if (!next.includes("youth_organiser")) next.push("youth_organiser");
+                                    } else {
+                                      next = next.filter((p) => p !== "youth_organiser");
+                                    }
+                                    setContest("Custom");
+                                    setSelectedPositions(next);
+                                    setPage(1);
+                                  }}
+                                />
+                                <span>Youth Organiser (Substantive)</span>
+                              </label>
+
+                              <label className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer text-foreground">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
+                                  checked={contest === "Youth Organisers & Deputies" || selectedPositions.includes("deputy_youth_organiser")}
+                                  onChange={(e) => {
+                                    let next = isCustom ? [...selectedPositions] : ["youth_organiser", "deputy_youth_organiser"];
+                                    if (e.target.checked) {
+                                      if (!next.includes("deputy_youth_organiser")) next.push("deputy_youth_organiser");
+                                    } else {
+                                      next = next.filter((p) => p !== "deputy_youth_organiser");
+                                    }
+                                    setContest("Custom");
+                                    setSelectedPositions(next);
+                                    setPage(1);
+                                  }}
+                                />
+                                <span>Deputy Youth Organiser</span>
+                              </label>
+
+                              <label className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer text-foreground">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
+                                  checked={selectedPositions.includes("tescon_president")}
+                                  onChange={(e) => {
+                                    let next = isCustom ? [...selectedPositions] : (contest === "Youth Organisers & Deputies" ? ["youth_organiser", "deputy_youth_organiser"] : []);
+                                    if (e.target.checked) {
+                                      if (!next.includes("tescon_president")) next.push("tescon_president");
+                                    } else {
+                                      next = next.filter((p) => p !== "tescon_president");
+                                    }
+                                    setContest("Custom");
+                                    setSelectedPositions(next);
+                                    setPage(1);
+                                  }}
+                                />
+                                <span>TESCON Presidents</span>
+                              </label>
+
+                              <label className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer text-foreground">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
+                                  checked={selectedPositions.includes("tescon_wocom")}
+                                  onChange={(e) => {
+                                    let next = isCustom ? [...selectedPositions] : (contest === "Youth Organisers & Deputies" ? ["youth_organiser", "deputy_youth_organiser"] : []);
+                                    if (e.target.checked) {
+                                      if (!next.includes("tescon_wocom")) next.push("tescon_wocom");
+                                    } else {
+                                      next = next.filter((p) => p !== "tescon_wocom");
+                                    }
+                                    setContest("Custom");
+                                    setSelectedPositions(next);
+                                    setPage(1);
+                                  }}
+                                />
+                                <span>TESCON WOCOM</span>
+                              </label>
+
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-[11px] text-sky-700 dark:text-sky-300 ml-auto"
+                                onClick={() => {
+                                  setContest("Custom");
+                                  setCustomizerOpen(true);
+                                  setPage(1);
+                                }}
+                              >
+                                ✨ All 32 Positions Checklist...
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Custom Positions Picker (when Custom is selected or toggled) */}
                         {isCustom && (
                           <div className="rounded-xl border bg-card p-4 shadow-2xs space-y-4">
@@ -1120,6 +1327,15 @@ export default function PositionAlbumsPage() {
                               </Button>
                               <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("wings_only")}>
                                 Wing Executives
+                              </Button>
+                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("youth_wing")}>
+                                Youth Wing (2)
+                              </Button>
+                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("youth_substantive")}>
+                                Youth Organisers (1)
+                              </Button>
+                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("youth_deputies")}>
+                                Deputy Youth (1)
                               </Button>
                               <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("regional_slate")}>
                                 Full Regional (21)

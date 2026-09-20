@@ -152,6 +152,18 @@ export const POSITION_PRESETS = {
       "deputy_nasara_coordinator",
     ],
   },
+  youth_wing: {
+    label: "Youth Wing (Organisers & Deputies)",
+    ids: ["youth_organiser", "deputy_youth_organiser"],
+  },
+  youth_substantive: {
+    label: "Youth Organisers Only (Substantive)",
+    ids: ["youth_organiser"],
+  },
+  youth_deputies: {
+    label: "Deputy Youth Organisers Only",
+    ids: ["deputy_youth_organiser"],
+  },
   constituency_slate: {
     label: "Full Constituency Slate (19)",
     ids: [
