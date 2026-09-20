@@ -2420,6 +2420,22 @@ export default function PositionAlbumsPage() {
                           <Sparkles className="size-3.5" />
                           {under40 ? "Under 40 (Active)" : "Filter Under 40"}
                         </Button>
+                        {availablePositions.length > 1 && (
+                          <NativeSelect
+                            aria-label="Filter register table by position"
+                            className="sm:w-52"
+                            value={tablePositionFilter}
+                            onChange={(e) => {
+                              setTablePositionFilter(e.target.value);
+                              setPage(1);
+                            }}
+                          >
+                            <option value="all">All Positions ({availablePositions.length})</option>
+                            {availablePositions.map((item) => (
+                              <option key={item} value={item}>{item}</option>
+                            ))}
+                          </NativeSelect>
+                        )}
                         <NativeSelect
                           aria-label="Filter by administrative level"
                           className="sm:w-48"
