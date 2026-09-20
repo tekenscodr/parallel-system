@@ -1059,6 +1059,12 @@ export default function PositionAlbumsPage() {
                               <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("deputies_only")}>
                                 Deputies Only
                               </Button>
+                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("councils_and_mps")}>
+                                MPs, Council & Founders
+                              </Button>
+                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("regional_leadership")}>
+                                Regional Leadership (24)
+                              </Button>
                             </div>
 
                             {/* Search */}

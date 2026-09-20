@@ -139,6 +139,11 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   // 24. Foundation Member
   if (/^foundation\s+member$/i.test(p)) return "Foundation Member";
 
+  // 25. Member of Parliament
+  if (/^(?:member\s+of\s+parliament|mp|parliamentarian)$/i.test(p) || /\bmember\s+of\s+parliament\b/i.test(p)) {
+    return "Member of Parliament";
+  }
+
   return p;
 }
 

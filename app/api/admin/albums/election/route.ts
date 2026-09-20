@@ -8,6 +8,8 @@ import { canAccessAlbums } from "@/lib/album-access";
 import {
   CANONICAL_LEVEL_ORDER,
   compareAlbumDelegates,
+  compareRegionalAlbumDelegates,
+  getRegionalSectionRank,
   getTesconInstitution,
   normalizePositionRank,
 } from "@/lib/album-hierarchy";
@@ -1070,8 +1072,8 @@ export async function GET(req: NextRequest) {
           if (tLower === "national headquarters" || tLower === "national" || tLower === "hq") {
             return isRowNational;
           }
-          if (!isRowExternal && !isRowNational) {
-            return rowRegion === tLower;
+          if (!isRowExternal && rowRegion === tLower) {
+            return true;
           }
           if (rawRegionsList.length === 1 && searchParams.get("region") && !searchParams.get("regions")) {
             if (rawLvl === "national" && !tLower.includes("external")) {
@@ -1092,7 +1094,11 @@ export async function GET(req: NextRequest) {
         if (isQueryExternal) {
           if (!isRowExternal) return false;
         } else {
-          if (lvl !== "national" && rowRegion !== regionQuery.toLowerCase()) {
+          if (!isRowExternal && rowRegion === regionQuery.toLowerCase()) {
+            // matches region directly
+          } else if (lvl === "national" && (!rowRegion || rowRegion === "national" || rowRegion === "hq")) {
+            // matches national level
+          } else {
             return false;
           }
         }
@@ -1104,6 +1110,23 @@ export async function GET(req: NextRequest) {
     // 4. Sort strictly by 2-Stage Hierarchy:
     // Stage 1: Level (National -> Regional -> Constituency, including External Branch -> TESCON)
     // Stage 2: Positional Rank within each level
+    const isExternalScope =
+      (rawRegionsList.length === 1 &&
+        (rawRegionsList[0].toLowerCase().includes("external") ||
+          rawRegionsList[0].toLowerCase().includes("diaspora"))) ||
+      (regionQuery.toLowerCase().includes("external") && rawRegionsList.length <= 1) ||
+      (selectedLevels.length === 1 &&
+        (selectedLevels[0].toLowerCase().includes("external") ||
+          selectedLevels[0].toLowerCase().includes("diaspora")));
+
+    const isSingleRegion =
+      (!isAllRegions &&
+        rawRegionsList.length === 1 &&
+        !rawRegionsList[0].toLowerCase().includes("external") &&
+        !rawRegionsList[0].toLowerCase().includes("national")) ||
+      (rawRegionsList.length === 0 && regionQuery !== "all" && regionQuery !== "") ||
+      isExternalScope;
+
     const delegates = contestFiltered
       .map((r) => {
         const lvl = String(r.executive_level || "").toLowerCase().trim();
@@ -1161,7 +1184,7 @@ export async function GET(req: NextRequest) {
           position_rank: posRank,
         };
       })
-      .sort(compareAlbumDelegates);
+      .sort(isSingleRegion ? compareRegionalAlbumDelegates : compareAlbumDelegates);
 
     // 5. Compute Comprehensive Metrics
     const isCustom = isCustomContest && customPositionKeys.length > 0;
@@ -1204,15 +1227,6 @@ export async function GET(req: NextRequest) {
 
     const totalActual = delegates.length;
     let expectedCount = 0;
-
-    const isExternalScope =
-      (rawRegionsList.length === 1 &&
-        (rawRegionsList[0].toLowerCase().includes("external") ||
-          rawRegionsList[0].toLowerCase().includes("diaspora"))) ||
-      (regionQuery.toLowerCase().includes("external") && rawRegionsList.length <= 1) ||
-      (selectedLevels.length === 1 &&
-        (selectedLevels[0].toLowerCase().includes("external") ||
-          selectedLevels[0].toLowerCase().includes("diaspora")));
 
     // External target per chapter (30 external branch chapters)
     const externalTargetPerUnit = isWingOrganisers
@@ -1763,13 +1777,6 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    const isSingleRegion =
-      (!isAllRegions &&
-        rawRegionsList.length === 1 &&
-        !rawRegionsList[0].toLowerCase().includes("external") &&
-        !rawRegionsList[0].toLowerCase().includes("national")) ||
-      (rawRegionsList.length === 0 && regionQuery !== "all" && regionQuery !== "") ||
-      isExternalScope;
     const selectedRegion = isSingleRegion ? (isExternalScope ? "External Branch" : (activeRegions[0] || regionQuery)) : "";
     const regionDisplayName = isExternalScope
       ? "EXTERNAL BRANCHES"
@@ -1951,8 +1958,7 @@ export async function GET(req: NextRequest) {
       if (includeRegional) {
         const regConfirmed = delegates.filter(
           (d) =>
-            (String(d.executive_level || "").toLowerCase().trim() === "regional" ||
-              String(d.executive_level || "").toLowerCase().trim() === "region") &&
+            getRegionalSectionRank(d) === 1 &&
             (String(d.region || "").toLowerCase().trim() === selectedRegion.toLowerCase().trim() ||
               selectedRegion.toLowerCase().includes(String(d.region || "").toLowerCase().trim()))
         ).length;
@@ -1968,6 +1974,66 @@ export async function GET(req: NextRequest) {
           variance: regVariance > 0 ? `-${regVariance}` : "0",
           rate: regTarget > 0 ? Math.min(100, Math.max(0, (regConfirmed / regTarget) * 100)).toFixed(1) + "%" : "100%",
         });
+
+        // National Council Representatives in this region
+        const ncCouncilInReg = delegates.filter(
+          (d) =>
+            getRegionalSectionRank(d) === 2 &&
+            (String(d.region || "").toLowerCase().trim() === selectedRegion.toLowerCase().trim() ||
+              selectedRegion.toLowerCase().includes(String(d.region || "").toLowerCase().trim()))
+        );
+        if (ncCouncilInReg.length > 0) {
+          auditItems.push({
+            isRegional: true,
+            num: "NC",
+            name: `${selectedRegion} National Council Representatives`,
+            level: "National Council",
+            confirmed: ncCouncilInReg.length,
+            target: ncCouncilInReg.length,
+            variance: "0",
+            rate: "100%",
+          });
+        }
+
+        // Foundation Members in this region
+        const foundationInReg = delegates.filter(
+          (d) =>
+            getRegionalSectionRank(d) === 3 &&
+            (String(d.region || "").toLowerCase().trim() === selectedRegion.toLowerCase().trim() ||
+              selectedRegion.toLowerCase().includes(String(d.region || "").toLowerCase().trim()))
+        );
+        if (foundationInReg.length > 0) {
+          auditItems.push({
+            isRegional: true,
+            num: "FM",
+            name: `${selectedRegion} Foundation Members`,
+            level: "Foundation",
+            confirmed: foundationInReg.length,
+            target: foundationInReg.length,
+            variance: "0",
+            rate: "100%",
+          });
+        }
+
+        // Members of Parliament (MPs) in this region
+        const mpsInReg = delegates.filter(
+          (d) =>
+            getRegionalSectionRank(d) === 4 &&
+            (String(d.region || "").toLowerCase().trim() === selectedRegion.toLowerCase().trim() ||
+              selectedRegion.toLowerCase().includes(String(d.region || "").toLowerCase().trim()))
+        );
+        if (mpsInReg.length > 0) {
+          auditItems.push({
+            isRegional: true,
+            num: "MP",
+            name: `${selectedRegion} Members of Parliament (MPs)`,
+            level: "Parliament",
+            confirmed: mpsInReg.length,
+            target: mpsInReg.length,
+            variance: "0",
+            rate: "100%",
+          });
+        }
       }
 
       if (includeConstituency) {
@@ -1980,6 +2046,9 @@ export async function GET(req: NextRequest) {
                 (isExternalScope &&
                   (String(d.executive_level || "").toLowerCase().trim() === "external branch" ||
                     String(d.region || "").toLowerCase().includes("external")))) &&
+              getRegionalSectionRank(d) !== 2 &&
+              getRegionalSectionRank(d) !== 3 &&
+              getRegionalSectionRank(d) !== 4 &&
               (normalizeConstituency(d.constituency) === norm ||
                 d.constituency.toLowerCase().trim() === cName.toLowerCase().trim()) &&
               (!d.region ||
@@ -2035,9 +2104,10 @@ export async function GET(req: NextRequest) {
 
       const numConstituenciesInAudit = auditItems.filter((it) => it.level === "Constituency" || it.level === "External Branch").length;
       const numTesconInAudit = auditItems.filter((it) => it.level === "TESCON").length;
+      const hasMpsInAudit = auditItems.some((it) => it.level === "Parliament");
       const summaryUnitsLabel = isExternalScope
         ? "30 EXTERNAL BRANCHES / COUNTRIES"
-        : `${numConstituenciesInAudit} CONSTITUENCIES${includeRegional ? " + REGIONAL EXEC" : ""}${numTesconInAudit > 0 ? " + TESCON EXECUTIVES" : ""}`;
+        : `${numConstituenciesInAudit} CONSTITUENCIES${includeRegional ? " + REGIONAL EXEC" : ""}${hasMpsInAudit ? " + MPS" : ""}${numTesconInAudit > 0 ? " + TESCON EXECUTIVES" : ""}`;
 
       const titleSuffix = isExternalScope
         ? "STATUTORY AUDIT & SIGN-OFF"
@@ -2894,6 +2964,9 @@ export async function GET(req: NextRequest) {
               (isRegExternal &&
                 (String(d.executive_level || "").toLowerCase().trim() === "external branch" ||
                   String(d.region || "").toLowerCase().includes("external")))) &&
+            getRegionalSectionRank(d) !== 2 &&
+            getRegionalSectionRank(d) !== 3 &&
+            getRegionalSectionRank(d) !== 4 &&
             (normalizeConstituency(d.constituency) === norm ||
               d.constituency.toLowerCase().trim() === cName.toLowerCase().trim()) &&
             (!d.region ||
@@ -3393,9 +3466,10 @@ function generateAlbumHtml(
     const isConstituency = String(d.executive_level || "").toLowerCase().trim() === "constituency";
     const isExtBranch = String(d.executive_level || "").toLowerCase().trim() === "external branch";
 
-    // For Nasara, Women and Youth: constituency cards display jurisdiction beside Level
+    // For Nasara, Women and Youth: constituency cards display jurisdiction beside Level; For MPs, display constituency
+    const isMp = getRegionalSectionRank(d) === 4;
     const jurisdictionSuffix =
-      isWingAlbum && (isConstituency || isExtBranch) && d.constituency
+      (isWingAlbum && (isConstituency || isExtBranch) && d.constituency) || (isMp && d.constituency)
         ? ` (${String(d.constituency).trim()})`
         : "";
 
@@ -3461,24 +3535,40 @@ function generateAlbumHtml(
   let currentCardPageNum = 3; // Page 1: Cover, Page 2: Metrics, Pages 3..N: Cards
 
   // Partition delegates into administrative levels
-  const nationalDelegates = delegates.filter(
-    (d) => String(d.executive_level || "").toLowerCase().trim() === "national"
-  );
-  const regionalDelegates = delegates.filter(
-    (d) => String(d.executive_level || "").toLowerCase().trim() === "regional"
-  );
-  const constituencyDelegates = delegates.filter(
-    (d) => String(d.executive_level || "").toLowerCase().trim() === "constituency"
-  );
+  const nationalDelegates = delegates.filter((d) => {
+    const lvl = String(d.executive_level || "").toLowerCase().trim();
+    if (lvl !== "national") return false;
+    const rank = getRegionalSectionRank(d);
+    if (rank === 2 || rank === 3 || rank === 4) {
+      const reg = String(d.region || "").trim().toLowerCase();
+      if (reg && reg !== "national" && reg !== "national headquarters" && reg !== "hq") {
+        return false;
+      }
+    }
+    return true;
+  });
+  const regionalDelegates = delegates.filter((d) => {
+    const lvl = String(d.executive_level || "").toLowerCase().trim();
+    return (lvl === "regional" || lvl === "region") && getRegionalSectionRank(d) === 1;
+  });
+  const constituencyDelegates = delegates.filter((d) => {
+    const lvl = String(d.executive_level || "").toLowerCase().trim();
+    return lvl === "constituency" && getRegionalSectionRank(d) === 5;
+  });
   const tesconDelegates = delegates.filter(
     (d) => String(d.executive_level || "").toLowerCase().trim() === "tescon"
   );
-  const otherDelegates = delegates.filter(
-    (d) =>
-      !["national", "regional", "constituency", "tescon"].includes(
-        String(d.executive_level || "").toLowerCase().trim()
-      )
-  );
+  const otherDelegates = delegates.filter((d) => {
+    const lvl = String(d.executive_level || "").toLowerCase().trim();
+    const rank = getRegionalSectionRank(d);
+    return (
+      !["national", "regional", "region", "constituency", "tescon"].includes(lvl) &&
+      rank !== 1 &&
+      rank !== 2 &&
+      rank !== 3 &&
+      rank !== 4
+    );
+  });
 
   // 1. National Level Pages (if present)
   if (nationalDelegates.length > 0) {
@@ -3615,14 +3705,28 @@ function generateAlbumHtml(
     }
   } else {
     // 2. Regional Level Pages (Separated from Constituency)
-    if (regionalDelegates.length > 0) {
+    const hasRegionalOrCouncilOrMp =
+      regionalDelegates.length > 0 ||
+      delegates.some((d) => [2, 3, 4].includes(getRegionalSectionRank(d)));
+
+    if (hasRegionalOrCouncilOrMp) {
       const regionalGroups = new Map<string, any[]>();
       for (const delegate of regionalDelegates) {
         const regionName = String(delegate.region || "Unassigned").trim();
         if (!regionalGroups.has(regionName)) regionalGroups.set(regionName, []);
         regionalGroups.get(regionName)!.push(delegate);
       }
+      for (const d of delegates) {
+        const rank = getRegionalSectionRank(d);
+        if (rank === 2 || rank === 3 || rank === 4) {
+          const reg = String(d.region || "").trim();
+          if (reg && !reg.toLowerCase().includes("external") && reg.toLowerCase() !== "national" && !regionalGroups.has(reg)) {
+            regionalGroups.set(reg, []);
+          }
+        }
+      }
       for (const [regionName, regionDelegates] of regionalGroups) {
+        // 2a. Regional Executives
         for (let i = 0; i < regionDelegates.length; i += 10) {
           const chunk = regionDelegates.slice(i, i + 10);
           const partIdx = Math.floor(i / 10) + 1;
@@ -3635,6 +3739,77 @@ function generateAlbumHtml(
             cards: chunk,
           });
           currentCardPageNum++;
+        }
+
+        // 2b. National Council Representatives in this region
+        const ncReps = delegates.filter(
+          (d) =>
+            getRegionalSectionRank(d) === 2 &&
+            String(d.region || "").toLowerCase().trim() === regionName.toLowerCase().trim()
+        );
+        if (ncReps.length > 0) {
+          for (let i = 0; i < ncReps.length; i += 10) {
+            const chunk = ncReps.slice(i, i + 10);
+            const partIdx = Math.floor(i / 10) + 1;
+            chunk.forEach((d) => {
+              d.page_number = currentCardPageNum;
+            });
+            cardPages.push({
+              headerSubTitle: `${regionName.toUpperCase()} REGION · NATIONAL COUNCIL REPRESENTATIVES (PART ${partIdx})`,
+              footerLabel: `${regionName.toUpperCase()} NATIONAL COUNCIL REPS`,
+              cards: chunk,
+            });
+            currentCardPageNum++;
+          }
+        }
+
+        // 2c. Foundation Members in this region
+        const foundationMems = delegates.filter(
+          (d) =>
+            getRegionalSectionRank(d) === 3 &&
+            String(d.region || "").toLowerCase().trim() === regionName.toLowerCase().trim()
+        );
+        if (foundationMems.length > 0) {
+          for (let i = 0; i < foundationMems.length; i += 10) {
+            const chunk = foundationMems.slice(i, i + 10);
+            const partIdx = Math.floor(i / 10) + 1;
+            chunk.forEach((d) => {
+              d.page_number = currentCardPageNum;
+            });
+            cardPages.push({
+              headerSubTitle: `${regionName.toUpperCase()} REGION · FOUNDATION MEMBERS (PART ${partIdx})`,
+              footerLabel: `${regionName.toUpperCase()} FOUNDATION MEMBERS`,
+              cards: chunk,
+            });
+            currentCardPageNum++;
+          }
+        }
+
+        // 2d. Members of Parliament (MPs) for this region
+        const mps = delegates.filter(
+          (d) =>
+            getRegionalSectionRank(d) === 4 &&
+            String(d.region || "").toLowerCase().trim() === regionName.toLowerCase().trim()
+        );
+        if (mps.length > 0) {
+          mps.sort((a, b) => {
+            const cComp = String(a.constituency || "").localeCompare(String(b.constituency || ""));
+            if (cComp !== 0) return cComp;
+            return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+          });
+          for (let i = 0; i < mps.length; i += 10) {
+            const chunk = mps.slice(i, i + 10);
+            const partIdx = Math.floor(i / 10) + 1;
+            chunk.forEach((d) => {
+              d.page_number = currentCardPageNum;
+            });
+            cardPages.push({
+              headerSubTitle: `${regionName.toUpperCase()} REGION · MEMBERS OF PARLIAMENT (PART ${partIdx})`,
+              footerLabel: `${regionName.toUpperCase()} MEMBERS OF PARLIAMENT`,
+              cards: chunk,
+            });
+            currentCardPageNum++;
+          }
         }
       }
     }

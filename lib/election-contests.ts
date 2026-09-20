@@ -107,6 +107,15 @@ export const CUSTOM_POSITION_CATEGORIES: PositionCategoryGroup[] = [
       { id: "member_of_parliament", label: "Member of Parliament (MP)", canonicalName: "Member of Parliament", synonyms: ["member of parliament", "mp", "sitting mp", "parliamentarian"] },
     ],
   },
+  {
+    category: "Party Councils & Founders",
+    positions: [
+      { id: "national_council_rep", label: "National Council Representative", canonicalName: "National Council Representative", synonyms: ["national council representative", "national council rep", "national council"] },
+      { id: "foundation_member", label: "Foundation Member", canonicalName: "Foundation Member", synonyms: ["foundation member"] },
+      { id: "council_of_elders", label: "National Council of Elders", canonicalName: "National Council of Elders", synonyms: ["council of elders", "national council of elders", "elder", "past national officer"] },
+      { id: "council_of_patrons", label: "National Council of Patrons", canonicalName: "National Council of Patrons", synonyms: ["council of patrons", "national council of patrons", "patron"] },
+    ],
+  },
 ];
 
 export const ALL_CUSTOMIZABLE_POSITIONS: CustomizablePosition[] =
@@ -234,6 +243,43 @@ export const POSITION_PRESETS = {
       "deputy_nasara_coordinator",
     ],
   },
+  councils_and_mps: {
+    label: "MPs, Council & Founders",
+    ids: [
+      "member_of_parliament",
+      "national_council_rep",
+      "foundation_member",
+    ],
+  },
+  regional_leadership: {
+    label: "Regional Leadership (24)",
+    ids: [
+      "chairperson",
+      "1st_vice",
+      "2nd_vice",
+      "secretary",
+      "deputy_secretary",
+      "treasurer",
+      "financial_secretary",
+      "organiser",
+      "deputy_organiser",
+      "women_organiser",
+      "deputy_women_organiser",
+      "youth_organiser",
+      "deputy_youth_organiser",
+      "nasara_coordinator",
+      "deputy_nasara_coordinator",
+      "communication_officer",
+      "electoral_affairs",
+      "research_officer",
+      "pwd_officer",
+      "special_duties",
+      "legal_officer",
+      "national_council_rep",
+      "foundation_member",
+      "member_of_parliament",
+    ],
+  },
 } as const;
 
 export const CONSTITUENCY_POSITION_IDS = new Set<string>(POSITION_PRESETS.constituency_slate.ids);
@@ -275,6 +321,9 @@ export function normalizeCanonicalPosition(pos: string | null, level: string | n
   if (s.includes("national council of patrons")) return "National Council of Patrons";
   if (s.includes("national council of elders")) return "National Council of Elders";
   if (s.includes("foundation member")) return "Foundation Member";
+  if (s.includes("member of parliament") || s === "mp" || /\bmp\b/i.test(s) || s.includes("parliamentarian")) {
+    return "Member of Parliament";
+  }
 
   // 2. Legal Committee & Legal Affairs
   if (s.includes("chairman of the legal committee") || (s.includes("legal committee") && s.includes("chair"))) {
@@ -418,6 +467,11 @@ export function getCanonicalPositionsForSelection(selected: string[]): {
     tescon_president: ["TESCON President"],
     tescon_wocom: ["TESCON WOCOM"],
     tescon_nasara: ["Nasara Coordinator", "Nasara Organiser", "TESCON Nasara Coordinator"],
+    member_of_parliament: ["Member of Parliament"],
+    national_council_rep: ["National Council Representative"],
+    foundation_member: ["Foundation Member"],
+    council_of_elders: ["National Council of Elders", "Council of Elders / Past National Officer", "Council of Elders"],
+    council_of_patrons: ["National Council of Patrons"],
   };
 
   const processedIds = new Set<string>();

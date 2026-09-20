@@ -83,3 +83,116 @@ export function compareAlbumDelegates(a: AlbumHierarchyDelegate, b: AlbumHierarc
   if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
   return a.executive_name.localeCompare(b.executive_name);
 }
+
+/**
+ * Authoritative regional leadership ranking for display and album construction:
+ * 1. Regional Executives (Regional tier officers: Chairperson .. Legal)
+ * 2. National Council Representatives in the region in question
+ * 3. Foundation Members in the region in question
+ * 4. Members of Parliament (MPs) for that region
+ * 5. Constituency Executives (19 per constituency)
+ * 6. TESCON Executives
+ * 7. External Branches
+ */
+export function getRegionalSectionRank(delegate: {
+  position?: string | null;
+  canonical_position?: string | null;
+  executive_level?: string | null;
+}): number {
+  const pos = String(delegate.position || "").trim().toLowerCase();
+  const canon = String(delegate.canonical_position || "").trim().toLowerCase();
+  const lvl = String(delegate.executive_level || "").trim().toLowerCase();
+
+  // 1. Regional Executives (Regional tier officers excluding Council reps, Foundation members, and MPs)
+  if (
+    (lvl === "region" || lvl === "regional") &&
+    !pos.includes("national council") &&
+    !canon.includes("national council") &&
+    !pos.includes("foundation member") &&
+    !canon.includes("foundation member") &&
+    !pos.includes("member of parliament") &&
+    !canon.includes("member of parliament") &&
+    pos !== "mp"
+  ) {
+    return 1;
+  }
+
+  // 2. National Council Representatives in the region in question
+  if (
+    pos.includes("national council representative") ||
+    pos.includes("national council rep") ||
+    canon.includes("national council representative") ||
+    pos === "national council"
+  ) {
+    return 2;
+  }
+
+  // 3. Foundation Members in the region in question
+  if (pos.includes("foundation member") || canon.includes("foundation member")) {
+    return 3;
+  }
+
+  // 4. Members of Parliament (MPs) for each region
+  if (
+    pos.includes("member of parliament") ||
+    pos === "mp" ||
+    /\bmp\b/i.test(pos) ||
+    pos.includes("parliamentarian") ||
+    canon.includes("member of parliament")
+  ) {
+    return 4;
+  }
+
+  // 5. Constituency Executives
+  if (lvl === "constituency") {
+    return 5;
+  }
+
+  // 6. TESCON Executives
+  if (lvl === "tescon") {
+    return 6;
+  }
+
+  // 7. External Branch
+  if (lvl === "external branch" || lvl === "external") {
+    return 7;
+  }
+
+  return 99;
+}
+
+export function compareRegionalAlbumDelegates(a: any, b: any): number {
+  const rankA = getRegionalSectionRank(a);
+  const rankB = getRegionalSectionRank(b);
+
+  if (rankA !== rankB) return rankA - rankB;
+
+  // Within Section 4 (MPs): sort alphabetically by constituency, then name
+  if (rankA === 4) {
+    const cComp = String(a.constituency || "").localeCompare(String(b.constituency || ""));
+    if (cComp !== 0) return cComp;
+    return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+  }
+
+  // Within Section 5 (Constituency Executives): sort by constituency, then position rank, then name
+  if (rankA === 5) {
+    const cComp = String(a.constituency || "").localeCompare(String(b.constituency || ""));
+    if (cComp !== 0) return cComp;
+    if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
+    return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+  }
+
+  // Within Section 6 (TESCON): sort by institution, then position rank, then name
+  if (rankA === 6) {
+    const instA = getTesconInstitution(a);
+    const instB = getTesconInstitution(b);
+    const iComp = instA.localeCompare(instB);
+    if (iComp !== 0) return iComp;
+    if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
+    return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+  }
+
+  // For Section 1 (Regional Execs) and Section 2 (National Council Reps): sort by position rank, then name
+  if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
+  return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+}
