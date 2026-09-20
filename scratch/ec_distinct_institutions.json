@@ -1,0 +1,7757 @@
+[
+  {
+    "region": "Ahafo",
+    "polling_station": "BECHEM COLLEGE OF EDUCATION",
+    "constituency": "TANO SOUTH",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "COLLEGE OF HEALTH YAMFO",
+    "constituency": "ATWIMA MPONUA",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "COLLEGE OF HEALTH YAMFO",
+    "constituency": "SUNYANI WEST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "COLLEGE OF HEALTH YAMFO",
+    "constituency": "TANO NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "COLLEGE OF HEALTH, DUAYAW NKWANTA",
+    "constituency": "BEREKUM WEST",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "COLLEGE OF NURSING AND MIDWIFERY KWAPONG",
+    "constituency": "ASUNAFO SOUTH",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "COLLEGE OF NURSING AND MIDWIFERY TANOSO",
+    "constituency": "TANO NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "DADIESOABA NMTC",
+    "constituency": "ASUNAFO SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "DADIESOABA NMTC",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "GOASO NMTC",
+    "constituency": "ASUNAFO NORTH",
+    "count": "2",
+    "positions": [
+      "Nasara Coordinator",
+      "President"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "KWAPONG NMTC",
+    "constituency": "ATEBUBU/AMANTIN",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "KWAPONG NMTC",
+    "constituency": "SUAME",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "KWAPONG NURSING TRAINING COLLEGE",
+    "constituency": "ASUNAFO SOUTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "MAMPONG TECHNICAL COLLEGE OF EDUCATION",
+    "constituency": "ASUNAFO NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "NMTC, GOASO",
+    "constituency": "ASUNAFO NORTH",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "NTOTROSO NURSING AND MIDWIFERY",
+    "constituency": "ASUTIFI NORTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "NTROSO COLLEGE NURSING AND MIDWIFERY",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "NURSING TRAINING COLLEGE DADIESOABA",
+    "constituency": "ASUTIFI NORTH",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "REGIONAL TESCON COORDINATOR",
+    "constituency": "EJISU",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "ST JOHN OF GOD COLLEGE OF HEALTH",
+    "constituency": "TANO NORTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "ST JOHN OF GOD COLLEGE OF HEALTH DUAYAW NKWANTIA",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "ST JOSEPH COLLEGE OF EDUCATION BECHEM",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "ST. JOSEPH COLLEGE OF EDUCATION",
+    "constituency": "TANO SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "TANOSO NMTC",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "TANOSO NMTC",
+    "constituency": "ASUNAFO NORTH",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": " GHANA BAPTIST UNIVERSITY",
+    "constituency": "BANTAMA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AAMUSTED, KUMASI",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AAMUSTED, MAMPONG",
+    "constituency": "MAMPONG",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AFIA KOBI NURSING TRAINING COLLEGE",
+    "constituency": "OLD TAFO",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AFIA KOBI/ROYAL NURSING",
+    "constituency": "ADANSI ASOKWA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AGOGO NMTC",
+    "constituency": "ASANTE AKIM NORTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AGOGO PRESBY WOMEN COLLEGE OF EDUCATION",
+    "constituency": "ASANTE AKIM NORTH",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AGOGO PRESBYTERIAN WOMEN'S COLLEGE OF EDUCATION.",
+    "constituency": "ASANTE AKIM SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AKROKERRI COLLEGE OF EDUCATION",
+    "constituency": "ASUTIFI SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Agogo Presbyterian Women's College of Education",
+    "constituency": "Asante Akim North",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Akrokerri College of Education",
+    "constituency": "FOMENA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Akrokerri College of Education",
+    "constituency": "Fomena",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Baptist University",
+    "constituency": "Asokwa",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "CENTRAL UNIVERSITY KUMASI",
+    "constituency": "ATWIMA MPONUA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "CHRIST APOSTOLIC UNIVERSITY COLLEGE",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "CHRIST APOSTOLIC UNIVERSITY COLLEGE",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "CHRISTIAN SERVICE UNIVERSITY COLLEGE",
+    "constituency": "NHYIAESO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "COLLEGE OF INTEGRATED HEALTHCARE-OBUASI",
+    "constituency": "NEW EDUBIASE",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Central Law School",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Central University, Kumasi Campus",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Christ Apostolic University College",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Christ Apostolic University College",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Christian Service University",
+    "constituency": "BANTAMA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Christian Service University",
+    "constituency": "Bantama",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "College of Integrated Healthcare- Obuasi",
+    "constituency": "Obuasi East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "College of Integrated Healthcare-Obuasi",
+    "constituency": "OBUASI EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "College of Nursing and Midwifery Mampong",
+    "constituency": "Mampong",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "EJURA AGRICULTURAL COLLEGE",
+    "constituency": "EJURA SEKYEDUMASE",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Ejura College of Agriculture and Mechanization Center",
+    "constituency": "EJURA SEKYEDUMASE",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Ejura College of Agriculture and Mechanization Center",
+    "constituency": "Ejura Sekyedumase",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "GARDEN CITY UNIVERSITY COLLEGE",
+    "constituency": "KWABRE EAST",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "GCTU",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "GCTU",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "GHANA BAPTIST UNIVERSITY COLLEGE",
+    "constituency": "SUBIN",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "GIMPA",
+    "constituency": "Asokwa",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "GIMPA",
+    "constituency": "BANTAMA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "GIMPA KSI",
+    "constituency": "ASOKWA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Garden City University",
+    "constituency": "KWABRE EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Garden City University",
+    "constituency": "Kwabre East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Ghana Baptist University College Kumasi Amakom",
+    "constituency": "ASOKWA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Ghana Institute of Languages",
+    "constituency": "NHYIAESO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Ghana Institute of Languages",
+    "constituency": "Nhyiaeso",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "INSTITUTE OF BUSSINESS MANAGEMENT AND JOURNALISM",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "INSTU.GCTU. (Ghana Communication Technology University)",
+    "constituency": "BANTAMA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "INTEGRATED SCHOOL OF HEALTH, OBUASI",
+    "constituency": "OBUASI EAST",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Institute of Business Management and Journalism",
+    "constituency": "ASOKWA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Institute of Business Management and Journalism",
+    "constituency": "Asokwa",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KESSBEN UNIVERSITY COLLEGE",
+    "constituency": "BOSOMTWE",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KNUST",
+    "constituency": "OFORIKROM",
+    "count": "3",
+    "positions": [
+      "Nasara Coordinator",
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KNUST",
+    "constituency": "Oforikrom",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KNUST OBUASI CAMPUS",
+    "constituency": "OBUASI WEST",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KNUST Obuasi Campus",
+    "constituency": "OBUASI WEST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KNUST Obuasi Campus",
+    "constituency": "Obuasi West",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KNUTSFORD UNIVERSITY COLLEGE",
+    "constituency": "OFORIKROM",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KOKOFU NURSING AND MIDWIFERY",
+    "constituency": "BEKWAI",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KUMASI TECHNICAL UNIVERSITY",
+    "constituency": "KWABRE EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KWADASO AGRICULTURAL COLLEGE",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KWADASO S.D.A NURSING AND MIDWIFERY",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KWADASO S.D.A NURSING AND MIDWIFERY",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Kessben University College",
+    "constituency": "Kwabre East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Kokofu NMTC",
+    "constituency": "Bekwai",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Kumasi Technical University",
+    "constituency": "SUBIN",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Kumasi Technical University",
+    "constituency": "Subin",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Kwadaso Agricultural College",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Kwadaso Agricultural College",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "MAMPONG TECHNICAL COLLEGE OF EDUCATION",
+    "constituency": "MAMPONG",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "MAMTECH",
+    "constituency": "KWABRE EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "MULTIMEDIA INSTITUTE OF GHANA(MIG)",
+    "constituency": "AHAFO ANO SOUTH WEST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "MULTIMEDIA INSTITUTE OF JOURNALISM",
+    "constituency": "OFORIKROM",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Multimedia Institute of Ghana",
+    "constituency": "SUBIN",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Multimedia Institute of Ghana (MIG)",
+    "constituency": "Subin",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NEUMAN COLLEGE",
+    "constituency": "ATWIMA KWANWOMA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NEUMAN COLLEGE OF NURSING",
+    "constituency": "OLD TAFO",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NMTC, KUMASI",
+    "constituency": "OLD TAFO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NMTC, Kumasi",
+    "constituency": "BANTAMA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NMTC, Kumasi",
+    "constituency": "Bantama",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NURSING AND MIDWIFERY TRAINING COLLEGE FOMENA ADANSI",
+    "constituency": "ADANSI ASOKWA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NURSING AND MIDWIFERY TRAINING COLLEGE MAMPONG",
+    "constituency": "MAMPONG",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Neumann College Department of Nursing",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Neumann College of Nursing",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Nursing and Midwifery Training College Fomena Adansi",
+    "constituency": "FOMENA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Nursing and Midwifery Training College Fomena Adansi",
+    "constituency": "Fomena",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Nursing and Midwifery Training College Mampong",
+    "constituency": "MAMPONG",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "OFFINSO COLLEGE OF EDUCATION",
+    "constituency": "OFFINSO SOUTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "OTEC SCHOOL OF JOURNALISM AND COMMUNICATION STUDIES",
+    "constituency": "BOSOMTWE",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Offinso College of Education",
+    "constituency": "OFFINSO SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Offinso College of Education",
+    "constituency": "Offinso South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Otec School of Journalism",
+    "constituency": "KWABRE EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Otec School of Journalism and Communication Studies",
+    "constituency": "KWABRE EAST",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "PREMIER NURSES TRAINING COLLEGE",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "PRESBYTERIAN UNIVERSITY COLLEGE",
+    "constituency": "ASANTE AKIM NORTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Premier Nursing",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Presbyterian Nursing and Midwifery Training College Agogo",
+    "constituency": "Asante Akim North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Presbyterian Nursing and Midwifery, Agogo",
+    "constituency": "Asante Akim North",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Presbyterian University, Ghana. Asante Akyem Campus",
+    "constituency": "ASANTE AKIM SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Presbyterian University, Ghana. Asante Akyem Campus",
+    "constituency": "Asante Akim South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "REGIONAL TESCON COORDINATOR",
+    "constituency": "BANTAMA",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "REGIONAL TESCON COORDINATOR",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "ROYAL ANN HEALTH COLLEGE",
+    "constituency": "ATWIMA NWABIAGYA SOUTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "RURAL DEVELOPMENT COLLEGE",
+    "constituency": "EJISU",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "RURAL DEVELOPMENT COLLEGE, KWASO",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Royal Ann College of Health",
+    "constituency": "ATWIMA NWABIAGYA NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Royal Ann College of Health",
+    "constituency": "Atwima Nwabiagya North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Royal Nursing College",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Royal Nursing College",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Rural Development College",
+    "constituency": "EJISU",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Rural Development College, Kwaso",
+    "constituency": "Ejisu",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "S.D.A COLLEGE OF EDUCATION- AGONA",
+    "constituency": "AFIGYA SEYERE EAST",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "S.D.A Nursing and Midwifery Training College Asamang",
+    "constituency": "Afigya Kwabre South",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SAMLEE NURSING AND MIDWIFERY",
+    "constituency": "ATWIMA KWANWOMA",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SCHOOL OF DISPENSING OPTICS OYOKO",
+    "constituency": "KUMAWU",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SCHOOL OF LANGUAGES",
+    "constituency": "SUBIN",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SDA NMTC Asamang",
+    "constituency": "Afigya Kwabre South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SDA NMTC Kwadaso",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SDA NMTC, Kwadaso",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SDA NURSING AND MIDWIFERY TRAINING COLLEGE, ASAMANG.",
+    "constituency": "AFIGYA KWABRE SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "ST LOUIS COLLEGE OF EDUCATION",
+    "constituency": "MANHYIA SOUTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "ST MICHAEL'S NURSING AND MIDWIFERY",
+    "constituency": "BOSOMTWE",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "ST MONICA'S COLLEGE OF EDUCATION",
+    "constituency": "MAMPONG",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "ST PATRICK'S NURSING AND MIDWIFERY",
+    "constituency": "OFFINSO SOUTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "ST. MICHAEL’S NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "constituency": "SUAME",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Samlee NMTC",
+    "constituency": "BANTAMA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Samlee NMTC",
+    "constituency": "Bantama",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "School of Dispensing Optics",
+    "constituency": "KUMAWU",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "School of Dispensing Optics, Oyoko",
+    "constituency": "KUMAWU",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Seventh-Day Adventist College of Education- Agona",
+    "constituency": "Afigya Seyere East",
+    "count": "2",
+    "positions": [
+      "Nasara Coordinator",
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St Louis College of Education",
+    "constituency": "SUAME",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St Micheal's Catholic Nursing and Midwifery Training College",
+    "constituency": "BOSOMTWE",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St Monica's College of Education",
+    "constituency": "Mampong",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St. Louis College of Education",
+    "constituency": "Suame",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St. Michael's Catholic Nursing and Midwifery Training College",
+    "constituency": "Bosomtwe",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St. Monica's College of Education",
+    "constituency": "Mampong",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St. Patrick's NMTC",
+    "constituency": "OFFINSO SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St. Patrick's NMTC",
+    "constituency": "Offinso South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "TEPA NURSING TRAINING COLLEGE",
+    "constituency": "AHAFO ANO NORTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Tepa Nursing and Midwifery Training College",
+    "constituency": "AHAFO ANO NORTH",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Tepa Nursing and Midwifery Training College",
+    "constituency": "Ahafo Ano North",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "UNIVERSITY OF GHANA KSI CAMPUS",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "USTED -K",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "USTED- KUMASI",
+    "constituency": "SUBIN",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "USTED-Kumasi",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "USTED-M",
+    "constituency": "ASUTIFI SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "USTED-M",
+    "constituency": "Mampong",
+    "count": "2",
+    "positions": [
+      "Nasara Coordinator",
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "University of Ghana Kumasi City Campus",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "University of Ghana, KSI Campus",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "VALLEY VIEW UNIVERSITY COLLEGE-KUMASI",
+    "constituency": "OFORIKROM",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Valley View University",
+    "constituency": "OFORIKROM",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Valley View University",
+    "constituency": "Oforikrom",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "WESLEY COLLEGE OF EDUCATION",
+    "constituency": "MANHYIA NORTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "WISCONSIN INTERNATIONAL UNIVERSITY GHANA KUMASI",
+    "constituency": "ASANTE AKIM CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "WITHROW COLLEGE",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Wesley College of Education",
+    "constituency": "MANHYIA NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Wesley College of Education",
+    "constituency": "Manhyia North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Wisconsin International University GH Kumasi",
+    "constituency": "Oforikrom",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Wisconsin International University Ghana Kumasi Campus",
+    "constituency": "OFORIKROM",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Withrow University",
+    "constituency": "KWADASO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Withrow University",
+    "constituency": "Kwadaso Municipal",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Women College of Education -Asante Akim Agogo",
+    "constituency": "Asante Akim North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": null,
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "AL FARUQ COLLEGE OF EDUCATION",
+    "constituency": "WENCHI",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "AL- FARUQ COLLEGE OF EDUCATION",
+    "constituency": "TAIN",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Al-Faruq College of Education",
+    "constituency": "Wenchi",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Berekum College of Education",
+    "constituency": "BEREKUM EAST",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Berekum College of Education",
+    "constituency": "Berekum East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Berekum Nursing and Midwifery Training College",
+    "constituency": "BEREKUM EAST",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Berekum Nursing and Midwifery Training College",
+    "constituency": "Berekum East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "CATHOLIC UNIVERSITY OF GHANA -  SUNYANI",
+    "constituency": "SUNYANI EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "CATHOLIC UNIVERSITY OF GHANA, SUNYANI",
+    "constituency": "TECHIMAN SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "CMB COCOA SHED BEREKUM 1",
+    "constituency": "BEREKUM EAST",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "CMB COCOA SHED BEREKUM 1",
+    "constituency": "TAIN",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "COLLEGE OF NURSING AND MIDWIFERY SAMPA",
+    "constituency": "WENCHI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Catholic University of Ghana",
+    "constituency": "SUNYANI WEST",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Catholic University of Ghana, Sunyani",
+    "constituency": "Sunyani West",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "College of Nursing and Midwifery, Sunyani",
+    "constituency": "Sunyani East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "DROBO NTC",
+    "constituency": "WENCHI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "L/A JHS 1 KORASO",
+    "constituency": "DORMAA CENTRAL",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "METH PRIM SCH NSAWKAW",
+    "constituency": "BEREKUM EAST",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "METH PRIM SCH NSAWKAW",
+    "constituency": "TAIN",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "METHODIST UNIVERSITY (OFUMAN CAMPUS)",
+    "constituency": "WENCHI",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "METHODIST UNIVERSITY (WENCHI CAMPUS)",
+    "constituency": "WENCHI",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "METHODIST UNIVERSITY OFUMAN CAMPUS",
+    "constituency": "SUNYANI EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "METHODIST UNIVERSITY WENCHI",
+    "constituency": "SUNYANI EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Methodist University (Ofuman Campus)",
+    "constituency": "Wenchi",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Methodist University (Wenchi Campus)",
+    "constituency": "Wenchi",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "NURSING AND MIDWIFERY TRAINING COLLEGE -SEIKWA",
+    "constituency": "TAIN",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "PRESBY J H S NSAWKAW 2",
+    "constituency": "TAIN",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "PRESBYTERIAN NURSING TRAINING COLLEGE",
+    "constituency": "TAIN",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Presbyterian Nursing Training College (Dormaa)",
+    "constituency": "Dormaa Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Presbyterian Nursing training Dormaa",
+    "constituency": "DORMAA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "REGIONAL TESCON COORDINATOR",
+    "constituency": "BEREKUM EAST",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "SDA CHURCH BLUE CROSS 1",
+    "constituency": "TECHIMAN SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "ST. AMBROSE COLLEGE",
+    "constituency": "DORMAA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "ST. AMBROSE COLLEGE OF EDUCATION",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "ST. MARY'S NURSING AND MIDWIFERY TRAINING COLLEGE -DROBO",
+    "constituency": "SUNYANI EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "ST. MARY'S NURSING AND MIDWIFERY TRAINING COLLEGE DROBO",
+    "constituency": "SUNYANI WEST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "SUNYANI NURSING AND MIDWIFERY COLLEGE",
+    "constituency": "BANDA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "SUNYANI TECHNICAL UNIVERSITY",
+    "constituency": "BANDA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "SUNYANI TECHNICAL UNIVERSITY",
+    "constituency": "TECHIMAN SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Sampa Nursing Training",
+    "constituency": "JAMAN NORTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Sampa Nursing Training College",
+    "constituency": "Jaman North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Seikwa Nursing Training",
+    "constituency": "TAIN",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Seikwa Nursing and Midwifery Training College",
+    "constituency": "Tain",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "St. Ambrose College of Education",
+    "constituency": "Dormaa East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "St. Ambrose college of education",
+    "constituency": "DORMAA EAST",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "St. Mary's Nursing and Midwifery Training College Drobo",
+    "constituency": "Jaman South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Sunyani Nursing and Midwifery Training college",
+    "constituency": "SUNYANI EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Sunyani Technical University",
+    "constituency": "SUNYANI EAST",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Sunyani Technical University",
+    "constituency": "Sunyani East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "UENR (Dormaa Campus)",
+    "constituency": "Dormaa Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "UENR (Sunyani Campus)",
+    "constituency": "Sunyani West",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "UENR DORMAA CAMPUS",
+    "constituency": "BANDA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "UNIVERSITY OF ENERGY AND NATURAL  RESOURCES",
+    "constituency": "TANO NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "University of Energy and Natural Resource (Dormaa campus)",
+    "constituency": "DORMAA CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "University of Energy and Natural Resource (UENR SYI)",
+    "constituency": "SUNYANI WEST",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "VOICE OF DELIVERANCE JHS BEREKUM",
+    "constituency": "BEREKUM EAST",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "WENCHI AGRICULTURAL COLLEGE",
+    "constituency": "WENCHI",
+    "count": "2",
+    "positions": [
+      "Nasara Coordinator",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Wenchi Agricultural College",
+    "constituency": "Wenchi",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "ANGLICAN UNIVERSITY",
+    "constituency": "NKORANZA SOUTH",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "ANGLICAN UNIVERSITY",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "ATEBUBU COLLEGE OF EDUCATION",
+    "constituency": "ATEBUBU/AMANTIN",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "ATEBUBU COLLEGE OF EDUCATION",
+    "constituency": null,
+    "count": "2",
+    "positions": [
+      "Nasara Coordinator",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "Anglican University College and Technology",
+    "constituency": "SAWLA-TUNA-KALBA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "Atebubu College of Education",
+    "constituency": "ATEBUBU/AMANTIN",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "COLLEGE OF HEALTH AND WELL-BEING, KINTAMPO",
+    "constituency": "KINTAMPO NORTH",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "COLLEGE OF HEALTH KINTAMPO",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "COLLEGE OF HEALTH KINTAMPO",
+    "constituency": "KINTAMPO NORTH",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "College of Health and Allied Sciences",
+    "constituency": "KINTAMPO NORTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "HOLY FAMILY NURSING TRAINING COLLEGE",
+    "constituency": "TECHIMAN SOUTH",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "HOLY FAMILY NURSING TRANING COLLEGE",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "Holy Family Nursing and Midwifery Training College",
+    "constituency": "TECHIMAN SOUTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "KROBO NURSING TRAINING COLLEGE",
+    "constituency": "ATEBUBU/AMANTIN",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "KROBO NURSING TRAINING COLLEGE",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "Krobo Nursing and Midwifery Training College",
+    "constituency": "TECHIMAN NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "MARTIN LUTHER KING HEALTH",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "MARTIN LUTHER-KING HEALTH",
+    "constituency": "WALEWALE",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "Martin Lurther Health Training School",
+    "constituency": "KINTAMPO NORTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "Nursingand Midwifery Training College",
+    "constituency": "SAWLA-TUNA-KALBA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "REGIONAL TESCON COORDINATOR",
+    "constituency": "KINTAMPO NORTH",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "VALLEY VIEW UNIVERSITY",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "VALLEY VIEW UNIVERSITY",
+    "constituency": "TECHIMAN NORTH",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "Valley View University",
+    "constituency": "TECHIMAN SOUTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "YEJI NURSING AND MIDWIFERYY TRAINING COLLEGE",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "YEJI NURSING AND MIDWIFERYY TRAINING COLLEGE",
+    "constituency": "PRU EAST",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "CENTRAL",
+    "polling_station": " PEREZ UNIVERSITY",
+    "constituency": "EFFUTU",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "CENTRAL",
+    "polling_station": "CAPE COAST TECHNICAL UNIVERSITY",
+    "constituency": "CAPE COAST NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "CENTRAL",
+    "polling_station": "PNTC -ANKAFUL",
+    "constituency": "CAPE COAST NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "CENTRAL",
+    "polling_station": "UNIVERSITY OF CAPE COAST",
+    "constituency": "AWUTU SENYA EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "ASSINMAN NURSES TRAINING COLLEGE",
+    "constituency": "AGONA WEST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "ASSINMAN NURSING COLLEGE",
+    "constituency": "ASSIN CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Assinman Nurses Training College",
+    "constituency": "ASSIN SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Assinman Nurses Training College",
+    "constituency": "Assin South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "BIMAKS COLLEGE",
+    "constituency": "AGONA WEST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Bimaks Coolege (Cambridge)",
+    "constituency": "CAPE COAST NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Bimaks Coolege (Cambridge)",
+    "constituency": "Cape Coast North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "CAPE  COAST TECHNICAL UNIVERSITY",
+    "constituency": "CAPE COAST NORTH",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "CCHN WINNEBA",
+    "constituency": "AGONA WEST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "CCHN Winneba",
+    "constituency": "EFFUTU",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "CCHN Winneba",
+    "constituency": "Effutu",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "CCNMTC CAPE COAST",
+    "constituency": "ASSIN SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "COLLEGE OF COMMUNITY HEALTH NURSING",
+    "constituency": "EFFUTU",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Cape Coast Technical University",
+    "constituency": "CAPE COAST SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Cape Coast Technical University",
+    "constituency": "Cape Coast South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "DNMTC, DUNKWA",
+    "constituency": "UPPER DENKYIRA EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "DNMTC, Dunkwa",
+    "constituency": "Upper Denkyira East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "FOSU COLLEGE OF EDUCATION",
+    "constituency": "ASSIN SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "FOSU TRAINING COLLEGE",
+    "constituency": "ASSIN CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Fosu College of Education",
+    "constituency": "ASSIN CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Fosu College of Education",
+    "constituency": "Assin Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "KAAF UNIVERSITY",
+    "constituency": "GOMOA EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "KAAF University",
+    "constituency": "Gomoa East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "KOMENDA TRAINING COLLEGE",
+    "constituency": "KOMENDA EDINA EGUAFO ABREM",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "KOMMENDA COLLEGE OF EDUCATION",
+    "constituency": "KOMENDA EDINA EGUAFO ABREM",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Kaff University",
+    "constituency": "GOMOA EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Komenda College of Education",
+    "constituency": "KOMENDA EDINA EGUAFO ABREM",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Komenda College of Education",
+    "constituency": "Komenda Edina Eguafo Abrem",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "NMTC, Cape Coast",
+    "constituency": "CAPE COAST SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "NMTC, Cape Coast",
+    "constituency": "Cape Coast South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "NTC TWIFO PRASO",
+    "constituency": "TWIFO ATTI MORKWA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "NTC, Twifo Praso",
+    "constituency": "TWIFO ATTI MORKWA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "NTC, Twifo Praso",
+    "constituency": "Twifo Atti Morkwa",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "NURSING TRAINING COLLEGE-PRASO",
+    "constituency": "TWIFO ATTI MORKWA",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "OLA COLLEGE OF EDUCATION",
+    "constituency": "ASSIN CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "OLA College of Education",
+    "constituency": "CAPE COAST SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "OLA College of Education",
+    "constituency": "Cape Coast South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "PNTC Ankaful",
+    "constituency": "CAPE COAST NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "PNTC Ankaful",
+    "constituency": "Cape Coast North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Perez University",
+    "constituency": "GOMOA EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Perez University",
+    "constituency": "Gomoa East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UEW, Ajumako",
+    "constituency": "AJUMAKO ENYAN ESIAM",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UEW, Ajumako",
+    "constituency": "Ajumako Enyan Esiam",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UEW, WINNEBA MAIN",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UEW, Winneba Main",
+    "constituency": "EFFUTU",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UEW, Winneba Main",
+    "constituency": "Effutu",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UNIVERSITY OF CAPE COAST",
+    "constituency": "CAPE COAST NORTH",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UNIVERSITY OF EDUCATION, AJUMAKO",
+    "constituency": "AJUMAKO ENYAN ESIAM",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UNIVERSITY OF EDUCATION, WINNEBA",
+    "constituency": "EFFUTU",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "University of Cape Coast",
+    "constituency": "CAPE COAST SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "University of Cape Coast",
+    "constituency": "Cape Coast South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": null,
+    "constituency": "ATEBUBU/AMANTIN",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "ABETIFI PRESBYTERIAN COLLEGE OF EDUCATION",
+    "constituency": "KWAHU EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "AKIM ODA COMMUNITY HEALTH NURSING AND MIDWIFERY COLLEGE",
+    "constituency": "AKIM ODA",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "AKIM STATE UNIVERSITY COLLEGE",
+    "constituency": "ASENE/AKROSO/MANSO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "AKIM STATE UNIVERSITY COLLEGE",
+    "constituency": "Asene/Akroso/Manso",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "ALL NATIONS UNIVERSITY - MAIN CAMPUS",
+    "constituency": "NEW JUABEN NORTH",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "ALL NATIONS UNIVERSITY CITY CAMPUS",
+    "constituency": "ABUAKWA NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "ALL NATIONS UNIVERSITY MAIN CAMPUS",
+    "constituency": "NEW JUABEN NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "ATIBIE NURSING ABD MIDWIFERY TRAINING COLLEGE",
+    "constituency": "AYENSUANO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "AWISA EAST ASENE",
+    "constituency": "ASENE/AKROSO/MANSO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Abetifi Presbyterian College of Education",
+    "constituency": "KWAHU EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Abetifi Presbyterian College of Education",
+    "constituency": "Kwahu East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Akim State College",
+    "constituency": "ASENE/AKROSO/MANSO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Akim State College",
+    "constituency": "Asene/Akroso/Manso",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "All Nations University City Campus",
+    "constituency": "NEW JUABEN SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "All Nations University City-Campus",
+    "constituency": "New Juaben South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "All Nations University Main Campus",
+    "constituency": "NEW JUABEN NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "All Nations University Main Campus",
+    "constituency": "New Juaben North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Atibie Nursing and Midwifery Training College",
+    "constituency": "MPRAESO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Atibie Nursing and Midwifery Training College",
+    "constituency": "Mpraeso",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "BROTHER TARCISIUS PROSTHETIC QND ORTHOTIC TRAINING COLLEGE",
+    "constituency": "NSAWAM/ADOAGYIRI",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "BROTHER TARCISUIS PROPHETICS AND ORTHOTICS TRAINING COLLEGE",
+    "constituency": "NEW JUABEN NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Brother Tarcisuis Prothetics and Orthotics Training College",
+    "constituency": "NSAWAM/ADOAGYIRI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Brother Tarcisuis Prothetics and Orthotics Training College",
+    "constituency": "Nsawam/Adoagyiri",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Community Health Nursing Training College Akim-Oda",
+    "constituency": "AKIM ODA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Community Health Nursing Training College Akim-Oda",
+    "constituency": "Akim Oda",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "HOLY FAMILY NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "constituency": "NKAWKAW",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "HOLY FAMILY NURSING TRAINING COLLEGE",
+    "constituency": "AYENSUANO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Holy Family Nursing Training College",
+    "constituency": "NKAWKAW",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Holy Family Nursing Training College",
+    "constituency": "Nkawkaw",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "JACKSON COLLEGE OF EDUCATION, KOFORIDUA",
+    "constituency": "ABUAKWA NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Jackson College of Education Koforida-Asokore",
+    "constituency": "NEW JUABEN NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Jackson College of Education Koforida-Asokore",
+    "constituency": "New Juaben North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "KOFORIDUA NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "constituency": "NEW JUABEN SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "KOFORIDUA TECHNICAL UNIVERSITY",
+    "constituency": "NEW JUABEN SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Kibi Presbyterian College of Education",
+    "constituency": "ABUAKWA SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Kibi Presbyterian College of Education",
+    "constituency": "Abuakwa South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Koforidua Nursing and Midwifery Training College",
+    "constituency": "NEW JUABEN SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Koforidua Nursing and Midwifery Training College",
+    "constituency": "New Juaben South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Koforidua Technical University",
+    "constituency": "NEW JUABEN SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Koforidua Technical University",
+    "constituency": "New Juaben South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "METHODIST COLLEGE OF EDUCATION",
+    "constituency": "AKIM ODA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "MOUNT MARY COLLEGE OF EDUCATION",
+    "constituency": "YILO KROBO",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Methodist College of Education Akim Oda",
+    "constituency": "AKIM ODA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Methodist College of Education Akim Oda",
+    "constituency": "Akim Oda",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Mount Mary College of Education",
+    "constituency": "YILO KROBO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Mount Mary College of Education",
+    "constituency": "Yilo Krobo",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "ODUMASI KROBO NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "constituency": "YILO KROBO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "OSIEM SAVIOR CHURCH NURSING AND MIDWIFERY COLLEGE",
+    "constituency": "NEW JUABEN SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Odumasi Krobo Nursing and Midwifery Training College",
+    "constituency": "LOWER MANYA KROBO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Odumasi Krobo Nursing and Midwifery Training College",
+    "constituency": "Lower Manya Krobo",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Osiem Saviour Church Nursing and Midwifery College",
+    "constituency": "Abuakwa North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Osiem Saviour Church Nursing and Midwifery Training College",
+    "constituency": "ABUAKWA NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "constituency": "KWAHU EAST",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN COLLEGE OF EDUCATION- AKROPONG",
+    "constituency": "AKROPONG",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN COLLEGE OF EDUCATION-KIBI",
+    "constituency": "ABUAKWA SOUTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN UNIVERSITY COLLEGE, ABETIFI CAMPUS",
+    "constituency": "MPRAESO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN UNIVERSITY COLLEGE, AKROPONG",
+    "constituency": "AYENSUANO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "constituency": "KWAHU EAST",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN UNIVERSTY GHANA, AKROPONG CAMPUS",
+    "constituency": "AKROPONG",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN WOMEN 'S COLLEGE OF EDUCATION",
+    "constituency": "NEW JUABEN NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian College of Education Akropong",
+    "constituency": "AKROPONG",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian College of Education Akropong",
+    "constituency": "Akropong",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian University College Abetifi-Campus",
+    "constituency": "KWAHU EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian University College Abetifi-Campus",
+    "constituency": "Kwahu East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian University Ghana Akropong-Campus",
+    "constituency": "AKROPONG",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian University Ghana Akropong-Campus",
+    "constituency": "Akropong",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian Womens College of Education",
+    "constituency": "AKUAPEM SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian Womens College of Education",
+    "constituency": "Akuapem South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "SDA COLLEGE OF EDUCATION-KOFORIDUA",
+    "constituency": "NEW JUABEN NORTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "SDA College of Education Koforidua-Asokore",
+    "constituency": "NEW JUABEN NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "SDA College of Education Koforidua-Asokore",
+    "constituency": "New Juaben North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "UNIVERSITY COLLEGE OF AGRICULTURE AND ENVIRONMENTAL STUDIES",
+    "constituency": "KWAHU EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "UNIVERSITY OF ENVIRONMENT AND SUSTAINABLE DEVELOPMENT",
+    "constituency": "YILO KROBO",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "UNIVERSITY OF GHANA MAIN CAMPUS",
+    "constituency": "YILO KROBO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "University College of Agriculture and Environmental Studies",
+    "constituency": "ABUAKWA SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "University College of Agriculture and Environmental Studies",
+    "constituency": "Abuakwa South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "University of Environment and Sustainable Development Somanya",
+    "constituency": "YILO KROBO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "University of Environment and Sustainable Development Somanya",
+    "constituency": "Yilo Krobo",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": null,
+    "constituency": "ASENE/AKROSO/MANSO",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "GREATER ACCRA",
+    "polling_station": "University of Ghana medical school",
+    "constituency": "TEMA EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ACCRA BUSINESS SCHOOL",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ACCRA COLLEGE OF EDUCATION",
+    "constituency": "AYAWASO WEST WUOGON",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ACCRA COLLEGE OF EDUCATION",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ACCRA TECHNICAL UNIVERSITY",
+    "constituency": "KORLE KLOTTEY",
+    "count": "2",
+    "positions": [
+      "Nasara Coordinator",
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ACCRA TECHNICAL UNIVERSITY",
+    "constituency": "Korle Klottey",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ADA COLLEGE OF EDUCATION",
+    "constituency": "ADA",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ADA COLLEGE OF EDUCATION",
+    "constituency": "Ada",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "AFRICAN UNIVERSITY COLLEGE OF COMMUNICATIONS (AUCC)",
+    "constituency": "KORLE KLOTTEY",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "AFRICAN UNIVERSITY OF COMMUNICATION",
+    "constituency": "KORLE KLOTTEY",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra Business School",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra Business Sschool",
+    "constituency": "AYAWASO EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra College of Education",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra College of Education",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra Technical University",
+    "constituency": "ADENTAN",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra Technical University",
+    "constituency": "Korle Klottey",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra Technical University",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ada collage of education",
+    "constituency": "AYAWASO NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "African University College of Communications (AUCC)",
+    "constituency": "Korle Klottey",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "African University of Communication & Business",
+    "constituency": "ODODODIODIOO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "BLUECREST UNIVERSITY",
+    "constituency": "AYAWASO EAST",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "BlueCrest University",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "BlueCrest University College",
+    "constituency": "Ayawaso East",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "CENTRAL UNIVERSITY",
+    "constituency": "NINGO PRAMPRAM",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "CENTRAL UNIVERSITY",
+    "constituency": "Ningo Prampram",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Central University",
+    "constituency": "Ningo Prampram",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Central University",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "DATALINK UNIVERSITY",
+    "constituency": "TEMA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "DOMINION UNIVERSITY",
+    "constituency": "AYAWASO WEST WUOGON",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Data Link Institute of Business and Technology",
+    "constituency": "Tema Central",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Data Link University",
+    "constituency": "Tema Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Datalink University",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ENTRANCE UNIVERSITY OF HEALTH SCIENCES",
+    "constituency": "Ledzokuku",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Entrance University",
+    "constituency": "LEDZOKUKU",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Entrance University of Health Sciences",
+    "constituency": "Ledzokuku",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "GHANA COMMUNICATION TECHNOLOGY UNIVERSITY",
+    "constituency": "Okaikwei Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "GHANA INSTITUTE OF JOURNALISM (GIJ)",
+    "constituency": "AYAWASO WEST WUOGON",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "GHANA INSTITUTE OF LANGUAGES",
+    "constituency": "Korle Klottey",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "GHANA TELECOM",
+    "constituency": "OKAIKWEI CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "GIMPA",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "GIMPA",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ghana Communication Technology University (GCTU)",
+    "constituency": "Okaikwei Central",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ghana Institute of Languages",
+    "constituency": "Korle Klottey",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ghana Institute of Languages",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ghana Institute of Management and Public Administration (GIMPA)",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ghana Institute of Management and Public Administration (GIMPA)",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ghana communication technology university",
+    "constituency": "AYAWASO NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Gimpa",
+    "constituency": "ABLEKUMA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Greater Accra Regional HQ",
+    "constituency": "Regional HQ",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "HERITAGE CHRISTIAN UNIVERSITY",
+    "constituency": "Amasaman",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Heritage Christian University",
+    "constituency": "AYAWASO EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Heritage Christian University College",
+    "constituency": "Amasaman",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ISLAMIC UNIVERSITY",
+    "constituency": "ADENTAN",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Islamic University",
+    "constituency": "Adentan",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Islamic University",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Islamic University College Ghana",
+    "constituency": "Adentan",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "KINGS UNIVERSITY",
+    "constituency": "Weija-Gbawe",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "KNUTSFORD UNIVERSITY COLLEGE",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Kings University College",
+    "constituency": "Weija-Gbawe",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Kings University College",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Knutsford University College",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Knutsford University College",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Korle-Bu Nursing and Midwifery Training College",
+    "constituency": "Ablekuma South",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "METHODIST UNIVERSITY DANSOMAN",
+    "constituency": "Ablekuma West",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "METHODIST UNIVERSITY GHANA, TEMA CAMPUS",
+    "constituency": "TEMA CENTRAL",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "METHODIST UNIVERSITY, TEMA",
+    "constituency": "TEMA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "MOUNTCREST UNIVERSITY",
+    "constituency": "Ayawaso East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Methodist University (Dansoman)",
+    "constituency": "Ablekuma West",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Methodist University (Tema Campus)",
+    "constituency": "Tema Central",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Methodist University Ghana (Tema Campus)",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Methodist university Ghana",
+    "constituency": "AYAWASO EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "MountCrest University",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "MountCrest University College",
+    "constituency": "Ayawaso East",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "NARH-BITA COLLEGE",
+    "constituency": "Tema Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "NATIONAL FILM AND TELEVISION INSTITUTE (NAFTI)",
+    "constituency": "KORLE KLOTTEY",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Narh-Bita College",
+    "constituency": "Tema Central",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Narh-Bita College",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Nursing and Midwifery Training College, Korle Bu",
+    "constituency": "Ablekuma South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Nursing and Midwifery Training College, Korle Bu",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "PANTANG NMTC",
+    "constituency": "Madina",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "PANTANG NURSING",
+    "constituency": "MADINA",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "PENTECOST UNIVERSITY",
+    "constituency": "ANYAA/SOWUTUOM",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "PENTECOST UNIVERSITY COLLEGE",
+    "constituency": "Anyaa/Sowutuom",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Pantang NMTC",
+    "constituency": "AYAWASO NORTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Pantang Nursing and Midwifery Training College",
+    "constituency": "Madina",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Pentecost University",
+    "constituency": "Anyaa/Sowutuom",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Pentecost University College",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "RADFORD UNIVERSITY COLLEGE",
+    "constituency": "Ayawaso Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "REGENT UNIVERSITY",
+    "constituency": "WEIJA-GBAWE",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "REGIONAL MARITIME UNIVERSITY",
+    "constituency": "KROWOR",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "REGIONAL MARITIME UNIVERSITY",
+    "constituency": "Krowor",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Radford University College",
+    "constituency": "Ayawaso Central",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Radford University College",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Regent University College of Science and Technology",
+    "constituency": "WEIJA-GBAWE",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Regent University College of Science and Technology",
+    "constituency": "Weija-Gbawe",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Regent University of Science and Technology",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Regional Maritime University",
+    "constituency": "Krowor",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Regional Maritime University",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "SCHOOL OF ALLIED HEALTH",
+    "constituency": "Ablekuma South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "School of Allied Health Sciences (Korle Bu)",
+    "constituency": "Ablekuma South",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "UG ACCRA CITY CAMPUS",
+    "constituency": "KORLE KLOTTEY",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "UG Accra City Campus",
+    "constituency": "Korle Klottey",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "UG MEDICAL SCHOOL, KORLE BU",
+    "constituency": "Ablekuma South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "UNIVERSITY OF GHANA",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "UNIVERSITY OF GHANA (DISTANCE EDUCATION)",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "UNIVERSITY OF MANAGEMENT STUDIES",
+    "constituency": "BORTIANOR-NGLESHIE AMANFRO",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "UNIVERSITY OF PROFESSIONAL STUDIES, ACCRA",
+    "constituency": "Madina",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "UNIVERSITY OF PROFESSIONAL STUDIES, ACCRA (UPSA)",
+    "constituency": "MADINA",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University Ghana Allied health science korle bu",
+    "constituency": "ASHAIMAN",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (Accra City Campus)",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (City Campus)",
+    "constituency": "Korle Klottey",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (Distance Education)",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (Distance Education)",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (Korle-Bu Campus)",
+    "constituency": "Ablekuma South",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (Main Campus)",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (Main Campus)",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Media, Arts and Communication",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Media, Arts and Communication (UniMAC)",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Media, Arts and Technology",
+    "constituency": "Ayawaso West Wuogon",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Professional Studies, Accra (UPSA)",
+    "constituency": "Madina",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Professional Studies, Accra (UPSA)",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "VALLEY VIEW UNIVERSITY OYIBI",
+    "constituency": "Adentan",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Valley View University",
+    "constituency": "Kpone-Katamanso",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Valley View University, Oyibi",
+    "constituency": "ADENTAN",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "WEST END UNIVERSITY",
+    "constituency": "BORTIANOR-NGLESHIE AMANFRO",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "WISCONSIN INTERNATIONAL UNIVERSITY",
+    "constituency": "Madina",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Wisconsin International University",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Wisconsin International University College",
+    "constituency": "Madina",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ZENITH COLLEGE",
+    "constituency": "La Dadekotopon",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Zenith University College",
+    "constituency": "La Dadekotopon",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "COLLEGE OF NURSING AND MIDWIFERY - KUBORI",
+    "constituency": "Yagaba/ Kubori",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "College of Health Nalerigu",
+    "constituency": "NALERIGU/GAMBAGA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "College of Health Nalerigu",
+    "constituency": "Nalerigu / Gambaga",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "College of Nursing and Midwifery, Kubori",
+    "constituency": "YAGABA/KUBORI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "College of Nursing and Midwifery, Kubori",
+    "constituency": "Yagaba/ Kubori",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "College of Nursing and Midwifery, Walewale",
+    "constituency": "WALEWALE",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "College of Nursing and Midwifery, Walewale",
+    "constituency": "Walewale",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "GAMBAGA COLLEGE OF EDUCATION",
+    "constituency": "Nalerigu / Gambaga",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "Gambaga College of Education",
+    "constituency": "NALERIGU/GAMBAGA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "Gambaga College of Education",
+    "constituency": "Nalerigu / Gambaga",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "KUBORI N.M.T,C",
+    "constituency": "Yagaba/ Kubori",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "L/A PRIM SCH GBANKURUGU 1",
+    "constituency": "YUNYOO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "WALEWALE N.M.T.C",
+    "constituency": "WALEWALE",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": null,
+    "constituency": "NALERIGU/GAMBAGA",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": " GUSHEGU NMTC",
+    "constituency": "GUSHEGU",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "ANIMAL HEALTH AND PRODUCTION COLLEGE, PONG-TAMALE",
+    "constituency": "TAMALE SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Advance Global College",
+    "constituency": "TAMALE SOUTH",
+    "count": "3",
+    "positions": [
+      "Nasara Coordinator",
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Advance Global College",
+    "constituency": "Tamale South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Animal Health and Production College",
+    "constituency": "SAVELUGU",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Animal Health and Production College, Pong-Tamale",
+    "constituency": "SAVELUGU",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Animal Health and Production College, Pong-Tamale",
+    "constituency": "Savelugu",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Bagabaga College of Education",
+    "constituency": "SAGNARIGU",
+    "count": "3",
+    "positions": [
+      "Nasara Coordinator",
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Bagabaga College of Education",
+    "constituency": "Sagnarigu",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "COMMUNITY HEALTH NURSES TRAINING COLLEGE, WAMALE",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "COMMUNITY HEALTH NURSES TRAINING COLLEGE,NKANCHINA",
+    "constituency": "KPANDAI",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "COMMUNITY HELTH NURSES TRAINING COLLEGE, TAMALE",
+    "constituency": "TAMALE SOUTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "College of Health Sciences, Yendi",
+    "constituency": "YENDI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "College of Health Sciences, Yendi",
+    "constituency": "Yendi",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Community Health Nurses College- Nkachina",
+    "constituency": "KPANDAI",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Community Health Nurses College- Tamale",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Community Health Nurses Training College, Nkanchina",
+    "constituency": "KPANDAI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Community Health Nurses Training College, Nkanchina",
+    "constituency": "Kpandai",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Community Health Nurses Training College, Tamale",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Community Health Nurses Training College, Tamale",
+    "constituency": "Tamale Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Community Health Nurses Training College, Wamale",
+    "constituency": "TAMALE SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Community Health Nurses Training College, Wamale",
+    "constituency": "Tamale South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "E P COLLEGE OF EDUCATION",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "E.P College of Education",
+    "constituency": "BIMBILLA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "E.P College of Education",
+    "constituency": "Bimbilla",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "EP College of Education",
+    "constituency": "BIMBILLA",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Government Secretarial School",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Government Secretarial School",
+    "constituency": "Tamale Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Government Secretariate School",
+    "constituency": "TAMALE CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Gushegu NMTC",
+    "constituency": "GUSHEGU",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Gushegu NMTC",
+    "constituency": "Gushegu",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Gushegu Nurses and Midwifery",
+    "constituency": "GUSHEGU",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "NEW LIFE COLLEGE",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "New Life College",
+    "constituency": "SAGNARIGU",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "New Life College",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "New Life College",
+    "constituency": "Tamale Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "SCHOOL OF HYGIENE ",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "School of Hygience - Tamale",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "School of Hygience - Tamale",
+    "constituency": "Tamale Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "School of Hygiene- Tamale",
+    "constituency": "SAGNARIGU",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "St Vicent College of Education",
+    "constituency": "YENDI",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "St. Vicent College of Education",
+    "constituency": "YENDI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "St. Vicent College of Education",
+    "constituency": "Yendi",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "TAMALE COLLEGE OF EDUCATION",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "TAMALE NMTC",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "TAMALE TECHNICAL INSTITUTE",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale College of Education",
+    "constituency": "SAGNARIGU",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale College of Education",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale College of Education",
+    "constituency": "Tamale Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale NMTC",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale NMTC",
+    "constituency": "Tamale Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale Nurses Training College",
+    "constituency": "TAMALE SOUTH",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale Technical Institute",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale Technical Institute",
+    "constituency": "Tamale Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale Technical University",
+    "constituency": "SAGNARIGU",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale Workers College",
+    "constituency": "TAMALE CENTRAL",
+    "count": "3",
+    "positions": [
+      "Nasara Coordinator",
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale Workers College",
+    "constituency": "Tamale Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS - City Campus",
+    "constituency": "TAMALE SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS - City Campus",
+    "constituency": "Tamale South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS - Nyankpala Campus",
+    "constituency": "TOLON",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS - Nyankpala Campus",
+    "constituency": "Tolon",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS - Tamale Campus",
+    "constituency": "TAMALE SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS - Tamale Campus",
+    "constituency": "Tamale South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS-NYANKPALA CAMPUS",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS-TAMALE CAMPUS",
+    "constituency": "TAMALE CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "University for Development Studies- City Campus",
+    "constituency": "SAGNARIGU",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "University for Development Studies- Nyankpala Campus",
+    "constituency": "TOLON",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "University for Development Studies- Tamale Campus",
+    "constituency": "TAMALE SOUTH",
+    "count": "2",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "University for Development Studies- Tamale Campus",
+    "constituency": "ZABZUGU",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Yendi College of Health Sciences",
+    "constituency": "YENDI",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Oti",
+    "polling_station": "DACE",
+    "constituency": "KRACHI EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Oti",
+    "polling_station": "DAMBAI COLLAGE OF EDUCATION.",
+    "constituency": "KRACHI EAST",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Oti",
+    "polling_station": "Dambai College of Education",
+    "constituency": "KRACHI EAST",
+    "count": "2",
+    "positions": [
+      "Nasara Coordinator",
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Oti",
+    "polling_station": "JASIKAN COLLAGE OF EDUCATION",
+    "constituency": "BUEM",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Oti",
+    "polling_station": "Jasikan College of Education",
+    "constituency": "BUEM",
+    "count": "2",
+    "positions": [
+      "Nasara Coordinator",
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Oti",
+    "polling_station": "KRACHI MIDWIFREY",
+    "constituency": "KRACHI WEST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Oti",
+    "polling_station": "KRACHI NMTC",
+    "constituency": "KRACHI EAST",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Oti",
+    "polling_station": "KRACHI NURSING AND MIDWIFERY TRAINING COLLAGE",
+    "constituency": "KRACHI WEST",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Oti",
+    "polling_station": null,
+    "constituency": null,
+    "count": "2",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "BOLE NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "constituency": "BOLE-BAMBOI",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "BOLE NURSING AND WIDWIFERY TRAINING COLLEGE",
+    "constituency": "BOLE-BAMBOI",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "Bole Nursing and Midwifery Training College",
+    "constituency": "BOLE-BAMBOI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "Bole Nursing and Midwifery Training College",
+    "constituency": "Bole-Bamboi",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "DAMONGO AGRICULTURAL COLLEGE",
+    "constituency": "DAMONGO",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "DAMONGO NURSING TRAINING COLLEGE",
+    "constituency": "DAMONGO",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "Damogo Agricultural College",
+    "constituency": "DAMONGO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "Damogo Agricultural College",
+    "constituency": "Damongo",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "Damongo Nursing Training College - Damongo",
+    "constituency": "DAMONGO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "Damongo Nursing Training College - Damongo",
+    "constituency": "Damongo",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "HOME SCIENCE CENTRE  2",
+    "constituency": "BOLE-BAMBOI",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "KPEMBE NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "constituency": "SALAGA SOUTH",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "Kpembe Nursing and Midwifery Training College",
+    "constituency": "SALAGA SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "Kpembe Nursing and Midwifery Training College",
+    "constituency": "Salaga South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "SAVANNAH COLLEGE OF EDUCATION",
+    "constituency": "DABOYA/MANKARIGU",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "SAVANNAH COLLEGE OF EDUCATION",
+    "constituency": "Daboya / Mankarigu",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "Savannah College of Education - Daboya",
+    "constituency": "DABOYA/MANKARIGU",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "Savannah College of Education - Daboya",
+    "constituency": "Daboya / Mankarigu",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "UDS DABOYA",
+    "constituency": "DABOYA/MANKARIGU",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "UNIVERSITY FOR DEVELOPMENT STUDIES- DABOYA",
+    "constituency": "Daboya / Mankarigu",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "University for Development Studies-Daboya",
+    "constituency": "DABOYA/MANKARIGU",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "University for Development Studies-Daboya",
+    "constituency": "Daboya / Mankarigu",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "WEST END UNIVERSITY COLLEGE",
+    "constituency": "BOLE-BAMBOI",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "West End University College",
+    "constituency": "BOLE-BAMBOI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": "West End University College",
+    "constituency": "Bole-Bamboi",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Savannah",
+    "polling_station": null,
+    "constituency": "BOLE-BAMBOI",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": " University of Technology and Applied Sciences",
+    "constituency": "NAVRONGO CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "BAWKU PNTC",
+    "constituency": "BAWKU CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "BOLGA TECHNICAL UNIVERSITY",
+    "constituency": "BOLGATANGA CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "BOLGATANGA MIDWIFERY",
+    "constituency": "BOLGATANGA CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "BOLGATANGA NURSING TRAINING COLLEGE",
+    "constituency": "BOLGATANGA CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Bolgatanga NTC",
+    "constituency": "BOLGATANGA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Bolgatanga NTC",
+    "constituency": "Bolgatanga Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Bolgatanga Technical University",
+    "constituency": "BOLGATANGA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Bolgatanga Technical University",
+    "constituency": "Bolgatanga Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "C. K. Tedam University of Technology and Applied Sciences",
+    "constituency": "NAVRONGO CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "COMMUNITY HEALTH NURSING TRAINING COLLEGE NAVRONGO",
+    "constituency": "NAVRONGO CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Community Health Nursing Training College Navrongo",
+    "constituency": "NAVRONGO CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Community Health Nursing Training College Navrongo",
+    "constituency": "Navrongo Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "FAITH INSTITUTE OF JOURNALISM",
+    "constituency": "BOLGATANGA CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "GBEWAA COLLEGE",
+    "constituency": "PUSIGA",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "GBEWAA COLLEGE OF EDUCATION",
+    "constituency": "PUSIGA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Gbewaa College of Education",
+    "constituency": "PUSIGA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Gbewaa College of Education",
+    "constituency": "Pusiga",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "MILER INSTITUTE",
+    "constituency": "BOLGATANGA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "MILLAR INSTITUTE",
+    "constituency": "BOLGATANGA CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Midwifery Training College Bolgatanga",
+    "constituency": "BOLGATANGA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Midwifery Training College Bolgatanga",
+    "constituency": "Bolgatanga Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "NAVRONGO COMMUNIYT DEVELOPMENT",
+    "constituency": "NAVRONGO CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "PRESBYTERIAN NMTC",
+    "constituency": "BAWKU CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Presbyterian NMTC",
+    "constituency": "BAWKU CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Presbyterian NMTC",
+    "constituency": "Bawku Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "REGENTROFEN UNIVERSITY COLLEGE",
+    "constituency": "BONGO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Regentropfen  UNIVERSITY",
+    "constituency": "TALENSI",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Regentropfen University College",
+    "constituency": "BONGO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Regentropfen University College",
+    "constituency": "Bongo",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "ST. JOHN BOSCO COLLEGE OF EDUCATION",
+    "constituency": "NAVRONGO CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "St John Bosco College of Education Navrongo",
+    "constituency": "NAVRONGO CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "St John Bosco College of Education Navrongo",
+    "constituency": "Navrongo Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "TESCON REGIONAL CORDINATOR",
+    "constituency": "TEMPANE",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "University of Technology and Applied Sciences",
+    "constituency": "NAVRONGO CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "University of Technology and Applied Sciences",
+    "constituency": "Navrongo Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "ZUARUNGU Nursing & Midwifery Training College",
+    "constituency": "BOLGA EAST",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Zuarungu NMTC",
+    "constituency": "BOLGA EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Zuarungu NMTC",
+    "constituency": "Bolga East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "ASWAJ COLLEGE OF EDUCATION",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Asaj College of Education",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Aswaj College of Education",
+    "constituency": "Wa Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Community health nursing training college-Jirapa",
+    "constituency": "JIRAPA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Community health nursing training college-Jirapa",
+    "constituency": "Jirapa",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "DHLTU -WA",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "DHLTU -WA",
+    "constituency": "Wa Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "DR HILLIA LIMAN TECH UNV.",
+    "constituency": "WA CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "JIRAPA COMMUNITY NURSING TRAINING COLLEGE",
+    "constituency": "JIRAPA",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "JIRAPA MIDWIFERY AND NURSING TRAINING COLLEGE",
+    "constituency": "JIRAPA",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "JIRAPA RGN",
+    "constituency": "JIRAPA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Jahan college of Education Wa",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Jahan college of Education Wa",
+    "constituency": "Wa Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Jirapa Nursing Training College",
+    "constituency": "JIRAPA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Jirapa Nursing Training College",
+    "constituency": "Jirapa",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Jirapa midwifery",
+    "constituency": "JIRAPA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Jirapa midwifery",
+    "constituency": "Jirapa",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "LAWRA NURSING TRAINING COLLEGE",
+    "constituency": "LAWRA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "MACOY COLLEGE OF EDUCATION",
+    "constituency": "NADOWLI/KALEO",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "MACOY COLLEGE OF EDUCATION",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "McCoy college of education",
+    "constituency": "NADOWLI/KALEO",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "McCoy college of education",
+    "constituency": "Nadowli/Kaleo",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "N.J.A COLLEGE OF EDUCATION",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "NANDOM MIDWIFERY",
+    "constituency": "NANDOM",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "NANDOM MIDWIFERY AND NURSING TRAINING COLLEGE",
+    "constituency": "NANDOM",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "NJA COLLEGE OF EDUCATION",
+    "constituency": "WA EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Nandom nursing and midwifery training college",
+    "constituency": "NANDOM",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Nandom nursing and midwifery training college",
+    "constituency": "Nandom",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Nursing Training College, Lawra",
+    "constituency": "LAWRA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Nursing Training College, Lawra",
+    "constituency": "Lawra",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Nursing and Midwifery Training College, Tumu",
+    "constituency": "SISSALA EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Nursing and Midwifery Training College, Tumu",
+    "constituency": "Sissala East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Nursing training college, Wa",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Nursing training college, Wa",
+    "constituency": "Wa Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "REGIONAL TESCON CORDINATOR",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "S.D DOMBO UBIDS",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "TUMU COLLEGE OF EDU.",
+    "constituency": "SISSALA EAST",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "TUMU MIDWIFERY",
+    "constituency": "SISSALA EAST",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Tumu College of Education",
+    "constituency": "SISSALA EAST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Tumu College of Education",
+    "constituency": "Sissala East",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "UBIDS",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "UBIDS",
+    "constituency": "WA EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "UBIDS",
+    "constituency": "Wa Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "WA NTC",
+    "constituency": "WA CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "AKATSI COLLEGE OF EDUCATION",
+    "constituency": "AKATSI SOUTH",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "AKATSI COLLEGE OF EDUCATION",
+    "constituency": "KETU NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "AKATSI COLLEGE OF EDUCATION",
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Akatsi College of Education",
+    "constituency": "AKATSI SOUTH",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Akatsi College of Education",
+    "constituency": "Akatsi South",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "E.P COLLEGE OF EDUCATION, AMENDZOFE",
+    "constituency": "HO WEST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "EP College of Education, Amedzofe",
+    "constituency": "HO WEST",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "EP College of Education, Amedzofe",
+    "constituency": "Ho West",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "EVANGELICAL PRESBYTARIAN UNIVERSITY",
+    "constituency": "HO CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Evangelical Presbyterian University",
+    "constituency": "HO CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Evangelical Presbyterian University",
+    "constituency": "Ho Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "GHANA TECHNOLOGY UNIVERSITY COLLEGE, HO",
+    "constituency": "HO CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Ghana Communication Technology University",
+    "constituency": "HO CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Ghana Communication Technology University",
+    "constituency": "Ho Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "HO NURSING TRAINING",
+    "constituency": "HO CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "HO TECHNICAL UNIVERSITY",
+    "constituency": "HO CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "HOHOE NURSING AND MIDWIFERY",
+    "constituency": "HOHOE",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "HOLY-SPIRIT COLLEGE OF EDUCATION",
+    "constituency": "HO CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Ho Nursing Training College",
+    "constituency": "HO CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Ho Nursing Training College",
+    "constituency": "Ho Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Ho Technical University",
+    "constituency": "HO CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Ho Technical University",
+    "constituency": "Ho Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Hohoe, Nursing and Midwifery Training School",
+    "constituency": "HOHOE",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Hohoe, Nursing and Midwifery Training School",
+    "constituency": "Hohoe",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Holy Spirit College of Education",
+    "constituency": "HO CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Holy Spirit College of Education",
+    "constituency": "Ho Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "KETA NURSING AND WIDWIFERY COLLEGE",
+    "constituency": "KETU NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Keta Nursing and Midwifery College",
+    "constituency": "KETA",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "OHAWU AGRICULTURE COLLEGE",
+    "constituency": "KETU NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Ohawu Agriculture College",
+    "constituency": "Ketu North",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "PEKI COLLEGE OF EDUCATHION",
+    "constituency": "SOUTH DAYI",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "PEKI COLLEGE OF EDUCATION",
+    "constituency": "KETU NORTH",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Peki College of Education",
+    "constituency": "SOUTH DAYI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Peki College of Education",
+    "constituency": "South Dayi",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "SCHOOL OF HYGIENE",
+    "constituency": "HO CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "ST TERESA COLLEGE OF EDUCATION",
+    "constituency": "ADENTAN",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "ST. FRANCIS COLLEGE OF EDUCATION",
+    "constituency": "HOHOE",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "St' Francis College of Education",
+    "constituency": "HOHOE",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "St' Francis College of Education",
+    "constituency": "Hohoe",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "St' Teresa's College of Education",
+    "constituency": "HOHOE",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "St' Teresa's College of Education",
+    "constituency": "Hohoe",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "UNIVERSITY OF HEALTH & ALLIED SCIENCE,HO",
+    "constituency": "HO CENTRAL",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "UNIVERSITY OF HEALTH & ALLIED SCIENCE-HOHOE",
+    "constituency": "HOHOE",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "UNIVERSITY OF HEALTH AND ALLIED SCIENCES",
+    "constituency": "HOHOE",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "University of Health and Allied Science, Ho",
+    "constituency": "HO CENTRAL",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "University of Health and Allied Science, Ho",
+    "constituency": "Ho Central",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "University of Health and Allied Science, Hohoe",
+    "constituency": "HOHOE",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "University of Health and Allied Science, Hohoe",
+    "constituency": "Hohoe",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": null,
+    "constituency": null,
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ASANKRAGWA NMTC",
+    "constituency": "AMENFI CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ASANKRAGWA NMTC",
+    "constituency": "SEKONDI",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ASANTA",
+    "constituency": "TAKORADI",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ASANTA NMTC",
+    "constituency": "AMENFI CENTRAL",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Asanco NMTC",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Asankragwa NMTC",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Asankrangwa Nursing and Midwifery Training College",
+    "constituency": "AMENFI WEST",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Asanta NMTC",
+    "constituency": "ELLEMBELE",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Asanta SDA Nursing and Midwifery Training College",
+    "constituency": "ELLEMBELE",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ESIAMA NMTC",
+    "constituency": "ELLEMBELE",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ESIAMA NMTC",
+    "constituency": "ESSIKADU-KETAN",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Esiama NMTC",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Essiama Nursing and Midwifery Training College",
+    "constituency": "ELLEMBELE",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "FUTURE ACADEMY (NEAR SDA CHURCH) ADAGYA",
+    "constituency": "SEKONDI",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "GCTU",
+    "constituency": "PRESTEA HUNI-VALLEY",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "GCTU TAKORADI",
+    "constituency": "SHAMA",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "GIMPA",
+    "constituency": "PRESTEA HUNI-VALLEY",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "GIMPA TAKORADI1",
+    "constituency": "AOWIN",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Ghana Communication Technology University, Takoradi",
+    "constituency": "EFFIA",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "HOLY CHILD",
+    "constituency": "TAKORADI",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Holy Child",
+    "constituency": "SEKONDI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Holy Child College of Education",
+    "constituency": "SEKONDI",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "KNUST IDL",
+    "constituency": "ESSIKADU-KETAN",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "KNUST IDL",
+    "constituency": "TARKWA NSUAEM",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "NMTC Tarkwa",
+    "constituency": "TARKWA NSUAEM",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "NTMC TARKWA",
+    "constituency": "TARKWA NSUAEM",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "REGIONAL TESCON CORDINATOR",
+    "constituency": "EFFIA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "SEKONDI NMTC",
+    "constituency": "SEKONDI",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Sekondi NMTC",
+    "constituency": "SEKONDI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "T'POLY MAIN GATE EFFIAKUMA 2",
+    "constituency": "EFFIA",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "TAKORADI TECHNICAL UNIVERSITY BU",
+    "constituency": "SEKONDI",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "TAKORADI TECHNICAL UNIVERSITY BU",
+    "constituency": "WASSA EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "TAKORADI TECHNICAL UNIVERSITY MAIN",
+    "constituency": "TAKORADI",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Takoradi Technical University",
+    "constituency": "EFFIA",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Takoradi Technical University (BUSINESS CAMPUS)",
+    "constituency": "ESSIKADU-KETAN",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Takoradi Technical University BU",
+    "constituency": "TAKORADI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Takoradi Technical University Main",
+    "constituency": "TAKORADI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Tarkwa Nursing and Midwifery Training College",
+    "constituency": "TARKWA NSUAEM",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "UMAT",
+    "constituency": "SEKONDI",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "UMAT SRID",
+    "constituency": "TAKORADI",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "UMAT SRID",
+    "constituency": "TARKWA NSUAEM",
+    "count": "2",
+    "positions": [
+      "Nasara Coordinator",
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "UMAT. TARKWA",
+    "constituency": "TARKWA NSUAEM",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Western Regional TESCON",
+    "constituency": "TAKORADI",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "⁠UNIVERSITY OF MINES AND TECHNOLOGY-SRID",
+    "constituency": "ESSIKADU-KETAN",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "⁠University of Mines and Technology",
+    "constituency": "TARKWA NSUAEM",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "ASAFO COLLEGE OF HEALTH",
+    "constituency": "SEFWI WIAWSO",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "BIA LAMPLIGHTER COLLEGE OF EDUCATION",
+    "constituency": "BIA EAST",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "BIA LAMPLIGHTER COLLEGE OF EDUCATION",
+    "constituency": "BIA WEST",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "BIBIANI COLLEGE OF HEALTH SCIENCE",
+    "constituency": "BIBIANI-ANHWIASO-BEKWAI",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "BIBIANI COLLEGE OF HEALTH SCIENCES",
+    "constituency": "BIBIANI-ANHWIASO-BEKWAI",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Bia Lamplighter College of Education",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Bia Lamplighter College of Education",
+    "constituency": "Bia West",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Bibiani College of Health Sciences",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Bibiani College of Health Sciences",
+    "constituency": "Bibiani-Anhwiaso-Bekwai",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "COLLEGE OF HEALTH SEFWI ASAFO",
+    "constituency": "SEFWI AKONTOMBRA",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "College of Health Sefwi Asafo",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "College of Health Sefwi Asafo",
+    "constituency": "Sefwi Wiawso",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "ENCHI COLLEGE OF EDUCATION",
+    "constituency": "AOWIN",
+    "count": "1",
+    "positions": [
+      "Patron"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "ENCHI COLLEGE OF EDUCATION",
+    "constituency": "BODI",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Enchi College of Education",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Enchi College of Education",
+    "constituency": "Aowin",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Sefwi Wiawso Nursing and Midwifery College",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Sefwi Wiawso Nursing and Midwifery College",
+    "constituency": "Sefwi Wiawso",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "TESCON CORDINATOR",
+    "constituency": "BIBIANI-ANHWIASO-BEKWAI",
+    "count": "1",
+    "positions": [
+      "Regional TESCON Coordinator"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "WIAWSO COLLEGE OF EDUCATION",
+    "constituency": "SEFWI WIAWSO",
+    "count": "1",
+    "positions": [
+      "President"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "WIAWSO NURSING AND MIDWIFERY COLLEGE",
+    "constituency": "SEFWI WIAWSO",
+    "count": "2",
+    "positions": [
+      "Patron",
+      "President"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Wiawso College of Education",
+    "constituency": "",
+    "count": "1",
+    "positions": [
+      "Nasara Coordinator"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Wiawso College of Education",
+    "constituency": "Sefwi Wiawso",
+    "count": "1",
+    "positions": [
+      "WOCOM"
+    ]
+  }
+]

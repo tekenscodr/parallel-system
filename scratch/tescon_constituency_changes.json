@@ -1,0 +1,4288 @@
+[
+  {
+    "region": "Greater Accra",
+    "polling_station": "Zenith University College",
+    "v2_institution": "KINGS UNIVERSITY COLLEGE",
+    "current_constituency": "La Dadekotopon",
+    "target_constituency": "BORTIANOR-NGLESHIE AMANFRO",
+    "count": 1,
+    "ids": [
+      16141
+    ],
+    "sampleNames": [
+      "MICHAEL JASON AWAH"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Data Link Institute of Business and Technology",
+    "v2_institution": "MAHAVEER INSTITUTE OF SCIENCE AND TECHNOLOGY (M.I.S.T)",
+    "current_constituency": "Tema Central",
+    "target_constituency": "ADENTAN",
+    "count": 1,
+    "ids": [
+      128977
+    ],
+    "sampleNames": [
+      "MARVIN WAYO AKROBETO"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Wisconsin International University College",
+    "v2_institution": "KINGS UNIVERSITY COLLEGE",
+    "current_constituency": "Madina",
+    "target_constituency": "BORTIANOR-NGLESHIE AMANFRO",
+    "count": 1,
+    "ids": [
+      237784
+    ],
+    "sampleNames": [
+      "MAURICE KWABENA AMOFAH"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "TAKORADI TECHNICAL UNIVERSITY MAIN",
+    "v2_institution": "Takoradi Technical University",
+    "current_constituency": "TAKORADI",
+    "target_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      259845
+    ],
+    "sampleNames": [
+      "SOLOMON MAWUNYEGA ADJORNOR"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ESIAMA NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "current_constituency": "ESSIKADU-KETAN",
+    "target_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      259854
+    ],
+    "sampleNames": [
+      "AGARTHA BEKOE"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "TAMALE NMTC",
+    "v2_institution": "Tamale Nurses Training College",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "TAMALE SOUTH",
+    "count": 1,
+    "ids": [
+      259868
+    ],
+    "sampleNames": [
+      "ABDUL MUHSON HAMDU"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "ANIMAL HEALTH AND PRODUCTION COLLEGE, PONG-TAMALE",
+    "v2_institution": "Animal Health and Production College",
+    "current_constituency": "TAMALE SOUTH",
+    "target_constituency": "SAVELUGU",
+    "count": 1,
+    "ids": [
+      259870
+    ],
+    "sampleNames": [
+      "MOHAMMED HARDI ABUKARI"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "University for Development Studies- Tamale Campus",
+    "v2_institution": "Yendi College of Health Sciences",
+    "current_constituency": "ZABZUGU",
+    "target_constituency": "YENDI",
+    "count": 1,
+    "ids": [
+      259874
+    ],
+    "sampleNames": [
+      "ABUDU ABDULAI"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS-TAMALE CAMPUS",
+    "v2_institution": "University for Development Studies- Tamale Campus",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "TAMALE SOUTH",
+    "count": 1,
+    "ids": [
+      259881
+    ],
+    "sampleNames": [
+      "MOHAMMED RAMADAN ADAM"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "TAMALE TECHNICAL INSTITUTE",
+    "v2_institution": "Tamale Technical University",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      259884
+    ],
+    "sampleNames": [
+      "MUTAWAKILU SUMANI"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS-NYANKPALA CAMPUS",
+    "v2_institution": "University for Development Studies- Nyankpala Campus",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "TOLON",
+    "count": 1,
+    "ids": [
+      259885
+    ],
+    "sampleNames": [
+      "LIYELMORL EBENEZER KICHASU"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "COMMUNITY HEALTH NURSES TRAINING COLLEGE, WAMALE",
+    "v2_institution": "Community Health Nurses College- Nkachina",
+    "current_constituency": "",
+    "target_constituency": "KPANDAI",
+    "count": 1,
+    "ids": [
+      259886
+    ],
+    "sampleNames": [
+      "HUDU YUSSIF"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "TAMALE COLLEGE OF EDUCATION",
+    "v2_institution": "Tamale College of Education",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      259892
+    ],
+    "sampleNames": [
+      "MOHAMMED-KAMALUDEEN MOHAMMED"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "SCHOOL OF HYGIENE ",
+    "v2_institution": "School of Hygiene- Tamale",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      259897
+    ],
+    "sampleNames": [
+      "NTIYABABE AMOS BIMOR"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "COMMUNITY HELTH NURSES TRAINING COLLEGE, TAMALE",
+    "v2_institution": "Community Health Nurses College- Tamale",
+    "current_constituency": "TAMALE SOUTH",
+    "target_constituency": "TAMALE CENTRAL",
+    "count": 1,
+    "ids": [
+      259899
+    ],
+    "sampleNames": [
+      "ABDULAI NASARA MOHAMMED"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "current_constituency": "KWAHU EAST",
+    "target_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      259903
+    ],
+    "sampleNames": [
+      "FRANK ADU"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "COLLEGE OF HEALTH SEFWI ASAFO",
+    "v2_institution": "ASAFO COLLEGE OF HEALTH",
+    "current_constituency": "SEFWI AKONTOMBRA",
+    "target_constituency": "SEFWI WIAWSO",
+    "count": 1,
+    "ids": [
+      259904
+    ],
+    "sampleNames": [
+      "TWENE MENSAH OHENE"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "HOLY FAMILY NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "v2_institution": "Holy Family Nursing and Midwifery Training College",
+    "current_constituency": "NKAWKAW",
+    "target_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      259914
+    ],
+    "sampleNames": [
+      "Agyapong Olivia"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "current_constituency": "KWAHU EAST",
+    "target_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      259920
+    ],
+    "sampleNames": [
+      "KOJOOSEI FRIMPONG"
+    ]
+  },
+  {
+    "region": "CENTRAL",
+    "polling_station": "PNTC -ANKAFUL",
+    "v2_institution": "PSYCHIATRIC NURSING TRAINING COLLEGE",
+    "current_constituency": "CAPE COAST NORTH",
+    "target_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      259925
+    ],
+    "sampleNames": [
+      "MARIAMA MAMMUD"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Islamic University College Ghana",
+    "v2_institution": "ST.TERESA'S COLLEGE OF EDUCATION",
+    "current_constituency": "Adentan",
+    "target_constituency": "HOHOE",
+    "count": 1,
+    "ids": [
+      259930
+    ],
+    "sampleNames": [
+      "MUSTAPHA MOHAMMED"
+    ]
+  },
+  {
+    "region": "CENTRAL",
+    "polling_station": " PEREZ UNIVERSITY",
+    "v2_institution": "PEREZ UNIVERSITY",
+    "current_constituency": "EFFUTU",
+    "target_constituency": "GOMOA CENTRAL",
+    "count": 1,
+    "ids": [
+      259937
+    ],
+    "sampleNames": [
+      "BISMARK GOLDMAN ABONGO"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "KAAF UNIVERSITY",
+    "v2_institution": "PEREZ UNIVERSITY",
+    "current_constituency": "GOMOA EAST",
+    "target_constituency": "GOMOA CENTRAL",
+    "count": 1,
+    "ids": [
+      259938
+    ],
+    "sampleNames": [
+      "SIRINA NAA KOSHIE LAMPTEY"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KWADASO AGRICULTURAL COLLEGE",
+    "v2_institution": "KWADASO AGRICULTURAL COLLEGE",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      260006
+    ],
+    "sampleNames": [
+      "Patience Kyei Saah"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KWADASO S.D.A NURSING AND MIDWIFERY",
+    "v2_institution": "KWADASO S.D.A NURSING AND MIDWIFERY",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      260007
+    ],
+    "sampleNames": [
+      "Daniel Danzy Antwi  Krah"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AAMUSTED, KUMASI",
+    "v2_institution": "AAMUSTED, KUMASI",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      260008
+    ],
+    "sampleNames": [
+      "Yaw Akoto Baffour Osei"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "TAKORADI TECHNICAL UNIVERSITY BU",
+    "v2_institution": "Takoradi Technical University",
+    "current_constituency": "WASSA EAST",
+    "target_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      260009
+    ],
+    "sampleNames": [
+      "FLORENCE AGYABENG"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "MACOY COLLEGE OF EDUCATION",
+    "v2_institution": "MACOY COLLEGE OF EDUCATION",
+    "current_constituency": "WA CENTRAL",
+    "target_constituency": "NADOWLI/KALEO",
+    "count": 1,
+    "ids": [
+      260012
+    ],
+    "sampleNames": [
+      "JOHN BONSUONUBA JATOE"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "ASWAJ COLLEGE OF EDUCATION",
+    "v2_institution": "ASWAJ COLLEGE OF EDUCATION",
+    "current_constituency": "WA CENTRAL",
+    "target_constituency": "WA EAST",
+    "count": 1,
+    "ids": [
+      260059
+    ],
+    "sampleNames": [
+      "AMINAT SEIDU"
+    ]
+  },
+  {
+    "region": "CENTRAL",
+    "polling_station": "UNIVERSITY OF CAPE COAST",
+    "v2_institution": "UNIVERSITY OF CAPE COAST",
+    "current_constituency": "AWUTU SENYA EAST",
+    "target_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      260090
+    ],
+    "sampleNames": [
+      "ABDUL FATAWU KASSIM"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "AWISA EAST ASENE",
+    "v2_institution": "UNIVERSITY OF EDUCATION, AJUMAKO",
+    "current_constituency": "ASENE/AKROSO/MANSO",
+    "target_constituency": "AJUMAKO ENYAN ESIAM",
+    "count": 1,
+    "ids": [
+      260107
+    ],
+    "sampleNames": [
+      "RICHARD TAKYI"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "KOMENDA TRAINING COLLEGE",
+    "v2_institution": "KOMENDA TRAINING COLLEGE",
+    "current_constituency": "KOMENDA EDINA EGUAFO ABREM",
+    "target_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      260116
+    ],
+    "sampleNames": [
+      "Prince Mark K Eghan"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "ENCHI COLLEGE OF EDUCATION",
+    "v2_institution": "ENCHI COLLEGE OF EDUCATION",
+    "current_constituency": "BODI",
+    "target_constituency": "AOWIN",
+    "count": 1,
+    "ids": [
+      260124
+    ],
+    "sampleNames": [
+      "FOSTER TETTEH OSRAH"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "DNMTC, DUNKWA",
+    "v2_institution": "KOMENDA TRAINING COLLEGE",
+    "current_constituency": "UPPER DENKYIRA EAST",
+    "target_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      260128
+    ],
+    "sampleNames": [
+      "CALEB KWEKU ACQUAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "CHRIST APOSTOLIC UNIVERSITY COLLEGE",
+    "v2_institution": "CHRIST APOSTOLIC UNIVERSITY COLLEGE",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      260134
+    ],
+    "sampleNames": [
+      "FREDERICK KWADWO NKANSAH"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "COLLEGE OF HEALTH AND WELL-BEING, KINTAMPO",
+    "v2_institution": "UNIVERSITY OF GHANA DISTANCE EDUCATION (UGDE)",
+    "current_constituency": "KINTAMPO NORTH",
+    "target_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      260139
+    ],
+    "sampleNames": [
+      "GORDON AKUFFO ASARE"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UEW, WINNEBA MAIN",
+    "v2_institution": "UNIVERSITY OF EDUCATION, WINNEBA",
+    "current_constituency": "",
+    "target_constituency": "EFFUTU",
+    "count": 1,
+    "ids": [
+      260149
+    ],
+    "sampleNames": [
+      "JUDITH APPIAH"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "UBIDS",
+    "v2_institution": "S.D DOMBO UBIDS",
+    "current_constituency": "WA EAST",
+    "target_constituency": "WA CENTRAL",
+    "count": 1,
+    "ids": [
+      260183
+    ],
+    "sampleNames": [
+      "RAZAK TAKORA ISSAH"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "E P COLLEGE OF EDUCATION",
+    "v2_institution": "EP College of Education",
+    "current_constituency": "",
+    "target_constituency": "BIMBILLA",
+    "count": 1,
+    "ids": [
+      260185
+    ],
+    "sampleNames": [
+      "WISDOM NJONAM GNALIR"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Baptist University",
+    "v2_institution": "GHANA BAPTIST UNIVERSITY COLLEGE",
+    "current_constituency": "Asokwa",
+    "target_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      262055
+    ],
+    "sampleNames": [
+      "ANN OSEI TOKU"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Central University, Kumasi Campus",
+    "v2_institution": "CENTRAL UNIVERSITY- KUMASI CAMPUS",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "OFORIKROM",
+    "count": 1,
+    "ids": [
+      262056
+    ],
+    "sampleNames": [
+      "OPHELIA SAMAABA PREMPEH-KESSIE"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Christ Apostolic University College",
+    "v2_institution": "CHRIST APOSTOLIC UNIVERSITY COLLEGE",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      262057
+    ],
+    "sampleNames": [
+      "NARTEY BELINDA BADJO"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Christian Service University",
+    "v2_institution": "CHRISTIAN SERVICE UNIVERSITY COLLEGE",
+    "current_constituency": "Bantama",
+    "target_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      262058
+    ],
+    "sampleNames": [
+      "AMOAH VICTORIA"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "GCTU",
+    "v2_institution": "GHANA TELECOM UNIVERSITY COLLEGE",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      262062
+    ],
+    "sampleNames": [
+      "AWERE PATIENCE"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Ghana Institute of Languages",
+    "v2_institution": "GHANA INSTITUTE OF LANGUAGES",
+    "current_constituency": "Nhyiaeso",
+    "target_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      262065
+    ],
+    "sampleNames": [
+      "CONSTANCE KONADU SARPONG"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Kessben University College",
+    "v2_institution": "KESSBEN UNIVERSITY COLLEGE",
+    "current_constituency": "Kwabre East",
+    "target_constituency": "BOSOMTWE",
+    "count": 1,
+    "ids": [
+      262069
+    ],
+    "sampleNames": [
+      "AMA AKOMEA"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Kwadaso Agricultural College",
+    "v2_institution": "KWADASO AGRICULTURAL COLLEGE",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      262072
+    ],
+    "sampleNames": [
+      "DZAKPO JESSICA ADZO"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Multimedia Institute of Ghana (MIG)",
+    "v2_institution": "MULTIMEDIA INSTITUTE OF JOURNALISM",
+    "current_constituency": "Subin",
+    "target_constituency": "OFORIKROM",
+    "count": 1,
+    "ids": [
+      262073
+    ],
+    "sampleNames": [
+      "DORCAS OFORI"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NMTC, Kumasi",
+    "v2_institution": "KUMASI NMTC",
+    "current_constituency": "Bantama",
+    "target_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      262074
+    ],
+    "sampleNames": [
+      "THELMA AFIA ADUTWUMWAA"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Neumann College Department of Nursing",
+    "v2_institution": "TEPA NURSING TRAINING COLLEGE",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "AHAFO ANO NORTH",
+    "count": 1,
+    "ids": [
+      262075
+    ],
+    "sampleNames": [
+      "CHRISTABEL MENSAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Nursing and Midwifery Training College Fomena Adansi",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "Fomena",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      262076
+    ],
+    "sampleNames": [
+      "OWUSU SANDRA"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Otec School of Journalism and Communication Studies",
+    "v2_institution": "OTEC SCHOOL OF JOURNALISM",
+    "current_constituency": "KWABRE EAST",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      262078
+    ],
+    "sampleNames": [
+      "AKORFUL NKANSAH JOYCELYN"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Premier Nursing",
+    "v2_institution": "PREMIER NURSING TRAINING COLLEGE",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "MANHYIA NORTH",
+    "count": 1,
+    "ids": [
+      262079
+    ],
+    "sampleNames": [
+      "PRISCILLA OSEI ASIBEY"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Presbyterian University, Ghana. Asante Akyem Campus",
+    "v2_institution": "UNIVERSITY OF GHANA- KUMASI CAMPUS",
+    "current_constituency": "Asante Akim South",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      262081
+    ],
+    "sampleNames": [
+      "CHRISTABEL KUMESI"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Royal Ann College of Health",
+    "v2_institution": "ROYAL ANN HEALTH COLLEGE",
+    "current_constituency": "Atwima Nwabiagya North",
+    "target_constituency": "ATWIMA NWABIAGYA SOUTH",
+    "count": 1,
+    "ids": [
+      262082
+    ],
+    "sampleNames": [
+      "ANNABELLA OPOKU AGYEMANG"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Royal Nursing College",
+    "v2_institution": "NEUMAN COLLEGE OF NURSING",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "OLD TAFO",
+    "count": 1,
+    "ids": [
+      262083
+    ],
+    "sampleNames": [
+      "LETICIA AWUSAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SDA NMTC Asamang",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "Afigya Kwabre South",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      262085
+    ],
+    "sampleNames": [
+      "GEORGINA ASARE"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SDA NMTC, Kwadaso",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      262086
+    ],
+    "sampleNames": [
+      "VICTORIA YEBOAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Samlee NMTC",
+    "v2_institution": "SAMLEE NURSING AND MIDWIFERY",
+    "current_constituency": "Bantama",
+    "target_constituency": "ATWIMA KWANWOMA",
+    "count": 1,
+    "ids": [
+      262087
+    ],
+    "sampleNames": [
+      "CYNTHIA ABBEY"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St. Louis College of Education",
+    "v2_institution": "ST LOUIS COLLEGE OF EDUCATION",
+    "current_constituency": "Suame",
+    "target_constituency": "MANHYIA SOUTH",
+    "count": 1,
+    "ids": [
+      262090
+    ],
+    "sampleNames": [
+      "PERPETUAL OWUSU ANSAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St. Michael's Catholic Nursing and Midwifery Training College",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "Bosomtwe",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      262091
+    ],
+    "sampleNames": [
+      "SARAH GYAPOMAA"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "USTED-Kumasi",
+    "v2_institution": "AAMUSTED, KUMASI",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      262095
+    ],
+    "sampleNames": [
+      "PRISCILLA BOAKYEWAAH MENSAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "University of Ghana, KSI Campus",
+    "v2_institution": "UNIVERSITY OF GHANA- KUMASI CAMPUS",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      262097
+    ],
+    "sampleNames": [
+      "ANIM KODUA OWUSUA APPIAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Wisconsin International University GH Kumasi",
+    "v2_institution": "UNIVERSITY OF GHANA- KUMASI CAMPUS",
+    "current_constituency": "Oforikrom",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      262100
+    ],
+    "sampleNames": [
+      "JENNIFER AKYAA FRIMPONG"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Withrow University",
+    "v2_institution": "WITHROW UNIVERSITY COLLEGE",
+    "current_constituency": "Kwadaso Municipal",
+    "target_constituency": "AFIGYA SEYERE EAST",
+    "count": 1,
+    "ids": [
+      262101
+    ],
+    "sampleNames": [
+      "EVELYN OWUSU NYANTAKYIWAA"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "Seikwa Nursing and Midwifery Training College",
+    "v2_institution": "Berekum Nursing and Midwifery Training College",
+    "current_constituency": "Tain",
+    "target_constituency": "BEREKUM EAST",
+    "count": 1,
+    "ids": [
+      262112
+    ],
+    "sampleNames": [
+      "PRAAH LAWRENCIA"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "St. Mary's Nursing and Midwifery Training College Drobo",
+    "v2_institution": "Berekum Nursing and Midwifery Training College",
+    "current_constituency": "Jaman South",
+    "target_constituency": "BEREKUM EAST",
+    "count": 1,
+    "ids": [
+      262114
+    ],
+    "sampleNames": [
+      "BOATENG IRENE AMPOFOWAA"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Assinman Nurses Training College",
+    "v2_institution": "ASSINMAN NURSING COLLEGE",
+    "current_constituency": "Assin South",
+    "target_constituency": "ASSIN CENTRAL",
+    "count": 1,
+    "ids": [
+      262119
+    ],
+    "sampleNames": [
+      "THERESAH O. AMISSAH"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Cape Coast Technical University",
+    "v2_institution": "CAPE  COAST TECHNICAL UNIVERSITY",
+    "current_constituency": "Cape Coast South",
+    "target_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      262122
+    ],
+    "sampleNames": [
+      "MIRIAM AMA OBESEBEA"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "KAAF University",
+    "v2_institution": "PEREZ UNIVERSITY",
+    "current_constituency": "Gomoa East",
+    "target_constituency": "GOMOA CENTRAL",
+    "count": 1,
+    "ids": [
+      262125
+    ],
+    "sampleNames": [
+      "ROSEMOND BORCHEY"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Komenda College of Education",
+    "v2_institution": "KOMENDA TRAINING COLLEGE",
+    "current_constituency": "Komenda Edina Eguafo Abrem",
+    "target_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      262126
+    ],
+    "sampleNames": [
+      "BROOKLYN SMITH"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "NMTC, Cape Coast",
+    "v2_institution": "CAPE COAST NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "current_constituency": "Cape Coast South",
+    "target_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      262127
+    ],
+    "sampleNames": [
+      "PRINCESS ADWOA AGYAPONG"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "PNTC Ankaful",
+    "v2_institution": "PSYCHIATRIC NURSING TRAINING COLLEGE",
+    "current_constituency": "Cape Coast North",
+    "target_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      262130
+    ],
+    "sampleNames": [
+      "NORA ABENA KWARTEMAA"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Perez University",
+    "v2_institution": "PEREZ UNIVERSITY",
+    "current_constituency": "Gomoa East",
+    "target_constituency": "GOMOA CENTRAL",
+    "count": 1,
+    "ids": [
+      262131
+    ],
+    "sampleNames": [
+      "EMMANUELLA E. MENSAH"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UEW, Ajumako",
+    "v2_institution": "UNIVERSITY OF EDUCATION, WINNEBA",
+    "current_constituency": "Ajumako Enyan Esiam",
+    "target_constituency": "EFFUTU",
+    "count": 1,
+    "ids": [
+      262132
+    ],
+    "sampleNames": [
+      "SARAH AMA BOATENG"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "University of Cape Coast",
+    "v2_institution": "UNIVERSITY OF CAPE COAST",
+    "current_constituency": "Cape Coast South",
+    "target_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      262134
+    ],
+    "sampleNames": [
+      "JESSICA ADDO"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Abetifi Presbyterian College of Education",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "current_constituency": "Kwahu East",
+    "target_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      262135
+    ],
+    "sampleNames": [
+      "JENNIFER AFRIYIE"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian University College Abetifi-Campus",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "current_constituency": "Kwahu East",
+    "target_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      262152
+    ],
+    "sampleNames": [
+      "JULIANA KYAKYEWAA SASU"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian Womens College of Education",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "current_constituency": "Akuapem South",
+    "target_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      262154
+    ],
+    "sampleNames": [
+      "LETICIA TETTEH"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "College of Nursing and Midwifery, Walewale",
+    "v2_institution": "COLLEGE OF NURSING AND MIDWIFERY - KUBORI",
+    "current_constituency": "Walewale",
+    "target_constituency": "YAGABA/ KUBORI",
+    "count": 1,
+    "ids": [
+      262160
+    ],
+    "sampleNames": [
+      "RISIKATU AZIZI"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Community Health Nurses Training College, Wamale",
+    "v2_institution": "Community Health Nurses College- Nkachina",
+    "current_constituency": "Tamale South",
+    "target_constituency": "KPANDAI",
+    "count": 1,
+    "ids": [
+      262168
+    ],
+    "sampleNames": [
+      "ADAM AYISHA"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "New Life College",
+    "v2_institution": "New Life College",
+    "current_constituency": "Tamale Central",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262172
+    ],
+    "sampleNames": [
+      "MOHAMMED FADILA"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "School of Hygience - Tamale",
+    "v2_institution": "School of Hygiene- Tamale",
+    "current_constituency": "Tamale Central",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262173
+    ],
+    "sampleNames": [
+      "ISSAKA SUWEIBATU"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale College of Education",
+    "v2_institution": "Tamale College of Education",
+    "current_constituency": "Tamale Central",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262175
+    ],
+    "sampleNames": [
+      "SA-EED MUHSINA"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale NMTC",
+    "v2_institution": "Tamale Nurses Training College",
+    "current_constituency": "Tamale Central",
+    "target_constituency": "TAMALE SOUTH",
+    "count": 1,
+    "ids": [
+      262176
+    ],
+    "sampleNames": [
+      "GLORIA RAKIA ISSAH"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale Technical Institute",
+    "v2_institution": "Tamale Technical University",
+    "current_constituency": "Tamale Central",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262177
+    ],
+    "sampleNames": [
+      "NURU SAMIRATU"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS - City Campus",
+    "v2_institution": "University for Development Studies- City Campus",
+    "current_constituency": "Tamale South",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262179
+    ],
+    "sampleNames": [
+      "NILIYEMI VIDA"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Regentropfen University College",
+    "v2_institution": "Regentropfen  UNIVERSITY",
+    "current_constituency": "Bongo",
+    "target_constituency": "TALENSI",
+    "count": 1,
+    "ids": [
+      262197
+    ],
+    "sampleNames": [
+      "HAMIDU UBAIDA"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Aswaj College of Education",
+    "v2_institution": "ASWAJ COLLEGE OF EDUCATION",
+    "current_constituency": "Wa Central",
+    "target_constituency": "WA EAST",
+    "count": 1,
+    "ids": [
+      262201
+    ],
+    "sampleNames": [
+      "DERY ERIN"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Jahan college of Education Wa",
+    "v2_institution": "MACOY COLLEGE OF EDUCATION",
+    "current_constituency": "Wa Central",
+    "target_constituency": "NADOWLI/KALEO",
+    "count": 1,
+    "ids": [
+      262204
+    ],
+    "sampleNames": [
+      "IBRAHIM FATI"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Nursing and Midwifery Training College, Tumu",
+    "v2_institution": "JIRAPA MIDWIFERY AND NURSING TRAINING COLLEGE",
+    "current_constituency": "Sissala East",
+    "target_constituency": "JIRAPA",
+    "count": 1,
+    "ids": [
+      262210
+    ],
+    "sampleNames": [
+      "DANIKUU MARY"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "EP College of Education, Amedzofe",
+    "v2_institution": "AKATSI COLLEGE OF EDUCATION",
+    "current_constituency": "Ho West",
+    "target_constituency": "AKATSI SOUTH",
+    "count": 1,
+    "ids": [
+      262215
+    ],
+    "sampleNames": [
+      "NIMOAR NJOBON VICENTIA"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Peki College of Education",
+    "v2_institution": "AKATSI COLLEGE OF EDUCATION",
+    "current_constituency": "South Dayi",
+    "target_constituency": "AKATSI SOUTH",
+    "count": 1,
+    "ids": [
+      262223
+    ],
+    "sampleNames": [
+      "AMPONSAH BETINA"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Christian Service University",
+    "v2_institution": "CHRISTIAN SERVICE UNIVERSITY COLLEGE",
+    "current_constituency": "BANTAMA",
+    "target_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      262249
+    ],
+    "sampleNames": [
+      "YUSSIF HAMZA MOHAMMED"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "GCTU",
+    "v2_institution": "GHANA TELECOM UNIVERSITY COLLEGE",
+    "current_constituency": "KWADASO",
+    "target_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      262252
+    ],
+    "sampleNames": [
+      "JASMINE FUSEINI"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Ghana Baptist University College Kumasi Amakom",
+    "v2_institution": "GHANA BAPTIST UNIVERSITY COLLEGE",
+    "current_constituency": "ASOKWA",
+    "target_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      262255
+    ],
+    "sampleNames": [
+      "ABUBAKAR FARID"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Ghana Institute of Languages",
+    "v2_institution": "GHANA INSTITUTE OF LANGUAGES",
+    "current_constituency": "NHYIAESO",
+    "target_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      262256
+    ],
+    "sampleNames": [
+      "DAUDA ALHASSAN"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Multimedia Institute of Ghana",
+    "v2_institution": "MULTIMEDIA INSTITUTE OF JOURNALISM",
+    "current_constituency": "SUBIN",
+    "target_constituency": "OFORIKROM",
+    "count": 1,
+    "ids": [
+      262263
+    ],
+    "sampleNames": [
+      "ABDUL RAZAK SULEMANA"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NMTC, Kumasi",
+    "v2_institution": "KUMASI NMTC",
+    "current_constituency": "BANTAMA",
+    "target_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      262264
+    ],
+    "sampleNames": [
+      "SALISU AYNAWAU"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Neumann College of Nursing",
+    "v2_institution": "NEUMAN COLLEGE OF NURSING",
+    "current_constituency": "KWADASO",
+    "target_constituency": "OLD TAFO",
+    "count": 1,
+    "ids": [
+      262265
+    ],
+    "sampleNames": [
+      "NAJAT ALAFIAVIELA MUMUNI"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Nursing and Midwifery Training College Fomena Adansi",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "FOMENA",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      262266
+    ],
+    "sampleNames": [
+      "OWUSU KWARTENG"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Otec School of Journalism",
+    "v2_institution": "OTEC SCHOOL OF JOURNALISM",
+    "current_constituency": "KWABRE EAST",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      262269
+    ],
+    "sampleNames": [
+      "TAMINU JIJIRI IBRAHIM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Presbyterian University, Ghana. Asante Akyem Campus",
+    "v2_institution": "UNIVERSITY OF GHANA- KUMASI CAMPUS",
+    "current_constituency": "ASANTE AKIM SOUTH",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      262271
+    ],
+    "sampleNames": [
+      "ADAM FAUZIATH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Royal Ann College of Health",
+    "v2_institution": "ROYAL ANN HEALTH COLLEGE",
+    "current_constituency": "ATWIMA NWABIAGYA NORTH",
+    "target_constituency": "ATWIMA NWABIAGYA SOUTH",
+    "count": 1,
+    "ids": [
+      262272
+    ],
+    "sampleNames": [
+      "IBRAHIM MOHAMMED"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Royal Nursing College",
+    "v2_institution": "NEUMAN COLLEGE OF NURSING",
+    "current_constituency": "KWADASO",
+    "target_constituency": "OLD TAFO",
+    "count": 1,
+    "ids": [
+      262273
+    ],
+    "sampleNames": [
+      "MOHAMMED ZUREYA"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "S.D.A Nursing and Midwifery Training College Asamang",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "Afigya Kwabre South",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      262275
+    ],
+    "sampleNames": [
+      "AISHA RAZAK"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SDA NMTC Kwadaso",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "KWADASO",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      262276
+    ],
+    "sampleNames": [
+      "ASABRE OBENG ALBERT"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Samlee NMTC",
+    "v2_institution": "SAMLEE NURSING AND MIDWIFERY",
+    "current_constituency": "BANTAMA",
+    "target_constituency": "ATWIMA KWANWOMA",
+    "count": 1,
+    "ids": [
+      262277
+    ],
+    "sampleNames": [
+      "IBRAHIM ELIZABETH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St Louis College of Education",
+    "v2_institution": "ST LOUIS COLLEGE OF EDUCATION",
+    "current_constituency": "SUAME",
+    "target_constituency": "MANHYIA SOUTH",
+    "count": 1,
+    "ids": [
+      262280
+    ],
+    "sampleNames": [
+      "YUSSIF FATI"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "St Micheal's Catholic Nursing and Midwifery Training College",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "BOSOMTWE",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      262281
+    ],
+    "sampleNames": [
+      "FIRDAUS YUSSIF"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Tepa Nursing and Midwifery Training College",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "Ahafo Ano North",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      262284
+    ],
+    "sampleNames": [
+      "RASHIDATU ISSAHAKU"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "University of Ghana Kumasi City Campus",
+    "v2_institution": "UNIVERSITY OF GHANA- KUMASI CAMPUS",
+    "current_constituency": "KWADASO",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      262287
+    ],
+    "sampleNames": [
+      "SEIDU RABIATU"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Wisconsin International University Ghana Kumasi Campus",
+    "v2_institution": "UNIVERSITY OF GHANA- KUMASI CAMPUS",
+    "current_constituency": "OFORIKROM",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      262290
+    ],
+    "sampleNames": [
+      "GIFTY ASIEDU"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Withrow University",
+    "v2_institution": "WITHROW UNIVERSITY COLLEGE",
+    "current_constituency": "KWADASO",
+    "target_constituency": "AFIGYA SEYERE EAST",
+    "count": 1,
+    "ids": [
+      262291
+    ],
+    "sampleNames": [
+      "JAMAL IBRAHIM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Assinman Nurses Training College",
+    "v2_institution": "ASSINMAN NURSING COLLEGE",
+    "current_constituency": "ASSIN SOUTH",
+    "target_constituency": "ASSIN CENTRAL",
+    "count": 1,
+    "ids": [
+      262308
+    ],
+    "sampleNames": [
+      "NAJAT NUHU"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Cape Coast Technical University",
+    "v2_institution": "CAPE  COAST TECHNICAL UNIVERSITY",
+    "current_constituency": "CAPE COAST SOUTH",
+    "target_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      262311
+    ],
+    "sampleNames": [
+      "BAIDOO ABRAHAM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Kaff University",
+    "v2_institution": "PEREZ UNIVERSITY",
+    "current_constituency": "GOMOA EAST",
+    "target_constituency": "GOMOA CENTRAL",
+    "count": 1,
+    "ids": [
+      262314
+    ],
+    "sampleNames": [
+      "KOJO FOSU CLEMENT"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Komenda College of Education",
+    "v2_institution": "KOMENDA TRAINING COLLEGE",
+    "current_constituency": "KOMENDA EDINA EGUAFO ABREM",
+    "target_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      262315
+    ],
+    "sampleNames": [
+      "AZEEZ IBRAHIM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "NMTC, Cape Coast",
+    "v2_institution": "CAPE COAST NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "current_constituency": "CAPE COAST SOUTH",
+    "target_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      262316
+    ],
+    "sampleNames": [
+      "HAJARA IBRAHIM"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "PNTC Ankaful",
+    "v2_institution": "PSYCHIATRIC NURSING TRAINING COLLEGE",
+    "current_constituency": "CAPE COAST NORTH",
+    "target_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      262319
+    ],
+    "sampleNames": [
+      "MARIAMA SEETA MOHAMMMED"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "Perez University",
+    "v2_institution": "PEREZ UNIVERSITY",
+    "current_constituency": "GOMOA EAST",
+    "target_constituency": "GOMOA CENTRAL",
+    "count": 1,
+    "ids": [
+      262320
+    ],
+    "sampleNames": [
+      "AMZA ABUBAKAR"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "UEW, Ajumako",
+    "v2_institution": "UNIVERSITY OF EDUCATION, WINNEBA",
+    "current_constituency": "AJUMAKO ENYAN ESIAM",
+    "target_constituency": "EFFUTU",
+    "count": 1,
+    "ids": [
+      262321
+    ],
+    "sampleNames": [
+      "YAKUNU ABDUL-WAHAB"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "University of Cape Coast",
+    "v2_institution": "UNIVERSITY OF CAPE COAST",
+    "current_constituency": "CAPE COAST SOUTH",
+    "target_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      262323
+    ],
+    "sampleNames": [
+      "ALHASSAN FUSEINI"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Abetifi Presbyterian College of Education",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "current_constituency": "KWAHU EAST",
+    "target_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      262324
+    ],
+    "sampleNames": [
+      "MAWIYA RAZAK SANI"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian University College Abetifi-Campus",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "current_constituency": "KWAHU EAST",
+    "target_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      262341
+    ],
+    "sampleNames": [
+      "SADIQUE ABUBAKAR"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "Presbyterian Womens College of Education",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "current_constituency": "AKUAPEM SOUTH",
+    "target_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      262343
+    ],
+    "sampleNames": [
+      "MOHAMMED RAMATU"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "College of Nursing and Midwifery, Walewale",
+    "v2_institution": "COLLEGE OF NURSING AND MIDWIFERY - KUBORI",
+    "current_constituency": "WALEWALE",
+    "target_constituency": "YAGABA/ KUBORI",
+    "count": 1,
+    "ids": [
+      262349
+    ],
+    "sampleNames": [
+      "ABUBAHAMBALI"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Community Health Nurses Training College, Wamale",
+    "v2_institution": "Community Health Nurses College- Nkachina",
+    "current_constituency": "TAMALE SOUTH",
+    "target_constituency": "KPANDAI",
+    "count": 1,
+    "ids": [
+      262357
+    ],
+    "sampleNames": [
+      "SADIK AYISHA"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "New Life College",
+    "v2_institution": "New Life College",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262361
+    ],
+    "sampleNames": [
+      "ASSIBI MAXWELL AKANKPIENTI"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "School of Hygience - Tamale",
+    "v2_institution": "School of Hygiene- Tamale",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262362
+    ],
+    "sampleNames": [
+      "ABDUL SOMED JAMILA WUMPINI"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale College of Education",
+    "v2_institution": "Tamale College of Education",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262364
+    ],
+    "sampleNames": [
+      "YAKUBU JALIW"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale NMTC",
+    "v2_institution": "Tamale Nurses Training College",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "TAMALE SOUTH",
+    "count": 1,
+    "ids": [
+      262365
+    ],
+    "sampleNames": [
+      "ALHASSAN RAUDATU AZINPAGA"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "Tamale Technical Institute",
+    "v2_institution": "Tamale Technical University",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262366
+    ],
+    "sampleNames": [
+      "BAWA YAKUBU"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "UDS - City Campus",
+    "v2_institution": "University for Development Studies- City Campus",
+    "current_constituency": "TAMALE SOUTH",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262368
+    ],
+    "sampleNames": [
+      "SULO DAVID NABUR"
+    ]
+  },
+  {
+    "region": "Upper East",
+    "polling_station": "Regentropfen University College",
+    "v2_institution": "Regentropfen  UNIVERSITY",
+    "current_constituency": "BONGO",
+    "target_constituency": "TALENSI",
+    "count": 1,
+    "ids": [
+      262386
+    ],
+    "sampleNames": [
+      "EDWARD BONGO"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Asaj College of Education",
+    "v2_institution": "MACOY COLLEGE OF EDUCATION",
+    "current_constituency": "WA CENTRAL",
+    "target_constituency": "NADOWLI/KALEO",
+    "count": 1,
+    "ids": [
+      262390
+    ],
+    "sampleNames": [
+      "RIDUWAN MOHAMMED AWAL"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Jahan college of Education Wa",
+    "v2_institution": "MACOY COLLEGE OF EDUCATION",
+    "current_constituency": "WA CENTRAL",
+    "target_constituency": "NADOWLI/KALEO",
+    "count": 1,
+    "ids": [
+      262393
+    ],
+    "sampleNames": [
+      "GALIYUONI NUURIDEEN"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "Nursing and Midwifery Training College, Tumu",
+    "v2_institution": "JIRAPA MIDWIFERY AND NURSING TRAINING COLLEGE",
+    "current_constituency": "SISSALA EAST",
+    "target_constituency": "JIRAPA",
+    "count": 1,
+    "ids": [
+      262399
+    ],
+    "sampleNames": [
+      "SELMA OWUSU"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "EP College of Education, Amedzofe",
+    "v2_institution": "AKATSI COLLEGE OF EDUCATION",
+    "current_constituency": "HO WEST",
+    "target_constituency": "AKATSI SOUTH",
+    "count": 1,
+    "ids": [
+      262404
+    ],
+    "sampleNames": [
+      "ALPHA KAMAL"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "Peki College of Education",
+    "v2_institution": "AKATSI COLLEGE OF EDUCATION",
+    "current_constituency": "SOUTH DAYI",
+    "target_constituency": "AKATSI SOUTH",
+    "count": 1,
+    "ids": [
+      262412
+    ],
+    "sampleNames": [
+      "AMANKWAA ALBERT"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Asanco NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "current_constituency": "",
+    "target_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      262417
+    ],
+    "sampleNames": [
+      "DANLADI INUSAH IBRAHIM (ASANCO)"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Asankragwa NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "current_constituency": "",
+    "target_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      262418
+    ],
+    "sampleNames": [
+      "DANLADI INUSAH IBRAHIM"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Esiama NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "current_constituency": "",
+    "target_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      262420
+    ],
+    "sampleNames": [
+      "ISSAKA NAFISATU"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Takoradi Technical University BU",
+    "v2_institution": "Takoradi Technical University",
+    "current_constituency": "TAKORADI",
+    "target_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      262424
+    ],
+    "sampleNames": [
+      "MUSTAPHA UMAR A. TOURE"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "Takoradi Technical University Main",
+    "v2_institution": "Takoradi Technical University",
+    "current_constituency": "TAKORADI",
+    "target_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      262425
+    ],
+    "sampleNames": [
+      "FUSEINI DAUDA"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Bia Lamplighter College of Education",
+    "v2_institution": "BIA LAMPLIGHTER COLLEGE OF EDUCATION",
+    "current_constituency": "",
+    "target_constituency": "BIA WEST",
+    "count": 1,
+    "ids": [
+      262428
+    ],
+    "sampleNames": [
+      "SAMATA MOHAMMED"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Bibiani College of Health Sciences",
+    "v2_institution": "BIBIANI COLLEGE OF HEALTH SCIENCES",
+    "current_constituency": "",
+    "target_constituency": "BIBIANI-ANHWIASO-BEKWAI",
+    "count": 1,
+    "ids": [
+      262429
+    ],
+    "sampleNames": [
+      "KAMINYE VICTORIA"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "College of Health Sefwi Asafo",
+    "v2_institution": "ASAFO COLLEGE OF HEALTH",
+    "current_constituency": "",
+    "target_constituency": "SEFWI WIAWSO",
+    "count": 1,
+    "ids": [
+      262430
+    ],
+    "sampleNames": [
+      "IDDRISU RAHINATU"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Enchi College of Education",
+    "v2_institution": "ENCHI COLLEGE OF EDUCATION",
+    "current_constituency": "",
+    "target_constituency": "AOWIN",
+    "count": 1,
+    "ids": [
+      262431
+    ],
+    "sampleNames": [
+      "MORO NASHIRU MOSES"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Sefwi Wiawso Nursing and Midwifery College",
+    "v2_institution": "WIAWSO NURSING AND MIDWIFERY COLLEGE",
+    "current_constituency": "",
+    "target_constituency": "SEFWI WIAWSO",
+    "count": 1,
+    "ids": [
+      262432
+    ],
+    "sampleNames": [
+      "AMADU TANKO"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "Wiawso College of Education",
+    "v2_institution": "WIAWSO COLLEGE OF EDUCATION",
+    "current_constituency": "",
+    "target_constituency": "SEFWI WIAWSO",
+    "count": 1,
+    "ids": [
+      262433
+    ],
+    "sampleNames": [
+      "ZAKARIA MAIMUNATU"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "DADIESOABA NMTC",
+    "v2_institution": "DADIESOABA NMTC",
+    "current_constituency": "ASUNAFO SOUTH",
+    "target_constituency": "ASUTIFI SOUTH",
+    "count": 1,
+    "ids": [
+      264297
+    ],
+    "sampleNames": [
+      "NIMO CECILIA"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": null,
+    "v2_institution": "WALEWALE N.M.T.C",
+    "current_constituency": "NALERIGU/GAMBAGA",
+    "target_constituency": "WALEWALE",
+    "count": 1,
+    "ids": [
+      264298
+    ],
+    "sampleNames": [
+      "ABUBAKARI MUMUNI"
+    ]
+  },
+  {
+    "region": "North East",
+    "polling_station": "L/A PRIM SCH GBANKURUGU 1",
+    "v2_institution": "NALERIGU N.M.T.C",
+    "current_constituency": "YUNYOO",
+    "target_constituency": "NALERIGU/GAMBAGA",
+    "count": 1,
+    "ids": [
+      264301
+    ],
+    "sampleNames": [
+      "CLEMENT DAAMAYAN NIIBIT"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "PREMIER NURSES TRAINING COLLEGE",
+    "v2_institution": "PREMIER NURSING TRAINING COLLEGE",
+    "current_constituency": null,
+    "target_constituency": "MANHYIA NORTH",
+    "count": 1,
+    "ids": [
+      264323
+    ],
+    "sampleNames": [
+      "LINDA OWUSU"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NMTC, KUMASI",
+    "v2_institution": "KUMASI NMTC",
+    "current_constituency": "OLD TAFO",
+    "target_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      264331
+    ],
+    "sampleNames": [
+      "BERNARD ARTHUR OWUSU"
+    ]
+  },
+  {
+    "region": "Northern",
+    "polling_station": "NEW LIFE COLLEGE",
+    "v2_institution": "New Life College",
+    "current_constituency": "TAMALE CENTRAL",
+    "target_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      264332
+    ],
+    "sampleNames": [
+      "ANTHONY KOLAN"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "MAMPONG TECHNICAL COLLEGE OF EDUCATION",
+    "v2_institution": "MAMPONG TECHNICAL COLLEGE OF EDUCATION",
+    "current_constituency": "ASUNAFO NORTH",
+    "target_constituency": "MAMPONG",
+    "count": 1,
+    "ids": [
+      264336
+    ],
+    "sampleNames": [
+      "RICHARD BOFAH KYEI"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "WISCONSIN INTERNATIONAL UNIVERSITY GHANA KUMASI",
+    "v2_institution": "UNIVERSITY OF GHANA- KUMASI CAMPUS",
+    "current_constituency": "ASANTE AKIM CENTRAL",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      264346
+    ],
+    "sampleNames": [
+      "RABBI SARFO ADOM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "WITHROW COLLEGE",
+    "v2_institution": "WITHROW UNIVERSITY COLLEGE",
+    "current_constituency": null,
+    "target_constituency": "AFIGYA SEYERE EAST",
+    "count": 1,
+    "ids": [
+      264348
+    ],
+    "sampleNames": [
+      "MILLICENT BOATENG"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "USTED-M",
+    "v2_institution": "AAMUSTED, MAMPONG",
+    "current_constituency": "ASUTIFI SOUTH",
+    "target_constituency": "MAMPONG",
+    "count": 1,
+    "ids": [
+      264370
+    ],
+    "sampleNames": [
+      "ISAAC AMENYO"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AKROKERRI COLLEGE OF EDUCATION",
+    "v2_institution": "AKROKERRI COLLEGE OF EDUCATION",
+    "current_constituency": "ASUTIFI SOUTH",
+    "target_constituency": "FOMENA",
+    "count": 1,
+    "ids": [
+      264380
+    ],
+    "sampleNames": [
+      "NYARKO IVAN"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AGOGO PRESBYTERIAN WOMEN'S COLLEGE OF EDUCATION.",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY COLLEGE",
+    "current_constituency": "ASANTE AKIM SOUTH",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      264384
+    ],
+    "sampleNames": [
+      "RITA OTU OBIRI"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "KUMASI TECHNICAL UNIVERSITY",
+    "v2_institution": "KUMASI TECHNICAL UNIVERSITY",
+    "current_constituency": "KWABRE EAST",
+    "target_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      264386
+    ],
+    "sampleNames": [
+      "BRIGHT ADDO ABABIO"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "OTEC SCHOOL OF JOURNALISM AND COMMUNICATION STUDIES",
+    "v2_institution": "OTEC SCHOOL OF JOURNALISM",
+    "current_constituency": "BOSOMTWE",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      264391
+    ],
+    "sampleNames": [
+      "ESTHER AMANKWAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NURSING AND MIDWIFERY TRAINING COLLEGE FOMENA ADANSI",
+    "v2_institution": "FOMENA NURSING AND MIDWIFERY",
+    "current_constituency": "ADANSI ASOKWA",
+    "target_constituency": "FOMENA",
+    "count": 1,
+    "ids": [
+      264395
+    ],
+    "sampleNames": [
+      "KUSI AARON AMPOFO"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "SDA NURSING AND MIDWIFERY TRAINING COLLEGE, ASAMANG.",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "AFIGYA KWABRE SOUTH",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      264404
+    ],
+    "sampleNames": [
+      "GRACE BUABENG"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": " GHANA BAPTIST UNIVERSITY",
+    "v2_institution": "GHANA BAPTIST UNIVERSITY COLLEGE",
+    "current_constituency": "BANTAMA",
+    "target_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      264407
+    ],
+    "sampleNames": [
+      "BERNICE YEBOAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "CENTRAL UNIVERSITY KUMASI",
+    "v2_institution": "CENTRAL UNIVERSITY- KUMASI CAMPUS",
+    "current_constituency": "ATWIMA MPONUA",
+    "target_constituency": "OFORIKROM",
+    "count": 1,
+    "ids": [
+      264411
+    ],
+    "sampleNames": [
+      "KOFI AGYEKUM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "INSTU.GCTU. (Ghana Communication Technology University)",
+    "v2_institution": "GHANA TELECOM UNIVERSITY COLLEGE",
+    "current_constituency": "BANTAMA",
+    "target_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      264415
+    ],
+    "sampleNames": [
+      "ALICE ODURO"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "AFIA KOBI/ROYAL NURSING",
+    "v2_institution": "AFIA KOBI NURSING TRAINING COLLEGE",
+    "current_constituency": "ADANSI ASOKWA",
+    "target_constituency": "OLD TAFO",
+    "count": 1,
+    "ids": [
+      264419
+    ],
+    "sampleNames": [
+      "FELIX KWAME EFFIRIM"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "USTED- KUMASI",
+    "v2_institution": "AAMUSTED, KUMASI",
+    "current_constituency": "SUBIN",
+    "target_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      264421
+    ],
+    "sampleNames": [
+      "ABRAHAM MBILLAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "RURAL DEVELOPMENT COLLEGE, KWASO",
+    "v2_institution": "RURAL DEVELOPMENT COLLEGE",
+    "current_constituency": null,
+    "target_constituency": "EJISU",
+    "count": 1,
+    "ids": [
+      264426
+    ],
+    "sampleNames": [
+      "SAMUEL BONNA APPIAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "INSTITUTE OF BUSSINESS MANAGEMENT AND JOURNALISM",
+    "v2_institution": "INSTITUTE OF BUSINESS MGT AND JOURNALISM",
+    "current_constituency": "KWADASO",
+    "target_constituency": "ASOKWA",
+    "count": 1,
+    "ids": [
+      264432
+    ],
+    "sampleNames": [
+      "NANA ENOCH AYENSU"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "ST. MICHAEL’S NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "v2_institution": "ST MICHAEL'S NURSING AND MIDWIFERY",
+    "current_constituency": "SUAME",
+    "target_constituency": "BOSOMTWE",
+    "count": 1,
+    "ids": [
+      264433
+    ],
+    "sampleNames": [
+      "MARIANA AMA SERWAA SUNKWA"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "NEUMAN COLLEGE",
+    "v2_institution": "NEUMAN COLLEGE OF NURSING",
+    "current_constituency": "ATWIMA KWANWOMA",
+    "target_constituency": "OLD TAFO",
+    "count": 1,
+    "ids": [
+      264434
+    ],
+    "sampleNames": [
+      "JOHN OKYERE"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "UNIVERSITY OF GHANA KSI CAMPUS",
+    "v2_institution": "UNIVERSITY OF GHANA- KUMASI CAMPUS",
+    "current_constituency": "KWADASO",
+    "target_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      264435
+    ],
+    "sampleNames": [
+      "BENNETH KYEI-AMPONSAH"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "COLLEGE OF INTEGRATED HEALTHCARE-OBUASI",
+    "v2_institution": "INTEGRATED SCHOOL OF HEALTH, OBUASI",
+    "current_constituency": "NEW EDUBIASE",
+    "target_constituency": "OBUASI EAST",
+    "count": 1,
+    "ids": [
+      264437
+    ],
+    "sampleNames": [
+      "CALITOS DADZIE"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "MULTIMEDIA INSTITUTE OF GHANA(MIG)",
+    "v2_institution": "MULTIMEDIA INSTITUTE OF JOURNALISM",
+    "current_constituency": "AHAFO ANO SOUTH WEST",
+    "target_constituency": "OFORIKROM",
+    "count": 1,
+    "ids": [
+      264438
+    ],
+    "sampleNames": [
+      "GLORIA ABOSI POKUAA"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "GIMPA",
+    "v2_institution": "GIMPA-KUMASI CAMPUS",
+    "current_constituency": "BANTAMA",
+    "target_constituency": "ASOKWA",
+    "count": 1,
+    "ids": [
+      264439
+    ],
+    "sampleNames": [
+      "MABEL OWUSU ANSAH"
+    ]
+  },
+  {
+    "region": "Upper West",
+    "polling_station": "NJA COLLEGE OF EDUCATION",
+    "v2_institution": "MACOY COLLEGE OF EDUCATION",
+    "current_constituency": "WA EAST",
+    "target_constituency": "NADOWLI/KALEO",
+    "count": 1,
+    "ids": [
+      264452
+    ],
+    "sampleNames": [
+      "YAKUBU ZAKIA MOHAMMED"
+    ]
+  },
+  {
+    "region": "Ashanti",
+    "polling_station": "Tepa Nursing and Midwifery Training College",
+    "v2_institution": "AGOGO NMTC",
+    "current_constituency": "AHAFO ANO NORTH",
+    "target_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      264459
+    ],
+    "sampleNames": [
+      "AGARTHA APOMASU TWENEBOAH"
+    ]
+  },
+  {
+    "region": "Western North",
+    "polling_station": "BIA LAMPLIGHTER COLLEGE OF EDUCATION",
+    "v2_institution": "BIA LAMPLIGHTER COLLEGE OF EDUCATION",
+    "current_constituency": "BIA EAST",
+    "target_constituency": "BIA WEST",
+    "count": 1,
+    "ids": [
+      264465
+    ],
+    "sampleNames": [
+      "ENOCK OSEI"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "COLLEGE OF NURSING AND MIDWIFERY KWAPONG",
+    "v2_institution": "DADIESOABA NMTC",
+    "current_constituency": "ASUNAFO SOUTH",
+    "target_constituency": "ASUTIFI SOUTH",
+    "count": 1,
+    "ids": [
+      264471
+    ],
+    "sampleNames": [
+      "THERESAH FOSUAH"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "NMTC, GOASO",
+    "v2_institution": "DADIESOABA NMTC",
+    "current_constituency": "ASUNAFO NORTH",
+    "target_constituency": "ASUTIFI SOUTH",
+    "count": 1,
+    "ids": [
+      264472
+    ],
+    "sampleNames": [
+      "ELIZABETH SIAW"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "COLLEGE OF HEALTH, DUAYAW NKWANTA",
+    "v2_institution": "COLLEGE OF HEALTH YAMFO",
+    "current_constituency": "BEREKUM WEST",
+    "target_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264473
+    ],
+    "sampleNames": [
+      "LORDINA HENEWAA"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "COLLEGE OF HEALTH YAMFO",
+    "v2_institution": "COLLEGE OF HEALTH YAMFO",
+    "current_constituency": "ATWIMA MPONUA",
+    "target_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264478
+    ],
+    "sampleNames": [
+      "OWUSU PRISCILLA TWENEBOAH"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "NURSING TRAINING COLLEGE DADIESOABA",
+    "v2_institution": "KWAPONG NURSING TRAINING COLLEGE",
+    "current_constituency": "ASUTIFI NORTH",
+    "target_constituency": "ASUNAFO SOUTH",
+    "count": 1,
+    "ids": [
+      264479
+    ],
+    "sampleNames": [
+      "ABIGAIL BRAYIE"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "TAKORADI TECHNICAL UNIVERSITY BU",
+    "v2_institution": "Takoradi Technical University",
+    "current_constituency": "SEKONDI",
+    "target_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      264481
+    ],
+    "sampleNames": [
+      "FRANCISCA  AKWANDOH"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ASANTA",
+    "v2_institution": "Asanta SDA Nursing and Midwifery Training College",
+    "current_constituency": "TAKORADI",
+    "target_constituency": "ELLEMBELE",
+    "count": 1,
+    "ids": [
+      264483
+    ],
+    "sampleNames": [
+      "HANNAH KOOMSON"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Valley View University, Oyibi",
+    "v2_institution": "VALLEY VIEW UNIVERSITY",
+    "current_constituency": "ADENTAN",
+    "target_constituency": "KPONE-KATAMANSO",
+    "count": 1,
+    "ids": [
+      264485
+    ],
+    "sampleNames": [
+      "KHARIYA ABDUL RAZAK"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "SUNYANI TECHNICAL UNIVERSITY",
+    "v2_institution": "Sunyani Technical University",
+    "current_constituency": "TECHIMAN SOUTH",
+    "target_constituency": "SUNYANI EAST",
+    "count": 1,
+    "ids": [
+      264487
+    ],
+    "sampleNames": [
+      "ALBERT KWASI GYABAAH"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "UNIVERSITY OF GHANA MAIN CAMPUS",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY GHANA AKROPONG CAMPUS",
+    "current_constituency": "YILO KROBO",
+    "target_constituency": "AKROPONG",
+    "count": 1,
+    "ids": [
+      264488
+    ],
+    "sampleNames": [
+      "NAWAF ISSAKU"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "CATHOLIC UNIVERSITY OF GHANA, SUNYANI",
+    "v2_institution": "Catholic University of Ghana",
+    "current_constituency": "TECHIMAN SOUTH",
+    "target_constituency": "SUNYANI WEST",
+    "count": 1,
+    "ids": [
+      264490
+    ],
+    "sampleNames": [
+      "EDITH YANKEY DARKO"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ESIAMA NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "current_constituency": "ELLEMBELE",
+    "target_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      264491
+    ],
+    "sampleNames": [
+      "SARAH YANKEY"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "ST. AMBROSE COLLEGE OF EDUCATION",
+    "v2_institution": "St. Ambrose college of education",
+    "current_constituency": null,
+    "target_constituency": "DORMAA EAST",
+    "count": 1,
+    "ids": [
+      264492
+    ],
+    "sampleNames": [
+      "LAMPARD ADOMA SAKYI"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ASANKRAGWA NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "current_constituency": "SEKONDI",
+    "target_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      264495
+    ],
+    "sampleNames": [
+      "EDWINA MINTAH"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "GCTU TAKORADI",
+    "v2_institution": "Ghana Communication Technology University, Takoradi",
+    "current_constituency": "SHAMA",
+    "target_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      264498
+    ],
+    "sampleNames": [
+      "VICTORIA EFUA HANS ANDERSON"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "ST. MARY'S NURSING AND MIDWIFERY TRAINING COLLEGE DROBO",
+    "v2_institution": "Berekum Nursing and Midwifery Training College",
+    "current_constituency": "SUNYANI WEST",
+    "target_constituency": "BEREKUM EAST",
+    "count": 1,
+    "ids": [
+      264499
+    ],
+    "sampleNames": [
+      "ISAAC AMEYAW AMANKWAH"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "VALLEY VIEW UNIVERSITY",
+    "v2_institution": "Valley View University",
+    "current_constituency": "TECHIMAN NORTH",
+    "target_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      264508
+    ],
+    "sampleNames": [
+      "OWUSUAA ABIGAIL ASIEDU"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "KROBO NURSING TRAINING COLLEGE",
+    "v2_institution": "Krobo Nursing Training College",
+    "current_constituency": "ATEBUBU/AMANTIN",
+    "target_constituency": "TECHIMAN NORTH",
+    "count": 1,
+    "ids": [
+      264509
+    ],
+    "sampleNames": [
+      "KUBURA MUSTAPHA"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "KWAPONG NMTC",
+    "v2_institution": "DADIESOABA NMTC",
+    "current_constituency": "ATEBUBU/AMANTIN",
+    "target_constituency": "ASUTIFI SOUTH",
+    "count": 1,
+    "ids": [
+      264511
+    ],
+    "sampleNames": [
+      "TAMMAN SIMON INALIJIB"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "Anglican University College and Technology",
+    "v2_institution": "Anglican University College of Technology",
+    "current_constituency": "SAWLA-TUNA-KALBA",
+    "target_constituency": "NKORANZA SOUTH",
+    "count": 1,
+    "ids": [
+      264513
+    ],
+    "sampleNames": [
+      "ESTHER OPOKU ABRAFI"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "TANOSO NMTC",
+    "v2_institution": "TANOSO NURSING AND MIDWIFERY",
+    "current_constituency": "",
+    "target_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264515
+    ],
+    "sampleNames": [
+      "IBRAHIM SAMIRA "
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ASANKRAGWA NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "current_constituency": "AMENFI CENTRAL",
+    "target_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      264516
+    ],
+    "sampleNames": [
+      "DANKYI OPHELIA OFORIWAA"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "ST JOSEPH COLLEGE OF EDUCATION BECHEM",
+    "v2_institution": "ST JOSEPH COLLEGE OF EDUCATION",
+    "current_constituency": null,
+    "target_constituency": "TANO SOUTH",
+    "count": 1,
+    "ids": [
+      264517
+    ],
+    "sampleNames": [
+      "ALI FAUZIA"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "FOSU COLLEGE OF EDUCATION",
+    "v2_institution": "FOSU TRAINING COLLEGE",
+    "current_constituency": "ASSIN SOUTH",
+    "target_constituency": "ASSIN CENTRAL",
+    "count": 1,
+    "ids": [
+      264518
+    ],
+    "sampleNames": [
+      "FRANCIS FOTWE"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "Nursingand Midwifery Training College",
+    "v2_institution": "Yeji Nursing and Midwifery Training College",
+    "current_constituency": "SAWLA-TUNA-KALBA",
+    "target_constituency": "PRU EAST",
+    "count": 1,
+    "ids": [
+      264519
+    ],
+    "sampleNames": [
+      "Francisca Appiah"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "DADIESOABA NMTC",
+    "v2_institution": "DADIESOABA NMTC",
+    "current_constituency": null,
+    "target_constituency": "ASUTIFI SOUTH",
+    "count": 1,
+    "ids": [
+      264520
+    ],
+    "sampleNames": [
+      "MUSAH SAMIRA SORDJEA"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "KOMMENDA COLLEGE OF EDUCATION",
+    "v2_institution": "KOMENDA TRAINING COLLEGE",
+    "current_constituency": "KOMENDA EDINA EGUAFO ABREM",
+    "target_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      264521
+    ],
+    "sampleNames": [
+      "AARON KOOMSON"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "OLA COLLEGE OF EDUCATION",
+    "v2_institution": "OLA TRAINING COLLEGE",
+    "current_constituency": "ASSIN CENTRAL",
+    "target_constituency": "CAPE COAST SOUTH",
+    "count": 1,
+    "ids": [
+      264522
+    ],
+    "sampleNames": [
+      "MAVIS AKUA BOATENG"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "CCNMTC CAPE COAST",
+    "v2_institution": "UNIVERSITY OF CAPE COAST",
+    "current_constituency": "ASSIN SOUTH",
+    "target_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      264523
+    ],
+    "sampleNames": [
+      "SARAH EVA NYARKOH"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "CCHN WINNEBA",
+    "v2_institution": "COLLEGE OF COMMUNITY HEALTH NURSING",
+    "current_constituency": "AGONA WEST",
+    "target_constituency": "EFFUTU",
+    "count": 1,
+    "ids": [
+      264525
+    ],
+    "sampleNames": [
+      "PRINCE YAWSON"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "COLLEGE OF HEALTH YAMFO",
+    "v2_institution": "COLLEGE OF HEALTH YAMFO",
+    "current_constituency": "SUNYANI WEST",
+    "target_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264528
+    ],
+    "sampleNames": [
+      "RAMATU RAZAK"
+    ]
+  },
+  {
+    "region": "Central",
+    "polling_station": "ASSINMAN NURSES TRAINING COLLEGE",
+    "v2_institution": "ASSINMAN NURSING COLLEGE",
+    "current_constituency": "AGONA WEST",
+    "target_constituency": "ASSIN CENTRAL",
+    "count": 1,
+    "ids": [
+      264530
+    ],
+    "sampleNames": [
+      "JAMES HARDING"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "ST JOHN OF GOD COLLEGE OF HEALTH DUAYAW NKWANTIA",
+    "v2_institution": "ST JOHN OF GOD COLLEGE OF HEALTH",
+    "current_constituency": null,
+    "target_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264531
+    ],
+    "sampleNames": [
+      "YAW ABRAHAM NTEDOMOR"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "ODUMASI KROBO NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "v2_institution": "ODUMASI KROBO NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "current_constituency": "YILO KROBO",
+    "target_constituency": "LOWER MANYA KROBO",
+    "count": 1,
+    "ids": [
+      264539
+    ],
+    "sampleNames": [
+      "IVY YEBOAH ACHEAMPONG"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "ALL NATIONS UNIVERSITY CITY CAMPUS",
+    "v2_institution": "ALL NATIONS UNIVERSITY - CITY CAMPUS",
+    "current_constituency": "ABUAKWA NORTH",
+    "target_constituency": "NEW JUABEN SOUTH",
+    "count": 1,
+    "ids": [
+      264541
+    ],
+    "sampleNames": [
+      "ASIEDU EMMANUEL"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "KETA NURSING AND WIDWIFERY COLLEGE",
+    "v2_institution": "HO NURSING TRAINING",
+    "current_constituency": "KETU NORTH",
+    "target_constituency": "HO CENTRAL",
+    "count": 1,
+    "ids": [
+      264553
+    ],
+    "sampleNames": [
+      "PETER KWAME BEDZRAH"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (Main Campus)",
+    "v2_institution": "UNIVERSITY OF GHANA -KORLE BU",
+    "current_constituency": null,
+    "target_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264588
+    ],
+    "sampleNames": [
+      "ISSAKU NAWAF"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Radford University College",
+    "v2_institution": "RADFORD UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264589
+    ],
+    "sampleNames": [
+      "JABARU BIPEMBI"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Pentecost University College",
+    "v2_institution": "PENTECOST UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "ANYAA/SOWUTUOM",
+    "count": 1,
+    "ids": [
+      264591
+    ],
+    "sampleNames": [
+      "HAFSATU MOHAMMED"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Regent University of Science and Technology",
+    "v2_institution": "REGENT UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "WEIJA-GBAWE",
+    "count": 1,
+    "ids": [
+      264592
+    ],
+    "sampleNames": [
+      "RAMATU ALI"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Nursing and Midwifery Training College, Korle Bu",
+    "v2_institution": "KORLE BU NMTC",
+    "current_constituency": null,
+    "target_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264595
+    ],
+    "sampleNames": [
+      "RUBAIYA HARUNA"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Central University",
+    "v2_institution": "CENTRAL UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "NINGO PRAMPRAM",
+    "count": 1,
+    "ids": [
+      264597
+    ],
+    "sampleNames": [
+      "ABDALLAH MAHAMUD"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (Accra City Campus)",
+    "v2_institution": "UG ACCRA CITY CAMPUS",
+    "current_constituency": null,
+    "target_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264598
+    ],
+    "sampleNames": [
+      "SANI MOHAMMED ABACHAH"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (Distance Education)",
+    "v2_institution": "UNIVERSITY OF GHANA DISTANCE EDUCATION (UGDE)",
+    "current_constituency": null,
+    "target_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264599
+    ],
+    "sampleNames": [
+      "JIBRIL SAHADATU"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "BlueCrest University",
+    "v2_institution": "BLUECREST UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "AYAWASO CENTRAL",
+    "count": 1,
+    "ids": [
+      264600
+    ],
+    "sampleNames": [
+      "YUSSIF DAUDA"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Knutsford University College",
+    "v2_institution": "KNUTSFORD UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264602
+    ],
+    "sampleNames": [
+      "LUQMAN MUSAH"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Islamic University",
+    "v2_institution": "ISLAMIC UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "ADENTAN",
+    "count": 1,
+    "ids": [
+      264603
+    ],
+    "sampleNames": [
+      "MANSURU SULEMANA"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Regional Maritime University",
+    "v2_institution": "REGIONAL MARITIME UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "KROWOR",
+    "count": 1,
+    "ids": [
+      264606
+    ],
+    "sampleNames": [
+      "AMINA MOHAMMED"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Methodist University Ghana (Tema Campus)",
+    "v2_institution": "METHODIST UNIVERSITY, TEMA",
+    "current_constituency": null,
+    "target_constituency": "TEMA CENTRAL",
+    "count": 1,
+    "ids": [
+      264607
+    ],
+    "sampleNames": [
+      "RAKIA MOHAMMED"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ghana Institute of Management and Public Administration (GIMPA)",
+    "v2_institution": "GHANA INSTITUTE OF MANAGEMENT AND PUBLIC ADMINISTRATION",
+    "current_constituency": null,
+    "target_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264610
+    ],
+    "sampleNames": [
+      "MAHAMA SANNIE MEIMUNA"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Professional Studies, Accra (UPSA)",
+    "v2_institution": "UNIVERSITY OF PROFESSIONAL STUDIES, ACCRA (UPSA)",
+    "current_constituency": null,
+    "target_constituency": "MADINA",
+    "count": 1,
+    "ids": [
+      264611
+    ],
+    "sampleNames": [
+      "MOHAMMED NAZIR MAIKANO"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra Technical University",
+    "v2_institution": "ACCRA TECHNICAL UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264612
+    ],
+    "sampleNames": [
+      "MAMUD LAWANI"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra College of Education",
+    "v2_institution": "ACCRA COLLEGE OF EDUCATION",
+    "current_constituency": null,
+    "target_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264615
+    ],
+    "sampleNames": [
+      "USSIF ADAM"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Kings University College",
+    "v2_institution": "KINGS UNIVERSITY COLLEGE",
+    "current_constituency": null,
+    "target_constituency": "BORTIANOR-NGLESHIE AMANFRO",
+    "count": 1,
+    "ids": [
+      264617
+    ],
+    "sampleNames": [
+      "ISSAH FUSEINI"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ghana Institute of Languages",
+    "v2_institution": "GHANA INSTITUTE OF LANGUAGES",
+    "current_constituency": null,
+    "target_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264618
+    ],
+    "sampleNames": [
+      "AWUDU FAUZIA"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Datalink University",
+    "v2_institution": "DATALINK UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "TEMA CENTRAL",
+    "count": 1,
+    "ids": [
+      264619
+    ],
+    "sampleNames": [
+      "ADAM HANIFA"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "MountCrest University",
+    "v2_institution": "MOUNTCREST UNIVERSITY",
+    "current_constituency": null,
+    "target_constituency": "AYAWASO EAST",
+    "count": 1,
+    "ids": [
+      264620
+    ],
+    "sampleNames": [
+      "MAJIDU IDDRISU"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "UNIVERSITY OF HEALTH AND ALLIED SCIENCES",
+    "v2_institution": "UNIVERSITY OF HEALTH & ALLIED SCIENCE,HO",
+    "current_constituency": "HOHOE",
+    "target_constituency": "HO CENTRAL",
+    "count": 1,
+    "ids": [
+      264622
+    ],
+    "sampleNames": [
+      "ALEX ADABO"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "E.P COLLEGE OF EDUCATION, AMENDZOFE",
+    "v2_institution": "EP College of Education",
+    "current_constituency": "HO WEST",
+    "target_constituency": "BIMBILLA",
+    "count": 1,
+    "ids": [
+      264624
+    ],
+    "sampleNames": [
+      "AARON  OJAH"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "AKATSI COLLEGE OF EDUCATION",
+    "v2_institution": "AKATSI COLLEGE OF EDUCATION",
+    "current_constituency": "KETU NORTH",
+    "target_constituency": "AKATSI SOUTH",
+    "count": 1,
+    "ids": [
+      264627
+    ],
+    "sampleNames": [
+      "DIVINE ABEDNEGO KPOGO"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "ABETIFI PRESBYTERIAN COLLEGE OF EDUCATION",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "current_constituency": "KWAHU EAST",
+    "target_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      264628
+    ],
+    "sampleNames": [
+      "FRANCIS NELSON GYABAAH"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "PEKI COLLEGE OF EDUCATION",
+    "v2_institution": "AKATSI COLLEGE OF EDUCATION",
+    "current_constituency": "KETU NORTH",
+    "target_constituency": "AKATSI SOUTH",
+    "count": 1,
+    "ids": [
+      264629
+    ],
+    "sampleNames": [
+      "THOMPSON MENSAH"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "UNIVERSITY COLLEGE OF AGRICULTURE AND ENVIRONMENTAL STUDIES",
+    "v2_institution": "UNIVERSITY COLLEGE OF AGRICULTURE AND ENVIRONMENTAL STUDIES",
+    "current_constituency": "KWAHU EAST",
+    "target_constituency": "ABUAKWA SOUTH",
+    "count": 1,
+    "ids": [
+      264630
+    ],
+    "sampleNames": [
+      "ASIAMAH GEORGE"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN UNIVERSITY COLLEGE, ABETIFI CAMPUS",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "current_constituency": "MPRAESO",
+    "target_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      264631
+    ],
+    "sampleNames": [
+      "EVANS  ASANTE SEFAH"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN UNIVERSITY COLLEGE, AKROPONG",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- AKROPONG",
+    "current_constituency": "AYENSUANO",
+    "target_constituency": "AKROPONG",
+    "count": 1,
+    "ids": [
+      264632
+    ],
+    "sampleNames": [
+      "ABRAHAM AWOAMEWU"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "ASANTA NMTC",
+    "v2_institution": "Asanta SDA Nursing and Midwifery Training College",
+    "current_constituency": "AMENFI CENTRAL",
+    "target_constituency": "ELLEMBELE",
+    "count": 1,
+    "ids": [
+      264633
+    ],
+    "sampleNames": [
+      "NICHOLAS BREW"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "YEJI NURSING AND MIDWIFERYY TRAINING COLLEGE",
+    "v2_institution": "Yeji Nursing and Midwifery Training College",
+    "current_constituency": "",
+    "target_constituency": "PRU EAST",
+    "count": 1,
+    "ids": [
+      264634
+    ],
+    "sampleNames": [
+      "FUSEINA MUFTAWU"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "GIMPA",
+    "v2_institution": "GIMPA, Takoradi Campus",
+    "current_constituency": "PRESTEA HUNI-VALLEY",
+    "target_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      264635
+    ],
+    "sampleNames": [
+      "EMMANUEL ACQUAH MENSAH"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "VALLEY VIEW UNIVERSITY OYIBI",
+    "v2_institution": "VALLEY VIEW UNIVERSITY",
+    "current_constituency": "Adentan",
+    "target_constituency": "KPONE-KATAMANSO",
+    "count": 1,
+    "ids": [
+      264637
+    ],
+    "sampleNames": [
+      "Kizita Akorfa Aboagyewaa Kuadey"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "UNIVERSITY OF GHANA",
+    "v2_institution": "UNIVERSITY OF GHANA -KORLE BU",
+    "current_constituency": "Ayawaso West Wuogon",
+    "target_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264638
+    ],
+    "sampleNames": [
+      "MARIAM AFUA ASIAMAH"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "RADFORD UNIVERSITY COLLEGE",
+    "v2_institution": "RADFORD UNIVERSITY",
+    "current_constituency": "Ayawaso Central",
+    "target_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264639
+    ],
+    "sampleNames": [
+      "MARDIYA HARUNA"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "ACCRA BUSINESS SCHOOL",
+    "v2_institution": "ACCRA BUSINESS SCHOOL",
+    "current_constituency": "Ayawaso West Wuogon",
+    "target_constituency": "LEDZOKUKU",
+    "count": 1,
+    "ids": [
+      264643
+    ],
+    "sampleNames": [
+      "JUSTINA WILSON"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "KINGS UNIVERSITY",
+    "v2_institution": "KINGS UNIVERSITY COLLEGE",
+    "current_constituency": "Weija-Gbawe",
+    "target_constituency": "BORTIANOR-NGLESHIE AMANFRO",
+    "count": 1,
+    "ids": [
+      264649
+    ],
+    "sampleNames": [
+      "VANNESSA LISA WILLIAMS"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "BLUECREST UNIVERSITY",
+    "v2_institution": "BLUECREST UNIVERSITY",
+    "current_constituency": "AYAWASO EAST",
+    "target_constituency": "AYAWASO CENTRAL",
+    "count": 1,
+    "ids": [
+      264650
+    ],
+    "sampleNames": [
+      "MARY EMEFA KPODZRO"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "METHODIST UNIVERSITY DANSOMAN",
+    "v2_institution": "METHODIST UNIVERSITY (ACCRA)",
+    "current_constituency": "Ablekuma West",
+    "target_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264651
+    ],
+    "sampleNames": [
+      "ABIGAIL COBBINNAH"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "GHANA COMMUNICATION TECHNOLOGY UNIVERSITY",
+    "v2_institution": "UNIVERSITY OF GHANA -KORLE BU",
+    "current_constituency": "Okaikwei Central",
+    "target_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264654
+    ],
+    "sampleNames": [
+      "SUSSANA NADICE LAWSON"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "UNIVERSITY OF GHANA (DISTANCE EDUCATION)",
+    "v2_institution": "UNIVERSITY OF GHANA DISTANCE EDUCATION (UGDE)",
+    "current_constituency": "Ayawaso West Wuogon",
+    "target_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264661
+    ],
+    "sampleNames": [
+      "GIFTY PEARL OPOKU"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "ATEBUBU COLLEGE OF EDUCATION",
+    "v2_institution": "Atebubu College of Education",
+    "current_constituency": null,
+    "target_constituency": "ATEBUBU/AMANTIN",
+    "count": 2,
+    "ids": [
+      264673,
+      264682
+    ],
+    "sampleNames": [
+      "AMANU MASWUD",
+      "AMANU MASWUD"
+    ]
+  },
+  {
+    "region": "Western",
+    "polling_station": "HOLY CHILD",
+    "v2_institution": "Holy Child College of Education",
+    "current_constituency": "TAKORADI",
+    "target_constituency": "SEKONDI",
+    "count": 1,
+    "ids": [
+      264676
+    ],
+    "sampleNames": [
+      "SALAMATU FIADONU"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "HOLY FAMILY NURSING TRAINING COLLEGE",
+    "v2_institution": "Holy Family Nursing and Midwifery Training College",
+    "current_constituency": "AYENSUANO",
+    "target_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      264677
+    ],
+    "sampleNames": [
+      "OFOSU RICHARD JUNIOR"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "ANGLICAN UNIVERSITY",
+    "v2_institution": "Anglican University College of Technology",
+    "current_constituency": null,
+    "target_constituency": "NKORANZA SOUTH",
+    "count": 1,
+    "ids": [
+      264681
+    ],
+    "sampleNames": [
+      "ABDUL RAHEEM SAIBU"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "COLLEGE OF HEALTH KINTAMPO",
+    "v2_institution": "COLLEGE OF HEALTH AND WELL-BEING, KINTAMPO",
+    "current_constituency": "",
+    "target_constituency": "KINTAMPO NORTH",
+    "count": 1,
+    "ids": [
+      264683
+    ],
+    "sampleNames": [
+      "ZEITUN TAHIRU SANI"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "ATIBIE NURSING ABD MIDWIFERY TRAINING COLLEGE",
+    "v2_institution": "NURSING AND MIDWIFERY TRAINING COLLEGE-ATIBIE",
+    "current_constituency": "AYENSUANO",
+    "target_constituency": "MPRAESO",
+    "count": 1,
+    "ids": [
+      264684
+    ],
+    "sampleNames": [
+      "EURICA OPPONG"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "HOLY FAMILY NURSING TRANING COLLEGE",
+    "v2_institution": "Holy Family Nursing and Midwifery Training College",
+    "current_constituency": null,
+    "target_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      264686
+    ],
+    "sampleNames": [
+      "ABDUL - MUTALIK MUSAH"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "VALLEY VIEW UNIVERSITY",
+    "v2_institution": "Valley View University",
+    "current_constituency": "",
+    "target_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      264687
+    ],
+    "sampleNames": [
+      "MOHAMMED ELHAM BIMUKA"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "OSIEM SAVIOR CHURCH NURSING AND MIDWIFERY COLLEGE",
+    "v2_institution": "SAVIOUR NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "current_constituency": "NEW JUABEN SOUTH",
+    "target_constituency": "ABUAKWA NORTH",
+    "count": 1,
+    "ids": [
+      264688
+    ],
+    "sampleNames": [
+      "BERNARD OWUSU AGYEMANG"
+    ]
+  },
+  {
+    "region": "Bono East",
+    "polling_station": "KROBO NURSING TRAINING COLLEGE",
+    "v2_institution": "Krobo Nursing Training College",
+    "current_constituency": null,
+    "target_constituency": "TECHIMAN NORTH",
+    "count": 1,
+    "ids": [
+      264689
+    ],
+    "sampleNames": [
+      "JONAS DALABIT ETIMBA"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "PRESBYTERIAN WOMEN 'S COLLEGE OF EDUCATION",
+    "v2_institution": "PRESBYTERIAN WOMEN COLLEGE OF EDUCATION -ABURI",
+    "current_constituency": "NEW JUABEN NORTH",
+    "target_constituency": "AKUAPEM SOUTH",
+    "count": 1,
+    "ids": [
+      264692
+    ],
+    "sampleNames": [
+      "OBENG SERWAA LOVIA"
+    ]
+  },
+  {
+    "region": "Eastern",
+    "polling_station": "JACKSON COLLEGE OF EDUCATION, KOFORIDUA",
+    "v2_institution": "JACKSON COLLEGE OF EDUCATION",
+    "current_constituency": "ABUAKWA NORTH",
+    "target_constituency": "NEW JUABEN NORTH",
+    "count": 1,
+    "ids": [
+      264693
+    ],
+    "sampleNames": [
+      "ALEXANDER BAFFOE ASARE"
+    ]
+  },
+  {
+    "region": "Oti",
+    "polling_station": "KRACHI NMTC",
+    "v2_institution": "KRACHI NURSING AND MIDWIFERY TRAINING COLLAGE",
+    "current_constituency": "KRACHI EAST",
+    "target_constituency": "KRACHI WEST",
+    "count": 1,
+    "ids": [
+      264695
+    ],
+    "sampleNames": [
+      "JOAN ANITENFEMU NYAME"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University of Ghana (Distance Education)",
+    "v2_institution": "UNIVERSITY OF GHANA DISTANCE EDUCATION (UGDE)",
+    "current_constituency": "Ayawaso West Wuogon",
+    "target_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264702
+    ],
+    "sampleNames": [
+      "BANAFO EMMANUEL AFENYO"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Kings University College",
+    "v2_institution": "KINGS UNIVERSITY COLLEGE",
+    "current_constituency": "Weija-Gbawe",
+    "target_constituency": "BORTIANOR-NGLESHIE AMANFRO",
+    "count": 1,
+    "ids": [
+      264707
+    ],
+    "sampleNames": [
+      "ZAHID ABDUL-RAHIM SADDIQUE"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Methodist University (Dansoman)",
+    "v2_institution": "METHODIST UNIVERSITY (ACCRA)",
+    "current_constituency": "Ablekuma West",
+    "target_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264708
+    ],
+    "sampleNames": [
+      "EDWARD MAWUKO AGBENYEGAH"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Radford University College",
+    "v2_institution": "RADFORD UNIVERSITY",
+    "current_constituency": "Ayawaso Central",
+    "target_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264709
+    ],
+    "sampleNames": [
+      "NUHU YAHAYA"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra Business School",
+    "v2_institution": "METHODIST UNIVERSITY, TEMA",
+    "current_constituency": "Ayawaso West Wuogon",
+    "target_constituency": "TEMA CENTRAL",
+    "count": 1,
+    "ids": [
+      264716
+    ],
+    "sampleNames": [
+      "BRIGHT ASIEDU ADAMPTEY"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Valley View University",
+    "v2_institution": "Valley View University",
+    "current_constituency": "Kpone-Katamanso",
+    "target_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      264723
+    ],
+    "sampleNames": [
+      "MICHAEL AYENOR"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "BlueCrest University College",
+    "v2_institution": "BLUECREST UNIVERSITY",
+    "current_constituency": "Ayawaso East",
+    "target_constituency": "AYAWASO CENTRAL",
+    "count": 1,
+    "ids": [
+      264724
+    ],
+    "sampleNames": [
+      "SIBAWAIHI YUNUS"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Heritage Christian University",
+    "v2_institution": "HERITAGE UNIVERSITY",
+    "current_constituency": "AYAWASO EAST",
+    "target_constituency": "AMASAMAN",
+    "count": 1,
+    "ids": [
+      264820
+    ],
+    "sampleNames": [
+      "SHARIFF MOHAMMED"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra Business Sschool",
+    "v2_institution": "ACCRA BUSINESS SCHOOL",
+    "current_constituency": "AYAWASO EAST",
+    "target_constituency": "LEDZOKUKU",
+    "count": 1,
+    "ids": [
+      264824
+    ],
+    "sampleNames": [
+      "Mohammed N. Labaran"
+    ]
+  },
+  {
+    "region": "GREATER ACCRA",
+    "polling_station": "University of Ghana medical school",
+    "v2_institution": "UNIVERSITY OF GHANA -KORLE BU",
+    "current_constituency": "TEMA EAST",
+    "target_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264825
+    ],
+    "sampleNames": [
+      "AHMED MAIRIGA GIBRIL"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Methodist university Ghana",
+    "v2_institution": "METHODIST UNIVERSITY (ACCRA)",
+    "current_constituency": "AYAWASO EAST",
+    "target_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264826
+    ],
+    "sampleNames": [
+      "Abdul Rauf Musah"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ghana communication technology university",
+    "v2_institution": "UNIVERSITY OF GHANA -KORLE BU",
+    "current_constituency": "AYAWASO NORTH",
+    "target_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264827
+    ],
+    "sampleNames": [
+      "SADAT ABDULAI"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Pantang NMTC",
+    "v2_institution": "PANTANG NURSING",
+    "current_constituency": "AYAWASO NORTH",
+    "target_constituency": "MADINA",
+    "count": 1,
+    "ids": [
+      264828
+    ],
+    "sampleNames": [
+      "HASSAN MAMODU"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "University Ghana Allied health science korle bu",
+    "v2_institution": "UNIVERSITY OF GHANA -KORLE BU",
+    "current_constituency": "ASHAIMAN",
+    "target_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264829
+    ],
+    "sampleNames": [
+      "IBRAHIM BAFFOUR APAU APENTENG"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Ada collage of education",
+    "v2_institution": "ADA COLLEGE OF EDUCATION",
+    "current_constituency": "AYAWASO NORTH",
+    "target_constituency": "ADA",
+    "count": 1,
+    "ids": [
+      264830
+    ],
+    "sampleNames": [
+      "IBRAHIM ABDUL KADIRI AKANGA"
+    ]
+  },
+  {
+    "region": "Greater Accra",
+    "polling_station": "Accra Technical University",
+    "v2_institution": "ACCRA TECHNICAL UNIVERSITY",
+    "current_constituency": "ADENTAN",
+    "target_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264832
+    ],
+    "sampleNames": [
+      "RUKAYA IBRAHIM"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "TANOSO NMTC",
+    "v2_institution": "TANOSO NURSING AND MIDWIFERY",
+    "current_constituency": "ASUNAFO NORTH",
+    "target_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264979
+    ],
+    "sampleNames": [
+      "VICENTIA GBENOR"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "KWAPONG NMTC",
+    "v2_institution": "DADIESOABA NMTC",
+    "current_constituency": "SUAME",
+    "target_constituency": "ASUTIFI SOUTH",
+    "count": 1,
+    "ids": [
+      264980
+    ],
+    "sampleNames": [
+      "WHITE KONADU NYANTAKYI"
+    ]
+  },
+  {
+    "region": "Ahafo",
+    "polling_station": "NTROSO COLLEGE NURSING AND MIDWIFERY",
+    "v2_institution": "DADIESOABA NMTC",
+    "current_constituency": null,
+    "target_constituency": "ASUTIFI SOUTH",
+    "count": 1,
+    "ids": [
+      264983
+    ],
+    "sampleNames": [
+      "ABIBA IBRAHIM"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "COLLEGE OF NURSING AND MIDWIFERY SAMPA",
+    "v2_institution": "Berekum Nursing and Midwifery Training College",
+    "current_constituency": "WENCHI",
+    "target_constituency": "BEREKUM EAST",
+    "count": 1,
+    "ids": [
+      265042
+    ],
+    "sampleNames": [
+      "ABDUL RAHMAN GYASI"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "UNIVERSITY OF ENERGY AND NATURAL  RESOURCES",
+    "v2_institution": "University of Energy and Natural Resource (UENR SYI)",
+    "current_constituency": "TANO NORTH",
+    "target_constituency": "SUNYANI WEST",
+    "count": 1,
+    "ids": [
+      265043
+    ],
+    "sampleNames": [
+      "Mr. HAZRAT SAEID RAHMAN"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "DROBO NTC",
+    "v2_institution": "Berekum Nursing and Midwifery Training College",
+    "current_constituency": "WENCHI",
+    "target_constituency": "BEREKUM EAST",
+    "count": 1,
+    "ids": [
+      265046
+    ],
+    "sampleNames": [
+      "IMORO BASIGI"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "SUNYANI TECHNICAL UNIVERSITY",
+    "v2_institution": "Sunyani Technical University",
+    "current_constituency": "BANDA",
+    "target_constituency": "SUNYANI EAST",
+    "count": 1,
+    "ids": [
+      265047
+    ],
+    "sampleNames": [
+      "NOAH KWAME BADU"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "ST. AMBROSE COLLEGE",
+    "v2_institution": "St. Ambrose college of education",
+    "current_constituency": "DORMAA CENTRAL",
+    "target_constituency": "DORMAA EAST",
+    "count": 1,
+    "ids": [
+      265048
+    ],
+    "sampleNames": [
+      "MAKILIN PETER DANAA"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "SUNYANI NURSING AND MIDWIFERY COLLEGE",
+    "v2_institution": "Sunyani Nursing and Midwifery Training college",
+    "current_constituency": "BANDA",
+    "target_constituency": "SUNYANI EAST",
+    "count": 1,
+    "ids": [
+      265049
+    ],
+    "sampleNames": [
+      "KENNETH JOSEPH ASAMOAH"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "UENR DORMAA CAMPUS",
+    "v2_institution": "University of Energy and Natural Resource (Dormaa campus)",
+    "current_constituency": "BANDA",
+    "target_constituency": "DORMAA CENTRAL",
+    "count": 1,
+    "ids": [
+      265051
+    ],
+    "sampleNames": [
+      "LIGNUULE BENJAMIN NANBADAK"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "NURSING AND MIDWIFERY TRAINING COLLEGE -SEIKWA",
+    "v2_institution": "Berekum Nursing and Midwifery Training College",
+    "current_constituency": "TAIN",
+    "target_constituency": "BEREKUM EAST",
+    "count": 1,
+    "ids": [
+      265052
+    ],
+    "sampleNames": [
+      "ABDALLAH BAMBA"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "ST. MARY'S NURSING AND MIDWIFERY TRAINING COLLEGE -DROBO",
+    "v2_institution": "Berekum Nursing and Midwifery Training College",
+    "current_constituency": "SUNYANI EAST",
+    "target_constituency": "BEREKUM EAST",
+    "count": 1,
+    "ids": [
+      265054
+    ],
+    "sampleNames": [
+      "ABDUL HAFIZ ISSAHAKU"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "CATHOLIC UNIVERSITY OF GHANA -  SUNYANI",
+    "v2_institution": "Catholic University of Ghana",
+    "current_constituency": "SUNYANI EAST",
+    "target_constituency": "SUNYANI WEST",
+    "count": 1,
+    "ids": [
+      265055
+    ],
+    "sampleNames": [
+      "MOHAMMED HABIB BAWUMIA"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "AL- FARUQ COLLEGE OF EDUCATION",
+    "v2_institution": "AL FARUQ COLLEGE OF EDUCATION",
+    "current_constituency": "TAIN",
+    "target_constituency": "WENCHI",
+    "count": 1,
+    "ids": [
+      265056
+    ],
+    "sampleNames": [
+      "IBRAHIM IDDRISU"
+    ]
+  },
+  {
+    "region": "Bono",
+    "polling_station": "PRESBYTERIAN NURSING TRAINING COLLEGE",
+    "v2_institution": "Presbyterian Nursing training Dormaa",
+    "current_constituency": "TAIN",
+    "target_constituency": "DORMAA CENTRAL",
+    "count": 1,
+    "ids": [
+      265057
+    ],
+    "sampleNames": [
+      "ADAMS YUSSIF"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "ST TERESA COLLEGE OF EDUCATION",
+    "v2_institution": "ST.TERESA'S COLLEGE OF EDUCATION",
+    "current_constituency": "ADENTAN",
+    "target_constituency": "HOHOE",
+    "count": 1,
+    "ids": [
+      265156
+    ],
+    "sampleNames": [
+      "ALBERTA ZEMU YAYRA"
+    ]
+  },
+  {
+    "region": "Volta",
+    "polling_station": "AKATSI COLLEGE OF EDUCATION",
+    "v2_institution": "AKATSI COLLEGE OF EDUCATION",
+    "current_constituency": null,
+    "target_constituency": "AKATSI SOUTH",
+    "count": 1,
+    "ids": [
+      265157
+    ],
+    "sampleNames": [
+      "EVANS EDEM AMEGEDE"
+    ]
+  }
+]

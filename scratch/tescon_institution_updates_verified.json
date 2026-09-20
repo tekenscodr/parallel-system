@@ -1,0 +1,3741 @@
+[
+  {
+    "institution": "Wisconsin International University College",
+    "v2_institution": "WINSCONSIN UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Madina",
+    "to_constituency": "DOME-KWABENYA",
+    "count": 1,
+    "ids": [
+      237784
+    ],
+    "samples": [
+      "MAURICE KWABENA AMOFAH"
+    ]
+  },
+  {
+    "institution": "TAKORADI TECHNICAL UNIVERSITY MAIN",
+    "v2_institution": "Takoradi Technical University",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "TAKORADI",
+    "to_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      259845
+    ],
+    "samples": [
+      "SOLOMON MAWUNYEGA ADJORNOR"
+    ]
+  },
+  {
+    "institution": "Asanta SDA Nursing and Midwifery Training College",
+    "v2_institution": "Asanta SDA Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "ELLEMBELE",
+    "to_constituency": "ELLEMBELLE",
+    "count": 1,
+    "ids": [
+      259852
+    ],
+    "samples": [
+      "COLLINS AGYEI DARKWAH"
+    ]
+  },
+  {
+    "institution": "Essiama Nursing and Midwifery Training College",
+    "v2_institution": "Essiama Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "ELLEMBELE",
+    "to_constituency": "ELLEMBELLE",
+    "count": 1,
+    "ids": [
+      259853
+    ],
+    "samples": [
+      "FAUSTINA BAIDOO"
+    ]
+  },
+  {
+    "institution": "ESIAMA NMTC",
+    "v2_institution": "Essiama Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "ESSIKADU-KETAN",
+    "to_constituency": "ELLEMBELLE",
+    "count": 1,
+    "ids": [
+      259854
+    ],
+    "samples": [
+      "AGARTHA BEKOE"
+    ]
+  },
+  {
+    "institution": "TAMALE NMTC",
+    "v2_institution": "Tamale Nurses Training College",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "TAMALE SOUTH",
+    "count": 1,
+    "ids": [
+      259868
+    ],
+    "samples": [
+      "ABDUL MUHSON HAMDU"
+    ]
+  },
+  {
+    "institution": "ANIMAL HEALTH AND PRODUCTION COLLEGE, PONG-TAMALE",
+    "v2_institution": "Animal Health and Production College",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE SOUTH",
+    "to_constituency": "SAVELUGU",
+    "count": 1,
+    "ids": [
+      259870
+    ],
+    "samples": [
+      "MOHAMMED HARDI ABUKARI"
+    ]
+  },
+  {
+    "institution": "University for Development Studies- Tamale Campus",
+    "v2_institution": "Yendi College of Health Sciences",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "ZABZUGU",
+    "to_constituency": "YENDI",
+    "count": 1,
+    "ids": [
+      259874
+    ],
+    "samples": [
+      "ABUDU ABDULAI"
+    ]
+  },
+  {
+    "institution": "UDS-TAMALE CAMPUS",
+    "v2_institution": "University for Development Studies- Tamale Campus",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "TAMALE SOUTH",
+    "count": 1,
+    "ids": [
+      259881
+    ],
+    "samples": [
+      "MOHAMMED RAMADAN ADAM"
+    ]
+  },
+  {
+    "institution": "KNUST IDL",
+    "v2_institution": "KNUST, Takoradi Campus",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "TARKWA NSUAEM",
+    "to_constituency": "ESSIKADU-KETAN",
+    "count": 1,
+    "ids": [
+      259883
+    ],
+    "samples": [
+      "MICHAEL OTOO"
+    ]
+  },
+  {
+    "institution": "TAMALE TECHNICAL INSTITUTE",
+    "v2_institution": "Tamale Technical University",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      259884
+    ],
+    "samples": [
+      "MUTAWAKILU SUMANI"
+    ]
+  },
+  {
+    "institution": "UDS-NYANKPALA CAMPUS",
+    "v2_institution": "University for Development Studies- Nyankpala Campus",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "TOLON",
+    "count": 1,
+    "ids": [
+      259885
+    ],
+    "samples": [
+      "LIYELMORL EBENEZER KICHASU"
+    ]
+  },
+  {
+    "institution": "COMMUNITY HEALTH NURSES TRAINING COLLEGE, WAMALE",
+    "v2_institution": "Community Health Nurses College- Wamali",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "",
+    "to_constituency": "TAMALE SOUTH",
+    "count": 1,
+    "ids": [
+      259886
+    ],
+    "samples": [
+      "HUDU YUSSIF"
+    ]
+  },
+  {
+    "institution": "TAMALE COLLEGE OF EDUCATION",
+    "v2_institution": "Tamale College of Education",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      259892
+    ],
+    "samples": [
+      "MOHAMMED-KAMALUDEEN MOHAMMED"
+    ]
+  },
+  {
+    "institution": "SCHOOL OF HYGIENE ",
+    "v2_institution": "SCHOOL OF HYGIENE",
+    "from_region": "Northern",
+    "to_region": "Volta",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "HO CENTRAL",
+    "count": 1,
+    "ids": [
+      259897
+    ],
+    "samples": [
+      "NTIYABABE AMOS BIMOR"
+    ]
+  },
+  {
+    "institution": "COMMUNITY HELTH NURSES TRAINING COLLEGE, TAMALE",
+    "v2_institution": "Community Health Nurses College- Tamale",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE SOUTH",
+    "to_constituency": "TAMALE CENTRAL",
+    "count": 1,
+    "ids": [
+      259899
+    ],
+    "samples": [
+      "ABDULAI NASARA MOHAMMED"
+    ]
+  },
+  {
+    "institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "KWAHU EAST",
+    "to_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      259903
+    ],
+    "samples": [
+      "FRANK ADU"
+    ]
+  },
+  {
+    "institution": "COLLEGE OF HEALTH SEFWI ASAFO",
+    "v2_institution": "ASAFO COLLEGE OF HEALTH",
+    "from_region": "Western North",
+    "to_region": "Western North",
+    "from_constituency": "SEFWI AKONTOMBRA",
+    "to_constituency": "SEFWI WIAWSO",
+    "count": 1,
+    "ids": [
+      259904
+    ],
+    "samples": [
+      "TWENE MENSAH OHENE"
+    ]
+  },
+  {
+    "institution": "HOLY FAMILY NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "v2_institution": "Holy Family Nursing and Midwifery Training College",
+    "from_region": "Eastern",
+    "to_region": "Bono East",
+    "from_constituency": "NKAWKAW",
+    "to_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      259914
+    ],
+    "samples": [
+      "Agyapong Olivia"
+    ]
+  },
+  {
+    "institution": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "KWAHU EAST",
+    "to_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      259920
+    ],
+    "samples": [
+      "KOJOOSEI FRIMPONG"
+    ]
+  },
+  {
+    "institution": "PNTC -ANKAFUL",
+    "v2_institution": "PSYCHIATRIC NURSING TRAINING COLLEGE",
+    "from_region": "CENTRAL",
+    "to_region": "Central",
+    "from_constituency": "CAPE COAST NORTH",
+    "to_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      259925
+    ],
+    "samples": [
+      "MARIAMA MAMMUD"
+    ]
+  },
+  {
+    "institution": "UMAT SRID",
+    "v2_institution": "⁠UNIVERSITY OF MINES AND TECHNOLOGY-SRID",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "TARKWA NSUAEM",
+    "to_constituency": "ESSIKADU-KETAN",
+    "count": 2,
+    "ids": [
+      259926,
+      262426
+    ],
+    "samples": [
+      "ASARE PERSEUS ESHUN",
+      "RAHIMA MUSTAPHA"
+    ]
+  },
+  {
+    "institution": "Islamic University College Ghana",
+    "v2_institution": "ST.TERESA'S COLLEGE OF EDUCATION",
+    "from_region": "Greater Accra",
+    "to_region": "Volta",
+    "from_constituency": "Adentan",
+    "to_constituency": "HOHOE",
+    "count": 1,
+    "ids": [
+      259930
+    ],
+    "samples": [
+      "MUSTAPHA MOHAMMED"
+    ]
+  },
+  {
+    "institution": " PEREZ UNIVERSITY",
+    "v2_institution": "PEREZ UNIVERSITY",
+    "from_region": "CENTRAL",
+    "to_region": "Central",
+    "from_constituency": "EFFUTU",
+    "to_constituency": "GOMOA CENTRAL",
+    "count": 1,
+    "ids": [
+      259937
+    ],
+    "samples": [
+      "BISMARK GOLDMAN ABONGO"
+    ]
+  },
+  {
+    "institution": "KWADASO AGRICULTURAL COLLEGE",
+    "v2_institution": "KWADASO AGRICULTURAL COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      260006
+    ],
+    "samples": [
+      "Patience Kyei Saah"
+    ]
+  },
+  {
+    "institution": "KWADASO S.D.A NURSING AND MIDWIFERY",
+    "v2_institution": "KWADASO S.D.A NURSING AND MIDWIFERY",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      260007
+    ],
+    "samples": [
+      "Daniel Danzy Antwi  Krah"
+    ]
+  },
+  {
+    "institution": "AAMUSTED, KUMASI",
+    "v2_institution": "AAMUSTED, KUMASI",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      260008
+    ],
+    "samples": [
+      "Yaw Akoto Baffour Osei"
+    ]
+  },
+  {
+    "institution": "TAKORADI TECHNICAL UNIVERSITY BU",
+    "v2_institution": "Takoradi Technical University (BUSINESS CAMPUS)",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "WASSA EAST",
+    "to_constituency": "ESSIKADU-KETAN",
+    "count": 1,
+    "ids": [
+      260009
+    ],
+    "samples": [
+      "FLORENCE AGYABENG"
+    ]
+  },
+  {
+    "institution": "MACOY COLLEGE OF EDUCATION",
+    "v2_institution": "MACOY COLLEGE OF EDUCATION",
+    "from_region": "Upper West",
+    "to_region": "Upper West",
+    "from_constituency": "WA CENTRAL",
+    "to_constituency": "NADOWLI KALEO",
+    "count": 1,
+    "ids": [
+      260012
+    ],
+    "samples": [
+      "JOHN BONSUONUBA JATOE"
+    ]
+  },
+  {
+    "institution": "ASWAJ COLLEGE OF EDUCATION",
+    "v2_institution": "ASWAJ COLLEGE OF EDUCATION",
+    "from_region": "Upper West",
+    "to_region": "Upper West",
+    "from_constituency": "WA CENTRAL",
+    "to_constituency": "WA EAST",
+    "count": 1,
+    "ids": [
+      260059
+    ],
+    "samples": [
+      "AMINAT SEIDU"
+    ]
+  },
+  {
+    "institution": "REGENTROFEN UNIVERSITY COLLEGE",
+    "v2_institution": "Regentropfen  UNIVERSITY",
+    "from_region": "Upper East",
+    "to_region": "Upper East",
+    "from_constituency": "BONGO",
+    "to_constituency": "TALENSI",
+    "count": 1,
+    "ids": [
+      260070
+    ],
+    "samples": [
+      "FATIMA SINARE DAUDA"
+    ]
+  },
+  {
+    "institution": "UNIVERSITY OF CAPE COAST",
+    "v2_institution": "UNIVERSITY OF CAPE COAST",
+    "from_region": "CENTRAL",
+    "to_region": "Central",
+    "from_constituency": "AWUTU SENYA EAST",
+    "to_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      260090
+    ],
+    "samples": [
+      "ABDUL FATAWU KASSIM"
+    ]
+  },
+  {
+    "institution": "AWISA EAST ASENE",
+    "v2_institution": "UNIVERSITY OF EDUCATION, AJUMAKO",
+    "from_region": "Eastern",
+    "to_region": "Central",
+    "from_constituency": "ASENE/AKROSO/MANSO",
+    "to_constituency": "AJUMAKO ENYAN ESIAM",
+    "count": 1,
+    "ids": [
+      260107
+    ],
+    "samples": [
+      "RICHARD TAKYI"
+    ]
+  },
+  {
+    "institution": "KOMENDA TRAINING COLLEGE",
+    "v2_institution": "KOMENDA TRAINING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "KOMENDA EDINA EGUAFO ABREM",
+    "to_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      260116
+    ],
+    "samples": [
+      "Prince Mark K Eghan"
+    ]
+  },
+  {
+    "institution": "ENCHI COLLEGE OF EDUCATION",
+    "v2_institution": "ENCHI COLLEGE OF EDUCATION",
+    "from_region": "Western North",
+    "to_region": "Western North",
+    "from_constituency": "BODI",
+    "to_constituency": "AOWIN",
+    "count": 1,
+    "ids": [
+      260124
+    ],
+    "samples": [
+      "FOSTER TETTEH OSRAH"
+    ]
+  },
+  {
+    "institution": "DNMTC, DUNKWA",
+    "v2_institution": "KOMENDA TRAINING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "UPPER DENKYIRA EAST",
+    "to_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      260128
+    ],
+    "samples": [
+      "CALEB KWEKU ACQUAH"
+    ]
+  },
+  {
+    "institution": "CHRIST APOSTOLIC UNIVERSITY COLLEGE",
+    "v2_institution": "CHRIST APOSTOLIC UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      260134
+    ],
+    "samples": [
+      "FREDERICK KWADWO NKANSAH"
+    ]
+  },
+  {
+    "institution": "COLLEGE OF HEALTH AND WELL-BEING, KINTAMPO",
+    "v2_institution": "UNIVERSITY OF GHANA DISTANCE EDUCATION (UGDE)",
+    "from_region": "Bono East",
+    "to_region": "Greater Accra",
+    "from_constituency": "KINTAMPO NORTH",
+    "to_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      260139
+    ],
+    "samples": [
+      "GORDON AKUFFO ASARE"
+    ]
+  },
+  {
+    "institution": "UEW, WINNEBA MAIN",
+    "v2_institution": "UNIVERSITY OF EDUCATION, WINNEBA",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "",
+    "to_constituency": "EFFUTU",
+    "count": 1,
+    "ids": [
+      260149
+    ],
+    "samples": [
+      "JUDITH APPIAH"
+    ]
+  },
+  {
+    "institution": "UBIDS",
+    "v2_institution": "S.D DOMBO UBIDS",
+    "from_region": "Upper West",
+    "to_region": "Upper West",
+    "from_constituency": "WA EAST",
+    "to_constituency": "WA CENTRAL",
+    "count": 1,
+    "ids": [
+      260183
+    ],
+    "samples": [
+      "RAZAK TAKORA ISSAH"
+    ]
+  },
+  {
+    "institution": "E P COLLEGE OF EDUCATION",
+    "v2_institution": "EP College of Education",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "",
+    "to_constituency": "BIMBILLA",
+    "count": 1,
+    "ids": [
+      260185
+    ],
+    "samples": [
+      "WISDOM NJONAM GNALIR"
+    ]
+  },
+  {
+    "institution": "Baptist University",
+    "v2_institution": "GHANA BAPTIST UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Asokwa",
+    "to_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      262055
+    ],
+    "samples": [
+      "ANN OSEI TOKU"
+    ]
+  },
+  {
+    "institution": "Central University, Kumasi Campus",
+    "v2_institution": "CENTRAL UNIVERSITY- KUMASI CAMPUS",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "OFORIKROM",
+    "count": 1,
+    "ids": [
+      262056
+    ],
+    "samples": [
+      "OPHELIA SAMAABA PREMPEH-KESSIE"
+    ]
+  },
+  {
+    "institution": "Christ Apostolic University College",
+    "v2_institution": "CHRIST APOSTOLIC UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      262057
+    ],
+    "samples": [
+      "NARTEY BELINDA BADJO"
+    ]
+  },
+  {
+    "institution": "Christian Service University",
+    "v2_institution": "CHRISTIAN SERVICE UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Bantama",
+    "to_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      262058
+    ],
+    "samples": [
+      "AMOAH VICTORIA"
+    ]
+  },
+  {
+    "institution": "GCTU",
+    "v2_institution": "GHANA TELECOM UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      262062
+    ],
+    "samples": [
+      "AWERE PATIENCE"
+    ]
+  },
+  {
+    "institution": "Ghana Institute of Languages",
+    "v2_institution": "SCHOOL OF LANGUAGES",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Nhyiaeso",
+    "to_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      262065
+    ],
+    "samples": [
+      "CONSTANCE KONADU SARPONG"
+    ]
+  },
+  {
+    "institution": "Kessben University College",
+    "v2_institution": "KESSBEN UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwabre East",
+    "to_constituency": "BOSOMTWE",
+    "count": 1,
+    "ids": [
+      262069
+    ],
+    "samples": [
+      "AMA AKOMEA"
+    ]
+  },
+  {
+    "institution": "Kwadaso Agricultural College",
+    "v2_institution": "KWADASO AGRICULTURAL COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      262072
+    ],
+    "samples": [
+      "DZAKPO JESSICA ADZO"
+    ]
+  },
+  {
+    "institution": "Multimedia Institute of Ghana (MIG)",
+    "v2_institution": "MULTIMEDIA INSTITUTE OF JOURNALISM",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Subin",
+    "to_constituency": "OFORIKROM",
+    "count": 1,
+    "ids": [
+      262073
+    ],
+    "samples": [
+      "DORCAS OFORI"
+    ]
+  },
+  {
+    "institution": "NMTC, Kumasi",
+    "v2_institution": "KUMASI NMTC",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Bantama",
+    "to_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      262074
+    ],
+    "samples": [
+      "THELMA AFIA ADUTWUMWAA"
+    ]
+  },
+  {
+    "institution": "Neumann College Department of Nursing",
+    "v2_institution": "NEUMAN COLLEGE OF NURSING",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "OLD TAFO",
+    "count": 1,
+    "ids": [
+      262075
+    ],
+    "samples": [
+      "CHRISTABEL MENSAH"
+    ]
+  },
+  {
+    "institution": "Otec School of Journalism and Communication Studies",
+    "v2_institution": "OTEC SCHOOL OF JOURNALISM",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "KWABRE EAST",
+    "to_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      262078
+    ],
+    "samples": [
+      "AKORFUL NKANSAH JOYCELYN"
+    ]
+  },
+  {
+    "institution": "Premier Nursing",
+    "v2_institution": "PREMIER NURSING TRAINING COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "MANHYIA NORTH",
+    "count": 1,
+    "ids": [
+      262079
+    ],
+    "samples": [
+      "PRISCILLA OSEI ASIBEY"
+    ]
+  },
+  {
+    "institution": "Royal Ann College of Health",
+    "v2_institution": "ROYAL ANN HEALTH COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Atwima Nwabiagya North",
+    "to_constituency": "ATWIMA NWABIAGYA SOUTH",
+    "count": 1,
+    "ids": [
+      262082
+    ],
+    "samples": [
+      "ANNABELLA OPOKU AGYEMANG"
+    ]
+  },
+  {
+    "institution": "Samlee NMTC",
+    "v2_institution": "SAMLEE NURSING AND MIDWIFERY",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Bantama",
+    "to_constituency": "ATWIMA KWANWOMA",
+    "count": 1,
+    "ids": [
+      262087
+    ],
+    "samples": [
+      "CYNTHIA ABBEY"
+    ]
+  },
+  {
+    "institution": "St. Louis College of Education",
+    "v2_institution": "ST LOUIS COLLEGE OF EDUCATION",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Suame",
+    "to_constituency": "MANHYIA SOUTH",
+    "count": 1,
+    "ids": [
+      262090
+    ],
+    "samples": [
+      "PERPETUAL OWUSU ANSAH"
+    ]
+  },
+  {
+    "institution": "USTED-Kumasi",
+    "v2_institution": "AAMUSTED, KUMASI",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      262095
+    ],
+    "samples": [
+      "PRISCILLA BOAKYEWAAH MENSAH"
+    ]
+  },
+  {
+    "institution": "Valley View University",
+    "v2_institution": "Valley View University",
+    "from_region": "Ashanti",
+    "to_region": "Bono East",
+    "from_constituency": "Oforikrom",
+    "to_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      262098
+    ],
+    "samples": [
+      "EBBATU YAKUBU"
+    ]
+  },
+  {
+    "institution": "Withrow University",
+    "v2_institution": "WITHROW UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "Kwadaso Municipal",
+    "to_constituency": "AFIGYA SEYERE EAST",
+    "count": 1,
+    "ids": [
+      262101
+    ],
+    "samples": [
+      "EVELYN OWUSU NYANTAKYIWAA"
+    ]
+  },
+  {
+    "institution": "Assinman Nurses Training College",
+    "v2_institution": "ASSINMAN NURSING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "Assin South",
+    "to_constituency": "ASSIN CENTRAL",
+    "count": 1,
+    "ids": [
+      262119
+    ],
+    "samples": [
+      "THERESAH O. AMISSAH"
+    ]
+  },
+  {
+    "institution": "Cape Coast Technical University",
+    "v2_institution": "CAPE  COAST TECHNICAL UNIVERSITY",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "Cape Coast South",
+    "to_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      262122
+    ],
+    "samples": [
+      "MIRIAM AMA OBESEBEA"
+    ]
+  },
+  {
+    "institution": "Komenda College of Education",
+    "v2_institution": "KOMENDA TRAINING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "Komenda Edina Eguafo Abrem",
+    "to_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      262126
+    ],
+    "samples": [
+      "BROOKLYN SMITH"
+    ]
+  },
+  {
+    "institution": "PNTC Ankaful",
+    "v2_institution": "PSYCHIATRIC NURSING TRAINING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "Cape Coast North",
+    "to_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      262130
+    ],
+    "samples": [
+      "NORA ABENA KWARTEMAA"
+    ]
+  },
+  {
+    "institution": "Perez University",
+    "v2_institution": "PEREZ UNIVERSITY",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "Gomoa East",
+    "to_constituency": "GOMOA CENTRAL",
+    "count": 1,
+    "ids": [
+      262131
+    ],
+    "samples": [
+      "EMMANUELLA E. MENSAH"
+    ]
+  },
+  {
+    "institution": "University of Cape Coast",
+    "v2_institution": "UNIVERSITY OF CAPE COAST",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "Cape Coast South",
+    "to_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      262134
+    ],
+    "samples": [
+      "JESSICA ADDO"
+    ]
+  },
+  {
+    "institution": "Abetifi Presbyterian College of Education",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "Kwahu East",
+    "to_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      262135
+    ],
+    "samples": [
+      "JENNIFER AFRIYIE"
+    ]
+  },
+  {
+    "institution": "Presbyterian University College Abetifi-Campus",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "Kwahu East",
+    "to_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      262152
+    ],
+    "samples": [
+      "JULIANA KYAKYEWAA SASU"
+    ]
+  },
+  {
+    "institution": "New Life College",
+    "v2_institution": "New Life College",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "Tamale Central",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262172
+    ],
+    "samples": [
+      "MOHAMMED FADILA"
+    ]
+  },
+  {
+    "institution": "School of Hygience - Tamale",
+    "v2_institution": "School of Hygiene- Tamale",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "Tamale Central",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262173
+    ],
+    "samples": [
+      "ISSAKA SUWEIBATU"
+    ]
+  },
+  {
+    "institution": "Tamale College of Education",
+    "v2_institution": "Tamale College of Education",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "Tamale Central",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262175
+    ],
+    "samples": [
+      "SA-EED MUHSINA"
+    ]
+  },
+  {
+    "institution": "Tamale NMTC",
+    "v2_institution": "Tamale Nurses Training College",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "Tamale Central",
+    "to_constituency": "TAMALE SOUTH",
+    "count": 1,
+    "ids": [
+      262176
+    ],
+    "samples": [
+      "GLORIA RAKIA ISSAH"
+    ]
+  },
+  {
+    "institution": "Tamale Technical Institute",
+    "v2_institution": "Tamale Technical University",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "Tamale Central",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262177
+    ],
+    "samples": [
+      "NURU SAMIRATU"
+    ]
+  },
+  {
+    "institution": "UDS - City Campus",
+    "v2_institution": "University for Development Studies- City Campus",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "Tamale South",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262179
+    ],
+    "samples": [
+      "NILIYEMI VIDA"
+    ]
+  },
+  {
+    "institution": "Regentropfen University College",
+    "v2_institution": "Regentropfen  UNIVERSITY",
+    "from_region": "Upper East",
+    "to_region": "Upper East",
+    "from_constituency": "Bongo",
+    "to_constituency": "TALENSI",
+    "count": 1,
+    "ids": [
+      262197
+    ],
+    "samples": [
+      "HAMIDU UBAIDA"
+    ]
+  },
+  {
+    "institution": "Aswaj College of Education",
+    "v2_institution": "ASWAJ COLLEGE OF EDUCATION",
+    "from_region": "Upper West",
+    "to_region": "Upper West",
+    "from_constituency": "Wa Central",
+    "to_constituency": "WA EAST",
+    "count": 1,
+    "ids": [
+      262201
+    ],
+    "samples": [
+      "DERY ERIN"
+    ]
+  },
+  {
+    "institution": "Ghana Communication Technology University",
+    "v2_institution": "GHANA TELECOM UNIVERSITY COLLEGE",
+    "from_region": "Volta",
+    "to_region": "Ashanti",
+    "from_constituency": "Ho Central",
+    "to_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      262217
+    ],
+    "samples": [
+      "DZIWORNU MARY"
+    ]
+  },
+  {
+    "institution": "Christian Service University",
+    "v2_institution": "CHRISTIAN SERVICE UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "BANTAMA",
+    "to_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      262249
+    ],
+    "samples": [
+      "YUSSIF HAMZA MOHAMMED"
+    ]
+  },
+  {
+    "institution": "GCTU",
+    "v2_institution": "GHANA TELECOM UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "KWADASO",
+    "to_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      262252
+    ],
+    "samples": [
+      "JASMINE FUSEINI"
+    ]
+  },
+  {
+    "institution": "Ghana Baptist University College Kumasi Amakom",
+    "v2_institution": "GHANA BAPTIST UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "ASOKWA",
+    "to_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      262255
+    ],
+    "samples": [
+      "ABUBAKAR FARID"
+    ]
+  },
+  {
+    "institution": "Ghana Institute of Languages",
+    "v2_institution": "SCHOOL OF LANGUAGES",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "NHYIAESO",
+    "to_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      262256
+    ],
+    "samples": [
+      "DAUDA ALHASSAN"
+    ]
+  },
+  {
+    "institution": "NMTC, Kumasi",
+    "v2_institution": "KUMASI NMTC",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "BANTAMA",
+    "to_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      262264
+    ],
+    "samples": [
+      "SALISU AYNAWAU"
+    ]
+  },
+  {
+    "institution": "Otec School of Journalism",
+    "v2_institution": "OTEC SCHOOL OF JOURNALISM",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "KWABRE EAST",
+    "to_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      262269
+    ],
+    "samples": [
+      "TAMINU JIJIRI IBRAHIM"
+    ]
+  },
+  {
+    "institution": "Royal Ann College of Health",
+    "v2_institution": "ROYAL ANN HEALTH COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "ATWIMA NWABIAGYA NORTH",
+    "to_constituency": "ATWIMA NWABIAGYA SOUTH",
+    "count": 1,
+    "ids": [
+      262272
+    ],
+    "samples": [
+      "IBRAHIM MOHAMMED"
+    ]
+  },
+  {
+    "institution": "St Louis College of Education",
+    "v2_institution": "ST LOUIS COLLEGE OF EDUCATION",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "SUAME",
+    "to_constituency": "MANHYIA SOUTH",
+    "count": 1,
+    "ids": [
+      262280
+    ],
+    "samples": [
+      "YUSSIF FATI"
+    ]
+  },
+  {
+    "institution": "Valley View University",
+    "v2_institution": "Valley View University",
+    "from_region": "Ashanti",
+    "to_region": "Bono East",
+    "from_constituency": "OFORIKROM",
+    "to_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      262288
+    ],
+    "samples": [
+      "IBRAHIM ALHASSAN"
+    ]
+  },
+  {
+    "institution": "Withrow University",
+    "v2_institution": "WITHROW UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "KWADASO",
+    "to_constituency": "AFIGYA SEYERE EAST",
+    "count": 1,
+    "ids": [
+      262291
+    ],
+    "samples": [
+      "JAMAL IBRAHIM"
+    ]
+  },
+  {
+    "institution": "Assinman Nurses Training College",
+    "v2_institution": "ASSINMAN NURSING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "ASSIN SOUTH",
+    "to_constituency": "ASSIN CENTRAL",
+    "count": 1,
+    "ids": [
+      262308
+    ],
+    "samples": [
+      "NAJAT NUHU"
+    ]
+  },
+  {
+    "institution": "Cape Coast Technical University",
+    "v2_institution": "CAPE  COAST TECHNICAL UNIVERSITY",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "CAPE COAST SOUTH",
+    "to_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      262311
+    ],
+    "samples": [
+      "BAIDOO ABRAHAM"
+    ]
+  },
+  {
+    "institution": "Komenda College of Education",
+    "v2_institution": "KOMENDA TRAINING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "KOMENDA EDINA EGUAFO ABREM",
+    "to_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      262315
+    ],
+    "samples": [
+      "AZEEZ IBRAHIM"
+    ]
+  },
+  {
+    "institution": "PNTC Ankaful",
+    "v2_institution": "PSYCHIATRIC NURSING TRAINING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "CAPE COAST NORTH",
+    "to_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      262319
+    ],
+    "samples": [
+      "MARIAMA SEETA MOHAMMMED"
+    ]
+  },
+  {
+    "institution": "Perez University",
+    "v2_institution": "PEREZ UNIVERSITY",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "GOMOA EAST",
+    "to_constituency": "GOMOA CENTRAL",
+    "count": 1,
+    "ids": [
+      262320
+    ],
+    "samples": [
+      "AMZA ABUBAKAR"
+    ]
+  },
+  {
+    "institution": "University of Cape Coast",
+    "v2_institution": "UNIVERSITY OF CAPE COAST",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "CAPE COAST SOUTH",
+    "to_constituency": "CAPE COAST NORTH",
+    "count": 1,
+    "ids": [
+      262323
+    ],
+    "samples": [
+      "ALHASSAN FUSEINI"
+    ]
+  },
+  {
+    "institution": "Abetifi Presbyterian College of Education",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "KWAHU EAST",
+    "to_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      262324
+    ],
+    "samples": [
+      "MAWIYA RAZAK SANI"
+    ]
+  },
+  {
+    "institution": "Presbyterian University College Abetifi-Campus",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "KWAHU EAST",
+    "to_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      262341
+    ],
+    "samples": [
+      "SADIQUE ABUBAKAR"
+    ]
+  },
+  {
+    "institution": "New Life College",
+    "v2_institution": "New Life College",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262361
+    ],
+    "samples": [
+      "ASSIBI MAXWELL AKANKPIENTI"
+    ]
+  },
+  {
+    "institution": "School of Hygience - Tamale",
+    "v2_institution": "School of Hygiene- Tamale",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262362
+    ],
+    "samples": [
+      "ABDUL SOMED JAMILA WUMPINI"
+    ]
+  },
+  {
+    "institution": "Tamale College of Education",
+    "v2_institution": "Tamale College of Education",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262364
+    ],
+    "samples": [
+      "YAKUBU JALIW"
+    ]
+  },
+  {
+    "institution": "Tamale NMTC",
+    "v2_institution": "Tamale Nurses Training College",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "TAMALE SOUTH",
+    "count": 1,
+    "ids": [
+      262365
+    ],
+    "samples": [
+      "ALHASSAN RAUDATU AZINPAGA"
+    ]
+  },
+  {
+    "institution": "Tamale Technical Institute",
+    "v2_institution": "Tamale Technical University",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262366
+    ],
+    "samples": [
+      "BAWA YAKUBU"
+    ]
+  },
+  {
+    "institution": "UDS - City Campus",
+    "v2_institution": "University for Development Studies- City Campus",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE SOUTH",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      262368
+    ],
+    "samples": [
+      "SULO DAVID NABUR"
+    ]
+  },
+  {
+    "institution": "Regentropfen University College",
+    "v2_institution": "Regentropfen  UNIVERSITY",
+    "from_region": "Upper East",
+    "to_region": "Upper East",
+    "from_constituency": "BONGO",
+    "to_constituency": "TALENSI",
+    "count": 1,
+    "ids": [
+      262386
+    ],
+    "samples": [
+      "EDWARD BONGO"
+    ]
+  },
+  {
+    "institution": "Asaj College of Education",
+    "v2_institution": "ASWAJ COLLEGE OF EDUCATION",
+    "from_region": "Upper West",
+    "to_region": "Upper West",
+    "from_constituency": "WA CENTRAL",
+    "to_constituency": "WA EAST",
+    "count": 1,
+    "ids": [
+      262390
+    ],
+    "samples": [
+      "RIDUWAN MOHAMMED AWAL"
+    ]
+  },
+  {
+    "institution": "Ghana Communication Technology University",
+    "v2_institution": "GHANA TELECOM UNIVERSITY COLLEGE",
+    "from_region": "Volta",
+    "to_region": "Ashanti",
+    "from_constituency": "HO CENTRAL",
+    "to_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      262406
+    ],
+    "samples": [
+      "AWLIME MAWUFEMOR"
+    ]
+  },
+  {
+    "institution": "Asanco NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "",
+    "to_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      262417
+    ],
+    "samples": [
+      "DANLADI INUSAH IBRAHIM (ASANCO)"
+    ]
+  },
+  {
+    "institution": "Asankragwa NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "",
+    "to_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      262418
+    ],
+    "samples": [
+      "DANLADI INUSAH IBRAHIM"
+    ]
+  },
+  {
+    "institution": "Asanta NMTC",
+    "v2_institution": "Asanta SDA Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "ELLEMBELE",
+    "to_constituency": "ELLEMBELLE",
+    "count": 1,
+    "ids": [
+      262419
+    ],
+    "samples": [
+      "NAJAT SHIRAZU"
+    ]
+  },
+  {
+    "institution": "Esiama NMTC",
+    "v2_institution": "Essiama Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "",
+    "to_constituency": "ELLEMBELLE",
+    "count": 1,
+    "ids": [
+      262420
+    ],
+    "samples": [
+      "ISSAKA NAFISATU"
+    ]
+  },
+  {
+    "institution": "Takoradi Technical University BU",
+    "v2_institution": "Takoradi Technical University (BUSINESS CAMPUS)",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "TAKORADI",
+    "to_constituency": "ESSIKADU-KETAN",
+    "count": 1,
+    "ids": [
+      262424
+    ],
+    "samples": [
+      "MUSTAPHA UMAR A. TOURE"
+    ]
+  },
+  {
+    "institution": "Takoradi Technical University Main",
+    "v2_institution": "Takoradi Technical University",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "TAKORADI",
+    "to_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      262425
+    ],
+    "samples": [
+      "FUSEINI DAUDA"
+    ]
+  },
+  {
+    "institution": "Bia Lamplighter College of Education",
+    "v2_institution": "BIA LAMPLIGHTER COLLEGE OF EDUCATION",
+    "from_region": "Western North",
+    "to_region": "Western North",
+    "from_constituency": "",
+    "to_constituency": "BIA WEST",
+    "count": 1,
+    "ids": [
+      262428
+    ],
+    "samples": [
+      "SAMATA MOHAMMED"
+    ]
+  },
+  {
+    "institution": "Bibiani College of Health Sciences",
+    "v2_institution": "BIBIANI COLLEGE OF HEALTH SCIENCES",
+    "from_region": "Western North",
+    "to_region": "Western North",
+    "from_constituency": "",
+    "to_constituency": "BIBIANI-ANHWIASO-BEKWAI",
+    "count": 1,
+    "ids": [
+      262429
+    ],
+    "samples": [
+      "KAMINYE VICTORIA"
+    ]
+  },
+  {
+    "institution": "College of Health Sefwi Asafo",
+    "v2_institution": "ASAFO COLLEGE OF HEALTH",
+    "from_region": "Western North",
+    "to_region": "Western North",
+    "from_constituency": "",
+    "to_constituency": "SEFWI WIAWSO",
+    "count": 1,
+    "ids": [
+      262430
+    ],
+    "samples": [
+      "IDDRISU RAHINATU"
+    ]
+  },
+  {
+    "institution": "Enchi College of Education",
+    "v2_institution": "ENCHI COLLEGE OF EDUCATION",
+    "from_region": "Western North",
+    "to_region": "Western North",
+    "from_constituency": "",
+    "to_constituency": "AOWIN",
+    "count": 1,
+    "ids": [
+      262431
+    ],
+    "samples": [
+      "MORO NASHIRU MOSES"
+    ]
+  },
+  {
+    "institution": "Sefwi Wiawso Nursing and Midwifery College",
+    "v2_institution": "WIAWSO NURSING AND MIDWIFERY COLLEGE",
+    "from_region": "Western North",
+    "to_region": "Western North",
+    "from_constituency": "",
+    "to_constituency": "SEFWI WIAWSO",
+    "count": 1,
+    "ids": [
+      262432
+    ],
+    "samples": [
+      "AMADU TANKO"
+    ]
+  },
+  {
+    "institution": "Wiawso College of Education",
+    "v2_institution": "WIAWSO COLLEGE OF EDUCATION",
+    "from_region": "Western North",
+    "to_region": "Western North",
+    "from_constituency": "",
+    "to_constituency": "SEFWI WIAWSO",
+    "count": 1,
+    "ids": [
+      262433
+    ],
+    "samples": [
+      "ZAKARIA MAIMUNATU"
+    ]
+  },
+  {
+    "institution": "DADIESOABA NMTC",
+    "v2_institution": "DADIESOABA NMTC",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": "ASUNAFO SOUTH",
+    "to_constituency": "ASUTIFI SOUTH",
+    "count": 1,
+    "ids": [
+      264297
+    ],
+    "samples": [
+      "NIMO CECILIA"
+    ]
+  },
+  {
+    "institution": "L/A PRIM SCH GBANKURUGU 1",
+    "v2_institution": "NALERIGU N.M.T.C",
+    "from_region": "North East",
+    "to_region": "North East",
+    "from_constituency": "YUNYOO",
+    "to_constituency": "NALERIGU/GAMBAGA",
+    "count": 1,
+    "ids": [
+      264301
+    ],
+    "samples": [
+      "CLEMENT DAAMAYAN NIIBIT"
+    ]
+  },
+  {
+    "institution": "PREMIER NURSES TRAINING COLLEGE",
+    "v2_institution": "PREMIER NURSING TRAINING COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": null,
+    "to_constituency": "MANHYIA NORTH",
+    "count": 1,
+    "ids": [
+      264323
+    ],
+    "samples": [
+      "LINDA OWUSU"
+    ]
+  },
+  {
+    "institution": "NMTC, KUMASI",
+    "v2_institution": "KUMASI NMTC",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "OLD TAFO",
+    "to_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      264331
+    ],
+    "samples": [
+      "BERNARD ARTHUR OWUSU"
+    ]
+  },
+  {
+    "institution": "NEW LIFE COLLEGE",
+    "v2_institution": "New Life College",
+    "from_region": "Northern",
+    "to_region": "Northern",
+    "from_constituency": "TAMALE CENTRAL",
+    "to_constituency": "SAGNARIGU",
+    "count": 1,
+    "ids": [
+      264332
+    ],
+    "samples": [
+      "ANTHONY KOLAN"
+    ]
+  },
+  {
+    "institution": "MAMPONG TECHNICAL COLLEGE OF EDUCATION",
+    "v2_institution": "MAMPONG TECHNICAL COLLEGE OF EDUCATION",
+    "from_region": "Ahafo",
+    "to_region": "Ashanti",
+    "from_constituency": "ASUNAFO NORTH",
+    "to_constituency": "MAMPONG",
+    "count": 1,
+    "ids": [
+      264336
+    ],
+    "samples": [
+      "RICHARD BOFAH KYEI"
+    ]
+  },
+  {
+    "institution": "WITHROW COLLEGE",
+    "v2_institution": "WITHROW UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": null,
+    "to_constituency": "AFIGYA SEYERE EAST",
+    "count": 1,
+    "ids": [
+      264348
+    ],
+    "samples": [
+      "MILLICENT BOATENG"
+    ]
+  },
+  {
+    "institution": "USTED-M",
+    "v2_institution": "AAMUSTED, MAMPONG",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "ASUTIFI SOUTH",
+    "to_constituency": "MAMPONG",
+    "count": 1,
+    "ids": [
+      264370
+    ],
+    "samples": [
+      "ISAAC AMENYO"
+    ]
+  },
+  {
+    "institution": "AKROKERRI COLLEGE OF EDUCATION",
+    "v2_institution": "AKROKERRI COLLEGE OF EDUCATION",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "ASUTIFI SOUTH",
+    "to_constituency": "FOMENA",
+    "count": 1,
+    "ids": [
+      264380
+    ],
+    "samples": [
+      "NYARKO IVAN"
+    ]
+  },
+  {
+    "institution": "AGOGO PRESBYTERIAN WOMEN'S COLLEGE OF EDUCATION.",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "ASANTE AKIM SOUTH",
+    "to_constituency": "ASANTE AKIM NORTH",
+    "count": 1,
+    "ids": [
+      264384
+    ],
+    "samples": [
+      "RITA OTU OBIRI"
+    ]
+  },
+  {
+    "institution": "KUMASI TECHNICAL UNIVERSITY",
+    "v2_institution": "KUMASI TECHNICAL UNIVERSITY",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "KWABRE EAST",
+    "to_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      264386
+    ],
+    "samples": [
+      "BRIGHT ADDO ABABIO"
+    ]
+  },
+  {
+    "institution": "OTEC SCHOOL OF JOURNALISM AND COMMUNICATION STUDIES",
+    "v2_institution": "OTEC SCHOOL OF JOURNALISM",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "BOSOMTWE",
+    "to_constituency": "ASAWASE",
+    "count": 1,
+    "ids": [
+      264391
+    ],
+    "samples": [
+      "ESTHER AMANKWAH"
+    ]
+  },
+  {
+    "institution": "NURSING AND MIDWIFERY TRAINING COLLEGE FOMENA ADANSI",
+    "v2_institution": "FOMENA NURSING AND MIDWIFERY",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "ADANSI ASOKWA",
+    "to_constituency": "FOMENA",
+    "count": 1,
+    "ids": [
+      264395
+    ],
+    "samples": [
+      "KUSI AARON AMPOFO"
+    ]
+  },
+  {
+    "institution": " GHANA BAPTIST UNIVERSITY",
+    "v2_institution": "GHANA BAPTIST UNIVERSITY COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "BANTAMA",
+    "to_constituency": "SUBIN",
+    "count": 1,
+    "ids": [
+      264407
+    ],
+    "samples": [
+      "BERNICE YEBOAH"
+    ]
+  },
+  {
+    "institution": "CENTRAL UNIVERSITY KUMASI",
+    "v2_institution": "CENTRAL UNIVERSITY- KUMASI CAMPUS",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "ATWIMA MPONUA",
+    "to_constituency": "OFORIKROM",
+    "count": 1,
+    "ids": [
+      264411
+    ],
+    "samples": [
+      "KOFI AGYEKUM"
+    ]
+  },
+  {
+    "institution": "USTED- KUMASI",
+    "v2_institution": "AAMUSTED, KUMASI",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "SUBIN",
+    "to_constituency": "KWADASO",
+    "count": 1,
+    "ids": [
+      264421
+    ],
+    "samples": [
+      "ABRAHAM MBILLAH"
+    ]
+  },
+  {
+    "institution": "RURAL DEVELOPMENT COLLEGE, KWASO",
+    "v2_institution": "RURAL DEVELOPMENT COLLEGE",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": null,
+    "to_constituency": "EJISU",
+    "count": 1,
+    "ids": [
+      264426
+    ],
+    "samples": [
+      "SAMUEL BONNA APPIAH"
+    ]
+  },
+  {
+    "institution": "ST. MICHAEL’S NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "v2_institution": "ST MICHAEL'S NURSING AND MIDWIFERY",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "SUAME",
+    "to_constituency": "BOSOMTWE",
+    "count": 1,
+    "ids": [
+      264433
+    ],
+    "samples": [
+      "MARIANA AMA SERWAA SUNKWA"
+    ]
+  },
+  {
+    "institution": "NEUMAN COLLEGE",
+    "v2_institution": "NEUMAN COLLEGE OF NURSING",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "ATWIMA KWANWOMA",
+    "to_constituency": "OLD TAFO",
+    "count": 1,
+    "ids": [
+      264434
+    ],
+    "samples": [
+      "JOHN OKYERE"
+    ]
+  },
+  {
+    "institution": "COLLEGE OF INTEGRATED HEALTHCARE-OBUASI",
+    "v2_institution": "INTEGRATED SCHOOL OF HEALTH, OBUASI",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "NEW EDUBIASE",
+    "to_constituency": "OBUASI EAST",
+    "count": 1,
+    "ids": [
+      264437
+    ],
+    "samples": [
+      "CALITOS DADZIE"
+    ]
+  },
+  {
+    "institution": "MULTIMEDIA INSTITUTE OF GHANA(MIG)",
+    "v2_institution": "MULTIMEDIA INSTITUTE OF JOURNALISM",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "AHAFO ANO SOUTH WEST",
+    "to_constituency": "OFORIKROM",
+    "count": 1,
+    "ids": [
+      264438
+    ],
+    "samples": [
+      "GLORIA ABOSI POKUAA"
+    ]
+  },
+  {
+    "institution": "GIMPA",
+    "v2_institution": "GIMPA-KUMASI CAMPUS",
+    "from_region": "Ashanti",
+    "to_region": "Ashanti",
+    "from_constituency": "BANTAMA",
+    "to_constituency": "ASOKWA",
+    "count": 1,
+    "ids": [
+      264439
+    ],
+    "samples": [
+      "MABEL OWUSU ANSAH"
+    ]
+  },
+  {
+    "institution": "NJA COLLEGE OF EDUCATION",
+    "v2_institution": "N.J.A COLLEGE OF EDUCATION",
+    "from_region": "Upper West",
+    "to_region": "Upper West",
+    "from_constituency": "WA EAST",
+    "to_constituency": "WA CENTRAL",
+    "count": 1,
+    "ids": [
+      264452
+    ],
+    "samples": [
+      "YAKUBU ZAKIA MOHAMMED"
+    ]
+  },
+  {
+    "institution": "BIA LAMPLIGHTER COLLEGE OF EDUCATION",
+    "v2_institution": "BIA LAMPLIGHTER COLLEGE OF EDUCATION",
+    "from_region": "Western North",
+    "to_region": "Western North",
+    "from_constituency": "BIA EAST",
+    "to_constituency": "BIA WEST",
+    "count": 1,
+    "ids": [
+      264465
+    ],
+    "samples": [
+      "ENOCK OSEI"
+    ]
+  },
+  {
+    "institution": "COLLEGE OF HEALTH, DUAYAW NKWANTA",
+    "v2_institution": "ST JOHN OF GOD COLLEGE OF HEALTH",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": "BEREKUM WEST",
+    "to_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264473
+    ],
+    "samples": [
+      "LORDINA HENEWAA"
+    ]
+  },
+  {
+    "institution": "COLLEGE OF HEALTH YAMFO",
+    "v2_institution": "COLLEGE OF HEALTH YAMFO",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": "ATWIMA MPONUA",
+    "to_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264478
+    ],
+    "samples": [
+      "OWUSU PRISCILLA TWENEBOAH"
+    ]
+  },
+  {
+    "institution": "NURSING TRAINING COLLEGE DADIESOABA",
+    "v2_institution": "DADIESOABA NMTC",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": "ASUTIFI NORTH",
+    "to_constituency": "ASUTIFI SOUTH",
+    "count": 1,
+    "ids": [
+      264479
+    ],
+    "samples": [
+      "ABIGAIL BRAYIE"
+    ]
+  },
+  {
+    "institution": "TAKORADI TECHNICAL UNIVERSITY BU",
+    "v2_institution": "Takoradi Technical University (BUSINESS CAMPUS)",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "SEKONDI",
+    "to_constituency": "ESSIKADU-KETAN",
+    "count": 1,
+    "ids": [
+      264481
+    ],
+    "samples": [
+      "FRANCISCA  AKWANDOH"
+    ]
+  },
+  {
+    "institution": "ASANTA",
+    "v2_institution": "Asanta SDA Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "TAKORADI",
+    "to_constituency": "ELLEMBELLE",
+    "count": 1,
+    "ids": [
+      264483
+    ],
+    "samples": [
+      "HANNAH KOOMSON"
+    ]
+  },
+  {
+    "institution": "Valley View University, Oyibi",
+    "v2_institution": "VALLEY VIEW UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "ADENTAN",
+    "to_constituency": "KPONE-KATAMANSO",
+    "count": 1,
+    "ids": [
+      264485
+    ],
+    "samples": [
+      "KHARIYA ABDUL RAZAK"
+    ]
+  },
+  {
+    "institution": "UMAT SRID",
+    "v2_institution": "⁠UNIVERSITY OF MINES AND TECHNOLOGY-SRID",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "TAKORADI",
+    "to_constituency": "ESSIKADU-KETAN",
+    "count": 1,
+    "ids": [
+      264486
+    ],
+    "samples": [
+      "EMELIA  GYANTENG"
+    ]
+  },
+  {
+    "institution": "SUNYANI TECHNICAL UNIVERSITY",
+    "v2_institution": "Sunyani Technical University",
+    "from_region": "Bono",
+    "to_region": "Bono",
+    "from_constituency": "TECHIMAN SOUTH",
+    "to_constituency": "SUNYANI EAST",
+    "count": 1,
+    "ids": [
+      264487
+    ],
+    "samples": [
+      "ALBERT KWASI GYABAAH"
+    ]
+  },
+  {
+    "institution": "UNIVERSITY OF GHANA MAIN CAMPUS",
+    "v2_institution": "UG MAIN CAMPUS",
+    "from_region": "Eastern",
+    "to_region": "Greater Accra",
+    "from_constituency": "YILO KROBO",
+    "to_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264488
+    ],
+    "samples": [
+      "NAWAF ISSAKU"
+    ]
+  },
+  {
+    "institution": "CATHOLIC UNIVERSITY OF GHANA, SUNYANI",
+    "v2_institution": "Catholic University of Ghana",
+    "from_region": "Bono",
+    "to_region": "Bono",
+    "from_constituency": "TECHIMAN SOUTH",
+    "to_constituency": "SUNYANI WEST",
+    "count": 1,
+    "ids": [
+      264490
+    ],
+    "samples": [
+      "EDITH YANKEY DARKO"
+    ]
+  },
+  {
+    "institution": "ESIAMA NMTC",
+    "v2_institution": "Essiama Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "ELLEMBELE",
+    "to_constituency": "ELLEMBELLE",
+    "count": 1,
+    "ids": [
+      264491
+    ],
+    "samples": [
+      "SARAH YANKEY"
+    ]
+  },
+  {
+    "institution": "ST. AMBROSE COLLEGE OF EDUCATION",
+    "v2_institution": "St. Ambrose college of education",
+    "from_region": "Bono",
+    "to_region": "Bono",
+    "from_constituency": null,
+    "to_constituency": "DORMAA EAST",
+    "count": 1,
+    "ids": [
+      264492
+    ],
+    "samples": [
+      "LAMPARD ADOMA SAKYI"
+    ]
+  },
+  {
+    "institution": "ASANKRAGWA NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "SEKONDI",
+    "to_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      264495
+    ],
+    "samples": [
+      "EDWINA MINTAH"
+    ]
+  },
+  {
+    "institution": "GCTU TAKORADI",
+    "v2_institution": "Ghana Communication Technology University, Takoradi",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "SHAMA",
+    "to_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      264498
+    ],
+    "samples": [
+      "VICTORIA EFUA HANS ANDERSON"
+    ]
+  },
+  {
+    "institution": "VALLEY VIEW UNIVERSITY",
+    "v2_institution": "Valley View University",
+    "from_region": "Bono East",
+    "to_region": "Bono East",
+    "from_constituency": "TECHIMAN NORTH",
+    "to_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      264508
+    ],
+    "samples": [
+      "OWUSUAA ABIGAIL ASIEDU"
+    ]
+  },
+  {
+    "institution": "KROBO NURSING TRAINING COLLEGE",
+    "v2_institution": "Krobo Nursing Training College",
+    "from_region": "Bono East",
+    "to_region": "Bono East",
+    "from_constituency": "ATEBUBU/AMANTIN",
+    "to_constituency": "TECHIMAN NORTH",
+    "count": 1,
+    "ids": [
+      264509
+    ],
+    "samples": [
+      "KUBURA MUSTAPHA"
+    ]
+  },
+  {
+    "institution": "KWAPONG NMTC",
+    "v2_institution": "KWAPONG NURSING TRAINING COLLEGE",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": "ATEBUBU/AMANTIN",
+    "to_constituency": "ASUNAFO SOUTH",
+    "count": 1,
+    "ids": [
+      264511
+    ],
+    "samples": [
+      "TAMMAN SIMON INALIJIB"
+    ]
+  },
+  {
+    "institution": "Anglican University College and Technology",
+    "v2_institution": "Anglican University College of Technology",
+    "from_region": "Bono East",
+    "to_region": "Bono East",
+    "from_constituency": "SAWLA-TUNA-KALBA",
+    "to_constituency": "NKORANZA SOUTH",
+    "count": 1,
+    "ids": [
+      264513
+    ],
+    "samples": [
+      "ESTHER OPOKU ABRAFI"
+    ]
+  },
+  {
+    "institution": "TANOSO NMTC",
+    "v2_institution": "TANOSO NURSING AND MIDWIFERY",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": "",
+    "to_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264515
+    ],
+    "samples": [
+      "IBRAHIM SAMIRA "
+    ]
+  },
+  {
+    "institution": "ASANKRAGWA NMTC",
+    "v2_institution": "Asankrangwa Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "AMENFI CENTRAL",
+    "to_constituency": "AMENFI WEST",
+    "count": 1,
+    "ids": [
+      264516
+    ],
+    "samples": [
+      "DANKYI OPHELIA OFORIWAA"
+    ]
+  },
+  {
+    "institution": "ST JOSEPH COLLEGE OF EDUCATION BECHEM",
+    "v2_institution": "ST JOSEPH COLLEGE OF EDUCATION",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": null,
+    "to_constituency": "TANO SOUTH",
+    "count": 1,
+    "ids": [
+      264517
+    ],
+    "samples": [
+      "ALI FAUZIA"
+    ]
+  },
+  {
+    "institution": "FOSU COLLEGE OF EDUCATION",
+    "v2_institution": "FOSU TRAINING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "ASSIN SOUTH",
+    "to_constituency": "ASSIN CENTRAL",
+    "count": 1,
+    "ids": [
+      264518
+    ],
+    "samples": [
+      "FRANCIS FOTWE"
+    ]
+  },
+  {
+    "institution": "Nursingand Midwifery Training College",
+    "v2_institution": "Yeji Nursing and Midwifery Training College",
+    "from_region": "Bono East",
+    "to_region": "Bono East",
+    "from_constituency": "SAWLA-TUNA-KALBA",
+    "to_constituency": "PRU EAST",
+    "count": 1,
+    "ids": [
+      264519
+    ],
+    "samples": [
+      "Francisca Appiah"
+    ]
+  },
+  {
+    "institution": "DADIESOABA NMTC",
+    "v2_institution": "DADIESOABA NMTC",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": null,
+    "to_constituency": "ASUTIFI SOUTH",
+    "count": 1,
+    "ids": [
+      264520
+    ],
+    "samples": [
+      "MUSAH SAMIRA SORDJEA"
+    ]
+  },
+  {
+    "institution": "KOMMENDA COLLEGE OF EDUCATION",
+    "v2_institution": "KOMENDA TRAINING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "KOMENDA EDINA EGUAFO ABREM",
+    "to_constituency": "KOMENDA-EDINA-EGUAFO-ABIREM",
+    "count": 1,
+    "ids": [
+      264521
+    ],
+    "samples": [
+      "AARON KOOMSON"
+    ]
+  },
+  {
+    "institution": "OLA COLLEGE OF EDUCATION",
+    "v2_institution": "OLA TRAINING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "ASSIN CENTRAL",
+    "to_constituency": "CAPE COAST SOUTH",
+    "count": 1,
+    "ids": [
+      264522
+    ],
+    "samples": [
+      "MAVIS AKUA BOATENG"
+    ]
+  },
+  {
+    "institution": "CCHN WINNEBA",
+    "v2_institution": "COLLEGE OF COMMUNITY HEALTH NURSING",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "AGONA WEST",
+    "to_constituency": "EFFUTU",
+    "count": 1,
+    "ids": [
+      264525
+    ],
+    "samples": [
+      "PRINCE YAWSON"
+    ]
+  },
+  {
+    "institution": "COLLEGE OF HEALTH YAMFO",
+    "v2_institution": "COLLEGE OF HEALTH YAMFO",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": "SUNYANI WEST",
+    "to_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264528
+    ],
+    "samples": [
+      "RAMATU RAZAK"
+    ]
+  },
+  {
+    "institution": "ASSINMAN NURSES TRAINING COLLEGE",
+    "v2_institution": "ASSINMAN NURSING COLLEGE",
+    "from_region": "Central",
+    "to_region": "Central",
+    "from_constituency": "AGONA WEST",
+    "to_constituency": "ASSIN CENTRAL",
+    "count": 1,
+    "ids": [
+      264530
+    ],
+    "samples": [
+      "JAMES HARDING"
+    ]
+  },
+  {
+    "institution": "ST JOHN OF GOD COLLEGE OF HEALTH DUAYAW NKWANTIA",
+    "v2_institution": "ST JOHN OF GOD COLLEGE OF HEALTH",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": null,
+    "to_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264531
+    ],
+    "samples": [
+      "YAW ABRAHAM NTEDOMOR"
+    ]
+  },
+  {
+    "institution": "ODUMASI KROBO NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "v2_institution": "ODUMASI KROBO NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "YILO KROBO",
+    "to_constituency": "LOWER MANYA KROBO",
+    "count": 1,
+    "ids": [
+      264539
+    ],
+    "samples": [
+      "IVY YEBOAH ACHEAMPONG"
+    ]
+  },
+  {
+    "institution": "ALL NATIONS UNIVERSITY CITY CAMPUS",
+    "v2_institution": "ALL NATIONS UNIVERSITY - CITY CAMPUS",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "ABUAKWA NORTH",
+    "to_constituency": "NEW JUABEN SOUTH",
+    "count": 1,
+    "ids": [
+      264541
+    ],
+    "samples": [
+      "ASIEDU EMMANUEL"
+    ]
+  },
+  {
+    "institution": "KETA NURSING AND WIDWIFERY COLLEGE",
+    "v2_institution": "HO NURSING TRAINING",
+    "from_region": "Volta",
+    "to_region": "Volta",
+    "from_constituency": "KETU NORTH",
+    "to_constituency": "HO CENTRAL",
+    "count": 1,
+    "ids": [
+      264553
+    ],
+    "samples": [
+      "PETER KWAME BEDZRAH"
+    ]
+  },
+  {
+    "institution": "University of Ghana (Main Campus)",
+    "v2_institution": "UG MAIN CAMPUS",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264588
+    ],
+    "samples": [
+      "ISSAKU NAWAF"
+    ]
+  },
+  {
+    "institution": "Radford University College",
+    "v2_institution": "RADFORD UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264589
+    ],
+    "samples": [
+      "JABARU BIPEMBI"
+    ]
+  },
+  {
+    "institution": "Pentecost University College",
+    "v2_institution": "PENTECOST UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "ANYAA-SOWUTUOM",
+    "count": 1,
+    "ids": [
+      264591
+    ],
+    "samples": [
+      "HAFSATU MOHAMMED"
+    ]
+  },
+  {
+    "institution": "Regent University of Science and Technology",
+    "v2_institution": "REGENT UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "WEIJA-GBAWE",
+    "count": 1,
+    "ids": [
+      264592
+    ],
+    "samples": [
+      "RAMATU ALI"
+    ]
+  },
+  {
+    "institution": "Central University",
+    "v2_institution": "CENTRAL UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "NINGO PRAMPRAM",
+    "count": 1,
+    "ids": [
+      264597
+    ],
+    "samples": [
+      "ABDALLAH MAHAMUD"
+    ]
+  },
+  {
+    "institution": "University of Ghana (Distance Education)",
+    "v2_institution": "UNIVERSITY OF GHANA DISTANCE EDUCATION (UGDE)",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264599
+    ],
+    "samples": [
+      "JIBRIL SAHADATU"
+    ]
+  },
+  {
+    "institution": "BlueCrest University",
+    "v2_institution": "BLUECREST UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "AYAWASO CENTRAL",
+    "count": 1,
+    "ids": [
+      264600
+    ],
+    "samples": [
+      "YUSSIF DAUDA"
+    ]
+  },
+  {
+    "institution": "Knutsford University College",
+    "v2_institution": "KNUTSFORD UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264602
+    ],
+    "samples": [
+      "LUQMAN MUSAH"
+    ]
+  },
+  {
+    "institution": "Islamic University",
+    "v2_institution": "ISLAMIC UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "ADENTAN",
+    "count": 1,
+    "ids": [
+      264603
+    ],
+    "samples": [
+      "MANSURU SULEMANA"
+    ]
+  },
+  {
+    "institution": "Regional Maritime University",
+    "v2_institution": "REGIONAL MARITIME UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "KROWOR",
+    "count": 1,
+    "ids": [
+      264606
+    ],
+    "samples": [
+      "AMINA MOHAMMED"
+    ]
+  },
+  {
+    "institution": "Ghana Institute of Management and Public Administration (GIMPA)",
+    "v2_institution": "GHANA INSTITUTE OF MANAGEMENT AND PUBLIC ADMINISTRATION",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264610
+    ],
+    "samples": [
+      "MAHAMA SANNIE MEIMUNA"
+    ]
+  },
+  {
+    "institution": "University of Professional Studies, Accra (UPSA)",
+    "v2_institution": "UNIVERSITY OF PROFESSIONAL STUDIES, ACCRA (UPSA)",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "MADINA",
+    "count": 1,
+    "ids": [
+      264611
+    ],
+    "samples": [
+      "MOHAMMED NAZIR MAIKANO"
+    ]
+  },
+  {
+    "institution": "Accra Technical University",
+    "v2_institution": "ACCRA TECHNICAL UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264612
+    ],
+    "samples": [
+      "MAMUD LAWANI"
+    ]
+  },
+  {
+    "institution": "Accra College of Education",
+    "v2_institution": "ACCRA COLLEGE OF EDUCATION",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264615
+    ],
+    "samples": [
+      "USSIF ADAM"
+    ]
+  },
+  {
+    "institution": "Kings University College",
+    "v2_institution": "KINGS UNIVERSITY COLLEGE",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "BORTIANOR-NGLESHIE-AMANFRO",
+    "count": 1,
+    "ids": [
+      264617
+    ],
+    "samples": [
+      "ISSAH FUSEINI"
+    ]
+  },
+  {
+    "institution": "Ghana Institute of Languages",
+    "v2_institution": "GHANA INSTITUTE OF LANGUAGES",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264618
+    ],
+    "samples": [
+      "AWUDU FAUZIA"
+    ]
+  },
+  {
+    "institution": "Datalink University",
+    "v2_institution": "DATALINK UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "TEMA CENTRAL",
+    "count": 1,
+    "ids": [
+      264619
+    ],
+    "samples": [
+      "ADAM HANIFA"
+    ]
+  },
+  {
+    "institution": "MountCrest University",
+    "v2_institution": "MOUNTCREST UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": null,
+    "to_constituency": "AYAWASO EAST",
+    "count": 1,
+    "ids": [
+      264620
+    ],
+    "samples": [
+      "MAJIDU IDDRISU"
+    ]
+  },
+  {
+    "institution": "GIMPA",
+    "v2_institution": "GIMPA-KUMASI CAMPUS",
+    "from_region": "Greater Accra",
+    "to_region": "Ashanti",
+    "from_constituency": null,
+    "to_constituency": "ASOKWA",
+    "count": 1,
+    "ids": [
+      264621
+    ],
+    "samples": [
+      "APPIAH KARIKARI SAMUEL"
+    ]
+  },
+  {
+    "institution": "UNIVERSITY OF HEALTH AND ALLIED SCIENCES",
+    "v2_institution": "UNIVERSITY OF HEALTH & ALLIED SCIENCE,HO",
+    "from_region": "Volta",
+    "to_region": "Volta",
+    "from_constituency": "HOHOE",
+    "to_constituency": "HO CENTRAL",
+    "count": 1,
+    "ids": [
+      264622
+    ],
+    "samples": [
+      "ALEX ADABO"
+    ]
+  },
+  {
+    "institution": "E.P COLLEGE OF EDUCATION, AMENDZOFE",
+    "v2_institution": "EP College of Education",
+    "from_region": "Volta",
+    "to_region": "Northern",
+    "from_constituency": "HO WEST",
+    "to_constituency": "BIMBILLA",
+    "count": 1,
+    "ids": [
+      264624
+    ],
+    "samples": [
+      "AARON  OJAH"
+    ]
+  },
+  {
+    "institution": "AKATSI COLLEGE OF EDUCATION",
+    "v2_institution": "AKATSI COLLEGE OF EDUCATION",
+    "from_region": "Volta",
+    "to_region": "Volta",
+    "from_constituency": "KETU NORTH",
+    "to_constituency": "AKATSI SOUTH",
+    "count": 1,
+    "ids": [
+      264627
+    ],
+    "samples": [
+      "DIVINE ABEDNEGO KPOGO"
+    ]
+  },
+  {
+    "institution": "ABETIFI PRESBYTERIAN COLLEGE OF EDUCATION",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- ABETIFI",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "KWAHU EAST",
+    "to_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      264628
+    ],
+    "samples": [
+      "FRANCIS NELSON GYABAAH"
+    ]
+  },
+  {
+    "institution": "PEKI COLLEGE OF EDUCATION",
+    "v2_institution": "PEKI COLLEGE OF EDUCATHION",
+    "from_region": "Volta",
+    "to_region": "Volta",
+    "from_constituency": "KETU NORTH",
+    "to_constituency": "SOUTH DAYI",
+    "count": 1,
+    "ids": [
+      264629
+    ],
+    "samples": [
+      "THOMPSON MENSAH"
+    ]
+  },
+  {
+    "institution": "UNIVERSITY COLLEGE OF AGRICULTURE AND ENVIRONMENTAL STUDIES",
+    "v2_institution": "UNIVERSITY COLLEGE OF AGRICULTURE AND ENVIRONMENTAL STUDIES",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "KWAHU EAST",
+    "to_constituency": "ABUAKWA SOUTH",
+    "count": 1,
+    "ids": [
+      264630
+    ],
+    "samples": [
+      "ASIAMAH GEORGE"
+    ]
+  },
+  {
+    "institution": "PRESBYTERIAN UNIVERSITY COLLEGE, ABETIFI CAMPUS",
+    "v2_institution": "PRESBYTERIAN UNIVERSITY GHANA, KWAHU ABETIFI CAMPUS",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "MPRAESO",
+    "to_constituency": "ABETIFI",
+    "count": 1,
+    "ids": [
+      264631
+    ],
+    "samples": [
+      "EVANS  ASANTE SEFAH"
+    ]
+  },
+  {
+    "institution": "PRESBYTERIAN UNIVERSITY COLLEGE, AKROPONG",
+    "v2_institution": "PRESBYTERIAN COLLEGE OF EDUCATION- AKROPONG",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "AYENSUANO",
+    "to_constituency": "AKROPONG",
+    "count": 1,
+    "ids": [
+      264632
+    ],
+    "samples": [
+      "ABRAHAM AWOAMEWU"
+    ]
+  },
+  {
+    "institution": "ASANTA NMTC",
+    "v2_institution": "Asanta SDA Nursing and Midwifery Training College",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "AMENFI CENTRAL",
+    "to_constituency": "ELLEMBELLE",
+    "count": 1,
+    "ids": [
+      264633
+    ],
+    "samples": [
+      "NICHOLAS BREW"
+    ]
+  },
+  {
+    "institution": "GIMPA",
+    "v2_institution": "GIMPA, Takoradi Campus",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "PRESTEA HUNI-VALLEY",
+    "to_constituency": "EFFIA",
+    "count": 1,
+    "ids": [
+      264635
+    ],
+    "samples": [
+      "EMMANUEL ACQUAH MENSAH"
+    ]
+  },
+  {
+    "institution": "VALLEY VIEW UNIVERSITY OYIBI",
+    "v2_institution": "VALLEY VIEW UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Adentan",
+    "to_constituency": "KPONE-KATAMANSO",
+    "count": 1,
+    "ids": [
+      264637
+    ],
+    "samples": [
+      "Kizita Akorfa Aboagyewaa Kuadey"
+    ]
+  },
+  {
+    "institution": "UNIVERSITY OF GHANA",
+    "v2_institution": "UNIVERSITY OF GHANA -KORLE BU",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Ayawaso West Wuogon",
+    "to_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264638
+    ],
+    "samples": [
+      "MARIAM AFUA ASIAMAH"
+    ]
+  },
+  {
+    "institution": "RADFORD UNIVERSITY COLLEGE",
+    "v2_institution": "RADFORD UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Ayawaso Central",
+    "to_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264639
+    ],
+    "samples": [
+      "MARDIYA HARUNA"
+    ]
+  },
+  {
+    "institution": "ACCRA BUSINESS SCHOOL",
+    "v2_institution": "ACCRA BUSINESS SCHOOL",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Ayawaso West Wuogon",
+    "to_constituency": "LEDZOKUKU",
+    "count": 1,
+    "ids": [
+      264643
+    ],
+    "samples": [
+      "JUSTINA WILSON"
+    ]
+  },
+  {
+    "institution": "KINGS UNIVERSITY",
+    "v2_institution": "KINGS UNIVERSITY COLLEGE",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Weija-Gbawe",
+    "to_constituency": "BORTIANOR-NGLESHIE-AMANFRO",
+    "count": 1,
+    "ids": [
+      264649
+    ],
+    "samples": [
+      "VANNESSA LISA WILLIAMS"
+    ]
+  },
+  {
+    "institution": "BLUECREST UNIVERSITY",
+    "v2_institution": "BLUECREST UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "AYAWASO EAST",
+    "to_constituency": "AYAWASO CENTRAL",
+    "count": 1,
+    "ids": [
+      264650
+    ],
+    "samples": [
+      "MARY EMEFA KPODZRO"
+    ]
+  },
+  {
+    "institution": "GHANA COMMUNICATION TECHNOLOGY UNIVERSITY",
+    "v2_institution": "GHANA TELECOM UNIVERSITY COLLEGE",
+    "from_region": "Greater Accra",
+    "to_region": "Ashanti",
+    "from_constituency": "Okaikwei Central",
+    "to_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      264654
+    ],
+    "samples": [
+      "SUSSANA NADICE LAWSON"
+    ]
+  },
+  {
+    "institution": "GIMPA",
+    "v2_institution": "GIMPA-KUMASI CAMPUS",
+    "from_region": "Greater Accra",
+    "to_region": "Ashanti",
+    "from_constituency": "Ayawaso West Wuogon",
+    "to_constituency": "ASOKWA",
+    "count": 1,
+    "ids": [
+      264658
+    ],
+    "samples": [
+      "ELIZABETH ADAI TORGBOR"
+    ]
+  },
+  {
+    "institution": "UNIVERSITY OF GHANA (DISTANCE EDUCATION)",
+    "v2_institution": "UNIVERSITY OF GHANA DISTANCE EDUCATION (UGDE)",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Ayawaso West Wuogon",
+    "to_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264661
+    ],
+    "samples": [
+      "GIFTY PEARL OPOKU"
+    ]
+  },
+  {
+    "institution": "ATEBUBU COLLEGE OF EDUCATION",
+    "v2_institution": "Atebubu College of Education",
+    "from_region": "Bono East",
+    "to_region": "Bono East",
+    "from_constituency": null,
+    "to_constituency": "ATEBUBU-AMANTIN",
+    "count": 2,
+    "ids": [
+      264673,
+      264682
+    ],
+    "samples": [
+      "AMANU MASWUD",
+      "AMANU MASWUD"
+    ]
+  },
+  {
+    "institution": "GCTU",
+    "v2_institution": "GHANA TELECOM UNIVERSITY COLLEGE",
+    "from_region": "Western",
+    "to_region": "Ashanti",
+    "from_constituency": "PRESTEA HUNI-VALLEY",
+    "to_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      264674
+    ],
+    "samples": [
+      "EMMANUEL EBENEZER ANSAH"
+    ]
+  },
+  {
+    "institution": "HOLY CHILD",
+    "v2_institution": "Holy Child College of Education",
+    "from_region": "Western",
+    "to_region": "Western",
+    "from_constituency": "TAKORADI",
+    "to_constituency": "SEKONDI",
+    "count": 1,
+    "ids": [
+      264676
+    ],
+    "samples": [
+      "SALAMATU FIADONU"
+    ]
+  },
+  {
+    "institution": "HOLY FAMILY NURSING TRAINING COLLEGE",
+    "v2_institution": "Holy Family Nursing and Midwifery Training College",
+    "from_region": "Eastern",
+    "to_region": "Bono East",
+    "from_constituency": "AYENSUANO",
+    "to_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      264677
+    ],
+    "samples": [
+      "OFOSU RICHARD JUNIOR"
+    ]
+  },
+  {
+    "institution": "ANGLICAN UNIVERSITY",
+    "v2_institution": "Anglican University College of Technology",
+    "from_region": "Bono East",
+    "to_region": "Bono East",
+    "from_constituency": null,
+    "to_constituency": "NKORANZA SOUTH",
+    "count": 1,
+    "ids": [
+      264681
+    ],
+    "samples": [
+      "ABDUL RAHEEM SAIBU"
+    ]
+  },
+  {
+    "institution": "ATIBIE NURSING ABD MIDWIFERY TRAINING COLLEGE",
+    "v2_institution": "NURSING AND MIDWIFERY TRAINING COLLEGE-ATIBIE",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "AYENSUANO",
+    "to_constituency": "MPRAESO",
+    "count": 1,
+    "ids": [
+      264684
+    ],
+    "samples": [
+      "EURICA OPPONG"
+    ]
+  },
+  {
+    "institution": "VALLEY VIEW UNIVERSITY",
+    "v2_institution": "Valley View University",
+    "from_region": "Bono East",
+    "to_region": "Bono East",
+    "from_constituency": "",
+    "to_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      264687
+    ],
+    "samples": [
+      "MOHAMMED ELHAM BIMUKA"
+    ]
+  },
+  {
+    "institution": "OSIEM SAVIOR CHURCH NURSING AND MIDWIFERY COLLEGE",
+    "v2_institution": "SAVIOUR NURSING AND MIDWIFERY TRAINING COLLEGE",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "NEW JUABEN SOUTH",
+    "to_constituency": "ABUAKWA NORTH",
+    "count": 1,
+    "ids": [
+      264688
+    ],
+    "samples": [
+      "BERNARD OWUSU AGYEMANG"
+    ]
+  },
+  {
+    "institution": "KROBO NURSING TRAINING COLLEGE",
+    "v2_institution": "Krobo Nursing Training College",
+    "from_region": "Bono East",
+    "to_region": "Bono East",
+    "from_constituency": null,
+    "to_constituency": "TECHIMAN NORTH",
+    "count": 1,
+    "ids": [
+      264689
+    ],
+    "samples": [
+      "JONAS DALABIT ETIMBA"
+    ]
+  },
+  {
+    "institution": "PRESBYTERIAN WOMEN 'S COLLEGE OF EDUCATION",
+    "v2_institution": "PRESBYTERIAN WOMEN COLLEGE OF EDUCATION -ABURI",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "NEW JUABEN NORTH",
+    "to_constituency": "AKUAPEM SOUTH",
+    "count": 1,
+    "ids": [
+      264692
+    ],
+    "samples": [
+      "OBENG SERWAA LOVIA"
+    ]
+  },
+  {
+    "institution": "JACKSON COLLEGE OF EDUCATION, KOFORIDUA",
+    "v2_institution": "JACKSON COLLEGE OF EDUCATION",
+    "from_region": "Eastern",
+    "to_region": "Eastern",
+    "from_constituency": "ABUAKWA NORTH",
+    "to_constituency": "NEW JUABEN NORTH",
+    "count": 1,
+    "ids": [
+      264693
+    ],
+    "samples": [
+      "ALEXANDER BAFFOE ASARE"
+    ]
+  },
+  {
+    "institution": "KRACHI NMTC",
+    "v2_institution": "KRACHI NURSING AND MIDWIFERY TRAINING COLLAGE",
+    "from_region": "Oti",
+    "to_region": "Oti",
+    "from_constituency": "KRACHI EAST",
+    "to_constituency": "KRACHI WEST",
+    "count": 1,
+    "ids": [
+      264695
+    ],
+    "samples": [
+      "JOAN ANITENFEMU NYAME"
+    ]
+  },
+  {
+    "institution": "University of Ghana (Distance Education)",
+    "v2_institution": "UNIVERSITY OF GHANA DISTANCE EDUCATION (UGDE)",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Ayawaso West Wuogon",
+    "to_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264702
+    ],
+    "samples": [
+      "BANAFO EMMANUEL AFENYO"
+    ]
+  },
+  {
+    "institution": "Kings University College",
+    "v2_institution": "KINGS UNIVERSITY COLLEGE",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Weija-Gbawe",
+    "to_constituency": "BORTIANOR-NGLESHIE-AMANFRO",
+    "count": 1,
+    "ids": [
+      264707
+    ],
+    "samples": [
+      "ZAHID ABDUL-RAHIM SADDIQUE"
+    ]
+  },
+  {
+    "institution": "Radford University College",
+    "v2_institution": "RADFORD UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Ayawaso Central",
+    "to_constituency": "AYAWASO WEST WUOGON",
+    "count": 1,
+    "ids": [
+      264709
+    ],
+    "samples": [
+      "NUHU YAHAYA"
+    ]
+  },
+  {
+    "institution": "Accra Business School",
+    "v2_institution": "METHODIST UNIVERSITY, TEMA",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Ayawaso West Wuogon",
+    "to_constituency": "TEMA CENTRAL",
+    "count": 1,
+    "ids": [
+      264716
+    ],
+    "samples": [
+      "BRIGHT ASIEDU ADAMPTEY"
+    ]
+  },
+  {
+    "institution": "Valley View University",
+    "v2_institution": "Valley View University",
+    "from_region": "Greater Accra",
+    "to_region": "Bono East",
+    "from_constituency": "Kpone-Katamanso",
+    "to_constituency": "TECHIMAN SOUTH",
+    "count": 1,
+    "ids": [
+      264723
+    ],
+    "samples": [
+      "MICHAEL AYENOR"
+    ]
+  },
+  {
+    "institution": "BlueCrest University College",
+    "v2_institution": "BLUECREST UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "Ayawaso East",
+    "to_constituency": "AYAWASO CENTRAL",
+    "count": 1,
+    "ids": [
+      264724
+    ],
+    "samples": [
+      "SIBAWAIHI YUNUS"
+    ]
+  },
+  {
+    "institution": "Heritage Christian University",
+    "v2_institution": "HERITAGE UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "AYAWASO EAST",
+    "to_constituency": "AMASAMAN",
+    "count": 1,
+    "ids": [
+      264820
+    ],
+    "samples": [
+      "SHARIFF MOHAMMED"
+    ]
+  },
+  {
+    "institution": "Accra Business Sschool",
+    "v2_institution": "ACCRA BUSINESS SCHOOL",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "AYAWASO EAST",
+    "to_constituency": "LEDZOKUKU",
+    "count": 1,
+    "ids": [
+      264824
+    ],
+    "samples": [
+      "Mohammed N. Labaran"
+    ]
+  },
+  {
+    "institution": "University of Ghana medical school",
+    "v2_institution": "UNIVERSITY OF GHANA -KORLE BU",
+    "from_region": "GREATER ACCRA",
+    "to_region": "Greater Accra",
+    "from_constituency": "TEMA EAST",
+    "to_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264825
+    ],
+    "samples": [
+      "AHMED MAIRIGA GIBRIL"
+    ]
+  },
+  {
+    "institution": "Methodist university Ghana",
+    "v2_institution": "METHODIST UNIVERSITY (ACCRA)",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "AYAWASO EAST",
+    "to_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264826
+    ],
+    "samples": [
+      "Abdul Rauf Musah"
+    ]
+  },
+  {
+    "institution": "Ghana communication technology university",
+    "v2_institution": "GHANA TELECOM UNIVERSITY COLLEGE",
+    "from_region": "Greater Accra",
+    "to_region": "Ashanti",
+    "from_constituency": "AYAWASO NORTH",
+    "to_constituency": "NHYIAESO",
+    "count": 1,
+    "ids": [
+      264827
+    ],
+    "samples": [
+      "SADAT ABDULAI"
+    ]
+  },
+  {
+    "institution": "Pantang NMTC",
+    "v2_institution": "PANTANG NURSING",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "AYAWASO NORTH",
+    "to_constituency": "MADINA",
+    "count": 1,
+    "ids": [
+      264828
+    ],
+    "samples": [
+      "HASSAN MAMODU"
+    ]
+  },
+  {
+    "institution": "University Ghana Allied health science korle bu",
+    "v2_institution": "SCHOOL OF ALLIED HEALTH",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "ASHAIMAN",
+    "to_constituency": "ABLEKUMA SOUTH",
+    "count": 1,
+    "ids": [
+      264829
+    ],
+    "samples": [
+      "IBRAHIM BAFFOUR APAU APENTENG"
+    ]
+  },
+  {
+    "institution": "Ada collage of education",
+    "v2_institution": "ADA COLLEGE OF EDUCATION",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "AYAWASO NORTH",
+    "to_constituency": "ADA",
+    "count": 1,
+    "ids": [
+      264830
+    ],
+    "samples": [
+      "IBRAHIM ABDUL KADIRI AKANGA"
+    ]
+  },
+  {
+    "institution": "Gimpa",
+    "v2_institution": "GIMPA-KUMASI CAMPUS",
+    "from_region": "Greater Accra",
+    "to_region": "Ashanti",
+    "from_constituency": "ABLEKUMA CENTRAL",
+    "to_constituency": "ASOKWA",
+    "count": 1,
+    "ids": [
+      264831
+    ],
+    "samples": [
+      "IBRAHIM SAEED ABDALLAH"
+    ]
+  },
+  {
+    "institution": "Accra Technical University",
+    "v2_institution": "ACCRA TECHNICAL UNIVERSITY",
+    "from_region": "Greater Accra",
+    "to_region": "Greater Accra",
+    "from_constituency": "ADENTAN",
+    "to_constituency": "KORLE KLOTTEY",
+    "count": 1,
+    "ids": [
+      264832
+    ],
+    "samples": [
+      "RUKAYA IBRAHIM"
+    ]
+  },
+  {
+    "institution": "TANOSO NMTC",
+    "v2_institution": "TANOSO NURSING AND MIDWIFERY",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": "ASUNAFO NORTH",
+    "to_constituency": "TANO NORTH",
+    "count": 1,
+    "ids": [
+      264979
+    ],
+    "samples": [
+      "VICENTIA GBENOR"
+    ]
+  },
+  {
+    "institution": "KWAPONG NMTC",
+    "v2_institution": "KWAPONG NURSING TRAINING COLLEGE",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": "SUAME",
+    "to_constituency": "ASUNAFO SOUTH",
+    "count": 1,
+    "ids": [
+      264980
+    ],
+    "samples": [
+      "WHITE KONADU NYANTAKYI"
+    ]
+  },
+  {
+    "institution": "NTROSO COLLEGE NURSING AND MIDWIFERY",
+    "v2_institution": "NTOTROSO NURSING AND MIDWIFERY",
+    "from_region": "Ahafo",
+    "to_region": "Ahafo",
+    "from_constituency": null,
+    "to_constituency": "ASUTIFI NORTH",
+    "count": 1,
+    "ids": [
+      264983
+    ],
+    "samples": [
+      "ABIBA IBRAHIM"
+    ]
+  },
+  {
+    "institution": "SUNYANI TECHNICAL UNIVERSITY",
+    "v2_institution": "Sunyani Technical University",
+    "from_region": "Bono",
+    "to_region": "Bono",
+    "from_constituency": "BANDA",
+    "to_constituency": "SUNYANI EAST",
+    "count": 1,
+    "ids": [
+      265047
+    ],
+    "samples": [
+      "NOAH KWAME BADU"
+    ]
+  },
+  {
+    "institution": "ST. AMBROSE COLLEGE",
+    "v2_institution": "St. Ambrose college of education",
+    "from_region": "Bono",
+    "to_region": "Bono",
+    "from_constituency": "DORMAA CENTRAL",
+    "to_constituency": "DORMAA EAST",
+    "count": 1,
+    "ids": [
+      265048
+    ],
+    "samples": [
+      "MAKILIN PETER DANAA"
+    ]
+  },
+  {
+    "institution": "UENR DORMAA CAMPUS",
+    "v2_institution": "University of Energy and Natural Resource (Dormaa campus)",
+    "from_region": "Bono",
+    "to_region": "Bono",
+    "from_constituency": "BANDA",
+    "to_constituency": "DORMAA CENTRAL",
+    "count": 1,
+    "ids": [
+      265051
+    ],
+    "samples": [
+      "LIGNUULE BENJAMIN NANBADAK"
+    ]
+  },
+  {
+    "institution": "CATHOLIC UNIVERSITY OF GHANA -  SUNYANI",
+    "v2_institution": "Catholic University of Ghana",
+    "from_region": "Bono",
+    "to_region": "Bono",
+    "from_constituency": "SUNYANI EAST",
+    "to_constituency": "SUNYANI WEST",
+    "count": 1,
+    "ids": [
+      265055
+    ],
+    "samples": [
+      "MOHAMMED HABIB BAWUMIA"
+    ]
+  },
+  {
+    "institution": "AL- FARUQ COLLEGE OF EDUCATION",
+    "v2_institution": "AL FARUQ COLLEGE OF EDUCATION",
+    "from_region": "Bono",
+    "to_region": "Bono",
+    "from_constituency": "TAIN",
+    "to_constituency": "WENCHI",
+    "count": 1,
+    "ids": [
+      265056
+    ],
+    "samples": [
+      "IBRAHIM IDDRISU"
+    ]
+  },
+  {
+    "institution": "ST TERESA COLLEGE OF EDUCATION",
+    "v2_institution": "ST.TERESA'S COLLEGE OF EDUCATION",
+    "from_region": "Volta",
+    "to_region": "Volta",
+    "from_constituency": "ADENTAN",
+    "to_constituency": "HOHOE",
+    "count": 1,
+    "ids": [
+      265156
+    ],
+    "samples": [
+      "ALBERTA ZEMU YAYRA"
+    ]
+  },
+  {
+    "institution": "AKATSI COLLEGE OF EDUCATION",
+    "v2_institution": "AKATSI COLLEGE OF EDUCATION",
+    "from_region": "Volta",
+    "to_region": "Volta",
+    "from_constituency": null,
+    "to_constituency": "AKATSI SOUTH",
+    "count": 1,
+    "ids": [
+      265157
+    ],
+    "samples": [
+      "EVANS EDEM AMEGEDE"
+    ]
+  }
+]
