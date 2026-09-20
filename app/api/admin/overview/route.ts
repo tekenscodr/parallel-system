@@ -55,7 +55,7 @@ export async function GET(req: Request) {
       // Electoral College Conditions (for National Elections)
       const ecConditions = [
         sql`(
-          executive_level IN ('Constituency', 'National', 'External Branch')
+          executive_level IN ('Constituency', 'National', 'External Branch', 'Region')
           OR (executive_level = 'TESCON' AND (
             (position ILIKE '%President%' AND position NOT ILIKE '%Patron%')
             OR position IN ('WOCOM', 'Women Commissioner')
@@ -176,16 +176,20 @@ export async function GET(req: Request) {
         sql`
           SELECT 
             COUNT(*)::int as total_delegates,
-            COUNT(CASE WHEN executive_level IN ('Constituency', 'National', 'External Branch') THEN 1 END)::int as general_voters,
+            COUNT(CASE WHEN executive_level IN ('Constituency', 'National', 'External Branch', 'Region') OR (executive_level = 'TESCON' AND position ILIKE '%President%' AND position NOT ILIKE '%Patron%') THEN 1 END)::int as general_voters,
             COUNT(CASE 
-              WHEN executive_level = 'TESCON' THEN 1
+              WHEN executive_level = 'TESCON' AND position NOT ILIKE '%patron%' THEN 1
               WHEN position ILIKE '%youth%' THEN 1
               WHEN date_of_birth ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND date_of_birth > '1986-08-21' THEN 1
               WHEN date_of_birth ~ '^[0-9]{4}' AND (2026 - substring(date_of_birth from '^([0-9]{4})')::int) < 40 THEN 1
               WHEN (date_of_birth IS NULL OR date_of_birth = '' OR NOT (date_of_birth ~ '^[0-9]{4}')) AND age IS NOT NULL AND age < 40 THEN 1
             END)::int as youth_voters,
             COUNT(CASE 
-              WHEN executive_level = 'TESCON' AND (position IN ('WOCOM', 'Women Commissioner') OR (position ILIKE '%President%' AND gender = 'Female')) THEN 1
+              WHEN executive_level = 'TESCON' AND (
+                position IN ('WOCOM', 'Women Commissioner') 
+                OR (position ILIKE '%President%' AND gender = 'Female')
+                OR ((position ILIKE '%Nasara%' OR position IN ('Tescon Nasara', 'Nasara Coordinator')) AND gender = 'Female')
+              ) THEN 1
               WHEN executive_level != 'TESCON' AND gender = 'Female' THEN 1
             END)::int as women_voters,
             COUNT(CASE 

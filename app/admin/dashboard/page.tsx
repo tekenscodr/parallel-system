@@ -2193,7 +2193,7 @@ export default function NationalAdminDashboard() {
                 <div style={{ fontSize: "20px", fontWeight: "800", color: "#f472b6", marginTop: "4px" }}>
                   {overview.electoralCollege.women_voters.toLocaleString()}
                 </div>
-                <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>Female constituency, regional, national + TESCON WOCOM</div>
+                <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>Female constituency, regional, national + TESCON WOCOM, female presidents & female Nasara</div>
               </div>
 
               {/* Nasara Coordinator */}
