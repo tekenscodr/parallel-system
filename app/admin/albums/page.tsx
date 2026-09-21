@@ -60,6 +60,9 @@ import {
   ALL_ELECTORAL_JURISDICTIONS,
   ALL_JURISDICTION_IDS,
   JURISDICTION_PRESETS,
+  getDefaultPositionIdsForContest,
+  DEPUTY_POSITION_IDS,
+  APPOINTED_POSITION_IDS,
   type ContestType,
   type CustomizablePosition,
   type CustomizableLevel,
@@ -149,11 +152,9 @@ export default function PositionAlbumsPage() {
   const [gender, setGender] = useState<"all" | "male" | "female">("all");
   const [under40, setUnder40] = useState<boolean>(false);
   const [scope, setScope] = useState("all_voters");
-  const [selectedPositions, setSelectedPositions] = useState<string[]>([
-    "chairperson",
-    "secretary",
-    "organiser",
-  ]);
+  const [selectedPositions, setSelectedPositions] = useState<string[]>(() =>
+    getDefaultPositionIdsForContest("Women Organiser")
+  );
   const [selectedLevels, setSelectedLevels] = useState<string[]>([
     "National",
     "Regional",
@@ -213,7 +214,32 @@ export default function PositionAlbumsPage() {
       : WING_PORTFOLIOS.includes(contest as any)
       ? (scope === "all_voters" ? "all_voters" : "organisers_only")
       : (scope === "organisers_only" ? "organisers_only" : "all_voters");
-  const positionsQuery = isCustom ? `&positions=${encodeURIComponent(selectedPositions.join(","))}` : "";
+
+  const defaultContestPositionIds = useMemo(
+    () => getDefaultPositionIdsForContest(contest, effectiveScope),
+    [contest, effectiveScope]
+  );
+
+  const selectedInAlbum = useMemo(
+    () => defaultContestPositionIds.filter((id) => selectedPositions.includes(id)),
+    [defaultContestPositionIds, selectedPositions]
+  );
+
+  const excludedInAlbum = useMemo(
+    () => defaultContestPositionIds.filter((id) => !selectedPositions.includes(id)),
+    [defaultContestPositionIds, selectedPositions]
+  );
+
+  const isPositionsCustomized = useMemo(() => {
+    if (isCustom) return true;
+    if (selectedPositions.length !== defaultContestPositionIds.length) return true;
+    const currentSet = new Set(selectedPositions);
+    return !defaultContestPositionIds.every((id) => currentSet.has(id));
+  }, [isCustom, selectedPositions, defaultContestPositionIds]);
+
+  const positionsQuery = isPositionsCustomized
+    ? `&positions=${encodeURIComponent(selectedPositions.join(","))}`
+    : "";
   const levelsQuery =
     selectedLevels.length > 0 && selectedLevels.length < ALL_CUSTOMIZABLE_LEVELS.length
       ? `&levels=${encodeURIComponent(selectedLevels.join(","))}`
@@ -266,6 +292,62 @@ export default function PositionAlbumsPage() {
 
   const clearAllPositions = () => {
     setSelectedPositions([]);
+    setPage(1);
+  };
+
+  const selectAllContestPositions = () => {
+    setSelectedPositions([...defaultContestPositionIds]);
+    setPage(1);
+  };
+
+  const deselectDeputies = () => {
+    setSelectedPositions((prev) => prev.filter((id) => !DEPUTY_POSITION_IDS.has(id)));
+    setPage(1);
+  };
+
+  const keepSubstantiveOnly = () => {
+    setSelectedPositions((prev) =>
+      prev.filter((id) => !DEPUTY_POSITION_IDS.has(id) && !APPOINTED_POSITION_IDS.has(id))
+    );
+    setPage(1);
+  };
+
+  const deselectAppointed = () => {
+    setSelectedPositions((prev) => prev.filter((id) => !APPOINTED_POSITION_IDS.has(id)));
+    setPage(1);
+  };
+
+  const handleContestSelect = (val: ContestType) => {
+    setContest(val);
+    let targetScope = scope;
+    if (
+      val === "Women Organiser" ||
+      val === "Women Organisers & Deputies" ||
+      val === "All Women" ||
+      val === "All Men"
+    ) {
+      targetScope = "all_voters";
+      setScope("all_voters");
+      if (val === "All Men") {
+        setGender("male");
+      } else {
+        setGender("female");
+      }
+    } else if (WING_PORTFOLIOS.includes(val as any)) {
+      targetScope = "organisers_only";
+      setScope("organisers_only");
+      setGender("all");
+    } else {
+      targetScope = "all_voters";
+      setScope("all_voters");
+      setGender("all");
+    }
+
+    if (val === "Custom") {
+      setCustomizerOpen(true);
+    } else {
+      setSelectedPositions(getDefaultPositionIdsForContest(val, targetScope));
+    }
     setPage(1);
   };
 
@@ -414,6 +496,7 @@ export default function PositionAlbumsPage() {
 
   const resetAllFilters = () => {
     setContest("Women Organiser");
+    setSelectedPositions(getDefaultPositionIdsForContest("Women Organiser"));
     setRegion("all");
     setSelectedRegions([...ALL_JURISDICTION_IDS]);
     setGender("all");
@@ -936,10 +1019,7 @@ export default function PositionAlbumsPage() {
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => {
-                              setContest("Youth Organisers & Deputies");
-                              setSelectedPositions(["youth_organiser", "deputy_youth_organiser"]);
-                              setScope("organisers_only");
-                              setPage(1);
+                              handleContestSelect("Youth Organisers & Deputies");
                             }}
                           >
                             Youth Wing (All)
@@ -950,10 +1030,7 @@ export default function PositionAlbumsPage() {
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => {
-                              setContest("Custom");
-                              setSelectedPositions(["youth_organiser"]);
-                              setScope("organisers_only");
-                              setPage(1);
+                              handleContestSelect("Youth Organiser");
                             }}
                           >
                             Youth Organisers Only
@@ -978,10 +1055,7 @@ export default function PositionAlbumsPage() {
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => {
-                              setContest("Women Organisers & Deputies");
-                              setGender("female");
-                              setScope("all_voters");
-                              setPage(1);
+                              handleContestSelect("Women Organisers & Deputies");
                             }}
                           >
                             Women Wing
@@ -992,9 +1066,7 @@ export default function PositionAlbumsPage() {
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => {
-                              setContest("Nasara Coordinators & Deputies");
-                              setScope("organisers_only");
-                              setPage(1);
+                              handleContestSelect("Nasara Coordinators & Deputies");
                             }}
                           >
                             Nasara Wing
@@ -1005,10 +1077,7 @@ export default function PositionAlbumsPage() {
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => {
-                              setContest("All Men");
-                              setGender("male");
-                              setScope("all_voters");
-                              setPage(1);
+                              handleContestSelect("All Men");
                             }}
                           >
                             All Men (5,606)
@@ -1019,10 +1088,7 @@ export default function PositionAlbumsPage() {
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => {
-                              setContest("All Women");
-                              setGender("female");
-                              setScope("all_voters");
-                              setPage(1);
+                              handleContestSelect("All Women");
                             }}
                           >
                             All Women (1,390)
@@ -1033,9 +1099,7 @@ export default function PositionAlbumsPage() {
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => {
-                              setContest("Custom");
-                              setCustomizerOpen(true);
-                              setPage(1);
+                              handleContestSelect("Custom");
                             }}
                           >
                             ✨ Custom Multi-Position
@@ -1052,23 +1116,7 @@ export default function PositionAlbumsPage() {
                               id="contest"
                               value={contest}
                               onChange={(e) => {
-                                const val = e.target.value as ContestType;
-                                setContest(val);
-                                if (val === "Custom") {
-                                  setCustomizerOpen(true);
-                                }
-                                if (val === "All Men") {
-                                  setGender("male");
-                                  setScope("all_voters");
-                                } else if (val === "All Women" || val === "Women Organiser" || val === "Women Organisers & Deputies") {
-                                  setGender("female");
-                                  setScope("all_voters");
-                                } else if (WING_PORTFOLIOS.includes(val as any)) {
-                                  setScope("organisers_only");
-                                } else {
-                                  setScope("all_voters");
-                                }
-                                setPage(1);
+                                handleContestSelect(e.target.value as ContestType);
                               }}
                             >
                               <optgroup label="Custom Multi-Position Extraction">
@@ -1133,7 +1181,8 @@ export default function PositionAlbumsPage() {
                         )}
 
                         {/* Youth Position Picker (Visible whenever Youth portfolio is selected or youth positions are active) */}
-                        {(contest === "Youth Organisers & Deputies" || contest === "Youth Organiser" || (isCustom && selectedPositions.some((p) => p.includes("youth")))) && (
+                        {/* Youth Wing Position Picker (Organisers & Deputies) */}
+                        {contest === "Youth Organisers & Deputies" && (
                           <div className="rounded-xl border border-sky-300 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 p-4 space-y-3.5 shadow-2xs">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
                               <div>
@@ -1149,11 +1198,10 @@ export default function PositionAlbumsPage() {
                                 <Button
                                   type="button"
                                   size="sm"
-                                  variant={contest === "Youth Organisers & Deputies" || (isCustom && selectedPositions.includes("youth_organiser") && selectedPositions.includes("deputy_youth_organiser") && selectedPositions.length === 2) ? "default" : "outline"}
-                                  className={contest === "Youth Organisers & Deputies" || (isCustom && selectedPositions.includes("youth_organiser") && selectedPositions.includes("deputy_youth_organiser") && selectedPositions.length === 2) ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
+                                  variant={selectedPositions.includes("youth_organiser") && selectedPositions.includes("deputy_youth_organiser") ? "default" : "outline"}
+                                  className={selectedPositions.includes("youth_organiser") && selectedPositions.includes("deputy_youth_organiser") ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
                                   onClick={() => {
-                                    setContest("Youth Organisers & Deputies");
-                                    setSelectedPositions(["youth_organiser", "deputy_youth_organiser"]);
+                                    setSelectedPositions(["youth_organiser", "deputy_youth_organiser", "tescon_president"]);
                                     setScope("organisers_only");
                                     setPage(1);
                                   }}
@@ -1163,10 +1211,9 @@ export default function PositionAlbumsPage() {
                                 <Button
                                   type="button"
                                   size="sm"
-                                  variant={contest === "Youth Organiser" || (isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser") ? "default" : "outline"}
-                                  className={contest === "Youth Organiser" || (isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser") ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
+                                  variant={selectedPositions.includes("youth_organiser") && !selectedPositions.includes("deputy_youth_organiser") ? "default" : "outline"}
+                                  className={selectedPositions.includes("youth_organiser") && !selectedPositions.includes("deputy_youth_organiser") ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
                                   onClick={() => {
-                                    setContest("Custom");
                                     setSelectedPositions(["youth_organiser"]);
                                     setScope("organisers_only");
                                     setPage(1);
@@ -1177,10 +1224,9 @@ export default function PositionAlbumsPage() {
                                 <Button
                                   type="button"
                                   size="sm"
-                                  variant={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "deputy_youth_organiser" ? "default" : "outline"}
-                                  className={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "deputy_youth_organiser" ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
+                                  variant={selectedPositions.includes("deputy_youth_organiser") && !selectedPositions.includes("youth_organiser") ? "default" : "outline"}
+                                  className={selectedPositions.includes("deputy_youth_organiser") && !selectedPositions.includes("youth_organiser") ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
                                   onClick={() => {
-                                    setContest("Custom");
                                     setSelectedPositions(["deputy_youth_organiser"]);
                                     setScope("organisers_only");
                                     setPage(1);
@@ -1191,31 +1237,17 @@ export default function PositionAlbumsPage() {
                               </div>
                             </div>
 
-                            {/* Position Checkboxes & Quick Selection */}
+                            {/* Position Checkboxes */}
                             <div className="pt-2.5 border-t border-sky-200/80 dark:border-sky-900/60 flex flex-wrap items-center gap-4">
                               <span className="text-xs font-semibold text-sky-950 dark:text-sky-200">
-                                Included Roles:
+                                Included Roles ({selectedInAlbum.length}/{defaultContestPositionIds.length}):
                               </span>
                               <label className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer text-foreground">
                                 <input
                                   type="checkbox"
                                   className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
-                                  checked={contest === "Youth Organisers & Deputies" || contest === "Youth Organiser" || selectedPositions.includes("youth_organiser")}
-                                  onChange={(e) => {
-                                    let next = isCustom
-                                      ? [...selectedPositions]
-                                      : contest === "Youth Organiser"
-                                      ? ["youth_organiser"]
-                                      : ["youth_organiser", "deputy_youth_organiser"];
-                                    if (e.target.checked) {
-                                      if (!next.includes("youth_organiser")) next.push("youth_organiser");
-                                    } else {
-                                      next = next.filter((p) => p !== "youth_organiser");
-                                    }
-                                    setContest("Custom");
-                                    setSelectedPositions(next);
-                                    setPage(1);
-                                  }}
+                                  checked={selectedPositions.includes("youth_organiser")}
+                                  onChange={() => togglePosition("youth_organiser")}
                                 />
                                 <span>Youth Organiser (Substantive)</span>
                               </label>
@@ -1224,22 +1256,8 @@ export default function PositionAlbumsPage() {
                                 <input
                                   type="checkbox"
                                   className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
-                                  checked={contest === "Youth Organisers & Deputies" || selectedPositions.includes("deputy_youth_organiser")}
-                                  onChange={(e) => {
-                                    let next = isCustom
-                                      ? [...selectedPositions]
-                                      : contest === "Youth Organiser"
-                                      ? ["youth_organiser"]
-                                      : ["youth_organiser", "deputy_youth_organiser"];
-                                    if (e.target.checked) {
-                                      if (!next.includes("deputy_youth_organiser")) next.push("deputy_youth_organiser");
-                                    } else {
-                                      next = next.filter((p) => p !== "deputy_youth_organiser");
-                                    }
-                                    setContest("Custom");
-                                    setSelectedPositions(next);
-                                    setPage(1);
-                                  }}
+                                  checked={selectedPositions.includes("deputy_youth_organiser")}
+                                  onChange={() => togglePosition("deputy_youth_organiser")}
                                 />
                                 <span>Deputy Youth Organiser</span>
                               </label>
@@ -1249,141 +1267,309 @@ export default function PositionAlbumsPage() {
                                   type="checkbox"
                                   className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
                                   checked={selectedPositions.includes("tescon_president")}
-                                  onChange={(e) => {
-                                    let next = isCustom
-                                      ? [...selectedPositions]
-                                      : contest === "Youth Organiser"
-                                      ? ["youth_organiser"]
-                                      : (contest === "Youth Organisers & Deputies" ? ["youth_organiser", "deputy_youth_organiser"] : []);
-                                    if (e.target.checked) {
-                                      if (!next.includes("tescon_president")) next.push("tescon_president");
-                                    } else {
-                                      next = next.filter((p) => p !== "tescon_president");
-                                    }
-                                    setContest("Custom");
-                                    setSelectedPositions(next);
-                                    setPage(1);
-                                  }}
+                                  onChange={() => togglePosition("tescon_president")}
                                 />
                                 <span>TESCON Presidents</span>
+                              </label>
+
+                              {excludedInAlbum.length > 0 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 text-[11px] text-amber-700 dark:text-amber-300 ml-auto"
+                                  onClick={selectAllContestPositions}
+                                >
+                                  ↺ Restore All Roles
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Women Wing Position Picker (Organisers & Deputies) */}
+                        {contest === "Women Organisers & Deputies" && (
+                          <div className="rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50/70 dark:bg-rose-950/40 p-4 space-y-3.5 shadow-2xs">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                              <div>
+                                <h4 className="font-semibold text-xs flex items-center gap-1.5 text-rose-950 dark:text-rose-100">
+                                  <SlidersHorizontal className="size-3.5 text-rose-600 dark:text-rose-400" />
+                                  <span>Pick Women Wing Position(s) for Album:</span>
+                                </h4>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">
+                                  Choose whether your album extracts substantive Women Organisers, Deputies, TESCON WOCOM, or all.
+                                </p>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant={selectedPositions.includes("women_organiser") && selectedPositions.includes("deputy_women_organiser") ? "default" : "outline"}
+                                  className={selectedPositions.includes("women_organiser") && selectedPositions.includes("deputy_women_organiser") ? "h-7 text-xs bg-rose-600 hover:bg-rose-700 text-white" : "h-7 text-xs border-rose-300 dark:border-rose-800"}
+                                  onClick={() => {
+                                    setSelectedPositions(["women_organiser", "deputy_women_organiser", "tescon_wocom"]);
+                                    setPage(1);
+                                  }}
+                                >
+                                  All Women Wing
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant={selectedPositions.includes("women_organiser") && !selectedPositions.includes("deputy_women_organiser") ? "default" : "outline"}
+                                  className={selectedPositions.includes("women_organiser") && !selectedPositions.includes("deputy_women_organiser") ? "h-7 text-xs bg-rose-600 hover:bg-rose-700 text-white" : "h-7 text-xs border-rose-300 dark:border-rose-800"}
+                                  onClick={() => {
+                                    setSelectedPositions(["women_organiser"]);
+                                    setPage(1);
+                                  }}
+                                >
+                                  Women Organisers Only
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant={selectedPositions.includes("deputy_women_organiser") && !selectedPositions.includes("women_organiser") ? "default" : "outline"}
+                                  className={selectedPositions.includes("deputy_women_organiser") && !selectedPositions.includes("women_organiser") ? "h-7 text-xs bg-rose-600 hover:bg-rose-700 text-white" : "h-7 text-xs border-rose-300 dark:border-rose-800"}
+                                  onClick={() => {
+                                    setSelectedPositions(["deputy_women_organiser"]);
+                                    setPage(1);
+                                  }}
+                                >
+                                  Deputy Women Only
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Position Checkboxes */}
+                            <div className="pt-2.5 border-t border-rose-200/80 dark:border-rose-900/60 flex flex-wrap items-center gap-4">
+                              <span className="text-xs font-semibold text-rose-950 dark:text-rose-200">
+                                Included Roles ({selectedInAlbum.length}/{defaultContestPositionIds.length}):
+                              </span>
+                              <label className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer text-foreground">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-rose-400 text-rose-600 focus:ring-rose-500 size-3.5"
+                                  checked={selectedPositions.includes("women_organiser")}
+                                  onChange={() => togglePosition("women_organiser")}
+                                />
+                                <span>Women Organiser (Substantive)</span>
                               </label>
 
                               <label className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer text-foreground">
                                 <input
                                   type="checkbox"
-                                  className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
+                                  className="rounded border-rose-400 text-rose-600 focus:ring-rose-500 size-3.5"
+                                  checked={selectedPositions.includes("deputy_women_organiser")}
+                                  onChange={() => togglePosition("deputy_women_organiser")}
+                                />
+                                <span>Deputy Women Organiser</span>
+                              </label>
+
+                              <label className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer text-foreground">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-rose-400 text-rose-600 focus:ring-rose-500 size-3.5"
                                   checked={selectedPositions.includes("tescon_wocom")}
-                                  onChange={(e) => {
-                                    let next = isCustom
-                                      ? [...selectedPositions]
-                                      : contest === "Youth Organiser"
-                                      ? ["youth_organiser"]
-                                      : (contest === "Youth Organisers & Deputies" ? ["youth_organiser", "deputy_youth_organiser"] : []);
-                                    if (e.target.checked) {
-                                      if (!next.includes("tescon_wocom")) next.push("tescon_wocom");
-                                    } else {
-                                      next = next.filter((p) => p !== "tescon_wocom");
-                                    }
-                                    setContest("Custom");
-                                    setSelectedPositions(next);
-                                    setPage(1);
-                                  }}
+                                  onChange={() => togglePosition("tescon_wocom")}
                                 />
                                 <span>TESCON WOCOM</span>
                               </label>
 
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 text-[11px] text-sky-700 dark:text-sky-300 ml-auto"
-                                onClick={() => {
-                                  setContest("Custom");
-                                  setCustomizerOpen(true);
-                                  setPage(1);
-                                }}
-                              >
-                                ✨ All 32 Positions Checklist...
-                              </Button>
+                              {excludedInAlbum.length > 0 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 text-[11px] text-amber-700 dark:text-amber-300 ml-auto"
+                                  onClick={selectAllContestPositions}
+                                >
+                                  ↺ Restore All Roles
+                                </Button>
+                              )}
                             </div>
                           </div>
                         )}
 
-                        {/* Custom Positions Picker (when Custom is selected or toggled) */}
-                        {isCustom && (
-                          <div className="rounded-xl border bg-card p-4 shadow-2xs space-y-4">
+                        {/* Position Checklist Card for Full Electorates or Custom Selection */}
+                        {(contest === "Youth Organiser" || contest === "Women Organiser" || isCustom) && (
+                          <div className={`rounded-xl border p-4 shadow-2xs space-y-4 ${
+                            contest === "Youth Organiser"
+                              ? "border-sky-300 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-950/20"
+                              : contest === "Women Organiser"
+                              ? "border-rose-300 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/20"
+                              : "bg-card"
+                          }`}>
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b pb-2.5">
                               <div>
-                                <h4 className="font-semibold text-xs flex items-center gap-1.5 text-blue-950 dark:text-blue-100">
-                                  <SlidersHorizontal className="size-3.5 text-blue-600" />
-                                  Select Positions Needed for Album ({selectedPositions.length} Selected)
+                                <h4 className="font-semibold text-xs flex items-center gap-1.5 text-foreground">
+                                  <SlidersHorizontal className="size-3.5 text-primary" />
+                                  <span>
+                                    {contest === "Youth Organiser"
+                                      ? `Positions Voting for National Youth Organiser (${selectedInAlbum.length}/${defaultContestPositionIds.length} Selected)`
+                                      : contest === "Women Organiser"
+                                      ? `Positions Voting for National Women Organiser (${selectedInAlbum.length}/${defaultContestPositionIds.length} Selected)`
+                                      : `Select Positions for Album (${selectedPositions.length} Selected)`}
+                                  </span>
                                 </h4>
                                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                                  The album, PDF, voter register, and Excel export will include strictly the checked positions.
+                                  {contest === "Youth Organiser"
+                                    ? "All executive positions eligible to vote in the Youth contest are selected by default. Deselect any position to exclude its delegates from this album."
+                                    : contest === "Women Organiser"
+                                    ? "All female executive positions eligible to vote in the Women contest are selected by default. Deselect any position to exclude its delegates from this album."
+                                    : "The album, PDF, voter register, and Excel export will include strictly the checked positions."}
                                 </p>
                               </div>
+
                               <div className="flex flex-wrap items-center gap-1.5">
-                                <Button variant="outline" size="sm" onClick={selectAllPositions} className="h-6 text-xs">
-                                  Select All Positions
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={isCustom ? selectAllPositions : selectAllContestPositions}
+                                  className="h-6 text-xs"
+                                >
+                                  Select All
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={clearAllPositions} className="h-6 text-xs text-muted-foreground">
-                                  Clear Positions
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={clearAllPositions}
+                                  className="h-6 text-xs text-muted-foreground"
+                                >
+                                  Clear All
                                 </Button>
                               </div>
                             </div>
 
-                            {/* Presets Bar */}
+                            {/* Quick Deselect & Preset Action Buttons */}
                             <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="text-xs font-medium text-muted-foreground mr-1">Presets:</span>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("core_slate")}>
-                                Core Slate (Top 5)
+                              <span className="text-xs font-medium text-muted-foreground mr-1">Quick Filters:</span>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="h-6 text-xs"
+                                onClick={deselectDeputies}
+                                title="Deselect all 1st/2nd Vice, Deputy Secretaries, Deputy Organisers, Deputy Women, Deputy Youth, and Deputy Nasara"
+                              >
+                                Deselect Deputies
                               </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("key_officers")}>
-                                Key Officers (Top 10)
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="h-6 text-xs"
+                                onClick={keepSubstantiveOnly}
+                                title="Keep only substantive portfolio heads"
+                              >
+                                Substantive Only
                               </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("wings_only")}>
-                                Wing Executives
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="h-6 text-xs"
+                                onClick={deselectAppointed}
+                                title="Deselect appointed constituency officers (deputies, communications, elections, research, PWD)"
+                              >
+                                Deselect Appointed (8)
                               </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("youth_wing")}>
-                                Youth Wing (2)
-                              </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("youth_substantive")}>
-                                Youth Organisers (1)
-                              </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("youth_deputies")}>
-                                Deputy Youth (1)
-                              </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("regional_slate")}>
-                                Full Regional (21)
-                              </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("constituency_slate")}>
-                                Full Constituency (19)
-                              </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("elected_constituency")}>
-                                Elected Only (11)
-                              </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("appointed_constituency")}>
-                                Appointed Only (8)
-                              </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("deputies_only")}>
-                                Deputies Only
-                              </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("councils_and_mps")}>
-                                MPs, Council & Founders
-                              </Button>
-                              <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("regional_leadership")}>
-                                Regional Leadership (24)
-                              </Button>
+
+                              {isCustom && (
+                                <>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("core_slate")}>
+                                    Core Slate (Top 5)
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("key_officers")}>
+                                    Key Officers (Top 10)
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("wings_only")}>
+                                    Wing Executives
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("youth_wing")}>
+                                    Youth Wing (2)
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("youth_substantive")}>
+                                    Youth Organisers (1)
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("youth_deputies")}>
+                                    Deputy Youth (1)
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("regional_slate")}>
+                                    Full Regional (21)
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("constituency_slate")}>
+                                    Full Constituency (19)
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("elected_constituency")}>
+                                    Elected Only (11)
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("appointed_constituency")}>
+                                    Appointed Only (8)
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("deputies_only")}>
+                                    Deputies Only
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("councils_and_mps")}>
+                                    {"MPs, Council & Founders"}
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("regional_leadership")}>
+                                    Regional Leadership (24)
+                                  </Button>
+                                </>
+                              )}
                             </div>
 
-                            {/* Search */}
+                            {/* Excluded Roles Notice (when positions are deselected) */}
+                            {!isCustom && excludedInAlbum.length > 0 && (
+                              <div className="rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50/80 dark:bg-amber-950/40 p-2.5 text-xs text-amber-950 dark:text-amber-200 flex flex-wrap items-center gap-2">
+                                <span className="font-semibold text-amber-900 dark:text-amber-100 flex items-center gap-1">
+                                  <X className="size-3.5 text-amber-600" />
+                                  {excludedInAlbum.length} Position{excludedInAlbum.length > 1 ? "s" : ""} Excluded:
+                                </span>
+                                <div className="flex flex-wrap items-center gap-1">
+                                  {excludedInAlbum.map((id) => {
+                                    const posDef = ALL_CUSTOMIZABLE_POSITIONS.find((p) => p.id === id);
+                                    const label = posDef ? posDef.label.split(" / ")[0] : id;
+                                    return (
+                                      <span
+                                        key={id}
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-200/70 dark:bg-amber-900/60 text-amber-900 dark:text-amber-100 text-[11px] font-medium"
+                                      >
+                                        {label}
+                                        <button
+                                          type="button"
+                                          onClick={() => togglePosition(id)}
+                                          className="hover:text-red-700 ml-0.5 cursor-pointer"
+                                          title={`Re-include ${label}`}
+                                        >
+                                          ✕
+                                        </button>
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-5 text-[11px] text-amber-800 dark:text-amber-200 ml-auto underline hover:no-underline"
+                                  onClick={selectAllContestPositions}
+                                >
+                                  Reset (Include All)
+                                </Button>
+                              </div>
+                            )}
+
+                            {/* Search Input */}
                             <div className="relative">
                               <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" />
                               <Input
-                                placeholder="Filter positions by title (e.g., Chairperson, Secretary, Organiser, Nasara)..."
+                                placeholder="Filter positions by title (e.g., Chairperson, Secretary, Organiser, Deputy)..."
                                 value={positionSearch}
                                 onChange={(e) => setPositionSearch(e.target.value)}
-                                className="pl-9 h-8 text-xs"
+                                className="pl-9 h-8 text-xs bg-background"
                               />
                               {positionSearch && (
                                 <button
@@ -1399,7 +1585,13 @@ export default function PositionAlbumsPage() {
                             {/* Position Categories Grid */}
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pt-1">
                               {CUSTOM_POSITION_CATEGORIES.map((group) => {
-                                const filteredPositions = group.positions.filter((pos) =>
+                                const eligibleGroupPositions = isCustom
+                                  ? group.positions
+                                  : group.positions.filter((pos) => defaultContestPositionIds.includes(pos.id));
+
+                                if (eligibleGroupPositions.length === 0) return null;
+
+                                const filteredPositions = eligibleGroupPositions.filter((pos) =>
                                   !positionSearch.trim() ||
                                   pos.label.toLowerCase().includes(positionSearch.toLowerCase()) ||
                                   pos.synonyms.some((s) => s.toLowerCase().includes(positionSearch.toLowerCase()))
@@ -1407,14 +1599,14 @@ export default function PositionAlbumsPage() {
 
                                 if (filteredPositions.length === 0) return null;
 
-                                const allGroupSelected = group.positions.every((p) =>
+                                const allGroupSelected = filteredPositions.every((p) =>
                                   selectedPositions.includes(p.id)
                                 );
 
                                 return (
                                   <div
                                     key={group.category}
-                                    className="rounded-lg border bg-muted/20 p-2.5 space-y-2 flex flex-col justify-between"
+                                    className="rounded-lg border bg-card/60 p-2.5 space-y-2 flex flex-col justify-between"
                                   >
                                     <div className="flex items-center justify-between border-b pb-1">
                                       <span className="font-semibold text-xs text-foreground">
@@ -1422,8 +1614,8 @@ export default function PositionAlbumsPage() {
                                       </span>
                                       <button
                                         type="button"
-                                        onClick={() => toggleCategory(group.positions)}
-                                        className="text-[11px] font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                                        onClick={() => toggleCategory(eligibleGroupPositions)}
+                                        className="text-[11px] font-medium text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400"
                                       >
                                         {allGroupSelected ? "None" : "All"}
                                       </button>
@@ -1436,8 +1628,8 @@ export default function PositionAlbumsPage() {
                                             key={pos.id}
                                             className={`flex items-start gap-2 p-1 rounded cursor-pointer transition-colors text-xs select-none ${
                                               isChecked
-                                                ? "bg-blue-50 dark:bg-blue-950/40 text-blue-950 dark:text-blue-200 font-medium"
-                                                : "hover:bg-muted/60 text-muted-foreground"
+                                                ? "bg-blue-50/80 dark:bg-blue-950/40 text-blue-950 dark:text-blue-200 font-medium"
+                                                : "hover:bg-muted/60 text-muted-foreground line-through opacity-70"
                                             }`}
                                           >
                                             <input

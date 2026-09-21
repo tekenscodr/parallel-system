@@ -645,8 +645,10 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const positionQuery = (searchParams.get("position") || "Youth Organisers & Deputies").trim();
+  const rawPositionParam = searchParams.get("position");
+  const positionQuery = (rawPositionParam || "Youth Organisers & Deputies").trim();
   const positionsParam = (searchParams.get("positions") || "").trim();
+  const excludedPositionsParam = (searchParams.get("excluded_positions") || searchParams.get("exclude_positions") || "").trim();
   const regionQuery = (searchParams.get("region") || "all").trim();
   const regionsParam = (searchParams.get("regions") || searchParams.get("region") || "all").trim();
   const rawRegionsList =
@@ -689,17 +691,34 @@ export async function GET(req: NextRequest) {
     ? positionsParam.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
 
+  const excludedPositionKeys = excludedPositionsParam
+    ? excludedPositionsParam.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+
   if (customPositionKeys.length === 0 && /deputy.*youth/i.test(normalizedPositionQuery)) {
     customPositionKeys.push("deputy_youth_organiser");
   }
 
-  const isCustomContest =
-    positionQuery.toLowerCase() === "custom" ||
-    customPositionKeys.length > 0;
+  const isNamedContest = CONTEST_LIST.some(
+    (c) => c !== "Custom" && c.toLowerCase() === normalizedPositionQuery
+  ) || /youth|women|nasara|men|chairperson|general|organiser|treasurer|secretary|communication/i.test(normalizedPositionQuery);
 
-  const customResolved = isCustomContest
-    ? getCanonicalPositionsForSelection(customPositionKeys)
-    : null;
+  const isCustomContest =
+    normalizedPositionQuery === "custom" ||
+    (customPositionKeys.length > 0 && !isNamedContest);
+
+  const hasPositionFilter =
+    customPositionKeys.length > 0 || excludedPositionKeys.length > 0;
+
+  const customResolved =
+    (isCustomContest || hasPositionFilter) && customPositionKeys.length > 0
+      ? getCanonicalPositionsForSelection(customPositionKeys)
+      : null;
+
+  const excludedResolved =
+    excludedPositionKeys.length > 0
+      ? getCanonicalPositionsForSelection(excludedPositionKeys)
+      : null;
 
   // Match valid contest with robust synonym handling
   let matchedContest: ContestType = "Youth Organisers & Deputies";
@@ -711,6 +730,8 @@ export async function GET(req: NextRequest) {
     matchedContest = "All Women";
   } else if (/national\s+chairperson|general\s+officers/i.test(normalizedPositionQuery)) {
     matchedContest = "National Chairperson & General Officers";
+  } else if (/women.*organisers?\s*&\s*deput/i.test(normalizedPositionQuery)) {
+    matchedContest = "Women Organisers & Deputies";
   } else if (/women/i.test(normalizedPositionQuery)) {
     matchedContest = "Women Organiser";
   } else if (/youth.*organisers?\s*&\s*deput/i.test(normalizedPositionQuery)) {
@@ -827,6 +848,35 @@ export async function GET(req: NextRequest) {
       );
     });
 
+    const isDelegateInPositionSelection = (
+      r: (typeof validRows)[0],
+      canonPos: string,
+      posLower: string,
+      lvl: string
+    ): boolean => {
+      if (customResolved && customResolved.canonicalSet.size > 0) {
+        let matches =
+          customResolved.canonicalSet.has(canonPos) ||
+          (customResolved.isTesconNasaraIncluded && lvl === "tescon" && /nasara/i.test(posLower));
+        if (!matches) {
+          for (const target of customResolved.canonicalSet) {
+            if (posLower === target.toLowerCase()) {
+              matches = true;
+              break;
+            }
+          }
+        }
+        if (!matches) return false;
+      }
+      if (excludedResolved && excludedResolved.canonicalSet.size > 0) {
+        if (excludedResolved.canonicalSet.has(canonPos)) return false;
+        for (const target of excludedResolved.canonicalSet) {
+          if (posLower === target.toLowerCase()) return false;
+        }
+      }
+      return true;
+    };
+
     // 3. Apply contest eligibility rules (Decoupled position eligibility vs. administrative/regional scope)
     const isRowEligibleForContest = (r: (typeof validRows)[0]) => {
       const rawLvl = String(r.executive_level || "").toLowerCase().trim();
@@ -834,6 +884,12 @@ export async function GET(req: NextRequest) {
       const pos = String(r.position || "").trim();
       const posLower = pos.toLowerCase();
       const g = String(r.gender || "").toLowerCase().trim();
+      const canonPos = normalizeCanonicalPosition(r.position, r.executive_level);
+
+      const checkPositionConstraint = (): boolean => {
+        if (!hasPositionFilter) return true;
+        return isDelegateInPositionSelection(r, canonPos, posLower, lvl);
+      };
 
       // Rule: TESCON Patrons NEVER vote
       if (lvl === "tescon" && /patron/i.test(pos)) {
@@ -855,7 +911,6 @@ export async function GET(req: NextRequest) {
         if (!customResolved || customResolved.canonicalSet.size === 0) {
           return false;
         }
-        const canonPos = normalizeCanonicalPosition(r.position, r.executive_level);
         if (customResolved.canonicalSet.has(canonPos)) {
           return true;
         }
@@ -875,19 +930,19 @@ export async function GET(req: NextRequest) {
           if (lvl === "tescon") {
             if (posLower.includes("patron") || posLower.includes("former")) return false;
             if (/wocom|women|nasara/i.test(posLower)) return false;
-            return true;
+            return checkPositionConstraint();
           }
 
           // Core & External Levels: Youth Organisers and Deputies
-          return (
+          const matches =
             (posLower.includes("youth organiser") ||
               posLower.includes("youth organizer") ||
               posLower === "youth" ||
               posLower.includes("deputy youth") ||
               posLower.includes("assistant youth")) &&
             !posLower.includes("former") &&
-            !posLower.includes("patron")
-          );
+            !posLower.includes("patron");
+          return matches && checkPositionConstraint();
         }
 
         if (matchedContest === "Women Organisers & Deputies") {
@@ -899,11 +954,11 @@ export async function GET(req: NextRequest) {
             rawLvl.includes("external") ||
             String(r.region || "").toLowerCase().includes("external")
           ) {
-            return true;
+            return checkPositionConstraint();
           }
           if (lvl === "tescon") {
             if (posLower.includes("patron")) return false;
-            return /wocom|women|president|nasara/i.test(posLower);
+            return /wocom|women|president|nasara/i.test(posLower) && checkPositionConstraint();
           }
           return false;
         }
@@ -912,11 +967,11 @@ export async function GET(req: NextRequest) {
           matchedContest === "Nasara Coordinators & Deputies" ||
           matchedContest === "Nasara Organiser"
         ) {
-          return (
+          const matches =
             posLower.includes("nasara") &&
             !posLower.includes("former") &&
-            !posLower.includes("patron")
-          );
+            !posLower.includes("patron");
+          return matches && checkPositionConstraint();
         }
       }
 
@@ -932,11 +987,11 @@ export async function GET(req: NextRequest) {
       ) {
         // Core levels vote
         if (["national", "region", "regional", "constituency"].includes(lvl)) {
-          return true;
+          return checkPositionConstraint();
         }
         // TESCON: only Presidents
         if (lvl === "tescon" && /president/i.test(pos)) {
-          return true;
+          return checkPositionConstraint();
         }
         return false;
       }
@@ -946,7 +1001,7 @@ export async function GET(req: NextRequest) {
         if (lvl === "tescon") {
           if (posLower.includes("patron") || posLower.includes("former")) return false;
           if (/wocom|women|nasara/i.test(posLower)) return false;
-          return true;
+          return checkPositionConstraint();
         }
         // Region, National, Constituency, and External Branch levels:
         const isCoreOrExt =
@@ -960,9 +1015,9 @@ export async function GET(req: NextRequest) {
           // Former officers are excluded
           if (posLower.includes("former")) return false;
           // Youth organisers & deputies vote ex-officio (regardless of age)
-          if (/youth/i.test(posLower)) return true;
+          if (/youth/i.test(posLower)) return checkPositionConstraint();
           // Anyone under 40 (all those who were not 40 as at 21st August 2026)
-          if (isUnder40AsOfCutoff(r.date_of_birth, r.age)) return true;
+          if (isUnder40AsOfCutoff(r.date_of_birth, r.age)) return checkPositionConstraint();
         }
         return false;
       }
@@ -980,13 +1035,13 @@ export async function GET(req: NextRequest) {
           rawLvl.includes("external") ||
           String(r.region || "").toLowerCase().includes("external")
         ) {
-          return true;
+          return checkPositionConstraint();
         }
 
         // TESCON: male tertiary executives (patrons strictly excluded)
         if (lvl === "tescon") {
           if (posLower.includes("patron") || posLower.includes("former")) return false;
-          return true;
+          return checkPositionConstraint();
         }
 
         return false;
@@ -1010,13 +1065,13 @@ export async function GET(req: NextRequest) {
           rawLvl.includes("external") ||
           String(r.region || "").toLowerCase().includes("external")
         ) {
-          return true;
+          return checkPositionConstraint();
         }
 
         // TESCON: strictly female executives (Presidents, WOCOMs, and Nasara Coordinators; patrons strictly excluded)
         if (lvl === "tescon") {
           if (posLower.includes("patron")) return false;
-          return /wocom|women|president|nasara/i.test(posLower);
+          return /wocom|women|president|nasara/i.test(posLower) && checkPositionConstraint();
         }
 
         return false;
@@ -1025,11 +1080,11 @@ export async function GET(req: NextRequest) {
       if (matchedContest === "Nasara Organiser") {
         // All Nasara executives in core levels
         if (["national", "region", "regional", "constituency"].includes(lvl)) {
-          return /nasara/i.test(posLower);
+          return /nasara/i.test(posLower) && checkPositionConstraint();
         }
         // TESCON Nasara
         if (lvl === "tescon") {
-          return /nasara/i.test(posLower);
+          return /nasara/i.test(posLower) && checkPositionConstraint();
         }
         return false;
       }

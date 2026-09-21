@@ -321,6 +321,164 @@ export const REGIONAL_POSITION_IDS = new Set<string>(POSITION_PRESETS.regional_s
 export const REGIONAL_SLATE_21_IDS = new Set<string>(POSITION_PRESETS.regional_slate.ids);
 export const REGIONAL_REC_17_IDS = new Set<string>(POSITION_PRESETS.regional_rec_17.ids);
 
+export const DEPUTY_POSITION_IDS = new Set<string>([
+  "1st_vice",
+  "2nd_vice",
+  "deputy_secretary",
+  "deputy_organiser",
+  "deputy_women_organiser",
+  "deputy_youth_organiser",
+  "deputy_nasara_coordinator",
+]);
+
+export const APPOINTED_POSITION_IDS = new Set<string>([
+  "deputy_organiser",
+  "deputy_women_organiser",
+  "deputy_youth_organiser",
+  "deputy_nasara_coordinator",
+  "communication_officer",
+  "electoral_affairs",
+  "research_officer",
+  "pwd_officer",
+]);
+
+export const FULL_EXECUTIVE_POSITION_IDS: string[] = [
+  "chairperson",
+  "1st_vice",
+  "2nd_vice",
+  "secretary",
+  "deputy_secretary",
+  "treasurer",
+  "financial_secretary",
+  "organiser",
+  "deputy_organiser",
+  "women_organiser",
+  "deputy_women_organiser",
+  "youth_organiser",
+  "deputy_youth_organiser",
+  "nasara_coordinator",
+  "deputy_nasara_coordinator",
+  "communication_officer",
+  "electoral_affairs",
+  "research_officer",
+  "pwd_officer",
+  "special_duties",
+  "legal_officer",
+  "tescon_president",
+  "member_of_parliament",
+  "national_council_rep",
+  "foundation_member",
+];
+
+export function getDefaultPositionIdsForContest(
+  contest: ContestType | string,
+  scope: string = "all_voters"
+): string[] {
+  const normContest = String(contest || "").trim().toLowerCase();
+
+  // 1. Youth Wing (Organisers & Deputies)
+  if (
+    normContest === "youth organisers & deputies" ||
+    (normContest.includes("youth") && scope === "organisers_only")
+  ) {
+    return ["youth_organiser", "deputy_youth_organiser", "tescon_president"];
+  }
+
+  // 2. Youth Organiser (National Contest - All eligible youth voters)
+  // TESCON WOCOM and TESCON Nasara are strictly excluded from Youth
+  if (normContest === "youth organiser" || normContest.includes("youth")) {
+    return [
+      "chairperson",
+      "1st_vice",
+      "2nd_vice",
+      "secretary",
+      "deputy_secretary",
+      "treasurer",
+      "financial_secretary",
+      "organiser",
+      "deputy_organiser",
+      "youth_organiser",
+      "deputy_youth_organiser",
+      "women_organiser",
+      "deputy_women_organiser",
+      "nasara_coordinator",
+      "deputy_nasara_coordinator",
+      "communication_officer",
+      "electoral_affairs",
+      "research_officer",
+      "pwd_officer",
+      "special_duties",
+      "legal_officer",
+      "tescon_president",
+      "member_of_parliament",
+      "national_council_rep",
+      "foundation_member",
+    ];
+  }
+
+  // 3. Women Wing (Organisers & Deputies)
+  if (
+    normContest === "women organisers & deputies" ||
+    (normContest.includes("women") && scope === "organisers_only")
+  ) {
+    return ["women_organiser", "deputy_women_organiser", "tescon_wocom"];
+  }
+
+  // 4. Women Organiser (National Contest - All eligible female executives)
+  if (
+    normContest === "women organiser" ||
+    normContest === "all women" ||
+    normContest.includes("women")
+  ) {
+    return [
+      "chairperson",
+      "1st_vice",
+      "2nd_vice",
+      "secretary",
+      "deputy_secretary",
+      "treasurer",
+      "financial_secretary",
+      "organiser",
+      "deputy_organiser",
+      "women_organiser",
+      "deputy_women_organiser",
+      "youth_organiser",
+      "deputy_youth_organiser",
+      "nasara_coordinator",
+      "deputy_nasara_coordinator",
+      "communication_officer",
+      "electoral_affairs",
+      "research_officer",
+      "pwd_officer",
+      "special_duties",
+      "legal_officer",
+      "tescon_wocom",
+      "tescon_president",
+      "tescon_nasara",
+      "member_of_parliament",
+      "national_council_rep",
+      "foundation_member",
+    ];
+  }
+
+  // 5. Nasara Coordinators & Deputies
+  if (
+    normContest === "nasara coordinators & deputies" ||
+    normContest === "nasara organiser" ||
+    normContest.includes("nasara")
+  ) {
+    return ["nasara_coordinator", "deputy_nasara_coordinator", "tescon_nasara"];
+  }
+
+  // 6. Custom Contest
+  if (normContest === "custom") {
+    return [...POSITION_PRESETS.constituency_slate.ids];
+  }
+
+  // 7. General Contests / National Chairperson / All Men
+  return [...FULL_EXECUTIVE_POSITION_IDS];
+}
+
 export function isRecognizedRegionalExecutive(pos: string | null | undefined): boolean {
   const s = String(pos || "").trim().toLowerCase();
   if (
