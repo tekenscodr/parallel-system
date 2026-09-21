@@ -946,7 +946,7 @@ export default function PositionAlbumsPage() {
                           </Button>
                           <Button
                             type="button"
-                            variant={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser" ? "default" : "outline"}
+                            variant={contest === "Youth Organiser" || (isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser") ? "default" : "outline"}
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => {
@@ -1163,8 +1163,8 @@ export default function PositionAlbumsPage() {
                                 <Button
                                   type="button"
                                   size="sm"
-                                  variant={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser" ? "default" : "outline"}
-                                  className={isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser" ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
+                                  variant={contest === "Youth Organiser" || (isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser") ? "default" : "outline"}
+                                  className={contest === "Youth Organiser" || (isCustom && selectedPositions.length === 1 && selectedPositions[0] === "youth_organiser") ? "h-7 text-xs bg-sky-600 hover:bg-sky-700 text-white" : "h-7 text-xs border-sky-300 dark:border-sky-800"}
                                   onClick={() => {
                                     setContest("Custom");
                                     setSelectedPositions(["youth_organiser"]);
@@ -1200,9 +1200,13 @@ export default function PositionAlbumsPage() {
                                 <input
                                   type="checkbox"
                                   className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
-                                  checked={contest === "Youth Organisers & Deputies" || selectedPositions.includes("youth_organiser")}
+                                  checked={contest === "Youth Organisers & Deputies" || contest === "Youth Organiser" || selectedPositions.includes("youth_organiser")}
                                   onChange={(e) => {
-                                    let next = isCustom ? [...selectedPositions] : ["youth_organiser", "deputy_youth_organiser"];
+                                    let next = isCustom
+                                      ? [...selectedPositions]
+                                      : contest === "Youth Organiser"
+                                      ? ["youth_organiser"]
+                                      : ["youth_organiser", "deputy_youth_organiser"];
                                     if (e.target.checked) {
                                       if (!next.includes("youth_organiser")) next.push("youth_organiser");
                                     } else {
@@ -1222,7 +1226,11 @@ export default function PositionAlbumsPage() {
                                   className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
                                   checked={contest === "Youth Organisers & Deputies" || selectedPositions.includes("deputy_youth_organiser")}
                                   onChange={(e) => {
-                                    let next = isCustom ? [...selectedPositions] : ["youth_organiser", "deputy_youth_organiser"];
+                                    let next = isCustom
+                                      ? [...selectedPositions]
+                                      : contest === "Youth Organiser"
+                                      ? ["youth_organiser"]
+                                      : ["youth_organiser", "deputy_youth_organiser"];
                                     if (e.target.checked) {
                                       if (!next.includes("deputy_youth_organiser")) next.push("deputy_youth_organiser");
                                     } else {
@@ -1242,7 +1250,11 @@ export default function PositionAlbumsPage() {
                                   className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
                                   checked={selectedPositions.includes("tescon_president")}
                                   onChange={(e) => {
-                                    let next = isCustom ? [...selectedPositions] : (contest === "Youth Organisers & Deputies" ? ["youth_organiser", "deputy_youth_organiser"] : []);
+                                    let next = isCustom
+                                      ? [...selectedPositions]
+                                      : contest === "Youth Organiser"
+                                      ? ["youth_organiser"]
+                                      : (contest === "Youth Organisers & Deputies" ? ["youth_organiser", "deputy_youth_organiser"] : []);
                                     if (e.target.checked) {
                                       if (!next.includes("tescon_president")) next.push("tescon_president");
                                     } else {
@@ -1262,7 +1274,11 @@ export default function PositionAlbumsPage() {
                                   className="rounded border-sky-400 text-sky-600 focus:ring-sky-500 size-3.5"
                                   checked={selectedPositions.includes("tescon_wocom")}
                                   onChange={(e) => {
-                                    let next = isCustom ? [...selectedPositions] : (contest === "Youth Organisers & Deputies" ? ["youth_organiser", "deputy_youth_organiser"] : []);
+                                    let next = isCustom
+                                      ? [...selectedPositions]
+                                      : contest === "Youth Organiser"
+                                      ? ["youth_organiser"]
+                                      : (contest === "Youth Organisers & Deputies" ? ["youth_organiser", "deputy_youth_organiser"] : []);
                                     if (e.target.checked) {
                                       if (!next.includes("tescon_wocom")) next.push("tescon_wocom");
                                     } else {

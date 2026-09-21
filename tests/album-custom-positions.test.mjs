@@ -223,5 +223,44 @@ test("National executives preserve authentic designations without collapsing to 
   assert.ok(legalSelection.canonicalSet.has("Chairman of The Legal Committee"));
 });
 
+test("Youth position picker presets and fine-grained selection", () => {
+  // 1. POSITION_PRESETS has youth presets
+  assert.ok(POSITION_PRESETS.youth_wing);
+  assert.deepEqual(POSITION_PRESETS.youth_wing.ids, ["youth_organiser", "deputy_youth_organiser"]);
 
+  assert.ok(POSITION_PRESETS.youth_substantive);
+  assert.deepEqual(POSITION_PRESETS.youth_substantive.ids, ["youth_organiser"]);
 
+  assert.ok(POSITION_PRESETS.youth_deputies);
+  assert.deepEqual(POSITION_PRESETS.youth_deputies.ids, ["deputy_youth_organiser"]);
+
+  // 2. Substantive Youth Organiser isolation
+  const youthSub = getCanonicalPositionsForSelection(POSITION_PRESETS.youth_substantive.ids);
+  assert.ok(youthSub.canonicalSet.has("Youth Organiser"));
+  assert.ok(youthSub.canonicalSet.has("National Youth Organiser"));
+  assert.ok(!youthSub.canonicalSet.has("Deputy Youth Organiser"));
+  assert.ok(!youthSub.canonicalSet.has("Deputy National Youth Organiser"));
+
+  // 3. Deputy Youth Organiser isolation
+  const youthDep = getCanonicalPositionsForSelection(POSITION_PRESETS.youth_deputies.ids);
+  assert.ok(youthDep.canonicalSet.has("Deputy Youth Organiser"));
+  assert.ok(youthDep.canonicalSet.has("Deputy National Youth Organiser"));
+  assert.ok(!youthDep.canonicalSet.has("Youth Organiser"));
+  assert.ok(!youthDep.canonicalSet.has("National Youth Organiser"));
+
+  // 4. Combined Youth Wing
+  const youthBoth = getCanonicalPositionsForSelection(POSITION_PRESETS.youth_wing.ids);
+  assert.ok(youthBoth.canonicalSet.has("Youth Organiser"));
+  assert.ok(youthBoth.canonicalSet.has("National Youth Organiser"));
+  assert.ok(youthBoth.canonicalSet.has("Deputy Youth Organiser"));
+  assert.ok(youthBoth.canonicalSet.has("Deputy National Youth Organiser"));
+
+  // 5. Check page.tsx has youth position picker controls and tablePositionFilter
+  const pagePath = path.join(process.cwd(), "app/admin/albums/page.tsx");
+  const pageCode = fs.readFileSync(pagePath, "utf8");
+  assert.ok(pageCode.includes("Pick Youth Position(s) for Album"), "Page must contain Youth Position Picker Card");
+  assert.ok(pageCode.includes("Youth Organisers Only"), "Page must have Youth Organisers Only button");
+  assert.ok(pageCode.includes("Deputy Youth Only"), "Page must have Deputy Youth Only button");
+  assert.ok(pageCode.includes("tablePositionFilter"), "Page must have tablePositionFilter");
+  assert.ok(pageCode.includes("availablePositions"), "Page must compute availablePositions");
+});
