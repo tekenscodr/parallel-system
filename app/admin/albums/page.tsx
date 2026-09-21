@@ -1587,7 +1587,12 @@ export default function PositionAlbumsPage() {
                               {CUSTOM_POSITION_CATEGORIES.map((group) => {
                                 const eligibleGroupPositions = isCustom
                                   ? group.positions
-                                  : group.positions.filter((pos) => defaultContestPositionIds.includes(pos.id));
+                                  : group.positions.filter(
+                                      (pos) =>
+                                        defaultContestPositionIds.includes(pos.id) ||
+                                        pos.id === "tescon_wocom" ||
+                                        pos.id === "tescon_nasara"
+                                    );
 
                                 if (eligibleGroupPositions.length === 0) return null;
 

@@ -195,4 +195,9 @@ test("app/admin/albums/page.tsx renders position checklist, excluded pills, and 
     code.includes("handleContestSelect"),
     "Page must wire handleContestSelect"
   );
+  assert.ok(
+    code.includes('pos.id === "tescon_wocom"') && code.includes('pos.id === "tescon_nasara"'),
+    "Page must explicitly include TESCON WOCOM and TESCON Nasara in eligible positions grid for visibility"
+  );
 });
+
