@@ -79,12 +79,13 @@ export function getDelegateEntitledPositions(delegate: DelegateRecord): Entitled
   }
 
   // 2. Youth Organiser Contest
-  // Qualifies if: TESCON executive (excluding patrons) OR substantive Youth portfolio OR core executive under 40
+  // Qualifies if: TESCON executive (excluding patrons, wocom, and nasara) OR substantive Youth portfolio OR core executive under 40
   // Former officers are strictly excluded from youth voting eligibility
   const isFormer = /former/i.test(pos);
   const hasYouthPortfolio = /youth\s*organi[sz]er/i.test(pos) && !isFormer;
   if (!isFormer) {
-    if (isTescon) {
+    const isEligibleTesconYouth = isTescon && !/patron/i.test(pos) && !/wocom|women|nasara/i.test(posNorm);
+    if (isEligibleTesconYouth) {
       entitled.push({
         id: "youth_organiser",
         title: "National Youth Organiser",

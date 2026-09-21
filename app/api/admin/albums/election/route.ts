@@ -221,44 +221,44 @@ const GENERAL_OFFICERS_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
 };
 
 const YOUTH_WING_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
-  "Ahafo": 40,
-  "Ashanti": 242,
-  "Bono": 81,
-  "Bono East": 50,
-  "Central": 96,
-  "Eastern": 141,
-  "Greater Accra": 180,
-  "North East": 27,
-  "Northern": 98,
-  "Oti": 30,
-  "Savannah": 41,
-  "Upper East": 66,
-  "Upper West": 64,
-  "Volta": 72,
-  "Western": 74,
-  "Western North": 37,
+  "Ahafo": 22,
+  "Ashanti": 141,
+  "Bono": 41,
+  "Bono East": 32,
+  "Central": 63,
+  "Eastern": 93,
+  "Greater Accra": 105,
+  "North East": 18,
+  "Northern": 58,
+  "Oti": 23,
+  "Savannah": 25,
+  "Upper East": 45,
+  "Upper West": 37,
+  "Volta": 47,
+  "Western": 50,
+  "Western North": 24,
   "External Branch": 60,
 };
 
 const YOUTH_GENERAL_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
-  "Ahafo": 73,
-  "Ashanti": 452,
-  "Bono": 136,
-  "Bono East": 107,
-  "Central": 186,
-  "Eastern": 271,
-  "Greater Accra": 330,
-  "North East": 61,
-  "Northern": 209,
-  "Oti": 86,
-  "Savannah": 100,
-  "Upper East": 139,
-  "Upper West": 114,
-  "Volta": 159,
-  "Western": 169,
-  "Western North": 77,
+  "Ahafo": 55,
+  "Ashanti": 351,
+  "Bono": 97,
+  "Bono East": 90,
+  "Central": 154,
+  "Eastern": 224,
+  "Greater Accra": 256,
+  "North East": 55,
+  "Northern": 169,
+  "Oti": 80,
+  "Savannah": 85,
+  "Upper East": 119,
+  "Upper West": 88,
+  "Volta": 134,
+  "Western": 144,
+  "Western North": 65,
   "External Branch": 177,
-  "National Headquarters": 4,
+  "National Headquarters": 5,
 };
 
 const NASARA_REGIONAL_STATUTORY_QUOTAS: Record<string, number> = {
@@ -871,12 +871,11 @@ export async function GET(req: NextRequest) {
       // Wing-specific extraction (Organisers & Deputies Only):
       if (isWingOrganisers) {
         if (matchedContest === "Youth Organisers & Deputies") {
-          // TESCON Level: all TESCON tertiary executives except patrons
+          // TESCON Level: TESCON tertiary executives excluding patrons, wocom, and nasara
           if (lvl === "tescon") {
-            return (
-              !posLower.includes("patron") &&
-              !posLower.includes("former")
-            );
+            if (posLower.includes("patron") || posLower.includes("former")) return false;
+            if (/wocom|women|nasara/i.test(posLower)) return false;
+            return true;
           }
 
           // Core & External Levels: Youth Organisers and Deputies
@@ -943,9 +942,11 @@ export async function GET(req: NextRequest) {
       }
 
       if (matchedContest === "Youth Organiser") {
-        // TESCON Level: All TESCON tertiary executives qualify (patrons strictly excluded)
+        // TESCON Level: TESCON tertiary executives qualify with exception of patrons, wocom, and nasara
         if (lvl === "tescon") {
-          return !posLower.includes("patron") && !posLower.includes("former");
+          if (posLower.includes("patron") || posLower.includes("former")) return false;
+          if (/wocom|women|nasara/i.test(posLower)) return false;
+          return true;
         }
         // Region, National, Constituency, and External Branch levels:
         const isCoreOrExt =
@@ -1487,11 +1488,10 @@ export async function GET(req: NextRequest) {
       // Nationwide (all regions)
       if (isWingOrganisers) {
         if (selectedLevels.length === 0 || selectedLevels.length === 5) {
-          if (
-            matchedContest === "Youth Organisers & Deputies" ||
-            matchedContest === "Youth Organiser"
-          ) {
-            expectedCount = 1400;
+          if (matchedContest === "Youth Organisers & Deputies") {
+            expectedCount = 887;
+          } else if (matchedContest === "Youth Organiser") {
+            expectedCount = 2355;
           } else if (matchedContest === "Women Organisers & Deputies") {
             expectedCount = 1390;
           } else if (
@@ -1511,7 +1511,7 @@ export async function GET(req: NextRequest) {
             hasTescon
               ? matchedContest === "Youth Organisers & Deputies" ||
                 matchedContest === "Youth Organiser"
-                ? 746
+                ? 253
                 : matchedContest === "Women Organisers & Deputies"
                 ? 247
                 : matchedContest === "Nasara Coordinators & Deputies" ||
@@ -1551,7 +1551,7 @@ export async function GET(req: NextRequest) {
       ) {
         expectedCount = filterGender === "male" ? 5201 : filterGender === "female" ? 1309 : 6544;
       } else if (matchedContest === "Youth Organiser") {
-        expectedCount = filterGender === "male" ? 2292 : filterGender === "female" ? 558 : 2850;
+        expectedCount = filterGender === "male" ? 1990 : filterGender === "female" ? 350 : 2355;
       } else if (
         matchedContest === "Women Organiser" ||
         matchedContest === "Women Organisers & Deputies" ||
@@ -1564,7 +1564,7 @@ export async function GET(req: NextRequest) {
       ) {
         expectedCount = filterGender === "male" ? 784 : filterGender === "female" ? 83 : 867;
       } else if (matchedContest === "Youth Organisers & Deputies") {
-        expectedCount = 1400;
+        expectedCount = filterGender === "male" ? 783 : filterGender === "female" ? 100 : 887;
       } else if (matchedContest === "All Men") {
         expectedCount = 5606;
       } else {
@@ -1658,11 +1658,10 @@ export async function GET(req: NextRequest) {
     // Authoritative Position National Benchmark (Full Electoral College Baseline)
     let positionNationalExpected = 0;
     if (isWingOrganisers) {
-      if (
-        matchedContest === "Youth Organisers & Deputies" ||
-        matchedContest === "Youth Organiser"
-      ) {
-        positionNationalExpected = 1400;
+      if (matchedContest === "Youth Organisers & Deputies") {
+        positionNationalExpected = 887;
+      } else if (matchedContest === "Youth Organiser") {
+        positionNationalExpected = 2355;
       } else if (matchedContest === "Women Organisers & Deputies") {
         positionNationalExpected = 1390;
       } else if (
@@ -1694,7 +1693,7 @@ export async function GET(req: NextRequest) {
     ) {
       positionNationalExpected = filterGender === "male" ? 5201 : filterGender === "female" ? 1309 : 6544;
     } else if (matchedContest === "Youth Organiser") {
-      positionNationalExpected = filterGender === "male" ? 2292 : filterGender === "female" ? 558 : 2850;
+      positionNationalExpected = filterGender === "male" ? 1990 : filterGender === "female" ? 350 : 2355;
     } else if (
       matchedContest === "Women Organiser" ||
       matchedContest === "Women Organisers & Deputies" ||
@@ -1707,7 +1706,7 @@ export async function GET(req: NextRequest) {
     ) {
       positionNationalExpected = filterGender === "male" ? 784 : filterGender === "female" ? 83 : 867;
     } else if (matchedContest === "Youth Organisers & Deputies") {
-      positionNationalExpected = 1400;
+      positionNationalExpected = filterGender === "male" ? 783 : filterGender === "female" ? 100 : 887;
     } else if (matchedContest === "All Men") {
       positionNationalExpected = 5606;
     } else {
