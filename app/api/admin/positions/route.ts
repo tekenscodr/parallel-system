@@ -86,7 +86,6 @@ const BASELINE_POSITIONS: Record<string, string[]> = {
     "Deputy Nasara Coordinator",
     "Special Duties Officer",
     "Legal Representative Officer",
-    "Regional TESCON Coordinator",
   ],
   Constituency: [
     "Member of Parliament",
@@ -150,7 +149,6 @@ const BASELINE_POSITIONS: Record<string, string[]> = {
     "Electoral Affairs Officer",
     "Patron",
     "TESCON Patron",
-    "Regional TESCON Coordinator",
   ],
   "Electoral Area": [
     "Chairperson",

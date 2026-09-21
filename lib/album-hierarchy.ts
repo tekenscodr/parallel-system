@@ -84,6 +84,70 @@ export function compareAlbumDelegates(a: AlbumHierarchyDelegate, b: AlbumHierarc
   return a.executive_name.localeCompare(b.executive_name);
 }
 
+function isRegionalTescon(delegate: {
+  position?: string | null;
+  canonical_position?: string | null;
+  polling_station?: string | null;
+  executive_level?: string | null;
+}): boolean {
+  if (!delegate) return false;
+  const pos = String(delegate.position || "").trim().toLowerCase();
+  const canon = String(delegate.canonical_position || "").trim().toLowerCase();
+  const ps = String(delegate.polling_station || "").trim().toLowerCase();
+  const lvl = String(delegate.executive_level || "").trim().toLowerCase();
+
+  if ((lvl === "region" || lvl === "regional") && (/tescon/i.test(pos) || /tescon/i.test(canon))) {
+    return true;
+  }
+  if (
+    pos.includes("regional tescon") ||
+    pos.includes("tescon regional") ||
+    pos.includes("tescon coordinator") ||
+    pos.includes("tescon cordinator") ||
+    canon.includes("tescon coordinator") ||
+    /regional.*tescon/i.test(pos) ||
+    /tescon.*coord/i.test(pos)
+  ) {
+    return true;
+  }
+
+  const isBonaFideInstitution =
+    /university|college|polytechnic|institute|school|academy/i.test(ps) &&
+    !/regional.*tescon|tescon.*regional/i.test(ps);
+
+  if (!isBonaFideInstitution) {
+    if (
+      ps.includes("regional tescon") ||
+      ps.includes("tescon regional") ||
+      ps.includes("western regional tescon") ||
+      ps.includes("tescon coordinator") ||
+      ps.includes("tescon cordinator") ||
+      /regional.*tescon/i.test(ps) ||
+      /tescon.*coord/i.test(ps) ||
+      (lvl === "tescon" &&
+        (/^regional tescon/i.test(ps) ||
+          /tescon.*regional/i.test(ps) ||
+          /tescon cordinator/i.test(ps)))
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isRecognizedRegionalExecutive(pos: string | null | undefined): boolean {
+  const s = String(pos || "").trim().toLowerCase();
+  if (
+    s.includes("tescon") ||
+    /regional.*tescon/i.test(s) ||
+    /tescon.*regional/i.test(s)
+  ) {
+    return false;
+  }
+  return true;
+}
+
 /**
  * Authoritative regional leadership ranking for display and album construction:
  * 1. Regional Executives (Regional tier officers: Chairperson .. Legal)
@@ -97,11 +161,17 @@ export function compareAlbumDelegates(a: AlbumHierarchyDelegate, b: AlbumHierarc
 export function getRegionalSectionRank(delegate: {
   position?: string | null;
   canonical_position?: string | null;
+  polling_station?: string | null;
   executive_level?: string | null;
 }): number {
   const pos = String(delegate.position || "").trim().toLowerCase();
   const canon = String(delegate.canonical_position || "").trim().toLowerCase();
   const lvl = String(delegate.executive_level || "").trim().toLowerCase();
+
+  // Regional TESCON is strictly NOT part of the Electoral College
+  if (isRegionalTescon(delegate as any)) {
+    return 999;
+  }
 
   // 1. Regional Executives (The 21 Recognized Regional Executive Committee officers: 10 Elected + 11 Appointed)
   // Strictly excludes roles outside the 21 (specifically Regional TESCON Coordinator, which is not an electoral college member)
@@ -115,13 +185,8 @@ export function getRegionalSectionRank(delegate: {
     !canon.includes("member of parliament") &&
     pos !== "mp"
   ) {
-    if (
-      pos.includes("tescon coordinator") ||
-      canon.includes("tescon coordinator") ||
-      /regional.*tescon.*coord/i.test(pos) ||
-      /tescon.*regional.*coord/i.test(pos)
-    ) {
-      return 8; // Outside the 21 recognized regional executives
+    if (!isRecognizedRegionalExecutive(pos) || !isRecognizedRegionalExecutive(canon)) {
+      return 999; // Outside the 21 recognized regional executives
     }
     return 1;
   }

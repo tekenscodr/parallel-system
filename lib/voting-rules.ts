@@ -5,6 +5,45 @@ export type VotingSource = {
   gender: string | null; date_of_birth: string | null; age?: number | null;
   phone?: string | null;
 };
+
+function isRegionalTescon(r: VotingSource): boolean {
+  if (!r) return false;
+  const pos = String(r.position || "").trim().toLowerCase();
+  const ps = String(r.polling_station || "").trim().toLowerCase();
+  const lvl = String(r.executive_level || "").trim().toLowerCase();
+
+  if ((lvl === "region" || lvl === "regional") && /tescon/i.test(pos)) return true;
+  if (
+    pos.includes("regional tescon") ||
+    pos.includes("tescon regional") ||
+    pos.includes("tescon coordinator") ||
+    pos.includes("tescon cordinator") ||
+    /regional.*tescon/i.test(pos) ||
+    /tescon.*coord/i.test(pos)
+  ) return true;
+
+  const isBonaFideInstitution =
+    /university|college|polytechnic|institute|school|academy/i.test(ps) &&
+    !/regional.*tescon|tescon.*regional/i.test(ps);
+
+  if (!isBonaFideInstitution) {
+    if (
+      ps.includes("regional tescon") ||
+      ps.includes("tescon regional") ||
+      ps.includes("western regional tescon") ||
+      ps.includes("tescon coordinator") ||
+      ps.includes("tescon cordinator") ||
+      /regional.*tescon/i.test(ps) ||
+      /tescon.*coord/i.test(ps) ||
+      (lvl === "tescon" &&
+        (/^regional tescon/i.test(ps) ||
+          /tescon.*regional/i.test(ps) ||
+          /tescon cordinator/i.test(ps)))
+    ) return true;
+  }
+  return false;
+}
+
 export const contests = [
   ['National Chairperson', 'general'], ['Vice Chairperson', 'general'],
   ['General Secretary', 'general'], ['Treasurer', 'general'], ['Communication', 'general'],
@@ -117,6 +156,7 @@ export function buildVotingReport(source: VotingSource[]) {
     const rawLvl = norm(row.executive_level);
     const lvl = rawLvl === 'externalbranch' ? 'constituency' : rawLvl;
     if (!['constituency', 'region', 'regional', 'national', 'tescon'].includes(lvl)) continue;
+    if (isRegionalTescon(row as any)) continue;
     if (!clean(row.executive_name) || /^(vacant|vacancy|unknown|not available|representative)\b/i.test(clean(row.executive_name)) || /^n\/?a$/i.test(clean(row.executive_name))) { excludedVacancies++; continue; }
     const vid = clean(row.voter_id).replace(/\s/g, '');
     const member = clean(row.membership_id);

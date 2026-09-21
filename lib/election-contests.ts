@@ -479,12 +479,66 @@ export function getDefaultPositionIdsForContest(
   return [...FULL_EXECUTIVE_POSITION_IDS];
 }
 
+export function isRegionalTescon(r: {
+  position?: string | null;
+  polling_station?: string | null;
+  executive_level?: string | null;
+}): boolean {
+  if (!r) return false;
+  const pos = String(r.position || "").trim().toLowerCase();
+  const ps = String(r.polling_station || "").trim().toLowerCase();
+  const lvl = String(r.executive_level || "").trim().toLowerCase();
+
+  // Regional level never has TESCON officers in the electoral college
+  if ((lvl === "region" || lvl === "regional") && /tescon/i.test(pos)) {
+    return true;
+  }
+
+  // Position is Regional TESCON Coordinator or variant
+  if (
+    pos.includes("regional tescon") ||
+    pos.includes("tescon regional") ||
+    pos.includes("tescon coordinator") ||
+    pos.includes("tescon cordinator") ||
+    /regional.*tescon/i.test(pos) ||
+    /tescon.*coord/i.test(pos)
+  ) {
+    return true;
+  }
+
+  // Polling station / Institution is "REGIONAL TESCON COORDINATOR", "Western Regional TESCON", etc.
+  // Note: Regional Maritime University is an accredited tertiary institution, not Regional TESCON
+  const isBonaFideInstitution =
+    /university|college|polytechnic|institute|school|academy/i.test(ps) &&
+    !/regional.*tescon|tescon.*regional/i.test(ps);
+
+  if (!isBonaFideInstitution) {
+    if (
+      ps.includes("regional tescon") ||
+      ps.includes("tescon regional") ||
+      ps.includes("western regional tescon") ||
+      ps.includes("tescon coordinator") ||
+      ps.includes("tescon cordinator") ||
+      /regional.*tescon/i.test(ps) ||
+      /tescon.*coord/i.test(ps) ||
+      (lvl === "tescon" &&
+        (/^regional tescon/i.test(ps) ||
+          /tescon.*regional/i.test(ps) ||
+          /tescon cordinator/i.test(ps)))
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function isRecognizedRegionalExecutive(pos: string | null | undefined): boolean {
   const s = String(pos || "").trim().toLowerCase();
   if (
-    s.includes("tescon coordinator") ||
-    /regional.*tescon.*coord/i.test(s) ||
-    /tescon.*regional.*coord/i.test(s)
+    s.includes("tescon") ||
+    /regional.*tescon/i.test(s) ||
+    /tescon.*regional/i.test(s)
   ) {
     return false;
   }

@@ -33,6 +33,8 @@ import {
   parseVoterDetails,
   DEFAULT_VOTER_DETAILS,
   type VoterDetailField,
+  isRegionalTescon,
+  isRecognizedRegionalExecutive,
 } from "@/lib/election-contests";
 import {
   getConstituenciesForRegion,
@@ -890,6 +892,16 @@ export async function GET(req: NextRequest) {
         if (!hasPositionFilter) return true;
         return isDelegateInPositionSelection(r, canonPos, posLower, lvl);
       };
+
+      // Rule: Regional TESCON / Regional TESCON Coordinator is NOT part of the Electoral College
+      if (isRegionalTescon(r)) {
+        return false;
+      }
+
+      // Rule: Regional executives must be recognized REC members (strictly 21 statutory officers)
+      if ((lvl === "region" || lvl === "regional") && !isRecognizedRegionalExecutive(pos)) {
+        return false;
+      }
 
       // Rule: TESCON Patrons NEVER vote
       if (lvl === "tescon" && /patron/i.test(pos)) {
