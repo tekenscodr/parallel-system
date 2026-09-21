@@ -132,21 +132,21 @@ test('Route and page files contain Excel export and Wing extraction capabilities
   assert.ok(pageCode.includes('organisers_only'), 'Page must support organisers_only scope');
 });
 
-test('Election route strictly excludes TESCON WOCOM and TESCON Nasara from Youth contests', () => {
+test('Election route includes TESCON President, WOCOM and Nasara in Youth contests', () => {
   const routeCode = fs.readFileSync(
     path.join(process.cwd(), 'app/api/admin/albums/election/route.ts'),
     'utf8'
   );
 
-  // In Youth Organisers & Deputies:
+  // In Youth Organisers & Deputies and Youth Organiser:
   assert.ok(
-    routeCode.includes('if (/wocom|women|nasara/i.test(posLower)) return false;'),
-    'Youth contest must explicitly exclude TESCON WOCOM and Nasara'
+    routeCode.includes('// TESCON Level: TESCON tertiary executives (President, WOCOM, Nasara; patrons and former officers excluded)'),
+    'Youth contest must include TESCON tertiary executives'
   );
 
   // In Youth regional statutory quotas:
-  assert.ok(routeCode.includes('"Ashanti": 141,'), 'Youth Wing Ashanti statutory quota must be 141 (excluding WOCOM and Nasara)');
-  assert.ok(routeCode.includes('"Ashanti": 351,'), 'Youth General Ashanti statutory quota must be 351 (excluding WOCOM and Nasara)');
-  assert.ok(routeCode.includes('positionNationalExpected = 887;'), 'Youth Wing national expected benchmark must be 887');
-  assert.ok(routeCode.includes('positionNationalExpected = filterGender === "male" ? 1990 : filterGender === "female" ? 350 : 2355;'), 'Youth Organiser national expected benchmark must be 2,355');
+  assert.ok(routeCode.includes('"Ashanti": 242,'), 'Youth Wing Ashanti statutory quota must be 242 (including WOCOM and Nasara)');
+  assert.ok(routeCode.includes('"Ashanti": 452,'), 'Youth General Ashanti statutory quota must be 452 (including WOCOM and Nasara)');
+  assert.ok(routeCode.includes('positionNationalExpected = 1400;'), 'Youth Wing national expected benchmark must be 1400');
+  assert.ok(routeCode.includes('positionNationalExpected = filterGender === "male" ? 2292 : filterGender === "female" ? 558 : 2850;'), 'Youth Organiser national expected benchmark must be 2,850');
 });

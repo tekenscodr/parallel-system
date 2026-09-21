@@ -381,11 +381,17 @@ export function getDefaultPositionIdsForContest(
     normContest === "youth organisers & deputies" ||
     (normContest.includes("youth") && scope === "organisers_only")
   ) {
-    return ["youth_organiser", "deputy_youth_organiser", "tescon_president"];
+    return [
+      "youth_organiser",
+      "deputy_youth_organiser",
+      "tescon_president",
+      "tescon_wocom",
+      "tescon_nasara",
+    ];
   }
 
   // 2. Youth Organiser (National Contest - All eligible youth voters)
-  // TESCON WOCOM and TESCON Nasara are strictly excluded from Youth
+  // TESCON President, TESCON WOCOM, and TESCON Nasara are all included
   if (normContest === "youth organiser" || normContest.includes("youth")) {
     return [
       "chairperson",
@@ -410,6 +416,8 @@ export function getDefaultPositionIdsForContest(
       "special_duties",
       "legal_officer",
       "tescon_president",
+      "tescon_wocom",
+      "tescon_nasara",
       "member_of_parliament",
       "national_council_rep",
       "foundation_member",

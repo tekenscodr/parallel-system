@@ -16,14 +16,14 @@ test('Election album route enforces authoritative real position statistics when 
 
   assert.ok(
     routeContent.includes('matchedContest === "Youth Organisers & Deputies"') &&
-    routeContent.includes('positionNationalExpected = 887;'),
-    'Route must set Youth Wing statutory quota to 887'
+    routeContent.includes('positionNationalExpected = 1400;'),
+    'Route must set Youth Wing statutory quota to 1400'
   );
 
   assert.ok(
     routeContent.includes('matchedContest === "Youth Organiser"') &&
-    routeContent.includes('positionNationalExpected = filterGender === "male" ? 1990 : filterGender === "female" ? 350 : 2355;'),
-    'Route must set Youth Organiser statutory quota to 2,355'
+    routeContent.includes('positionNationalExpected = filterGender === "male" ? 2292 : filterGender === "female" ? 558 : 2850;'),
+    'Route must set Youth Organiser statutory quota to 2,850'
   );
 
   assert.ok(

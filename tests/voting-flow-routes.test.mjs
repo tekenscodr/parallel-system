@@ -113,11 +113,11 @@ test("Voting entitlement correctly resolves portfolios for each executive catego
   };
   const tesconWocomPositions = getDelegateEntitledPositions(tesconWocom);
   assert.equal(tesconWocomPositions.some((p) => p.id === "chairperson"), false, "TESCON non-president does not vote for General Officers");
-  assert.equal(tesconWocomPositions.some((p) => p.id === "youth_organiser"), false, "TESCON WOCOM does NOT vote for Youth Organiser");
+  assert.equal(tesconWocomPositions.some((p) => p.id === "youth_organiser"), true, "TESCON WOCOM votes for Youth Organiser");
   assert.equal(tesconWocomPositions.some((p) => p.id === "women_organiser"), true, "TESCON WOCOM votes for Women Organiser");
-  assert.equal(tesconWocomPositions.length, 1);
+  assert.equal(tesconWocomPositions.length, 2);
 
-  // 5b. Female TESCON Nasara Coordinator - votes for Nasara and Women Organiser, but NOT Youth
+  // 5b. Female TESCON Nasara Coordinator - votes for Nasara, Women Organiser, and Youth
   const tesconFemaleNasara = {
     executive_name: "RUKAYA IBRAHIM",
     executive_level: "TESCON",
@@ -128,10 +128,10 @@ test("Voting entitlement correctly resolves portfolios for each executive catego
   const tesconFemaleNasaraPositions = getDelegateEntitledPositions(tesconFemaleNasara);
   assert.equal(tesconFemaleNasaraPositions.some((p) => p.id === "women_organiser"), true, "Female TESCON Nasara votes for Women Organiser");
   assert.equal(tesconFemaleNasaraPositions.some((p) => p.id === "nasara_coordinator"), true, "TESCON Nasara votes for Nasara Coordinator");
-  assert.equal(tesconFemaleNasaraPositions.some((p) => p.id === "youth_organiser"), false, "TESCON Nasara does NOT vote for Youth Organiser");
+  assert.equal(tesconFemaleNasaraPositions.some((p) => p.id === "youth_organiser"), true, "TESCON Nasara votes for Youth Organiser");
   assert.equal(tesconFemaleNasaraPositions.some((p) => p.id === "chairperson"), false, "TESCON non-president does not vote for General Officers");
 
-  // 5c. Male TESCON Nasara Coordinator - votes for Nasara only, NOT Women or Youth
+  // 5c. Male TESCON Nasara Coordinator - votes for Nasara and Youth
   const tesconMaleNasara = {
     executive_name: "ALI MOHAMMED",
     executive_level: "TESCON",
@@ -142,7 +142,7 @@ test("Voting entitlement correctly resolves portfolios for each executive catego
   const tesconMaleNasaraPositions = getDelegateEntitledPositions(tesconMaleNasara);
   assert.equal(tesconMaleNasaraPositions.some((p) => p.id === "women_organiser"), false, "Male TESCON Nasara does NOT vote for Women Organiser");
   assert.equal(tesconMaleNasaraPositions.some((p) => p.id === "nasara_coordinator"), true, "Male TESCON Nasara votes for Nasara Coordinator");
-  assert.equal(tesconMaleNasaraPositions.some((p) => p.id === "youth_organiser"), false, "Male TESCON Nasara does NOT vote for Youth Organiser");
+  assert.equal(tesconMaleNasaraPositions.some((p) => p.id === "youth_organiser"), true, "Male TESCON Nasara votes for Youth Organiser");
 
   // 6. TESCON Patron - Constitutionally barred from voting
   const tesconPatron = {

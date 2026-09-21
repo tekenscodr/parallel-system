@@ -185,7 +185,7 @@ export function buildVotingReport(source: VotingSource[]) {
     };
     const core = rows.some(r=>['constituency','region','regional','national'].includes(getRowLevel(r)));
     const tescon = rows.filter(r=>norm(r.executive_level)==='tescon' && !/patron/i.test(clean(r.position)));
-    const eligibleTesconYouth = tescon.filter(r => !/wocom|women|nasara/i.test(clean(r.position)));
+    const eligibleTesconYouth = tescon;
     const hasYouthPortfolio = rows.some(r => /youth\s*organi[sz]er/i.test(clean(r.position)) && !/former/i.test(clean(r.position)));
     const isUnder40 = rows.some(r => isUnder40AsOf3MonthsAgo(r.date_of_birth, r.age));
     if (core && age === null && !hasYouthPortfolio) issues.push('DOB missing, invalid or conflicting: youth eligibility unresolved');
@@ -212,7 +212,7 @@ export function buildVotingReport(source: VotingSource[]) {
       dob: unique(rows.map(r=>clean(r.date_of_birth))).join('; '), age, gender,
       recordIds: rows.map(r=>r.id).join('; '), sourceRecords:rows.length, flags, issues,
       reasons: {general: flags.general ? (core ? 'Constituency/regional/national executive' : 'TESCON President') : '',
-        youth: flags.youth ? (hasYouthPortfolio ? 'Ex-officio Youth Organiser' : (eligibleTesconYouth.length ? 'TESCON executive excluding patron, wocom and nasara' : (age !== null && age < 40 ? 'Exact age below 40' : 'Under 40 as at 21st August 2026'))) : '',
+        youth: flags.youth ? (hasYouthPortfolio ? 'Ex-officio Youth Organiser' : (eligibleTesconYouth.length ? 'TESCON tertiary executive' : (age !== null && age < 40 ? 'Exact age below 40' : 'Under 40 as at 21st August 2026'))) : '',
         women: flags.women ? (core && gender==='female' ? 'Female executive' : (tescon.some(r=>norm(r.position).includes('nasara') && gender==='female') ? 'Female TESCON Nasara' : (tescon.some(r=>norm(r.position)==='president' && gender==='female') ? 'Female TESCON President' : 'TESCON WOCOM'))) : '',
         nasara: flags.nasara ? 'Nasara office' : ''},
     };

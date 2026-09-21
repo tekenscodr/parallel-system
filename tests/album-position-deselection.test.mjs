@@ -18,8 +18,8 @@ test("getDefaultPositionIdsForContest returns accurate constituent positions for
   assert.ok(youthWing.includes("youth_organiser"), "Youth Wing must include youth_organiser");
   assert.ok(youthWing.includes("deputy_youth_organiser"), "Youth Wing must include deputy_youth_organiser");
   assert.ok(youthWing.includes("tescon_president"), "Youth Wing must include tescon_president");
-  assert.ok(!youthWing.includes("tescon_wocom"), "Youth Wing must strictly exclude tescon_wocom");
-  assert.ok(!youthWing.includes("tescon_nasara"), "Youth Wing must strictly exclude tescon_nasara");
+  assert.ok(youthWing.includes("tescon_wocom"), "Youth Wing must include tescon_wocom");
+  assert.ok(youthWing.includes("tescon_nasara"), "Youth Wing must include tescon_nasara");
 
   // 2. Youth Organiser (Full electoral college)
   const youthFull = getDefaultPositionIdsForContest("Youth Organiser", "all_voters");
@@ -29,8 +29,8 @@ test("getDefaultPositionIdsForContest returns accurate constituent positions for
   assert.ok(youthFull.includes("youth_organiser"), "Youth Organiser includes youth_organiser");
   assert.ok(youthFull.includes("deputy_youth_organiser"), "Youth Organiser includes deputy_youth_organiser");
   assert.ok(youthFull.includes("tescon_president"), "Youth Organiser includes tescon_president");
-  assert.ok(!youthFull.includes("tescon_wocom"), "Youth Organiser must strictly exclude tescon_wocom");
-  assert.ok(!youthFull.includes("tescon_nasara"), "Youth Organiser must strictly exclude tescon_nasara");
+  assert.ok(youthFull.includes("tescon_wocom"), "Youth Organiser includes tescon_wocom");
+  assert.ok(youthFull.includes("tescon_nasara"), "Youth Organiser includes tescon_nasara");
 
   // 3. Women Wing (Organisers & Deputies)
   const womenWing = getDefaultPositionIdsForContest("Women Organisers & Deputies", "all_voters");

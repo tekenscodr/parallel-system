@@ -9,7 +9,7 @@ test("Album route defines authoritative national metrics for all contest rolls",
 
   // Nationwide expected metrics:
   assert.ok(fileContent.includes("6544"), "General Officers must have expectedCount of 6,544");
-  assert.ok(fileContent.includes("2355"), "Youth Organiser must have expectedCount of 2,355");
+  assert.ok(fileContent.includes("2850"), "Youth Organiser must have expectedCount of 2,850");
   assert.ok(fileContent.includes("1390"), "Women Organiser / All Women must have expectedCount of 1,390");
   assert.ok(fileContent.includes("867"), "Nasara Organiser must have expectedCount of 867");
   assert.ok(fileContent.includes("7039"), "Master Pool / Full Directory must have expectedCount of 7,039");

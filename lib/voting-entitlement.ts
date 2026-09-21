@@ -84,7 +84,7 @@ export function getDelegateEntitledPositions(delegate: DelegateRecord): Entitled
   const isFormer = /former/i.test(pos);
   const hasYouthPortfolio = /youth\s*organi[sz]er/i.test(pos) && !isFormer;
   if (!isFormer) {
-    const isEligibleTesconYouth = isTescon && !/patron/i.test(pos) && !/wocom|women|nasara/i.test(posNorm);
+    const isEligibleTesconYouth = isTescon && !/patron/i.test(pos);
     if (isEligibleTesconYouth) {
       entitled.push({
         id: "youth_organiser",
