@@ -860,7 +860,7 @@ export async function GET(req: NextRequest) {
         let matches =
           customResolved.canonicalSet.has(canonPos) ||
           (customResolved.isTesconNasaraIncluded && lvl === "tescon" && /nasara/i.test(posLower));
-        if (!matches) {
+        if (!matches && lvl !== "tescon") {
           for (const target of customResolved.canonicalSet) {
             if (posLower === target.toLowerCase()) {
               matches = true;
@@ -872,8 +872,10 @@ export async function GET(req: NextRequest) {
       }
       if (excludedResolved && excludedResolved.canonicalSet.size > 0) {
         if (excludedResolved.canonicalSet.has(canonPos)) return false;
-        for (const target of excludedResolved.canonicalSet) {
-          if (posLower === target.toLowerCase()) return false;
+        if (lvl !== "tescon") {
+          for (const target of excludedResolved.canonicalSet) {
+            if (posLower === target.toLowerCase()) return false;
+          }
         }
       }
       return true;
@@ -929,8 +931,10 @@ export async function GET(req: NextRequest) {
         if (customResolved.isTesconNasaraIncluded && lvl === "tescon" && /nasara/i.test(posLower)) {
           return true;
         }
-        for (const target of customResolved.canonicalSet) {
-          if (posLower === target.toLowerCase()) return true;
+        if (lvl !== "tescon") {
+          for (const target of customResolved.canonicalSet) {
+            if (posLower === target.toLowerCase()) return true;
+          }
         }
         return false;
       }

@@ -58,12 +58,13 @@ function isRegionalTescon(r: CandidateDelegate | null | undefined): boolean {
 
   if ((lvl === "region" || lvl === "regional") && /tescon/i.test(pos)) return true;
   if (
-    pos.includes("regional tescon") ||
-    pos.includes("tescon regional") ||
-    pos.includes("tescon coordinator") ||
-    pos.includes("tescon cordinator") ||
-    /regional.*tescon/i.test(pos) ||
-    /tescon.*coord/i.test(pos)
+    !pos.includes("nasara") &&
+    (pos.includes("regional tescon") ||
+      pos.includes("tescon regional") ||
+      pos.includes("tescon coordinator") ||
+      pos.includes("tescon cordinator") ||
+      /regional.*tescon/i.test(pos) ||
+      /tescon.*coord/i.test(pos))
   ) return true;
 
   const isBonaFideInstitution =

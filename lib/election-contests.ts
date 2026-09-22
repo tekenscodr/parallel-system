@@ -504,12 +504,13 @@ export function isRegionalTescon(r: {
 
   // Position is Regional TESCON Coordinator or variant
   if (
-    pos.includes("regional tescon") ||
-    pos.includes("tescon regional") ||
-    pos.includes("tescon coordinator") ||
-    pos.includes("tescon cordinator") ||
-    /regional.*tescon/i.test(pos) ||
-    /tescon.*coord/i.test(pos)
+    !pos.includes("nasara") &&
+    (pos.includes("regional tescon") ||
+      pos.includes("tescon regional") ||
+      pos.includes("tescon coordinator") ||
+      pos.includes("tescon cordinator") ||
+      /regional.*tescon/i.test(pos) ||
+      /tescon.*coord/i.test(pos))
   ) {
     return true;
   }
@@ -663,7 +664,23 @@ export function normalizeCanonicalPosition(pos: string | null, level: string | n
     return "External Relations Officer";
   }
 
-  // 4. Wings (Youth, Women, Nasara, Organiser) & Deputies
+  // 4. Campus Institutions (TESCON)
+  // Evaluated before general wings so TESCON Nasara, WOCOM, and Presidents are strictly distinguished
+  if (lvl === "tescon" || s.includes("tescon")) {
+    if (s.includes("patron")) return "TESCON Patron";
+    if (
+      s.includes("regional tescon") ||
+      s.includes("tescon regional") ||
+      (s.includes("coordinator") && !s.includes("nasara"))
+    ) {
+      return "Regional TESCON Coordinator";
+    }
+    if (s.includes("wocom") || s.includes("women commissioner")) return "TESCON WOCOM";
+    if (s.includes("president")) return "TESCON President";
+    if (s.includes("nasara")) return "TESCON Nasara Coordinator";
+  }
+
+  // 5. Wings (Youth, Women, Nasara, Organiser) & Deputies
   if (lvl === "national") {
     if (s.includes("deputy") && s.includes("youth")) return "Deputy National Youth Organiser";
     if (s.includes("youth")) return "National Youth Organiser";
@@ -690,7 +707,7 @@ export function normalizeCanonicalPosition(pos: string | null, level: string | n
     if (s.includes("treasurer")) return "Treasurer";
   }
 
-  // 5. Chairpersons & Vice Chairpersons
+  // 6. Chairpersons & Vice Chairpersons
   if (s.includes("chairperson") || s.includes("chairman")) {
     if (s.includes("1st") || s.includes("first")) return "1st Vice Chairperson";
     if (s.includes("2nd") || s.includes("second")) return "2nd Vice Chairperson";
@@ -698,15 +715,13 @@ export function normalizeCanonicalPosition(pos: string | null, level: string | n
     return lvl === "national" ? "National Chairperson" : "Chairperson";
   }
 
-  // 6. Secretariat & Financial Secretary
+  // 7. Secretariat & Financial Secretary
   if (s.includes("financial secretary")) return "Financial Secretary";
   if (s.includes("deputy general secretary")) return "Deputy General Secretary";
   if (s.includes("deputy secretary") || s.includes("assistant secretary")) return "Deputy Secretary";
   if (s.includes("secretary")) return lvl === "national" ? "General Secretary" : "Secretary";
 
-  // 7. General Officers & TESCON
-  if (s.includes("wocom")) return "TESCON WOCOM";
-  if ((lvl === "tescon" || s.includes("tescon")) && s.includes("president")) return "TESCON President";
+  // 8. General Officers & Special Duties
   if (lvl === "national" && s.includes("president")) return "President";
   if (s.includes("pwd") || s.includes("disability")) return lvl === "region" || lvl === "national" ? "PWD Officer" : "PWD Coordinator";
   if (s.includes("special duties")) return "Special Duties Officer";
@@ -761,7 +776,7 @@ export function getCanonicalPositionsForSelection(selected: string[]): {
     legal_officer: ["Legal Representative Officer", "Director of Legal Affairs", "Chairman of The Legal Committee"],
     tescon_president: ["TESCON President"],
     tescon_wocom: ["TESCON WOCOM"],
-    tescon_nasara: ["Nasara Coordinator", "Nasara Organiser", "TESCON Nasara Coordinator"],
+    tescon_nasara: ["TESCON Nasara Coordinator"],
     member_of_parliament: ["Member of Parliament"],
     national_council_rep: ["National Council Representative"],
     foundation_member: ["Foundation Member"],

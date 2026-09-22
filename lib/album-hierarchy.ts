@@ -100,13 +100,15 @@ function isRegionalTescon(delegate: {
     return true;
   }
   if (
-    pos.includes("regional tescon") ||
-    pos.includes("tescon regional") ||
-    pos.includes("tescon coordinator") ||
-    pos.includes("tescon cordinator") ||
-    canon.includes("tescon coordinator") ||
-    /regional.*tescon/i.test(pos) ||
-    /tescon.*coord/i.test(pos)
+    !pos.includes("nasara") &&
+    !canon.includes("nasara") &&
+    (pos.includes("regional tescon") ||
+      pos.includes("tescon regional") ||
+      pos.includes("tescon coordinator") ||
+      pos.includes("tescon cordinator") ||
+      canon.includes("tescon coordinator") ||
+      /regional.*tescon/i.test(pos) ||
+      /tescon.*coord/i.test(pos))
   ) {
     return true;
   }
