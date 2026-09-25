@@ -58,6 +58,7 @@ import { checkClientRateLimit } from "@/lib/client-rate-limit";
 import { getPositionRank } from "@/lib/position-matcher";
 import { getConstituenciesForRegion } from "@/lib/constituency-normalizer";
 import { computeExecutiveAgeAndDob, isUnder40AsOfCutoff } from "@/lib/voting-rules";
+import { getTesconInstitutionsForRegion } from "@/lib/tescon-institutions";
 import { logoutAndRedirect, saveClientSession, SESSION_TOKEN_KEY } from "@/lib/client-session";
 
 type OverviewData = {
@@ -181,9 +182,16 @@ const TIERS = [
 
 const POSITIONS_BY_LEVEL: Record<string, string[]> = {
   National: [
+    "President",
     "Former President",
     "Current Flagbearer / Former Vice President",
+    "Flagbearer",
+    "Presidential Candidate",
+    "Running Mate",
     "Former Running Mate",
+    "Vice-Presidential Candidate",
+    "Speaker of Parliament",
+    "Former Speaker of Parliament",
     "Member of Parliament",
     "National Chairperson",
     "1st Vice-Chairperson",
@@ -219,12 +227,20 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Chairman of The Legal Committee",
     "Director of Legal Affairs",
     "National Council Representative",
-    "National Council of Elders",
-    "National Council of Patrons",
+    "Former National Chairman",
     "Past National Chairman",
+    "Former General Secretary",
     "Past General Secretary",
+    "Council of Elders",
+    "National Council of Elders",
+    "Chairman, National Council of Elders",
+    "Chairman, Council of Elders",
     "Council of Elders / Past National Officer",
     "Past National Officer / Elder",
+    "Council of Patrons",
+    "National Council of Patrons",
+    "Chairman, National Council of Patrons",
+    "Chairman, Council of Patrons",
     "Foundation Member",
   ],
   Region: [
@@ -417,6 +433,9 @@ export default function NationalAdminDashboard() {
   const [selectedConstituency, setSelectedConstituency] = useState<string>("");
   const [constituencyList, setConstituencyList] = useState<string[]>([]);
   const [loadingConstituencies, setLoadingConstituencies] = useState<boolean>(false);
+  const [selectedInstitution, setSelectedInstitution] = useState<string>("");
+  const [tesconInstitutions, setTesconInstitutions] = useState<string[]>([]);
+  const [loadingInstitutions, setLoadingInstitutions] = useState<boolean>(false);
   const [selectedPosition, setSelectedPosition] = useState<string>("");
   const [positionList, setPositionList] = useState<string[]>([]);
   const [selectedCohort, setSelectedCohort] = useState<string>("");
@@ -585,6 +604,36 @@ export default function NationalAdminDashboard() {
       });
   }, [selectedRegion]);
 
+  // Load TESCON institutions tied to selectedRegion whenever selectedLevel === "TESCON"
+  useEffect(() => {
+    if (selectedLevel !== "TESCON") {
+      setTesconInstitutions([]);
+      setSelectedInstitution("");
+      return;
+    }
+
+    setLoadingInstitutions(true);
+    const params = new URLSearchParams();
+    if (selectedRegion) params.set("region", selectedRegion);
+
+    fetch(`/api/admin/tescon/institutions?${params.toString()}`, {
+      credentials: "include",
+      headers: getAuthHeaders(),
+    })
+      .then((res) => (res.ok ? res.json() : { institutions: [] }))
+      .then((data) => {
+        const list: string[] = Array.isArray(data.institutions) ? data.institutions : [];
+        setTesconInstitutions(list);
+        setLoadingInstitutions(false);
+        // Clear selected institution if it is not present in the new region's institution list
+        setSelectedInstitution((prev) => (prev && !list.includes(prev) ? "" : prev));
+      })
+      .catch(() => {
+        setTesconInstitutions([]);
+        setLoadingInstitutions(false);
+      });
+  }, [selectedLevel, selectedRegion]);
+
   // Load positions tied to selectedLevel
   useEffect(() => {
     const initial = selectedLevel && POSITIONS_BY_LEVEL[selectedLevel]
@@ -720,17 +769,19 @@ export default function NationalAdminDashboard() {
       });
   }, []);
 
-  const loadOverview = useCallback((reg?: string, consti?: string, lvl?: string, pos?: string, forceFresh?: boolean) => {
+  const loadOverview = useCallback((reg?: string, consti?: string, lvl?: string, pos?: string, forceFresh?: boolean, inst?: string) => {
     setLoadingOverview(true);
     const params = new URLSearchParams();
     const r = reg !== undefined ? reg : selectedRegion;
     const c = consti !== undefined ? consti : selectedConstituency;
     const l = lvl !== undefined ? lvl : selectedLevel;
     const p = pos !== undefined ? pos : selectedPosition;
+    const i = inst !== undefined ? inst : (selectedLevel === "TESCON" ? selectedInstitution : "");
     if (r) params.set("region", r);
     if (c) params.set("constituency", c);
     if (l) params.set("level", l);
     if (p) params.set("position", p);
+    if (i) params.set("institution", i);
     if (forceFresh) params.set("_t", String(Date.now()));
 
     return fetch(`/api/admin/overview?${params.toString()}`, {
@@ -750,13 +801,13 @@ export default function NationalAdminDashboard() {
         setLoadingOverview(false);
         throw err;
       });
-  }, [selectedRegion, selectedConstituency, selectedLevel, selectedPosition]);
+  }, [selectedRegion, selectedConstituency, selectedLevel, selectedPosition, selectedInstitution]);
 
   useEffect(() => {
     if (currentUser) {
       loadOverview();
     }
-  }, [currentUser, selectedRegion, selectedConstituency, selectedLevel, selectedPosition, loadOverview]);
+  }, [currentUser, selectedRegion, selectedConstituency, selectedLevel, selectedPosition, selectedInstitution, loadOverview]);
 
   // Fetch paginated roster
   const fetchRoster = useCallback((forceFresh?: boolean) => {
@@ -769,6 +820,7 @@ export default function NationalAdminDashboard() {
     if (selectedLevel) params.set("level", selectedLevel);
     if (selectedRegion) params.set("region", selectedRegion);
     if (selectedConstituency) params.set("constituency", selectedConstituency);
+    if (selectedLevel === "TESCON" && selectedInstitution) params.set("institution", selectedInstitution);
     if (selectedPosition) params.set("position", selectedPosition);
     if (selectedCohort) params.set("cohort", selectedCohort);
     if (selectedSlot) params.set("slot", selectedSlot);
@@ -799,7 +851,7 @@ export default function NationalAdminDashboard() {
         setLoadingRows(false);
         throw err;
       });
-  }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedPosition, selectedCohort, selectedSlot, debouncedSearch, filterMissingImages, filterUnder40]);
+  }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedInstitution, selectedPosition, selectedCohort, selectedSlot, debouncedSearch, filterMissingImages, filterUnder40]);
 
   useEffect(() => {
     if (currentUser) {
@@ -1643,7 +1695,7 @@ export default function NationalAdminDashboard() {
     ? TIERS.filter((t) => t.id !== "Electoral Area" && t.id !== "Polling Station")
     : TIERS;
 
-  const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&position=${encodeURIComponent(selectedPosition)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}${filterMissingImages ? "&missingImages=true" : ""}${isUnder40Active ? "&under40=true" : ""}`;
+  const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&position=${encodeURIComponent(selectedPosition)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}${filterMissingImages ? "&missingImages=true" : ""}${isUnder40Active ? "&under40=true" : ""}${selectedLevel === "TESCON" && selectedInstitution ? `&institution=${encodeURIComponent(selectedInstitution)}` : ""}`;
 
   const handleExportClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (exportCooldownSec > 0) {
@@ -2691,9 +2743,9 @@ export default function NationalAdminDashboard() {
               <option value="TESCON">TESCON Level</option>
             </select>
 
-            {/* Region ➔ Constituency Tied Cluster */}
+            {/* Region ➔ Constituency / TESCON Institution Tied Cluster */}
             <div className="dash-region-cluster" style={{
-              border: selectedRegion ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(255, 255, 255, 0.08)"
+              border: (selectedRegion || (selectedLevel === "TESCON" && selectedInstitution)) ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(255, 255, 255, 0.08)"
             }}>
               {/* Region Dropdown */}
               <select
@@ -2702,6 +2754,7 @@ export default function NationalAdminDashboard() {
                 onChange={(e) => {
                   setSelectedRegion(e.target.value);
                   setSelectedConstituency("");
+                  setSelectedInstitution("");
                   setPage(1);
                 }}
                 style={{
@@ -2722,56 +2775,106 @@ export default function NationalAdminDashboard() {
               </select>
 
               <div className="dash-region-arrow" style={{ display: "flex", alignItems: "center" }}>
-                <ArrowRight size={13} color={selectedRegion ? "#34d399" : "#64748b"} />
+                <ArrowRight size={13} color={(selectedRegion || (selectedLevel === "TESCON" && selectedInstitution)) ? "#34d399" : "#64748b"} />
               </div>
 
-              {/* Constituency Filter Dropdown (Strictly Tied to Region) */}
-              <select
-                className="dash-filter-select"
-                disabled={!selectedRegion}
-                value={selectedConstituency}
-                onChange={(e) => {
-                  setSelectedConstituency(e.target.value);
-                  setPage(1);
-                }}
-                style={{
-                  padding: "7px 10px",
-                  borderRadius: "6px",
-                  background: selectedRegion ? "rgba(2, 6, 23, 0.85)" : "rgba(15, 23, 42, 0.5)",
-                  border: selectedConstituency
-                    ? "1px solid #10b981"
-                    : selectedRegion
-                    ? "1px solid rgba(255, 255, 255, 0.15)"
-                    : "1px solid rgba(255, 255, 255, 0.06)",
-                  color: selectedRegion ? "#ffffff" : "#64748b",
-                  fontSize: "13px",
-                  outline: "none",
-                  cursor: selectedRegion ? "pointer" : "not-allowed",
-                  maxWidth: "260px",
-                  transition: "all 0.15s ease"
-                }}
-              >
-                {!selectedRegion ? (
-                  <option value="">Select Region First</option>
-                ) : loadingConstituencies ? (
-                  <option value="">
-                    {selectedRegion === "External Branch"
-                      ? "Loading External Branch countries…"
-                      : `Loading ${selectedRegion} constituencies…`}
-                  </option>
-                ) : (
-                  <>
+              {/* Dynamic Branch: TESCON Institutions Dropdown vs Constituency Dropdown */}
+              {selectedLevel === "TESCON" ? (
+                <select
+                  className="dash-filter-select"
+                  value={selectedInstitution}
+                  onChange={(e) => {
+                    setSelectedInstitution(e.target.value);
+                    setPage(1);
+                  }}
+                  style={{
+                    padding: "7px 10px",
+                    borderRadius: "6px",
+                    background: selectedInstitution ? "rgba(16, 185, 129, 0.18)" : selectedRegion ? "rgba(2, 6, 23, 0.85)" : "rgba(15, 23, 42, 0.5)",
+                    border: selectedInstitution
+                      ? "1.5px solid #10b981"
+                      : selectedRegion
+                      ? "1px solid rgba(52, 211, 153, 0.35)"
+                      : "1px solid rgba(255, 255, 255, 0.08)",
+                    color: selectedInstitution ? "#34d399" : "#ffffff",
+                    fontSize: "13px",
+                    fontWeight: selectedInstitution ? "600" : "normal",
+                    outline: "none",
+                    cursor: "pointer",
+                    maxWidth: "340px",
+                    transition: "all 0.15s ease",
+                    boxShadow: selectedInstitution ? "0 0 10px rgba(16, 185, 129, 0.25)" : "none"
+                  }}
+                  title={selectedInstitution ? `Active Institution: ${selectedInstitution}` : "Select TESCON Institution"}
+                >
+                  {loadingInstitutions ? (
+                    <option value="">
+                      {selectedRegion
+                        ? `Loading ${selectedRegion} TESCON institutions…`
+                        : "Loading TESCON institutions…"}
+                    </option>
+                  ) : (
+                    <>
+                      <option value="">
+                        {selectedRegion
+                          ? `🏛️ All ${selectedRegion} Institutions (${tesconInstitutions.length})`
+                          : `🏛️ All Nationwide Institutions (${tesconInstitutions.length || 251})`}
+                      </option>
+                      {tesconInstitutions.map((inst) => (
+                        <option key={inst} value={inst}>{inst}</option>
+                      ))}
+                    </>
+                  )}
+                </select>
+              ) : (
+                /* Constituency Filter Dropdown (Strictly Tied to Region) */
+                <select
+                  className="dash-filter-select"
+                  disabled={!selectedRegion}
+                  value={selectedConstituency}
+                  onChange={(e) => {
+                    setSelectedConstituency(e.target.value);
+                    setPage(1);
+                  }}
+                  style={{
+                    padding: "7px 10px",
+                    borderRadius: "6px",
+                    background: selectedRegion ? "rgba(2, 6, 23, 0.85)" : "rgba(15, 23, 42, 0.5)",
+                    border: selectedConstituency
+                      ? "1px solid #10b981"
+                      : selectedRegion
+                      ? "1px solid rgba(255, 255, 255, 0.15)"
+                      : "1px solid rgba(255, 255, 255, 0.06)",
+                    color: selectedRegion ? "#ffffff" : "#64748b",
+                    fontSize: "13px",
+                    outline: "none",
+                    cursor: selectedRegion ? "pointer" : "not-allowed",
+                    maxWidth: "260px",
+                    transition: "all 0.15s ease"
+                  }}
+                >
+                  {!selectedRegion ? (
+                    <option value="">Select Region First</option>
+                  ) : loadingConstituencies ? (
                     <option value="">
                       {selectedRegion === "External Branch"
-                        ? `All Countries / Branches (${constituencyList.length})`
-                        : `All ${selectedRegion} Constituencies (${constituencyList.length})`}
+                        ? "Loading External Branch countries…"
+                        : `Loading ${selectedRegion} constituencies…`}
                     </option>
-                    {constituencyList.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </>
-                )}
-              </select>
+                  ) : (
+                    <>
+                      <option value="">
+                        {selectedRegion === "External Branch"
+                          ? `All Countries / Branches (${constituencyList.length})`
+                          : `All ${selectedRegion} Constituencies (${constituencyList.length})`}
+                      </option>
+                      {constituencyList.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </>
+                  )}
+                </select>
+              )}
             </div>
 
             {/* Position Filter Dropdown */}
@@ -2798,9 +2901,52 @@ export default function NationalAdminDashboard() {
               <option value="">
                 {selectedPosition ? "All Positions" : `All Positions (${positionList.length})`}
               </option>
-              {positionList.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
+              {selectedLevel === "National" ? (
+                <>
+                  <optgroup label="⭐ Directors & Directorate">
+                    {positionList
+                      .filter((p) => /director|relations officer|legal committee/i.test(p))
+                      .map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                  </optgroup>
+                  <optgroup label="🏛️ National Council & Elders">
+                    {positionList
+                      .filter((p) => /council|elder|patron|foundation/i.test(p))
+                      .map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                  </optgroup>
+                  <optgroup label="👑 Executive Leadership & Dignitaries">
+                    {positionList
+                      .filter(
+                        (p) =>
+                          !/director|relations officer|legal committee|council|elder|patron|foundation/i.test(p) &&
+                          /president|flagbearer|running mate|chair|secretary|treasurer|organiser|organizer/i.test(p) &&
+                          !/women|youth|nasara/i.test(p)
+                      )
+                      .map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                  </optgroup>
+                  <optgroup label="🦅 Wings & Other National Positions">
+                    {positionList
+                      .filter(
+                        (p) =>
+                          !/director|relations officer|legal committee|council|elder|patron|foundation/i.test(p) &&
+                          (/women|youth|nasara|parliament|research officer/i.test(p) ||
+                            !/president|flagbearer|running mate|chair|secretary|treasurer|organiser|organizer/i.test(p))
+                      )
+                      .map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                  </optgroup>
+                </>
+              ) : (
+                positionList.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))
+              )}
             </select>
 
             {/* Demographics Cohort Filter */}
@@ -2899,17 +3045,19 @@ export default function NationalAdminDashboard() {
             </select>
 
             {/* Clear All Filters Button */}
-            {(selectedLevel || selectedRegion || selectedConstituency || selectedPosition || selectedCohort || selectedSlot || debouncedSearch || filterMissingImages || filterUnder40) && (
+            {(selectedLevel || selectedRegion || selectedConstituency || selectedInstitution || selectedPosition || selectedCohort || selectedSlot || debouncedSearch || filterMissingImages || filterUnder40) && (
               <button
                 className="dash-filter-select"
                 onClick={() => {
                   setSelectedLevel("");
                   setSelectedRegion("");
                   setSelectedConstituency("");
+                  setSelectedInstitution("");
                   setSelectedPosition("");
                   setSelectedCohort("");
                   setSelectedSlot("");
                   setSearchQuery("");
+                  setDebouncedSearch("");
                   setFilterMissingImages(false);
                   setFilterUnder40(false);
                   setPage(1);
@@ -4396,24 +4544,54 @@ export default function NationalAdminDashboard() {
 
                       <div>
                         <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                          {activeExecutive.executiveLevel === "TESCON" ? "Institution" : "Polling Station"}
+                          {activeExecutive.executiveLevel === "TESCON" ? "Institution (TESCON Tertiary Campus)" : "Polling Station"}
                         </label>
-                        <input
-                          type="text"
-                          value={activeExecutive.pollingStation || ""}
-                          onChange={(e) => handleFieldChange("pollingStation", e.target.value)}
-                          placeholder={activeExecutive.executiveLevel === "TESCON" ? "e.g. University of Ghana, Legon / KNUST" : "e.g. D/A Primary School"}
-                          style={{
-                            width: "100%",
-                            padding: "9px 12px",
-                            borderRadius: "6px",
-                            background: "rgba(2, 6, 23, 0.8)",
-                            border: "1px solid rgba(255, 255, 255, 0.15)",
-                            color: "#ffffff",
-                            fontSize: "13px",
-                            boxSizing: "border-box",
-                          }}
-                        />
+                        {activeExecutive.executiveLevel === "TESCON" ? (
+                          <select
+                            value={activeExecutive.pollingStation || ""}
+                            onChange={(e) => handleFieldChange("pollingStation", e.target.value)}
+                            style={{
+                              width: "100%",
+                              padding: "9px 12px",
+                              borderRadius: "6px",
+                              background: "rgba(2, 6, 23, 0.8)",
+                              border: "1px solid rgba(255, 255, 255, 0.15)",
+                              color: "#ffffff",
+                              fontSize: "13px",
+                              boxSizing: "border-box",
+                              outline: "none",
+                              cursor: "pointer",
+                            }}
+                          >
+                            <option value="">Select Accredited TESCON Institution</option>
+                            {activeExecutive.pollingStation &&
+                              !getTesconInstitutionsForRegion(activeExecutive.region).includes(activeExecutive.pollingStation) && (
+                                <option value={activeExecutive.pollingStation}>
+                                  {activeExecutive.pollingStation} (Current Record)
+                                </option>
+                              )}
+                            {getTesconInstitutionsForRegion(activeExecutive.region).map((inst) => (
+                              <option key={inst} value={inst}>{inst}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            value={activeExecutive.pollingStation || ""}
+                            onChange={(e) => handleFieldChange("pollingStation", e.target.value)}
+                            placeholder="e.g. D/A Primary School"
+                            style={{
+                              width: "100%",
+                              padding: "9px 12px",
+                              borderRadius: "6px",
+                              background: "rgba(2, 6, 23, 0.8)",
+                              border: "1px solid rgba(255, 255, 255, 0.15)",
+                              color: "#ffffff",
+                              fontSize: "13px",
+                              boxSizing: "border-box",
+                            }}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -6116,24 +6294,48 @@ export default function NationalAdminDashboard() {
 
                   <div>
                     <label style={{ display: "block", fontSize: "12px", color: "#cbd5e1", marginBottom: "5px", fontWeight: "600" }}>
-                      {newExecLevel === "TESCON" ? "Institution" : "Polling Station"}
+                      {newExecLevel === "TESCON" ? "Institution (Accredited Tertiary Institution)" : "Polling Station"}
                     </label>
-                    <input
-                      type="text"
-                      value={newExecPollingStation}
-                      onChange={(e) => setNewExecPollingStation(e.target.value)}
-                      placeholder={newExecLevel === "TESCON" ? "e.g. University of Ghana, Legon / KNUST" : "e.g. Presby Primary School"}
-                      style={{
-                        width: "100%",
-                        padding: "9px 12px",
-                        borderRadius: "6px",
-                        background: "rgba(2, 6, 23, 0.8)",
-                        border: "1px solid rgba(255, 255, 255, 0.15)",
-                        color: "#ffffff",
-                        fontSize: "13px",
-                        boxSizing: "border-box",
-                      }}
-                    />
+                    {newExecLevel === "TESCON" ? (
+                      <select
+                        value={newExecPollingStation}
+                        onChange={(e) => setNewExecPollingStation(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "9px 12px",
+                          borderRadius: "6px",
+                          background: "rgba(2, 6, 23, 0.8)",
+                          border: "1px solid rgba(255, 255, 255, 0.15)",
+                          color: "#ffffff",
+                          fontSize: "13px",
+                          boxSizing: "border-box",
+                          outline: "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <option value="">Select Accredited TESCON Institution</option>
+                        {getTesconInstitutionsForRegion(newExecRegion).map((inst) => (
+                          <option key={inst} value={inst}>{inst}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={newExecPollingStation}
+                        onChange={(e) => setNewExecPollingStation(e.target.value)}
+                        placeholder="e.g. Presby Primary School"
+                        style={{
+                          width: "100%",
+                          padding: "9px 12px",
+                          borderRadius: "6px",
+                          background: "rgba(2, 6, 23, 0.8)",
+                          border: "1px solid rgba(255, 255, 255, 0.15)",
+                          color: "#ffffff",
+                          fontSize: "13px",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
 

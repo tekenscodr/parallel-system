@@ -205,6 +205,11 @@ export default function PositionAlbumsPage() {
       contest === "Women Organiser" ||
       contest === "Nasara Organiser");
 
+  const isYouthContest =
+    contest === "Youth Organiser" ||
+    contest === "Youth Organisers & Deputies" ||
+    contest.toLowerCase().includes("youth");
+
   const effectiveScope =
     contest === "Women Organiser" ||
     contest === "Women Organisers & Deputies" ||
@@ -347,6 +352,9 @@ export default function PositionAlbumsPage() {
       setCustomizerOpen(true);
     } else {
       setSelectedPositions(getDefaultPositionIdsForContest(val, targetScope));
+    }
+    if (val === "Youth Organiser" || val === "Youth Organisers & Deputies" || String(val).toLowerCase().includes("youth")) {
+      setSelectedDetails((prev) => (prev.includes("demographics") ? prev : [...prev, "demographics"]));
     }
     setPage(1);
   };
@@ -1095,6 +1103,39 @@ export default function PositionAlbumsPage() {
                           </Button>
                           <Button
                             type="button"
+                            variant={contest === "National Directors" ? "default" : "outline"}
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              handleContestSelect("National Directors");
+                            }}
+                          >
+                            ⭐ National Directors
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={contest === "National Council & Elders" ? "default" : "outline"}
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              handleContestSelect("National Council & Elders");
+                            }}
+                          >
+                            🏛️ National Council
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={contest === "National Leadership & Flagbearers" ? "default" : "outline"}
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              handleContestSelect("National Leadership & Flagbearers");
+                            }}
+                          >
+                            👑 National Leadership
+                          </Button>
+                          <Button
+                            type="button"
                             variant={isCustom ? "default" : "outline"}
                             size="sm"
                             className="h-7 text-xs"
@@ -1516,6 +1557,15 @@ export default function PositionAlbumsPage() {
                                   </Button>
                                   <Button type="button" variant="secondary" size="sm" className="h-6 text-xs" onClick={() => applyPreset("regional_leadership")}>
                                     Regional Leadership (24)
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs bg-sky-100 hover:bg-sky-200 text-sky-800 dark:bg-sky-950 dark:hover:bg-sky-900 dark:text-sky-200" onClick={() => applyPreset("national_directors")}>
+                                    ⭐ National Directors
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs bg-purple-100 hover:bg-purple-200 text-purple-800 dark:bg-purple-950 dark:hover:bg-purple-900 dark:text-purple-200" onClick={() => applyPreset("national_council")}>
+                                    🏛️ National Council & Elders
+                                  </Button>
+                                  <Button type="button" variant="secondary" size="sm" className="h-6 text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-950 dark:hover:bg-amber-900 dark:text-amber-200" onClick={() => applyPreset("national_leadership")}>
+                                    👑 National Leadership
                                   </Button>
                                 </>
                               )}
@@ -2644,9 +2694,39 @@ export default function PositionAlbumsPage() {
                             }}
                           >
                             <option value="all">All Positions ({availablePositions.length})</option>
-                            {availablePositions.map((item) => (
-                              <option key={item} value={item}>{item}</option>
-                            ))}
+                            {availablePositions.some((p) => /director|relations officer|legal committee|council|elder|patron|foundation/i.test(p)) ? (
+                              <>
+                                {availablePositions.some((p) => /director|relations officer|legal committee/i.test(p)) && (
+                                  <optgroup label="⭐ Directors & Directorate">
+                                    {availablePositions
+                                      .filter((p) => /director|relations officer|legal committee/i.test(p))
+                                      .map((item) => (
+                                        <option key={item} value={item}>{item}</option>
+                                      ))}
+                                  </optgroup>
+                                )}
+                                {availablePositions.some((p) => /council|elder|patron|foundation/i.test(p)) && (
+                                  <optgroup label="🏛️ National Council & Elders">
+                                    {availablePositions
+                                      .filter((p) => /council|elder|patron|foundation/i.test(p))
+                                      .map((item) => (
+                                        <option key={item} value={item}>{item}</option>
+                                      ))}
+                                  </optgroup>
+                                )}
+                                <optgroup label="General Positions & Officers">
+                                  {availablePositions
+                                    .filter((p) => !/director|relations officer|legal committee|council|elder|patron|foundation/i.test(p))
+                                    .map((item) => (
+                                      <option key={item} value={item}>{item}</option>
+                                    ))}
+                                </optgroup>
+                              </>
+                            ) : (
+                              availablePositions.map((item) => (
+                                <option key={item} value={item}>{item}</option>
+                              ))
+                            )}
                           </NativeSelect>
                         )}
                         <NativeSelect
@@ -2689,7 +2769,9 @@ export default function PositionAlbumsPage() {
                       {selectedDetails.includes("position") && <TableHead>Position</TableHead>}
                       {selectedDetails.includes("voter_id") && <TableHead>Voter ID</TableHead>}
                       {selectedDetails.includes("phone") && <TableHead>Phone</TableHead>}
-                      {selectedDetails.includes("demographics") && <TableHead>Demographics</TableHead>}
+                      {(selectedDetails.includes("demographics") || isYouthContest) && (
+                        <TableHead>{isYouthContest ? "Age / Status" : "Demographics"}</TableHead>
+                      )}
                     </TableRow></TableHeader><TableBody>
                       {rows.length === 0 ? <TableRow><TableCell colSpan={8} className="h-32 text-center text-muted-foreground">No delegates match your filters.</TableCell></TableRow> : rows.map((d, i) => <TableRow key={d.id}>
                         <TableCell className="text-muted-foreground">{(currentPage - 1) * 50 + i + 1}</TableCell>
@@ -2715,10 +2797,14 @@ export default function PositionAlbumsPage() {
                         {selectedDetails.includes("position") && <TableCell>{d.canonical_position || (d as any).position}</TableCell>}
                         {selectedDetails.includes("voter_id") && <TableCell className="whitespace-nowrap font-mono text-xs">{d.voter_id || "—"}</TableCell>}
                         {selectedDetails.includes("phone") && <TableCell className="whitespace-nowrap">{d.phone || "—"}</TableCell>}
-                        {selectedDetails.includes("demographics") && (
+                        {(selectedDetails.includes("demographics") || isYouthContest) && (
                           <TableCell className="whitespace-nowrap">
-                            <div className="flex items-center gap-1.5">
-                              <span>{d.gender || "—"} · {d.age == null ? "Age unknown" : `${d.age} yrs`}</span>
+                            <div className="flex items-center gap-1.5 font-medium">
+                              <span>
+                                {isYouthContest
+                                  ? (d.age == null ? (d.is_under_40 ? "Under 40" : "Age unknown") : `${d.age} yrs`)
+                                  : `${d.gender || "—"} · ${d.age == null ? "Age unknown" : `${d.age} yrs`}`}
+                              </span>
                               {d.is_under_40 && (
                                 <Badge variant="outline" className="border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10px] px-1.5 py-0 font-semibold">
                                   &lt; 40

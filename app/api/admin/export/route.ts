@@ -2,6 +2,7 @@ import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
 import { buildPositionCondition } from "@/lib/position-matcher";
+import { buildTesconInstitutionCondition } from "@/lib/tescon-institutions";
 
 export async function GET(req: Request) {
   try {
@@ -35,6 +36,7 @@ export async function GET(req: Request) {
     const level = url.searchParams.get("level")?.trim() || "";
     const region = url.searchParams.get("region")?.trim() || "";
     const constituency = url.searchParams.get("constituency")?.trim() || "";
+    const institution = url.searchParams.get("institution")?.trim() || "";
     const position = url.searchParams.get("position")?.trim() || "";
     const search = url.searchParams.get("search")?.trim() || "";
     const cohort = url.searchParams.get("cohort")?.trim() || "";
@@ -48,6 +50,10 @@ export async function GET(req: Request) {
       if (level) conditions.push(sql`executive_level = ${level}`);
       if (region) conditions.push(sql`region ILIKE ${region}`);
       if (constituency) conditions.push(sql`constituency ILIKE ${constituency}`);
+      if (institution) {
+        const instCond = buildTesconInstitutionCondition(sql, institution, region);
+        if (instCond) conditions.push(instCond);
+      }
       if (search) {
         const s = `%${search}%`;
         conditions.push(

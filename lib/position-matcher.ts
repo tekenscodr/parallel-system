@@ -85,7 +85,10 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   if (/^deputy\s+youth\s+organi[sz]er$/i.test(p)) return "Deputy Youth Organiser";
 
   // 11. Nasara Organiser / Coordinator
-  if (level === "Region" || level === "TESCON") {
+  if (level === "National") {
+    if (/^deputy\s+nasara/i.test(p)) return "Deputy National Nasara Coordinator";
+    if (/nasara/i.test(p)) return "National Nasara Coordinator";
+  } else if (level === "Region" || level === "TESCON") {
     if (/^deputy\s+nasara/i.test(p)) return "Deputy Nasara Coordinator";
     if (/nasara/i.test(p)) return "Nasara Coordinator";
   } else {
@@ -95,12 +98,17 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   }
 
   // 12. Communication Officer
+  if (/^deputy\s+(?:national\s+)?communication\s+director$/i.test(p)) return "Deputy Communication Director";
+  if (/^(?:national\s+)?communication\s+director$/i.test(p)) return "National Communication Director";
   if (/^communications?\s+officer$/i.test(p)) return "Communication Officer";
 
-  // 13. Electoral Affairs Officer
+  // 13. Electoral Affairs Officer & Director of Elections
+  if (/^director\s+of\s+elections$/i.test(p)) return "Director of Elections";
+  if (/^director\s+of\s+research(?:\s+and\s+elections)?$/i.test(p)) return "Director of Research and Elections";
   if (/^(?:electoral\s+affairs(?:\s+officer)?|elections\s+officer)$/i.test(p)) return "Electoral Affairs Officer";
 
-  // 14. Research Officer
+  // 14. Research Officer & Director of Research
+  if (/^director\s+of\s+research$/i.test(p)) return "Director of Research";
   if (/^(?:research\s+officer|research\s+&\s+electoral\s+officer)$/i.test(p)) return "Research Officer";
 
   // 15. PWD Coordinator
@@ -111,7 +119,9 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   // 16. Special Duties
   if (/^special\s+duties(?:\s+officer)?$/i.test(p)) return "Special Duties Officer";
 
-  // 17. Legal Representative
+  // 17. Legal Representative & Legal Affairs
+  if (/^director\s+of\s+legal(?:\s+affairs)?$/i.test(p)) return "Director of Legal Affairs";
+  if (/^chairman\s+of\s+the\s+legal\s+committee$/i.test(p)) return "Chairman of The Legal Committee";
   if (/^legal\s+(?:representative|affairs)(?:\s+officer)?$/i.test(p)) return "Legal Representative Officer";
 
   // 18. Patron
@@ -127,6 +137,7 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   if (/^national\s+council\s+rep(?:resentative)?$/i.test(p)) return "National Council Representative";
 
   // 22. National Council of Elders
+  if (/^council\s+of\s+elders\s*\/\s*past\s+national\s+officer$/i.test(p)) return "Council of Elders / Past National Officer";
   if (/^(?:national\s+)?council\s+of\s+elders$/i.test(p) || (level === "National" && /^elders?$/i.test(p))) {
     return "National Council of Elders";
   }
@@ -143,6 +154,25 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   if (/^(?:member\s+of\s+parliament|mp|parliamentarian)$/i.test(p) || /\bmember\s+of\s+parliament\b/i.test(p)) {
     return "Member of Parliament";
   }
+
+  // 26. Other Directors & Specialized National Positions
+  if (/^director\s+of\s+finance(?:\s+and\s+administration)?$/i.test(p)) return "Director of Finance and Administration";
+  if (/^director\s+of\s+it$/i.test(p)) return "Director of IT";
+  if (/^deputy\s+director\s+of\s+it$/i.test(p)) return "Deputy Director of IT";
+  if (/^director\s+of\s+protocol$/i.test(p)) return "Director of Protocol";
+  if (/^deputy\s+director\s+of\s+protocol$/i.test(p)) return "Deputy Director of Protocol";
+  if (/^external\s+relations\s+officer$/i.test(p)) return "External Relations Officer";
+  if (/^deputy\s+external\s+relations\s+officer$/i.test(p)) return "Deputy External Relations Officer";
+  if (/^speaker\s+of\s+parliament$/i.test(p) || (level === "National" && /^speaker$/i.test(p))) return "Speaker of Parliament";
+  if (/^(?:former|past)\s+speaker(?:\s+of\s+parliament)?$/i.test(p)) return "Former Speaker of Parliament";
+  if (/^former\s+president$/i.test(p)) return "Former President";
+  if (/^current\s+flagbearer|^flagbearer/i.test(p)) return "Current Flagbearer / Former Vice President";
+  if (/^former\s+running\s+mate$/i.test(p)) return "Former Running Mate";
+  if (/^former\s+national\s+chair(?:man|person)$/i.test(p)) return "Former National Chairman";
+  if (/^past\s+national\s+chair(?:man|person)$/i.test(p)) return "Past National Chairman";
+  if (/^former\s+general\s+secretary$/i.test(p)) return "Former General Secretary";
+  if (/^past\s+general\s+secretary$/i.test(p)) return "Past General Secretary";
+  if (/^deputy\s+national\s+treasurer$/i.test(p)) return "Deputy National Treasurer";
 
   return p;
 }
@@ -244,6 +274,53 @@ export function buildPositionCondition(sql: any, position: string) {
   if (/member of parliament|^mp$/i.test(p)) {
     variants.add("Member of Parliament");
     variants.add("MP");
+  }
+
+  // 10. National Council & Elders variations
+  if (/council of elders/i.test(p) || /past national officer/i.test(p)) {
+    variants.add("Council of Elders / Past National Officer");
+    variants.add("National Council of Elders");
+    variants.add("Council of Elders");
+    variants.add("Past National Officer / Elder");
+    variants.add("Chairman, National Council of Elders");
+    variants.add("Chairman, Council of Elders");
+  }
+  if (/council of patrons/i.test(p)) {
+    variants.add("National Council of Patrons");
+    variants.add("Council of Patrons");
+    variants.add("Chairman, National Council of Patrons");
+    variants.add("Chairman, Council of Patrons");
+  }
+  if (/national council rep/i.test(p)) {
+    variants.add("National Council Representative");
+    variants.add("National Council Rep");
+  }
+
+  // 11. Directors variations
+  if (/director of research/i.test(p) || /director of research and elections/i.test(p)) {
+    variants.add("Director of Research");
+    variants.add("Director of Research and Elections");
+  }
+  if (/legal affairs/i.test(p) || /legal committee/i.test(p)) {
+    variants.add("Director of Legal Affairs");
+    variants.add("Chairman of The Legal Committee");
+  }
+
+  // 12. Speaker of Parliament
+  if (/speaker/i.test(p)) {
+    variants.add("Speaker of Parliament");
+    variants.add("Former Speaker of Parliament");
+    variants.add("Speaker");
+  }
+
+  // 13. Former Chairman / General Secretary
+  if (/former national chair|past national chair/i.test(p)) {
+    variants.add("Former National Chairman");
+    variants.add("Past National Chairman");
+  }
+  if (/former general secretary|past general secretary/i.test(p)) {
+    variants.add("Former General Secretary");
+    variants.add("Past General Secretary");
   }
 
   const conds = Array.from(variants).map((v) => sql`position ILIKE ${v}`);

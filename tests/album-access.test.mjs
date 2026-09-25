@@ -26,6 +26,12 @@ function load(relativePath, mocks = {}) {
       const file = [base, `${base}.ts`, `${base}.tsx`].find((p) => existsSync(path.join(root, p)));
       return load(file, mocks);
     }
+    if (specifier.startsWith("./") || specifier.startsWith("../")) {
+      const dir = path.dirname(path.relative(root, filename));
+      const target = path.normalize(path.join(dir, specifier));
+      const file = [target, `${target}.ts`, `${target}.tsx`].find((p) => existsSync(path.join(root, p)));
+      if (file) return load(file, mocks);
+    }
     return require(specifier);
   };
   vm.runInThisContext(`(function(require,module,exports){${source}\n})`, { filename })(localRequire, compiledModule, compiledModule.exports);

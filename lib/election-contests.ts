@@ -6,6 +6,9 @@ export const WING_PORTFOLIOS = [
 
 export const GENERAL_CONTEST_LIST = [
   "National Chairperson & General Officers",
+  "National Directors",
+  "National Council & Elders",
+  "National Leadership & Flagbearers",
   "Chairperson",
   "Vice Chairperson",
   "General Secretary",
@@ -113,7 +116,39 @@ export const CUSTOM_POSITION_CATEGORIES: PositionCategoryGroup[] = [
       { id: "national_council_rep", label: "National Council Representative", canonicalName: "National Council Representative", synonyms: ["national council representative", "national council rep", "national council"] },
       { id: "foundation_member", label: "Foundation Member", canonicalName: "Foundation Member", synonyms: ["foundation member"] },
       { id: "council_of_elders", label: "National Council of Elders", canonicalName: "National Council of Elders", synonyms: ["council of elders", "national council of elders", "elder", "past national officer"] },
+      { id: "council_of_elders_past_officer", label: "Council of Elders / Past National Officer", canonicalName: "Council of Elders / Past National Officer", synonyms: ["council of elders / past national officer", "past national officer / elder", "past national officer"] },
       { id: "council_of_patrons", label: "National Council of Patrons", canonicalName: "National Council of Patrons", synonyms: ["council of patrons", "national council of patrons", "patron"] },
+    ],
+  },
+  {
+    category: "National Directorate & Directors",
+    positions: [
+      { id: "director_finance", label: "Director of Finance and Administration", canonicalName: "Director of Finance and Administration", synonyms: ["director of finance and administration", "director of finance", "finance director"] },
+      { id: "director_elections", label: "Director of Elections", canonicalName: "Director of Elections", synonyms: ["director of elections", "director of research and elections", "elections director"] },
+      { id: "director_research", label: "Director of Research", canonicalName: "Director of Research", synonyms: ["director of research", "research director"] },
+      { id: "director_it", label: "Director of IT", canonicalName: "Director of IT", synonyms: ["director of it", "it director"] },
+      { id: "deputy_director_it", label: "Deputy Director of IT", canonicalName: "Deputy Director of IT", synonyms: ["deputy director of it", "deputy it director"] },
+      { id: "director_protocol", label: "Director of Protocol", canonicalName: "Director of Protocol", synonyms: ["director of protocol", "protocol director"] },
+      { id: "deputy_director_protocol", label: "Deputy Director of Protocol", canonicalName: "Deputy Director of Protocol", synonyms: ["deputy director of protocol", "deputy protocol director"] },
+      { id: "director_legal", label: "Director of Legal Affairs", canonicalName: "Director of Legal Affairs", synonyms: ["director of legal affairs", "legal director"] },
+      { id: "chairman_legal_committee", label: "Chairman of The Legal Committee", canonicalName: "Chairman of The Legal Committee", synonyms: ["chairman of the legal committee", "legal committee chairman"] },
+      { id: "national_comm_director", label: "National Communication Director", canonicalName: "National Communication Director", synonyms: ["national communication director", "communication director"] },
+      { id: "deputy_comm_director", label: "Deputy Communication Director", canonicalName: "Deputy Communication Director", synonyms: ["deputy communication director", "deputy communications director"] },
+      { id: "external_relations_officer", label: "External Relations Officer", canonicalName: "External Relations Officer", synonyms: ["external relations officer"] },
+      { id: "deputy_external_relations_officer", label: "Deputy External Relations Officer", canonicalName: "Deputy External Relations Officer", synonyms: ["deputy external relations officer"] },
+    ],
+  },
+  {
+    category: "National Leadership & Flagbearers",
+    positions: [
+      { id: "former_president", label: "Former President", canonicalName: "Former President", synonyms: ["former president", "president", "past president"] },
+      { id: "flagbearer_vp", label: "Current Flagbearer / Former Vice President", canonicalName: "Current Flagbearer / Former Vice President", synonyms: ["flagbearer", "presidential candidate", "former vice president", "current flagbearer / former vice president", "current flagbearer"] },
+      { id: "former_running_mate", label: "Former Running Mate", canonicalName: "Former Running Mate", synonyms: ["former running mate", "running mate", "vice presidential candidate", "vice-presidential candidate"] },
+      { id: "speaker_parliament", label: "Speaker of Parliament", canonicalName: "Speaker of Parliament", synonyms: ["speaker of parliament", "speaker", "former speaker of parliament", "past speaker of parliament"] },
+      { id: "past_national_chairman", label: "Past National Chairman", canonicalName: "Past National Chairman", synonyms: ["past national chairman", "past national chairperson", "former national chairman", "former national chairperson"] },
+      { id: "past_general_secretary", label: "Past General Secretary", canonicalName: "Past General Secretary", synonyms: ["past general secretary", "former general secretary"] },
+      { id: "3rd_vice", label: "3rd Vice Chairperson", canonicalName: "3rd Vice Chairperson", synonyms: ["3rd vice chairperson", "3rd vice-chairperson", "3rd vice chairman", "third vice chairperson"] },
+      { id: "deputy_national_treasurer", label: "Deputy National Treasurer", canonicalName: "Deputy National Treasurer", synonyms: ["deputy national treasurer"] },
     ],
   },
 ];
@@ -312,6 +347,54 @@ export const POSITION_PRESETS = {
       "national_council_rep",
       "foundation_member",
       "member_of_parliament",
+    ],
+  },
+  national_directors: {
+    label: "National Directors",
+    ids: [
+      "director_finance",
+      "director_elections",
+      "director_research",
+      "director_it",
+      "deputy_director_it",
+      "director_protocol",
+      "deputy_director_protocol",
+      "director_legal",
+      "chairman_legal_committee",
+      "national_comm_director",
+      "deputy_comm_director",
+      "external_relations_officer",
+      "deputy_external_relations_officer",
+    ],
+  },
+  national_council: {
+    label: "National Council & Elders",
+    ids: [
+      "national_council_rep",
+      "council_of_elders",
+      "council_of_elders_past_officer",
+      "council_of_patrons",
+      "foundation_member",
+    ],
+  },
+  national_leadership: {
+    label: "National Leadership & Flagbearers",
+    ids: [
+      "chairperson",
+      "1st_vice",
+      "2nd_vice",
+      "3rd_vice",
+      "secretary",
+      "deputy_secretary",
+      "treasurer",
+      "deputy_national_treasurer",
+      "organiser",
+      "deputy_organiser",
+      "former_president",
+      "flagbearer_vp",
+      "former_running_mate",
+      "past_national_chairman",
+      "past_general_secretary",
     ],
   },
 } as const;
@@ -610,12 +693,14 @@ export function normalizeCanonicalPosition(pos: string | null, level: string | n
   if (s.includes("former president")) return "Former President";
   if (s.includes("vice president") || s.includes("flagbearer")) return pos || "Current Flagbearer / Former Vice President";
   if (s.includes("running mate")) return "Former Running Mate";
-  if (s.includes("past national chairman") || s.includes("past national chairperson")) return "Past National Chairman";
-  if (s.includes("past general secretary")) return "Past General Secretary";
-  if (s.includes("past national officer") || s.includes("council of elders")) return pos || "Council of Elders / Past National Officer";
+  if (s.includes("former speaker") || s.includes("past speaker")) return "Former Speaker of Parliament";
+  if (s.includes("speaker of parliament") || s === "speaker") return "Speaker of Parliament";
+  if (s.includes("past national chairman") || s.includes("past national chairperson") || s.includes("former national chairman")) return "Past National Chairman";
+  if (s.includes("past general secretary") || s.includes("former general secretary")) return "Past General Secretary";
+  if (s.includes("national council of elders")) return "National Council of Elders";
+  if (s.includes("past national officer") || s.includes("council of elders")) return "National Council of Elders";
   if (s.includes("national council representative")) return "National Council Representative";
   if (s.includes("national council of patrons")) return "National Council of Patrons";
-  if (s.includes("national council of elders")) return "National Council of Elders";
   if (s.includes("foundation member")) return "Foundation Member";
   if (s.includes("member of parliament") || s === "mp" || /\bmp\b/i.test(s) || s.includes("parliamentarian")) {
     return "Member of Parliament";
@@ -781,7 +866,28 @@ export function getCanonicalPositionsForSelection(selected: string[]): {
     national_council_rep: ["National Council Representative"],
     foundation_member: ["Foundation Member"],
     council_of_elders: ["National Council of Elders", "Council of Elders / Past National Officer", "Council of Elders"],
+    council_of_elders_past_officer: ["Council of Elders / Past National Officer", "Past National Officer / Elder", "National Council of Elders"],
     council_of_patrons: ["National Council of Patrons"],
+    director_finance: ["Director of Finance and Administration"],
+    director_elections: ["Director of Elections", "Director of Research and Elections"],
+    director_research: ["Director of Research", "Director of Research and Elections"],
+    director_it: ["Director of IT"],
+    deputy_director_it: ["Deputy Director of IT"],
+    director_protocol: ["Director of Protocol"],
+    deputy_director_protocol: ["Deputy Director of Protocol"],
+    director_legal: ["Director of Legal Affairs"],
+    chairman_legal_committee: ["Chairman of The Legal Committee"],
+    national_comm_director: ["National Communication Director"],
+    deputy_comm_director: ["Deputy Communication Director"],
+    external_relations_officer: ["External Relations Officer"],
+    deputy_external_relations_officer: ["Deputy External Relations Officer"],
+    former_president: ["Former President"],
+    flagbearer_vp: ["Current Flagbearer / Former Vice President"],
+    former_running_mate: ["Former Running Mate"],
+    past_national_chairman: ["Past National Chairman"],
+    past_general_secretary: ["Past General Secretary"],
+    "3rd_vice": ["3rd Vice Chairperson", "3rd Vice-Chairperson"],
+    deputy_national_treasurer: ["Deputy National Treasurer"],
   };
 
   const processedIds = new Set<string>();

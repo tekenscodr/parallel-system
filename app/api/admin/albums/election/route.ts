@@ -8,7 +8,9 @@ import { canAccessAlbums } from "@/lib/album-access";
 import {
   CANONICAL_LEVEL_ORDER,
   compareAlbumDelegates,
+  compareNationalAlbumDelegates,
   compareRegionalAlbumDelegates,
+  getNationalSectionInfo,
   getRegionalSectionRank,
   getTesconInstitution,
   normalizePositionRank,
@@ -19,6 +21,9 @@ import { withEcSql } from "@/lib/db-ec";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
+
+let _cachedRawRows: any[] | null = null;
+let _cachedRawRowsTime = 0;
 
 import {
   CONTEST_LIST,
@@ -744,6 +749,12 @@ export async function GET(req: NextRequest) {
     matchedContest = "Nasara Coordinators & Deputies";
   } else if (/nasara/i.test(normalizedPositionQuery)) {
     matchedContest = "Nasara Organiser";
+  } else if (/national\s+director|^directors?$|director/i.test(normalizedPositionQuery)) {
+    matchedContest = "National Directors";
+  } else if (/national\s+council|council\s+of\s+elders/i.test(normalizedPositionQuery)) {
+    matchedContest = "National Council & Elders";
+  } else if (/national\s+leadership|flagbearer/i.test(normalizedPositionQuery)) {
+    matchedContest = "National Leadership & Flagbearers";
   } else {
     matchedContest =
       CONTEST_LIST.find((c) => c.toLowerCase() === normalizedPositionQuery) ||
@@ -755,6 +766,12 @@ export async function GET(req: NextRequest) {
     effectiveContestName = "National Electoral College · All Men";
   } else if (matchedContest === "All Women") {
     effectiveContestName = "National Electoral College · All Women";
+  } else if (matchedContest === "National Directors") {
+    effectiveContestName = "National Directors & Directorate";
+  } else if (matchedContest === "National Council & Elders") {
+    effectiveContestName = "National Council & Party Elders";
+  } else if (matchedContest === "National Leadership & Flagbearers") {
+    effectiveContestName = "National Leadership & Flagbearers";
   } else if (isCustomContest) {
     if (customPositionKeys.length === 0) {
       effectiveContestName = "Custom Selection";
@@ -819,26 +836,34 @@ export async function GET(req: NextRequest) {
 
 
   return withEcSql(async (sql) => {
-    // 1. Fetch certified pool
-    const rawRows = await sql`
-      SELECT
-        id,
-        executive_level,
-        region,
-        constituency,
-        polling_station,
-        position,
-        executive_name,
-        voter_id,
-        phone,
-        gender,
-        date_of_birth,
-        age,
-        image_url
-      FROM executives_all
-      WHERE lower(trim(executive_level)) IN ('national', 'region', 'regional', 'constituency', 'tescon', 'external branch')
-      ORDER BY id
-    `;
+    // 1. Fetch certified pool (with short in-memory cache to support rapid batch generation)
+    const now = Date.now();
+    let rawRows: any[];
+    if (_cachedRawRows && now - _cachedRawRowsTime < 3 * 60 * 1000) {
+      rawRows = _cachedRawRows;
+    } else {
+      rawRows = await sql`
+        SELECT
+          id,
+          executive_level,
+          region,
+          constituency,
+          polling_station,
+          position,
+          executive_name,
+          voter_id,
+          phone,
+          gender,
+          date_of_birth,
+          age,
+          image_url
+        FROM executives_all
+        WHERE lower(trim(executive_level)) IN ('national', 'region', 'regional', 'constituency', 'tescon', 'external branch')
+        ORDER BY id
+      `;
+      _cachedRawRows = rawRows;
+      _cachedRawRowsTime = now;
+    }
 
     // 2. Filter valid (non-vacant)
     const validRows = rawRows.filter((r) => {
@@ -1011,6 +1036,27 @@ export async function GET(req: NextRequest) {
         return false;
       }
 
+      if (matchedContest === "National Directors") {
+        const isDirector =
+          /director|relations officer|legal committee/i.test(pos) ||
+          /director|relations officer|legal committee/i.test(canonPos);
+        return isDirector && checkPositionConstraint();
+      }
+
+      if (matchedContest === "National Council & Elders") {
+        const isCouncil =
+          /council|elder|patron|foundation/i.test(pos) ||
+          /council|elder|patron|foundation/i.test(canonPos);
+        return isCouncil && checkPositionConstraint();
+      }
+
+      if (matchedContest === "National Leadership & Flagbearers") {
+        const isLeadership =
+          /former president|flagbearer|vice president|running mate|national chair|general secretary|3rd vice|vice-chair/i.test(pos) ||
+          /former president|flagbearer|vice president|running mate|national chair|general secretary|3rd vice|vice-chair/i.test(canonPos);
+        return isLeadership && checkPositionConstraint();
+      }
+
       if (matchedContest === "Youth Organiser") {
         // TESCON Level: TESCON tertiary executives (President, WOCOM, Nasara; patrons and former officers excluded)
         if (lvl === "tescon") {
@@ -1156,15 +1202,10 @@ export async function GET(req: NextRequest) {
             return isRowExternal;
           }
           if (tLower === "national headquarters" || tLower === "national" || tLower === "hq") {
-            return isRowNational;
+            return isRowNational && (!rowRegion || rowRegion === "national" || rowRegion === "hq" || !GHANA_REGIONS_ORDER.map(g => g.toLowerCase()).includes(rowRegion));
           }
           if (!isRowExternal && rowRegion === tLower) {
             return true;
-          }
-          if (rawRegionsList.length === 1 && searchParams.get("region") && !searchParams.get("regions")) {
-            if (rawLvl === "national" && !tLower.includes("external")) {
-              return true;
-            }
           }
           return false;
         });
@@ -1175,16 +1216,16 @@ export async function GET(req: NextRequest) {
       } else if (regionQuery !== "all" && regionQuery !== "") {
         const rowRegion = String(r.region || "").toLowerCase().trim();
         const isQueryExternal = regionQuery.toLowerCase().includes("external");
+        const isQueryNational = regionQuery.toLowerCase().includes("national") || regionQuery.toLowerCase() === "hq";
         const isRowExternal = rawLvl.includes("external") || rowRegion.includes("external");
+        const isRowNational = rawLvl === "national" || rowRegion.includes("national");
 
         if (isQueryExternal) {
           if (!isRowExternal) return false;
+        } else if (isQueryNational) {
+          if (!isRowNational) return false;
         } else {
-          if (!isRowExternal && rowRegion === regionQuery.toLowerCase()) {
-            // matches region directly
-          } else if (lvl === "national" && (!rowRegion || rowRegion === "national" || rowRegion === "hq")) {
-            // matches national level
-          } else {
+          if (isRowExternal || rowRegion !== regionQuery.toLowerCase()) {
             return false;
           }
         }
@@ -1260,6 +1301,7 @@ export async function GET(req: NextRequest) {
           phone: r.phone && String(r.phone).trim() !== "None" ? String(r.phone).trim() : "—",
           gender: r.gender ? String(r.gender).trim() : "Unknown",
           age,
+          date_of_birth: r.date_of_birth ? String(r.date_of_birth).trim() : null,
           is_under_40: isUnder40AsOfCutoff(r.date_of_birth, r.age),
           image_url: photoUrl,
           webp_image_url: photoUrl
@@ -2168,7 +2210,7 @@ export async function GET(req: NextRequest) {
         );
         if (tesconInReg.length > 0) {
           const instCount = new Set(
-            tesconInReg.map((td) => (td.polling_station || td.constituency || "").trim()).filter(Boolean)
+            tesconInReg.map((td) => getTesconInstitution(td)).filter(Boolean)
           ).size;
           auditItems.push({
             isRegional: false,
@@ -2586,7 +2628,7 @@ export async function GET(req: NextRequest) {
         }
         const entry = tesconByReg.get(rName)!;
         entry.count++;
-        const inst = (td.polling_station || td.constituency || "").trim();
+        const inst = getTesconInstitution(td);
         if (inst) entry.institutions.add(inst);
       }
 
@@ -2665,10 +2707,7 @@ export async function GET(req: NextRequest) {
       );
       const tesconInstitutions = new Set(
         tesconDelegates
-          .map((d) => {
-            const s = (d.polling_station || d.constituency || "").trim();
-            return s.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
-          })
+          .map((d) => getTesconInstitution(d))
           .filter(Boolean)
       );
       const tesconInstitutionsCount = tesconInstitutions.size > 0 ? tesconInstitutions.size : tesconCount;
@@ -2939,10 +2978,7 @@ export async function GET(req: NextRequest) {
     );
     const tesconInstitutionsSet = new Set(
       tesconDelegatesList
-        .map((d) => {
-          const s = (d.polling_station || d.constituency || "").trim();
-          return s.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
-        })
+        .map((d) => getTesconInstitution(d))
         .filter(Boolean)
     );
     const tesconInstitutionsCount =
@@ -3286,17 +3322,21 @@ async function generateAlbumExcel(
   delegates.forEach((d, idx) => {
     const rowNum = idx + 1;
     const isEven = rowNum % 2 === 0;
+    const isNational = String(d.executive_level || "").toLowerCase().trim() === "national";
+    const natInfo = isNational ? getNationalSectionInfo(d) : null;
+    const levelDisplay = natInfo ? `National (${natInfo.section})` : d.executive_level;
+
     const row = sheet.addRow([
       rowNum,
       d.voter_id && d.voter_id !== "—" ? String(d.voter_id).trim() : "—",
       d.executive_name,
-      d.executive_level,
+      levelDisplay,
       d.region,
       d.constituency || "—",
       d.position || "—",
       d.canonical_position,
       d.gender || "Unknown",
-      d.age !== null && d.age !== undefined ? d.age : "—",
+      d.age !== null && d.age !== undefined ? d.age : (d.is_under_40 ? "Under 40" : "—"),
       d.date_of_birth || "—",
       d.phone || "—",
       d.has_voter_id ? "Verified" : "Pending",
@@ -3554,14 +3594,33 @@ function generateAlbumHtml(
 
     // For Nasara, Women and Youth: constituency cards display jurisdiction beside Level; For MPs, display constituency
     const isMp = getRegionalSectionRank(d) === 4;
+    const isNational = String(d.executive_level || "").toLowerCase().trim() === "national";
+    const natSectionInfo = isNational ? getNationalSectionInfo(d) : null;
     const jurisdictionSuffix =
-      (isWingAlbum && (isConstituency || isExtBranch) && d.constituency) || (isMp && d.constituency)
+      isNational && natSectionInfo
+        ? ` · ${natSectionInfo.section}`
+        : ((isWingAlbum && (isConstituency || isExtBranch) && d.constituency) || (isMp && d.constituency))
         ? ` (${String(d.constituency).trim()})`
         : "";
+    const levelDisplay = isNational && natSectionInfo
+      ? `National · ${natSectionInfo.section}`
+      : `${d.executive_level}${jurisdictionSuffix}`;
+
+    const isYouthAlbum =
+      /(?:youth)/i.test(contest) ||
+      Boolean(d.canonical_position && /(?:youth)/i.test(d.canonical_position)) ||
+      Boolean(d.position && /(?:youth)/i.test(d.position));
+
+    const ageVal =
+      d.age !== null && d.age !== undefined
+        ? `${d.age} yrs`
+        : d.is_under_40
+        ? "Under 40"
+        : "—";
 
     const demographicText = [
       d.gender && d.gender !== "Unknown" ? d.gender : null,
-      d.age !== null && d.age !== undefined ? `${d.age} yrs` : null,
+      d.age !== null && d.age !== undefined ? `${d.age} yrs` : (d.is_under_40 ? "Under 40" : null),
     ].filter(Boolean).join(" · ");
 
     return `
@@ -3589,9 +3648,14 @@ function generateAlbumHtml(
               <span class="lbl">Phone:</span> <span class="val">${d.phone}</span>
             </div>
             ` : ""}
+            ${isYouthAlbum ? `
+            <div class="detail-line">
+              <span class="lbl">Age:</span> <span class="val" style="font-weight: 700; color: #0F172A;">${ageVal}</span>
+            </div>
+            ` : ""}
             ${showDemographics && demographicText ? `
             <div class="detail-line">
-              <span class="lbl">Demographics:</span> <span class="val">${demographicText}</span>
+              <span class="lbl">${isYouthAlbum ? "Gender:" : "Demographics:"}</span> <span class="val">${isYouthAlbum && d.gender && d.gender !== "Unknown" ? d.gender : demographicText}</span>
             </div>
             ` : ""}
             ${showPollingStation && d.polling_station ? `
@@ -3615,15 +3679,18 @@ function generateAlbumHtml(
     constituencyName?: string;
     constituencyCapital?: string;
     totalConstituencyExecutives?: number;
+    isLeadershipPage?: boolean;
   }
 
   const cardPages: CardPageSpec[] = [];
   let currentCardPageNum = 3; // Page 1: Cover, Page 2: Metrics, Pages 3..N: Cards
 
   // Partition delegates into administrative levels
+  const isNationalScope = region.toLowerCase().includes("national");
   const nationalDelegates = delegates.filter((d) => {
     const lvl = String(d.executive_level || "").toLowerCase().trim();
     if (lvl !== "national") return false;
+    if (isNationalScope) return true;
     const rank = getRegionalSectionRank(d);
     if (rank === 2 || rank === 3 || rank === 4) {
       const reg = String(d.region || "").trim().toLowerCase();
@@ -3658,18 +3725,70 @@ function generateAlbumHtml(
 
   // 1. National Level Pages (if present)
   if (nationalDelegates.length > 0) {
-    for (let i = 0; i < nationalDelegates.length; i += 10) {
-      const chunk = nationalDelegates.slice(i, i + 10);
-      const partIdx = Math.floor(i / 10) + 1;
-      chunk.forEach((d) => {
-        d.page_number = currentCardPageNum;
-      });
-      cardPages.push({
-        headerSubTitle: `NATIONAL LEVEL · ${contest.toUpperCase()} (PART ${partIdx})`,
-        footerLabel: `NATIONAL EXECUTIVES`,
-        cards: chunk,
-      });
-      currentCardPageNum++;
+    nationalDelegates.sort(compareNationalAlbumDelegates);
+
+    const nationalSectionConfigs: {
+      rank: number;
+      title: string;
+      footer: string;
+      isLeadershipPage?: boolean;
+    }[] = [
+      {
+        rank: 1,
+        title: "PRESIDENT, FLAGBEARER, RUNNING MATE & SPEAKER OF PARLIAMENT",
+        footer: "NATIONAL REGISTER · PRESIDENTIAL & STATE LEADERSHIP",
+        isLeadershipPage: true,
+      },
+      {
+        rank: 2,
+        title: "NATIONAL EXECUTIVES AND DIRECTORS",
+        footer: "NATIONAL REGISTER · NATIONAL EXECUTIVES & DIRECTORS",
+      },
+      {
+        rank: 3,
+        title: "FORMER CHAIRMAN AND FORMER GENERAL SECRETARY",
+        footer: "NATIONAL REGISTER · PAST NATIONAL LEADERSHIP",
+      },
+      {
+        rank: 4,
+        title: "COUNCIL OF ELDERS",
+        footer: "NATIONAL REGISTER · COUNCIL OF ELDERS",
+      },
+      {
+        rank: 5,
+        title: "COUNCIL OF PATRONS",
+        footer: "NATIONAL REGISTER · COUNCIL OF PATRONS",
+      },
+      {
+        rank: 6,
+        title: "OTHER NATIONAL EXECUTIVES",
+        footer: "NATIONAL REGISTER · REGIONAL REPRESENTATIVES TO NATIONAL COUNCIL",
+      },
+    ];
+
+    for (const sec of nationalSectionConfigs) {
+      const secDelegates = nationalDelegates.filter(
+        (d) => getNationalSectionInfo(d).rank === sec.rank
+      );
+      if (secDelegates.length === 0) continue;
+
+      const totalParts = Math.ceil(secDelegates.length / 10);
+      for (let i = 0; i < secDelegates.length; i += 10) {
+        const chunk = secDelegates.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+
+        const partSuffix = totalParts > 1 ? ` (PART ${partIdx} OF ${totalParts})` : "";
+        cardPages.push({
+          headerSubTitle: `NATIONAL LEVEL REGISTER · ${sec.title}${partSuffix}`,
+          footerLabel: sec.footer,
+          cards: chunk,
+          isLeadershipPage: sec.isLeadershipPage,
+        });
+        currentCardPageNum++;
+      }
     }
   }
 

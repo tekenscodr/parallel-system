@@ -206,3 +206,15 @@ test("Kwahu East is Abetifi and Kwahu Afram Plains is Afram Plains North", () =>
   assert.equal(getConstituencyCapital("Kwahu Afram Plains"), "Donkorkrom");
   assert.equal(getConstituencyCapital("Kwahu Afram Plains North"), "Donkorkrom");
 });
+
+test("Regional filtering strictly isolates regional delegates and excludes National Headquarters executives", () => {
+  const routePath = path.join(process.cwd(), "app/api/admin/albums/election/route.ts");
+  const code = fs.readFileSync(routePath, "utf8");
+
+  // Verify that rawLvl === 'national' is not unconditionally injected into single region queries
+  assert.ok(
+    !code.includes('if (rawLvl === "national" && !tLower.includes("external"))'),
+    "Must not unconditionally inject national executives into single region queries"
+  );
+});
+
