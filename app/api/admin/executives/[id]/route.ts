@@ -4,7 +4,7 @@ import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp, diffExecutiveRecords } from "@/lib/audit-logger";
 import { getVoterPhotoUrl } from "@/lib/voter-photo";
 import { saveUploadedExecutiveImage } from "@/lib/image-upload";
-import { normalizeConstituency } from "@/lib/constituency-normalizer";
+import { normalizeConstituency, normalizeRegionName } from "@/lib/constituency-normalizer";
 import { getC1SqlCondition, isC1FemaleElectoralDelegate } from "@/lib/c1-electoral-college";
 
 interface RouteParams {
@@ -85,7 +85,13 @@ export async function GET(req: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Executive record not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ executive: row });
+    const normalizedExecutive = {
+      ...row,
+      region: row.region ? normalizeRegionName(row.region) : row.region,
+      constituency: row.constituency ? normalizeConstituency(row.constituency) : row.constituency,
+    };
+
+    return NextResponse.json({ executive: normalizedExecutive });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Error loading executive";
     console.error("Executive detail fetch error:", msg);
@@ -231,6 +237,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     }
 
     // 2. Perform update
+    const normalizedRegion = region !== undefined ? (normalizeRegionName(region) || region) : undefined;
     const normalizedConstituency = constituency !== undefined ? (normalizeConstituency(constituency) || constituency) : undefined;
     const effConstituency = normalizedConstituency !== undefined ? normalizedConstituency : previousRow.constituency;
     const effVoterId = voterId !== undefined ? voterId : previousRow.voterId;
@@ -249,7 +256,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           executive_name = COALESCE(${executiveName ?? null}, executive_name),
           executive_level = COALESCE(${executiveLevel ?? null}, executive_level),
           slot_status = COALESCE(${slotStatus ?? null}, slot_status),
-          region = COALESCE(${region ?? null}, region),
+          region = COALESCE(${normalizedRegion ?? null}, region),
           constituency = COALESCE(${normalizedConstituency ?? null}, constituency),
           electoral_area = COALESCE(${electoralArea ?? null}, electoral_area),
           polling_station = COALESCE(${pollingStation ?? null}, polling_station),

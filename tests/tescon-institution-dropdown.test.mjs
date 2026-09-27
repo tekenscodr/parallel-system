@@ -38,8 +38,8 @@ test("Ashanti TESCON institutions include key colleges and universities", () => 
   const ashanti = getTesconInstitutionsForRegion("Ashanti");
   assert.ok(ashanti.includes("Kwame Nkrumah University of Science and Technology (KNUST - Main Campus)"));
   assert.ok(ashanti.includes("KNUST (Obuasi Campus)"));
-  assert.ok(ashanti.includes("AAMUSTED (Kumasi Campus)"));
-  assert.ok(ashanti.includes("AAMUSTED (Mampong Campus)"));
+  assert.ok(ashanti.includes("University of Skills Training and Entreprenuerial Development USTED (Kumasi Campus)"));
+  assert.ok(ashanti.includes("University of Skills Training and Entreprenuerial Development USTED (Mampong Campus)"));
   assert.ok(ashanti.includes("Kumasi Technical University (KsTU)"));
   assert.ok(ashanti.includes("St. Louis College of Education"));
   assert.ok(ashanti.includes("Wesley College of Education"));

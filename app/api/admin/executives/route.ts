@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin, isC1User } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
-import { normalizeConstituency } from "@/lib/constituency-normalizer";
+import {
+  normalizeConstituency,
+  normalizeRegionName,
+  getConstituencyFilterVariants,
+} from "@/lib/constituency-normalizer";
 import { getVoterPhotoUrl } from "@/lib/voter-photo";
 import { buildPositionCondition } from "@/lib/position-matcher";
 import { saveUploadedExecutiveImage } from "@/lib/image-upload";
@@ -45,14 +49,14 @@ export async function GET(req: Request) {
         conditions.push(sql`executive_level = ${level}`);
       }
       if (region) {
-        conditions.push(sql`region ILIKE ${region}`);
+        conditions.push(sql`TRIM(region) ILIKE ${region}`);
       }
       if (constituency) {
-        const norm = normalizeConstituency(constituency);
-        if (norm && norm !== constituency) {
-          conditions.push(sql`(constituency ILIKE ${constituency} OR constituency ILIKE ${norm})`);
+        const variants = getConstituencyFilterVariants(constituency);
+        if (variants.length > 0) {
+          conditions.push(sql`UPPER(TRIM(constituency)) = ANY(${variants})`);
         } else {
-          conditions.push(sql`constituency ILIKE ${constituency}`);
+          conditions.push(sql`TRIM(constituency) ILIKE ${constituency}`);
         }
       }
       if (institution) {
@@ -61,9 +65,17 @@ export async function GET(req: Request) {
       }
       if (search) {
         const s = `%${search}%`;
-        conditions.push(
-          sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s})`
-        );
+        const normSearchConst = normalizeConstituency(search);
+        if (normSearchConst && normSearchConst.toUpperCase() !== search.toUpperCase()) {
+          const normPattern = `%${normSearchConst}%`;
+          conditions.push(
+            sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s} OR constituency ILIKE ${normPattern})`
+          );
+        } else {
+          conditions.push(
+            sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s})`
+          );
+        }
       }
       if (slot === "elected") {
         conditions.push(sql`slot_status NOT ILIKE '%Appointed%' AND status NOT ILIKE '%Appointed%'`);
@@ -229,17 +241,17 @@ export async function GET(req: Request) {
       let orderBySql;
       const lowerLevel = level.toLowerCase();
       if (lowerLevel === "constituency") {
-        orderBySql = sql`ORDER BY region ASC, constituency ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+        orderBySql = sql`ORDER BY LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       } else if (lowerLevel === "region" || lowerLevel === "regional") {
-        orderBySql = sql`ORDER BY region ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+        orderBySql = sql`ORDER BY LOWER(TRIM(region)) ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       } else if (lowerLevel === "national") {
         orderBySql = sql`ORDER BY ${positionRankSql} ASC, position ASC, id ASC`;
       } else if (lowerLevel === "electoral area") {
-        orderBySql = sql`ORDER BY region ASC, constituency ASC, electoral_area ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+        orderBySql = sql`ORDER BY LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, electoral_area ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       } else if (lowerLevel === "polling station") {
-        orderBySql = sql`ORDER BY region ASC, constituency ASC, electoral_area ASC, polling_station ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+        orderBySql = sql`ORDER BY LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, electoral_area ASC, polling_station ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       } else {
-        orderBySql = sql`ORDER BY ${levelRankSql} ASC, region ASC, constituency ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+        orderBySql = sql`ORDER BY ${levelRankSql} ASC, LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       }
 
       const [countRes, rowsRes] = await Promise.all([
@@ -297,8 +309,14 @@ export async function GET(req: Request) {
       const total = countRes[0]?.total || 0;
       const totalPages = Math.ceil(total / limit);
 
+      const normalizedRows = rowsRes.map((r: any) => ({
+        ...r,
+        region: r.region ? normalizeRegionName(r.region) : r.region,
+        constituency: r.constituency ? normalizeConstituency(r.constituency) : r.constituency,
+      }));
+
       return {
-        data: rowsRes,
+        data: normalizedRows,
         pagination: {
           page,
           limit,
@@ -447,7 +465,7 @@ export async function POST(req: Request) {
           ${executiveName.trim()},
           ${executiveLevel.trim()},
           ${slotStatus.trim()},
-          ${region.trim()},
+          ${normalizeRegionName(region) || region.trim()},
           ${normalizeConstituency(constituency) || null},
           ${electoralArea.trim() || null},
           ${pollingStation.trim() || null},

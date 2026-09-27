@@ -56,7 +56,7 @@ import {
 import { getClientHeaders } from "@/lib/client-device";
 import { checkClientRateLimit } from "@/lib/client-rate-limit";
 import { getPositionRank } from "@/lib/position-matcher";
-import { getConstituenciesForRegion } from "@/lib/constituency-normalizer";
+import { getConstituenciesForRegion, normalizeConstituency, normalizeRegionName } from "@/lib/constituency-normalizer";
 import { computeExecutiveAgeAndDob, isUnder40AsOfCutoff } from "@/lib/voting-rules";
 import { getTesconInstitutionsForRegion } from "@/lib/tescon-institutions";
 import { logoutAndRedirect, saveClientSession, SESSION_TOKEN_KEY } from "@/lib/client-session";
@@ -146,11 +146,11 @@ function sortRosterRows(rows: ExecutiveRow[], level: string): ExecutiveRow[] {
   if (level !== "Region" && level !== "Constituency") return rows;
 
   return [...rows].sort((a, b) => {
-    const regionOrder = String(a.region || "").localeCompare(String(b.region || ""));
+    const regionOrder = normalizeRegionName(a.region).localeCompare(normalizeRegionName(b.region));
     if (regionOrder !== 0) return regionOrder;
 
     if (level === "Constituency") {
-      const constituencyOrder = String(a.constituency || "").localeCompare(String(b.constituency || ""));
+      const constituencyOrder = normalizeConstituency(a.constituency).localeCompare(normalizeConstituency(b.constituency));
       if (constituencyOrder !== 0) return constituencyOrder;
     }
 
@@ -595,11 +595,19 @@ export default function NationalAdminDashboard() {
     })
       .then((res) => (res.ok ? res.json() : { constituencies: [] }))
       .then((data) => {
-        setConstituencyList(data.constituencies || []);
+        const rawList: string[] = Array.isArray(data.constituencies) ? data.constituencies : [];
+        const normalizedList = Array.from(
+          new Set(
+            rawList
+              .map((c) => (selectedRegion === "External Branch" ? String(c || "").trim() : normalizeConstituency(c)))
+              .filter(Boolean)
+          )
+        ).sort((a, b) => a.localeCompare(b));
+        setConstituencyList(normalizedList);
         setLoadingConstituencies(false);
       })
       .catch(() => {
-        setConstituencyList([]);
+        setConstituencyList(fallbackList);
         setLoadingConstituencies(false);
       });
   }, [selectedRegion]);
@@ -938,7 +946,23 @@ export default function NationalAdminDashboard() {
         return res.json();
       })
       .then((data) => {
-        setActiveExecutive(data.executive);
+        const exec = data.executive;
+        if (exec) {
+          const normReg = exec.region ? normalizeRegionName(exec.region) : "";
+          const normConst =
+            normReg === "External Branch"
+              ? String(exec.constituency || "").trim()
+              : exec.constituency
+              ? normalizeConstituency(exec.constituency)
+              : "";
+          setActiveExecutive({
+            ...exec,
+            region: normReg,
+            constituency: normConst,
+          });
+        } else {
+          setActiveExecutive(null);
+        }
         setEditSearchVoterId(data.executive?.voterId || "");
         setEditVoterSearchStatus(null);
         setModalLoading(false);
@@ -3386,12 +3410,16 @@ export default function NationalAdminDashboard() {
 
                         {/* 5. Region */}
                         <TableCell style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
-                          {row.region || "—"}
+                          {row.region ? normalizeRegionName(row.region) : "—"}
                         </TableCell>
 
                         {/* 6. Constituency */}
                         <TableCell style={{ padding: "12px 14px", color: "#cbd5e1", fontWeight: "500", whiteSpace: "nowrap" }}>
-                          {row.constituency || "—"}
+                          {row.constituency
+                            ? normalizeRegionName(row.region) === "External Branch"
+                              ? row.constituency
+                              : normalizeConstituency(row.constituency)
+                            : "—"}
                         </TableCell>
 
                         {/* 9. Level */}

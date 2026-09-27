@@ -29,6 +29,7 @@ import {
   CONTEST_LIST,
   GENERAL_CONTEST_LIST,
   CUSTOM_CONTEST,
+  POSITION_PRESETS,
   getCanonicalPositionsForSelection,
   normalizeCanonicalPosition,
   isElectedConstituencyPosition,
@@ -666,6 +667,14 @@ export async function GET(req: NextRequest) {
     rawRegionsList.length === 0 ||
     rawRegionsList.length >= 18 ||
     rawRegionsList.some((r) => r.toLowerCase() === "all");
+  const constituencyQuery = (searchParams.get("constituency") || "").trim();
+  const constituenciesParam = (searchParams.get("constituencies") || searchParams.get("constituency") || "").trim();
+  const rawConstituenciesList =
+    constituenciesParam.toLowerCase() !== "all" && constituenciesParam !== ""
+      ? constituenciesParam.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+  const isSingleConstituency = rawConstituenciesList.length === 1;
+  const selectedConstituency = isSingleConstituency ? normalizeConstituency(rawConstituenciesList[0]) : "";
   const scopeQuery = (searchParams.get("scope") || "").trim().toLowerCase();
   const format = (searchParams.get("format") || "json").toLowerCase();
   const albumType = (searchParams.get("album_type") || searchParams.get("type") || "provisional").trim().toLowerCase();
@@ -776,8 +785,15 @@ export async function GET(req: NextRequest) {
     if (customPositionKeys.length === 0) {
       effectiveContestName = "Custom Selection";
     } else {
+      const isFullConstituencySlate =
+        customPositionKeys.length === POSITION_PRESETS.constituency_slate.ids.length &&
+        POSITION_PRESETS.constituency_slate.ids.every((id) => customPositionKeys.includes(id));
       const labels = customResolved?.displayLabels || [];
-      if (labels.length === 1) {
+      if (isFullConstituencySlate && isSingleConstituency) {
+        effectiveContestName = `${selectedConstituency} Constituency Executives`;
+      } else if (isFullConstituencySlate) {
+        effectiveContestName = "Constituency Executives (19 Positions)";
+      } else if (labels.length === 1) {
         effectiveContestName = `${labels[0]} Roll`;
       } else if (labels.length === 2) {
         effectiveContestName = `${labels[0]} & ${labels[1]}`;
@@ -1231,6 +1247,21 @@ export async function GET(req: NextRequest) {
         }
       }
 
+      // Optional Constituency / Multi-Constituency Filter
+      if (rawConstituenciesList.length > 0) {
+        const rowCon = String(r.constituency || "").trim();
+        if (!rowCon) return false;
+        const normRowCon = normalizeConstituency(rowCon).toLowerCase().trim();
+        const matchesConstituency = rawConstituenciesList.some((target) => {
+          const tLower = target.toLowerCase().trim();
+          const normTarget = normalizeConstituency(target).toLowerCase().trim();
+          return rowCon.toLowerCase() === tLower || normRowCon === normTarget;
+        });
+        if (!matchesConstituency) {
+          return false;
+        }
+      }
+
       return true;
     });
 
@@ -1252,6 +1283,7 @@ export async function GET(req: NextRequest) {
         !rawRegionsList[0].toLowerCase().includes("external") &&
         !rawRegionsList[0].toLowerCase().includes("national")) ||
       (rawRegionsList.length === 0 && regionQuery !== "all" && regionQuery !== "") ||
+      isSingleConstituency ||
       isExternalScope;
 
     const delegates = contestFiltered
@@ -1376,7 +1408,28 @@ export async function GET(req: NextRequest) {
       ? 1
       : constituencyTargetPerUnit;
 
-    if (isExternalScope) {
+    if (rawConstituenciesList.length > 0) {
+      const conUnits = rawConstituenciesList.length;
+      if (
+        matchedContest === "Women Organiser" ||
+        matchedContest === "Women Organisers & Deputies" ||
+        matchedContest === "All Women"
+      ) {
+        expectedCount = conUnits * 4;
+      } else if (matchedContest === "All Men") {
+        expectedCount = conUnits * 15;
+      } else if (
+        matchedContest === "Youth Organisers & Deputies" ||
+        matchedContest === "Nasara Coordinators & Deputies" ||
+        matchedContest === "Nasara Organiser"
+      ) {
+        expectedCount = conUnits * 2;
+      } else if (matchedContest === "Youth Organiser") {
+        expectedCount = conUnits * 7;
+      } else {
+        expectedCount = conUnits * constituencyTargetPerUnit;
+      }
+    } else if (isExternalScope) {
       if (
         matchedContest === "Women Organiser" ||
         matchedContest === "Women Organisers & Deputies" ||
@@ -1905,8 +1958,22 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    const selectedRegion = isSingleRegion ? (isExternalScope ? "External Branch" : (activeRegions[0] || regionQuery)) : "";
-    const regionDisplayName = isExternalScope
+    const inferredRegionFromDelegates =
+      delegates.length > 0 && delegates[0].region && delegates[0].region !== "Unassigned"
+        ? String(delegates[0].region).trim()
+        : "";
+    const selectedRegion = isSingleRegion
+      ? isExternalScope
+        ? "External Branch"
+        : activeRegions.length === 1
+        ? activeRegions[0]
+        : regionQuery !== "all" && regionQuery !== ""
+        ? regionQuery
+        : inferredRegionFromDelegates
+      : "";
+    const regionDisplayName = isSingleConstituency
+      ? `${selectedConstituency.toUpperCase()} CONSTITUENCY`
+      : isExternalScope
       ? "EXTERNAL BRANCHES"
       : isSingleRegion
       ? selectedRegion.toUpperCase()
@@ -2048,7 +2115,10 @@ export async function GET(req: NextRequest) {
 
     if (isSingleRegion) {
       // Build detailed constituency-level breakdown for this specific region / diaspora jurisdiction
-      const conList = getConstituenciesForRegion(selectedRegion);
+      const conList =
+        rawConstituenciesList.length > 0
+          ? rawConstituenciesList.map((c) => normalizeConstituency(c))
+          : getConstituenciesForRegion(selectedRegion);
       const conNames =
         conList.length > 0
           ? conList
@@ -2079,9 +2149,16 @@ export async function GET(req: NextRequest) {
         rate: string;
       }> = [];
 
-      const includeRegional = !isExternalScope && (hasRegional || (!isRegionalOnly && !isConstituencyOnly));
-      const includeConstituency = isExternalScope || hasConstituency || (!isRegionalOnly && !isConstituencyOnly);
-      const includeTescon = !isExternalScope && (hasTescon || (!isRegionalOnly && !isConstituencyOnly));
+      const includeRegional =
+        rawConstituenciesList.length === 0 &&
+        !isExternalScope &&
+        (hasRegional || (!isRegionalOnly && !isConstituencyOnly));
+      const includeConstituency =
+        isExternalScope || hasConstituency || (!isRegionalOnly && !isConstituencyOnly) || rawConstituenciesList.length > 0;
+      const includeTescon =
+        rawConstituenciesList.length === 0 &&
+        !isExternalScope &&
+        (hasTescon || (!isRegionalOnly && !isConstituencyOnly));
 
       if (includeRegional) {
         const regConfirmed = delegates.filter(
@@ -2384,11 +2461,15 @@ export async function GET(req: NextRequest) {
       }
 
       levelAudit = {
-        tableTitle: isExternalScope
+        tableTitle: isSingleConstituency
+          ? `${selectedConstituency.toUpperCase()} CONSTITUENCY STATUTORY AUDIT & SIGN-OFF`
+          : isExternalScope
           ? "EXTERNAL BRANCHES (DIASPORA) STATUTORY AUDIT & SIGN-OFF"
           : `${selectedRegion.toUpperCase()} ${titleSuffix} STATUTORY AUDIT & SIGN-OFF`,
         tableSub: `${subDetail} · ${effectiveContestName}`,
-        footerLabel: isExternalScope
+        footerLabel: isSingleConstituency
+          ? `${selectedConstituency.toUpperCase()} CONSTITUENCY AUDIT`
+          : isExternalScope
           ? "EXTERNAL BRANCHES STATUTORY AUDIT"
           : `${selectedRegion.toUpperCase()} STATUTORY AUDIT`,
         headersHtml: `
@@ -2986,7 +3067,10 @@ export async function GET(req: NextRequest) {
 
     const metrics = {
       contest: effectiveContestName,
-      scope: isExternalScope
+      selectedConstituency: selectedConstituency || undefined,
+      scope: isSingleConstituency
+        ? `${selectedConstituency} Constituency (${selectedRegion || "Ghana"} Region)`
+        : isExternalScope
         ? "External Branches (Diaspora Chapters)"
         : regionQuery === "all"
         ? "Nationwide (All 16 Regions + External Branches + National + TESCON)"
@@ -3038,6 +3122,8 @@ export async function GET(req: NextRequest) {
       ? ["External Branch"]
       : regionQuery !== "all" && regionQuery !== ""
       ? [regionQuery]
+      : isSingleConstituency && selectedRegion
+      ? [selectedRegion]
       : hasExternal
       ? [...GHANA_REGIONS_ORDER, "External Branch"]
       : GHANA_REGIONS_ORDER;
@@ -3059,7 +3145,7 @@ export async function GET(req: NextRequest) {
     for (const reg of targetRegions) {
       const cList = getConstituenciesForRegion(reg);
       const isRegExternal = reg.toLowerCase().includes("external");
-      const conNames =
+      const rawConNames =
         cList.length > 0
           ? cList
           : Array.from(
@@ -3077,6 +3163,16 @@ export async function GET(req: NextRequest) {
                   .filter(Boolean)
               )
             );
+      const conNames =
+        rawConstituenciesList.length > 0
+          ? rawConNames.filter((cName) => {
+              const normC = normalizeConstituency(cName).toLowerCase().trim();
+              return rawConstituenciesList.some((target) => {
+                const normT = normalizeConstituency(target).toLowerCase().trim();
+                return cName.toLowerCase().trim() === target.toLowerCase().trim() || normC === normT;
+              });
+            })
+          : rawConNames;
 
       for (const cName of conNames) {
         const norm = normalizeConstituency(cName);
@@ -3135,6 +3231,10 @@ export async function GET(req: NextRequest) {
         ? rawRegionsList.length === 1
           ? rawRegionsList[0]
           : rawRegionsList.join(",")
+        : regionQuery !== "all" && regionQuery !== ""
+        ? regionQuery
+        : isSingleConstituency && selectedRegion
+        ? selectedRegion
         : regionQuery;
 
     // Excel export format
@@ -3152,7 +3252,8 @@ export async function GET(req: NextRequest) {
 
       const safeContest = effectiveContestName.replace(/[\s&]+/g, "_");
       const safeRegion = effectiveRegionQuery !== "all" ? `_${effectiveRegionQuery.replace(/[\s&,]+/g, "_")}` : "";
-      const filename = `NPP_${safeContest}${safeRegion}_Voter_Directory_2026.xlsx`;
+      const safeConstituency = selectedConstituency ? `_${selectedConstituency.replace(/[\s&,]+/g, "_")}` : "";
+      const filename = `NPP_${safeContest}${safeRegion}${safeConstituency}_Voter_Directory_2026.xlsx`;
 
       return new NextResponse(excelBuffer as unknown as BodyInit, {
         headers: {
@@ -4144,14 +4245,19 @@ function generateAlbumHtml(
           String(d.region || "").toLowerCase().includes("external")
       ));
   const isMultiJurisdiction = region.includes(",");
-  const scopeText = region === "all"
+  const singleConLabel = metrics?.selectedConstituency ? String(metrics.selectedConstituency).toUpperCase() : "";
+  const scopeText = singleConLabel
+    ? `${singleConLabel} CONSTITUENCY${region && region !== "all" ? ` · ${region.toUpperCase()} REGION` : ""}`
+    : region === "all"
     ? (isExtScope ? "EXTERNAL BRANCHES (DIASPORA CHAPTERS)" : "NATIONWIDE ELECTORAL ROLL")
     : isExtScope
     ? "EXTERNAL BRANCHES (DIASPORA CHAPTERS)"
     : isMultiJurisdiction
     ? `${region.split(",").length} ELECTORAL JURISDICTIONS`
     : `${region.toUpperCase()} REGION`;
-  const badgeText = region === "all"
+  const badgeText = singleConLabel
+    ? `${singleConLabel} CONSTITUENCY · ${contest.toUpperCase()}`
+    : region === "all"
     ? (isExtScope ? `EXTERNAL BRANCHES · ${contest.toUpperCase()}` : `${contest.toUpperCase()} ELECTION`)
     : isExtScope
     ? `EXTERNAL BRANCHES · ${contest.toUpperCase()}`

@@ -279,7 +279,7 @@ export const CANONICAL_CONSTITUENCIES: readonly string[] = [
   "WEIJA-GBAWE",
   "WENCHI",
   "WULESNSI",
-  "YAGABA/ KUBORI",
+  "YAGABA/KUBORI",
   "YAPEI/KUSAWGU",
   "YENDI",
   "YILO KROBO",
@@ -362,12 +362,14 @@ const EXPLICIT_ALIASES: Record<string, string> = {
   "KWAHU AFRAM PLAINS": "AFRAM PLAINS NORTH",
   "KWAHU AFRAM PLAINS NORTH": "AFRAM PLAINS NORTH",
   "KWAHU AFRAM PLAINS SOUTH": "AFRAM PLAINS SOUTH",
-  "AKIM SWEDRU": "BIRIM SOUTH",
+  "BIRIM SOUTH": "AKIM SWEDRU",
   "KWADASO MUNICIPAL": "KWADASO",
   "ADENTA": "ADENTAN",
   "AFIGYA SEKYERE EAST": "AFIGYA SEYERE EAST",
   "AJUMAKO ENYAN ESSIAM": "AJUMAKO ENYAN ESIAM",
-  "ASENE AKROSO MANSO": "ASENE/MANSO/AKROSO",
+  "ASENE AKROSO MANSO": "ASENE/AKROSO/MANSO",
+  "ASENE MANSO AKROSO": "ASENE/AKROSO/MANSO",
+  "ASENE/MANSO/AKROSO": "ASENE/AKROSO/MANSO",
   "BOLGATANGA EAST": "BOLGA EAST",
   "ELLEMBELLE": "ELLEMBELE",
   "ESSIKADO KETAN": "ESSIKADU-KETAN",
@@ -381,6 +383,7 @@ const EXPLICIT_ALIASES: Record<string, string> = {
   "NALERIGU / GAMBAGA": "NALERIGU/GAMBAGA",
   "NALERIGU GAMBAGA": "NALERIGU/GAMBAGA",
   "YAGABA/ KUBORI": "YAGABA/KUBORI",
+  "YAGABA / KUBORI": "YAGABA/KUBORI",
   "YAGABA KUBORI": "YAGABA/KUBORI",
   "ATEBUBU-AMANTIN": "ATEBUBU/AMANTIN",
   "NADOWLI-KALEO": "NADOWLI/KALEO",
@@ -390,7 +393,9 @@ const EXPLICIT_ALIASES: Record<string, string> = {
   "KPONE KATAMANSO": "KPONE-KATAMANSO",
   "BIBIANI ANHWIASO BEKWAI": "BIBIANI-ANHWIASO-BEKWAI",
   "BORTIANOR NGLESHIE AMANFRO": "BORTIANOR-NGLESHIE AMANFRO",
-  "BOLE BAMBOI": "BOLE-BAMBOI"
+  "BOLE BAMBOI": "BOLE-BAMBOI",
+  "LA DADEKOTOPON": "DADEKOTOPON",
+  "LA-DADEKOTOPON": "DADEKOTOPON"
 };
 
 /**
@@ -603,6 +608,7 @@ export const OFFICIAL_CONSTITUENCIES_BY_REGION: Record<string, string[]> = {
     "AFRAM PLAINS NORTH",
     "AFRAM PLAINS SOUTH",
     "AKIM ODA",
+    "AKIM SWEDRU",
     "AKROPONG",
     "AKUAPEM SOUTH",
     "AKWATIA",
@@ -611,7 +617,6 @@ export const OFFICIAL_CONSTITUENCIES_BY_REGION: Record<string, string[]> = {
     "ATIWA EAST",
     "ATIWA WEST",
     "AYENSUANO",
-    "BIRIM SOUTH",
     "FANTEAKWA NORTH",
     "FANTEAKWA SOUTH",
     "KADE",
@@ -844,4 +849,59 @@ export function getConstituenciesForRegion(region: string | null | undefined): s
 
   return [];
 }
+
+/**
+ * Normalizes a region string to its canonical casing (e.g., "EASTERN" -> "Eastern").
+ */
+export function normalizeRegionName(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const trimmed = raw.trim().replace(/\s+/g, " ");
+  if (!trimmed) return "";
+
+  for (const rName of Object.keys(OFFICIAL_CONSTITUENCIES_BY_REGION)) {
+    if (rName.toLowerCase() === trimmed.toLowerCase()) {
+      return rName;
+    }
+  }
+  if (/^external(\s*branch(es)?)?$/i.test(trimmed)) {
+    return "External Branch";
+  }
+  if (/^national(\s*(hq|headquarters))?$/i.test(trimmed)) {
+    return "National";
+  }
+  return trimmed;
+}
+
+/**
+ * Returns all uppercase SQL filter variants for a constituency (canonical name + known aliases).
+ */
+export function getConstituencyFilterVariants(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  const trimmed = raw.trim();
+  if (!trimmed) return [];
+
+  const canonical = normalizeConstituency(trimmed);
+  const set = new Set<string>();
+  set.add(trimmed.toUpperCase());
+  if (canonical) {
+    set.add(canonical.toUpperCase());
+  }
+
+  // Include all explicit aliases that resolve to this canonical constituency
+  if (canonical) {
+    for (const [alias, target] of Object.entries(EXPLICIT_ALIASES)) {
+      if (target.toUpperCase() === canonical.toUpperCase()) {
+        set.add(alias.toUpperCase());
+      }
+    }
+    for (const [alias, target] of EXTERNAL_BRANCH_LOOKUP.entries()) {
+      if (target.toUpperCase() === canonical.toUpperCase() && alias.length > 2) {
+        set.add(alias.toUpperCase());
+      }
+    }
+  }
+
+  return Array.from(set);
+}
+
 

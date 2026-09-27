@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin, isC1User } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
-import { normalizeConstituency } from "@/lib/constituency-normalizer";
+import {
+  normalizeConstituency,
+  getConstituencyFilterVariants,
+} from "@/lib/constituency-normalizer";
 import { getVotingReport } from '@/lib/voting-data';
 import { buildPositionCondition } from "@/lib/position-matcher";
 import { getC1SqlCondition } from "@/lib/c1-electoral-college";
@@ -37,14 +40,14 @@ export async function GET(req: Request) {
         conditions.push(sql`executive_level = ${level}`);
       }
       if (region) {
-        conditions.push(sql`region ILIKE ${region}`);
+        conditions.push(sql`TRIM(region) ILIKE ${region}`);
       }
       if (constituency) {
-        const norm = normalizeConstituency(constituency);
-        if (norm && norm !== constituency) {
-          conditions.push(sql`(constituency ILIKE ${constituency} OR constituency ILIKE ${norm})`);
+        const variants = getConstituencyFilterVariants(constituency);
+        if (variants.length > 0) {
+          conditions.push(sql`UPPER(TRIM(constituency)) = ANY(${variants})`);
         } else {
-          conditions.push(sql`constituency ILIKE ${constituency}`);
+          conditions.push(sql`TRIM(constituency) ILIKE ${constituency}`);
         }
       }
       if (institution) {
@@ -116,14 +119,14 @@ export async function GET(req: Request) {
         ecConditions.push(getC1SqlCondition(sql));
       }
       if (region) {
-        ecConditions.push(sql`region ILIKE ${region}`);
+        ecConditions.push(sql`TRIM(region) ILIKE ${region}`);
       }
       if (constituency) {
-        const norm = normalizeConstituency(constituency);
-        if (norm && norm !== constituency) {
-          ecConditions.push(sql`(constituency ILIKE ${constituency} OR constituency ILIKE ${norm})`);
+        const variants = getConstituencyFilterVariants(constituency);
+        if (variants.length > 0) {
+          ecConditions.push(sql`UPPER(TRIM(constituency)) = ANY(${variants})`);
         } else {
-          ecConditions.push(sql`constituency ILIKE ${constituency}`);
+          ecConditions.push(sql`TRIM(constituency) ILIKE ${constituency}`);
         }
       }
       const ecWhereClause = sql`WHERE ${ecConditions.reduce((prev, curr) => sql`${prev} AND ${curr}`)}`;

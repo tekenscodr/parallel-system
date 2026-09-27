@@ -25,16 +25,24 @@ export async function GET(req: Request) {
       });
     }
 
-    const set = new Set<string>();
-
-    // 1. Add all official canonical constituencies for this region
+    // 1. Return strictly the official canonical constituencies for this region when recognized
     const officialList = getConstituenciesForRegion(region);
-    for (const c of officialList) {
-      const norm = normalizeConstituency(c);
-      if (norm) set.add(norm);
+    if (officialList.length > 0) {
+      const set = new Set<string>();
+      for (const c of officialList) {
+        const norm = normalizeConstituency(c);
+        if (norm) set.add(norm);
+      }
+      const constituencies = Array.from(set).sort((a, b) => a.localeCompare(b));
+      return NextResponse.json({
+        region,
+        constituencies,
+      });
     }
 
-    // 2. Also union with any distinct constituencies present in executives_all for this region
+    const set = new Set<string>();
+
+    // 2. Fallback for any custom region not in official map
     try {
       const rows = await withEcSql(async (sql) => {
         return await sql`
@@ -49,10 +57,12 @@ export async function GET(req: Request) {
 
       for (const r of rows) {
         const norm = normalizeConstituency(r.name);
-        if (norm) set.add(norm);
+        if (norm && norm !== "HEADQUARTERS" && norm !== "REGIONAL HQ") {
+          set.add(norm);
+        }
       }
     } catch {
-      // If DB read fails, official list is preserved
+      // Ignore DB fallback errors
     }
 
     const constituencies = Array.from(set).sort((a, b) => a.localeCompare(b));

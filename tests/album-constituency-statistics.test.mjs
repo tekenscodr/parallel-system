@@ -166,4 +166,19 @@ test('Album UI page.tsx includes Constituency statistics tab, KPI cards, preset 
   assert.ok(pageCode.includes('Appointed (x/8)'), 'Table must have Appointed (x/8) column header');
   assert.ok(pageCode.includes('allConstituencyAudit'), 'Page must process allConstituencyAudit');
   assert.ok(pageCode.includes('pagedConstituencies'), 'Page must paginate constituency audit table');
+  assert.ok(pageCode.includes('Constituency Filter:'), 'Page must include Constituency Filter selector');
+  assert.ok(pageCode.includes('isolateConstituencyExecutives'), 'Page must include 1-click helper to isolate Constituency Executives');
 });
+
+test('Election album route supports single-constituency isolation (e.g. Bosome Freho Constituency Executives alone)', () => {
+  const routeCode = fs.readFileSync(
+    path.join(process.cwd(), 'app/api/admin/albums/election/route.ts'),
+    'utf8'
+  );
+  assert.ok(routeCode.includes('searchParams.get("constituency")'), 'Route must parse constituency query parameter');
+  assert.ok(routeCode.includes('isSingleConstituency'), 'Route must detect single-constituency scope');
+  assert.ok(routeCode.includes('selectedConstituency'), 'Route must track selectedConstituency');
+  const ashantiConstituencies = getConstituenciesForRegion('Ashanti');
+  assert.ok(ashantiConstituencies.includes('BOSOME FREHO'), 'Bosome Freho must be a canonical constituency in Ashanti Region');
+});
+

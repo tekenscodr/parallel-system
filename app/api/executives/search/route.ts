@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withEcSql } from "@/lib/db-ec";
+import {
+  getConstituencyFilterVariants,
+  normalizeConstituency,
+  normalizeRegionName,
+} from "@/lib/constituency-normalizer";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,6 +25,7 @@ export async function GET(request: NextRequest) {
       const searchPattern = q ? `%${q.toLowerCase()}%` : null;
       const regionFilter = region && region !== "ALL" ? region : null;
       const constFilter = constituency && constituency !== "ALL" ? constituency : null;
+      const constVariants = constFilter ? getConstituencyFilterVariants(constFilter) : [];
 
       return await sql`
         SELECT 
@@ -41,8 +47,8 @@ export async function GET(request: NextRequest) {
           image_url,
           status
         FROM executives_all
-        WHERE (${regionFilter}::text IS NULL OR UPPER(region) = UPPER(${regionFilter}))
-          AND (${constFilter}::text IS NULL OR UPPER(constituency) = UPPER(${constFilter}))
+        WHERE (${regionFilter}::text IS NULL OR UPPER(TRIM(region)) = UPPER(TRIM(${regionFilter})))
+          AND (${constFilter}::text IS NULL OR UPPER(TRIM(constituency)) = ANY(${constVariants}))
           AND (${searchPattern}::text IS NULL OR (
             LOWER(executive_name) LIKE ${searchPattern}
             OR phone LIKE ${q + "%"}
@@ -55,10 +61,25 @@ export async function GET(request: NextRequest) {
       `;
     });
 
+    const normalizedResults = results.map((r: any) => {
+      const normReg = r.region ? normalizeRegionName(r.region) : r.region;
+      const normConst =
+        normReg === "External Branch"
+          ? String(r.constituency || "").trim()
+          : r.constituency
+          ? normalizeConstituency(r.constituency)
+          : r.constituency;
+      return {
+        ...r,
+        region: normReg,
+        constituency: normConst,
+      };
+    });
+
     return NextResponse.json({
       success: true,
-      count: results.length,
-      executives: results,
+      count: normalizedResults.length,
+      executives: normalizedResults,
     });
   } catch (error: any) {
     console.error("[EXECUTIVES SEARCH API] Error:", error);

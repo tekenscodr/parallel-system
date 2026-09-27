@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
+import { normalizeConstituency, normalizeRegionName } from "@/lib/constituency-normalizer";
 
 import { getVoterPhotoUrl } from "@/lib/voter-photo";
 
@@ -72,6 +73,10 @@ export async function GET(req: Request) {
         if (!v.imageUrl) {
           v.imageUrl = getVoterPhotoUrl(v.region, v.constituency, v.voterId);
         }
+        if (v.region) v.region = normalizeRegionName(v.region);
+        if (v.constituency && v.region !== "External Branch") {
+          v.constituency = normalizeConstituency(v.constituency);
+        }
         return {
           found: true,
           source: "executives_registry",
@@ -118,6 +123,10 @@ export async function GET(req: Request) {
           matched.age = matched.age + 2;
         }
         matched.imageUrl = getVoterPhotoUrl(matched.region, matched.constituency, matched.voterId);
+        if (matched.region) matched.region = normalizeRegionName(matched.region);
+        if (matched.constituency && matched.region !== "External Branch") {
+          matched.constituency = normalizeConstituency(matched.constituency);
+        }
         return {
           found: true,
           source: "voter_registry",

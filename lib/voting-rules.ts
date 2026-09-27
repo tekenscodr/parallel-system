@@ -1,3 +1,5 @@
+import { normalizeConstituency, normalizeRegionName } from "@/lib/constituency-normalizer";
+
 export type VotingSource = {
   id: number; executive_name: string | null; executive_level: string | null;
   position: string | null; region: string | null; constituency: string | null;
@@ -198,11 +200,12 @@ export function buildVotingReport(source: VotingSource[]) {
       women: !identityConflict && ((core && gender==='female') || tescon.some(r=>['wocom','womencommissioner','womenscommissioner'].includes(norm(r.position)) || ((norm(r.position)==='president' || norm(r.position).includes('nasara')) && gender==='female'))),
       nasara: !identityConflict && rows.some(r=>/nasara/i.test(clean(r.position)) && !(norm(r.executive_level)==='tescon' && /patron/i.test(clean(r.position)))),
     };
-    const regions = unique(rows.map(r => norm(r.executive_level)==='national' ? 'National' : clean(r.region).replace(/-/g,' ')));
+    const regions = unique(rows.map(r => norm(r.executive_level)==='national' ? 'National' : normalizeRegionName(clean(r.region).replace(/-/g,' '))));
     const region = regions.length===1 ? regions[0] : regions.length===0 ? 'Unassigned' : 'Multiple jurisdictions - review';
     const constituencies = unique(rows.map(r => {
       const level = getRowLevel(r);
-      return level==='national' ? 'National level' : ['region','regional'].includes(level) ? 'Regional level' : clean(r.constituency).toUpperCase().replace(/\s*\/\s*/g,'/');
+      const regNorm = normalizeRegionName(clean(r.region));
+      return level==='national' ? 'National level' : ['region','regional'].includes(level) ? 'Regional level' : regNorm==='External Branch' ? clean(r.constituency) : normalizeConstituency(clean(r.constituency));
     }));
     const constituency = constituencies.length===1 ? constituencies[0] : constituencies.length===0 ? 'Unassigned' : 'Multiple jurisdictions - review';
     if (region.includes('review') || constituency.includes('review')) issues.push('Multiple jurisdictions require allocation');

@@ -71,6 +71,11 @@ import {
   type VoterDetailPresetKey,
   type JurisdictionPresetKey,
 } from "@/lib/election-contests";
+import {
+  getConstituenciesForRegion,
+  normalizeConstituency,
+  OFFICIAL_CONSTITUENCIES_BY_REGION,
+} from "@/lib/constituency-normalizer";
 
 const REGION_OPTIONS = [
   { value: "all", label: "All Ghana · Nationwide Roll" },
@@ -147,6 +152,7 @@ export default function PositionAlbumsPage() {
   const currentUser = useAlbumUser();
   const [contest, setContest] = useState<ContestType>("Women Organiser");
   const [region, setRegion] = useState("all");
+  const [constituency, setConstituency] = useState("all");
   const [selectedRegions, setSelectedRegions] = useState<string[]>([...ALL_JURISDICTION_IDS]);
   const [albumType, setAlbumType] = useState<"provisional" | "final">("provisional");
   const [gender, setGender] = useState<"all" | "male" | "female">("all");
@@ -263,8 +269,10 @@ export default function PositionAlbumsPage() {
     selectedRegions.length > 0 && selectedRegions.length < ALL_JURISDICTION_IDS.length
       ? `&regions=${encodeURIComponent(selectedRegions.join(","))}`
       : "";
+  const constituencyQuery =
+    constituency !== "all" ? `&constituency=${encodeURIComponent(constituency)}` : "";
   const albumTypeQuery = albumType === "final" ? "&album_type=final" : "";
-  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}${detailsQuery}${genderQuery}${under40Query}${regionsQuery}${albumTypeQuery}`;
+  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${constituencyQuery}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}${detailsQuery}${genderQuery}${under40Query}${regionsQuery}${albumTypeQuery}`;
   const requestKey = `${query}&revision=${retry}`;
   const previewUrl = `/api/admin/albums/election?${requestKey}&format=html`;
   const excelDownloadUrl = `/api/admin/albums/election?${query}&format=excel&download=1`;
@@ -279,7 +287,11 @@ export default function PositionAlbumsPage() {
         ? `Custom Selection (${selectedPositions.length} Positions)`
         : "Custom Selection (No Positions Selected)"
       : contest);
-  const safeContestFilename = displayContestTitle.replace(/[\s&]+/g, "_");
+  const safeContestFilename = displayContestTitle.replace(/[\s&()]+/g, "_");
+  const safeScopeFilename =
+    constituency !== "all"
+      ? `${constituency.replace(/\s+/g, "_")}_${region.replace(/\s+/g, "_")}`
+      : region.replace(/\s+/g, "_");
 
   const togglePosition = (id: string) => {
     setSelectedPositions((prev) => {
@@ -468,10 +480,13 @@ export default function PositionAlbumsPage() {
       const next = exists ? prev.filter((r) => r !== id) : [...prev, id];
       if (next.length === ALL_JURISDICTION_IDS.length) {
         setRegion("all");
+        setConstituency("all");
       } else if (next.length === 1) {
         setRegion(next[0]);
+        setConstituency("all");
       } else {
         setRegion("all");
+        setConstituency("all");
       }
       return next;
     });
@@ -481,17 +496,20 @@ export default function PositionAlbumsPage() {
   const selectAllRegions = () => {
     setSelectedRegions([...ALL_JURISDICTION_IDS]);
     setRegion("all");
+    setConstituency("all");
     setPage(1);
   };
 
   const clearAllRegions = () => {
     setSelectedRegions([]);
+    setConstituency("all");
     setPage(1);
   };
 
   const applyJurisdictionPreset = (presetKey: JurisdictionPresetKey) => {
     const ids = [...JURISDICTION_PRESETS[presetKey].ids];
     setSelectedRegions(ids);
+    setConstituency("all");
     if (ids.length === ALL_JURISDICTION_IDS.length) {
       setRegion("all");
     } else if (ids.length === 1) {
@@ -506,6 +524,7 @@ export default function PositionAlbumsPage() {
     setContest("Women Organiser");
     setSelectedPositions(getDefaultPositionIdsForContest("Women Organiser"));
     setRegion("all");
+    setConstituency("all");
     setSelectedRegions([...ALL_JURISDICTION_IDS]);
     setGender("all");
     setUnder40(false);
@@ -517,6 +536,19 @@ export default function PositionAlbumsPage() {
     setTablePositionFilter("all");
     setDetailsFilterOpen(false);
     setCustomizerOpen(false);
+    setPage(1);
+  };
+
+  const isolateConstituencyExecutives = (targetRegion: string, targetConstituency: string) => {
+    setContest("Custom");
+    setSelectedPositions([...POSITION_PRESETS.constituency_slate.ids]);
+    setRegion(targetRegion);
+    setSelectedRegions([targetRegion]);
+    setConstituency(targetConstituency);
+    setSelectedLevels(["Constituency"]);
+    setLevel("Constituency");
+    setGender("all");
+    setUnder40(false);
     setPage(1);
   };
 
@@ -572,12 +604,17 @@ export default function PositionAlbumsPage() {
         ? (region === "all" ? true : String(d.region || "").toLowerCase() === region.toLowerCase())
         : selectedRegions.some((r) => r.toLowerCase() === String(d.region || "").toLowerCase());
 
+    const matchesConstituency =
+      constituency === "all" ||
+      normalizeConstituency(d.constituency).toLowerCase() === normalizeConstituency(constituency).toLowerCase();
+
     return (
       matchesLevel &&
       matchesGender &&
       matchesUnder40 &&
       matchesTablePosition &&
       matchesRegion &&
+      matchesConstituency &&
       [d.executive_name, d.voter_id, d.constituency, d.region, d.canonical_position].some((value) =>
         String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())
       )
@@ -623,7 +660,7 @@ export default function PositionAlbumsPage() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = `NPP_${safeContestFilename}_${region}_Electorate_2026.json`;
+    link.download = `NPP_${safeContestFilename}_${safeScopeFilename}_Electorate_2026.json`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -699,7 +736,7 @@ export default function PositionAlbumsPage() {
               </a>
             </Button>
             <Button asChild variant="outline" disabled={!data || !delegates.length}>
-              <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${region}_Voter_Directory_2026.xlsx`}>
+              <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${safeScopeFilename}_Voter_Directory_2026.xlsx`}>
                 <Download className="size-4" /> Download Excel (.xlsx)
               </a>
             </Button>
@@ -713,7 +750,7 @@ export default function PositionAlbumsPage() {
           const excludedJurisdiction = ALL_ELECTORAL_JURISDICTIONS.find((j) => !selectedRegions.includes(j.id));
           const excludedRegLabel = excludedJurisdiction ? excludedJurisdiction.shortName : "1 region";
 
-          const isAllJurisdictions = selectedRegions.length === ALL_JURISDICTION_IDS.length;
+          const isAllJurisdictions = selectedRegions.length === ALL_JURISDICTION_IDS.length && constituency === "all";
           const isJurisdictionsActive = !isAllJurisdictions;
 
           const excludedLevel = ALL_CUSTOMIZABLE_LEVELS.find((l) => !selectedLevels.includes(l.id));
@@ -1905,7 +1942,7 @@ export default function PositionAlbumsPage() {
                           })}
                         </div>
 
-                        {/* Native Select for single region compatibility */}
+                        {/* Native Select for single region and single constituency isolation */}
                         <div className="pt-2 border-t flex flex-wrap items-center gap-3">
                           <label htmlFor="region" className="text-xs font-semibold text-muted-foreground">
                             Quick Single-Region Selector:
@@ -1916,6 +1953,7 @@ export default function PositionAlbumsPage() {
                             onChange={(e) => {
                               const val = e.target.value;
                               setRegion(val);
+                              setConstituency("all");
                               if (val === "all") {
                                 setSelectedRegions([...ALL_JURISDICTION_IDS]);
                               } else {
@@ -1923,7 +1961,7 @@ export default function PositionAlbumsPage() {
                               }
                               setPage(1);
                             }}
-                            className="w-72 text-xs"
+                            className="w-64 text-xs"
                           >
                             {REGION_OPTIONS.map((item) => (
                               <option key={item.value} value={item.value}>
@@ -1931,6 +1969,65 @@ export default function PositionAlbumsPage() {
                               </option>
                             ))}
                           </NativeSelect>
+
+                          <label htmlFor="constituency" className="text-xs font-semibold text-muted-foreground">
+                            Constituency Filter:
+                          </label>
+                          <NativeSelect
+                            id="constituency"
+                            value={constituency}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setConstituency(val);
+                              if (val !== "all" && region === "all") {
+                                for (const [regName, cList] of Object.entries(OFFICIAL_CONSTITUENCIES_BY_REGION)) {
+                                  if (cList.includes(val)) {
+                                    setRegion(regName);
+                                    setSelectedRegions([regName]);
+                                    break;
+                                  }
+                                }
+                              }
+                              setPage(1);
+                            }}
+                            className="w-72 text-xs"
+                          >
+                            <option value="all">
+                              {region === "all"
+                                ? "All 275 Constituencies"
+                                : `All ${region} Constituencies (${getConstituenciesForRegion(region).length})`}
+                            </option>
+                            {region !== "all" ? (
+                              getConstituenciesForRegion(region).map((cName) => (
+                                <option key={cName} value={cName}>
+                                  {cName}
+                                </option>
+                              ))
+                            ) : (
+                              Object.entries(OFFICIAL_CONSTITUENCIES_BY_REGION).map(([regName, cList]) => (
+                                <optgroup key={regName} label={`${regName} (${cList.length})`}>
+                                  {cList.map((cName) => (
+                                    <option key={`${regName}-${cName}`} value={cName}>
+                                      {cName}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              ))
+                            )}
+                          </NativeSelect>
+
+                          {constituency !== "all" && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              className="h-8 text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 dark:bg-amber-950 dark:text-amber-200 border border-amber-300"
+                              onClick={() => isolateConstituencyExecutives(region, constituency)}
+                              title={`Isolate only the 19 statutory Constituency Executives for ${constituency}`}
+                            >
+                              Isolate {constituency} Constituency Executives (19)
+                            </Button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -2938,12 +3035,13 @@ export default function PositionAlbumsPage() {
                             <TableHead className="text-center">Variance</TableHead>
                             <TableHead className="text-center">Compliance Rate</TableHead>
                             <TableHead className="text-center">Status</TableHead>
+                            <TableHead className="text-center">Action</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {pagedConstituencies.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
+                              <TableCell colSpan={11} className="h-32 text-center text-muted-foreground">
                                 No constituencies match your search or filter.
                               </TableCell>
                             </TableRow>
@@ -2994,6 +3092,20 @@ export default function PositionAlbumsPage() {
                                   >
                                     {c.status}
                                   </Badge>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-6 text-[11px] px-2"
+                                    onClick={() => {
+                                      isolateConstituencyExecutives(c.region, c.constituency);
+                                      setTab("preview");
+                                    }}
+                                  >
+                                    Load Album
+                                  </Button>
                                 </TableCell>
                               </TableRow>
                             ))

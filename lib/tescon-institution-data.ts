@@ -1,4 +1,3 @@
-
 /**
  * Canonical accredited tertiary institutions per region (251 total)
  */
@@ -14,8 +13,6 @@ export const CANONICAL_TESCON_INSTITUTIONS_BY_REGION: Record<string, string[]> =
     "Tanoso Nursing and Midwifery Training College"
   ],
   "Ashanti": [
-    "AAMUSTED (Kumasi Campus)",
-    "AAMUSTED (Mampong Campus)",
     "Afia Kobi Ampem Girls' / Royal Nursing College",
     "Agogo Presbyterian Nursing and Midwifery Training College",
     "Agogo Presbyterian Women's College of Education",
@@ -59,6 +56,8 @@ export const CANONICAL_TESCON_INSTITUTIONS_BY_REGION: Record<string, string[]> =
     "St. Patrick's Nursing and Midwifery Training College, Offinso",
     "Tepa Nursing Training College",
     "University of Ghana (Kumasi City Campus)",
+    "University of Skills Training and Entreprenuerial Development USTED (Kumasi Campus)",
+    "University of Skills Training and Entreprenuerial Development USTED (Mampong Campus)",
     "Valley View University (Kumasi Campus)",
     "Wesley College of Education",
     "Wisconsin International University College (Kumasi Campus)",
@@ -355,15 +354,6 @@ export const CANONICAL_TO_RAW_STATIONS_BY_REGION: Record<string, Record<string, 
     ]
   },
   "Ashanti": {
-    "AAMUSTED (Kumasi Campus)": [
-      "AAMUSTED Kumasi Campus",
-      "AAMUSTED, KUMASI"
-    ],
-    "AAMUSTED (Mampong Campus)": [
-      "AAMUSTED Mampong Campus",
-      "MAMPONG TECHNICAL COLLEGE OF EDUCATION",
-      "Mampong Technical Institute (MAMTECH)"
-    ],
     "Afia Kobi Ampem Girls' / Royal Nursing College": [
       "Afia Kobi/royal Nursing",
       "Royal Nursing College"
@@ -550,6 +540,28 @@ export const CANONICAL_TO_RAW_STATIONS_BY_REGION: Record<string, Record<string, 
       "University Of Ghana Ksi Campus",
       "University of Ghana Kumasi City Campus",
       "University of Ghana, KSI Campus"
+    ],
+    "University of Skills Training and Entreprenuerial Development USTED (Kumasi Campus)": [
+      "AAMUSTED (Kumasi Campus)",
+      "AAMUSTED Kumasi Campus",
+      "AAMUSTED, KUMASI",
+      "UNIVERSITY OF SKILLS TRAINING AND ENTREPRENEURIAL DEVELOPMENT, KUMASI",
+      "UNIVERSITY OF SKILLS TRAINING AND ENTREPRENEURIAL DEVELOPMENT, KUMASI CAMPUS",
+      "UNIVERSITY OF SKILLS TRAINING AND ENTREPRENUERIAL DEVELOPMENT USTED, KUMASI",
+      "University of Skills Training and Entrepreneurial Development USTED (Kumasi Campus)",
+      "University of Skills Training and Entreprenuerial Development USTED (Kumasi Campus)"
+    ],
+    "University of Skills Training and Entreprenuerial Development USTED (Mampong Campus)": [
+      "AAMUSTED (Mampong Campus)",
+      "AAMUSTED Mampong Campus",
+      "AAMUSTED, MAMPONG",
+      "MAMPONG TECHNICAL COLLEGE OF EDUCATION",
+      "Mampong Technical Institute (MAMTECH)",
+      "UNIVERSITY OF SKILLS TRAINING AND ENTREPRENEURIAL DEVELOPMENT, MAMPONG",
+      "UNIVERSITY OF SKILLS TRAINING AND ENTREPRENEURIAL DEVELOPMENT, MAMPONG ",
+      "UNIVERSITY OF SKILLS TRAINING AND ENTREPRENUERIAL DEVELOPMENT USTED, MAMPONG",
+      "University of Skills Training and Entrepreneurial Development USTED (Mampong Campus)",
+      "University of Skills Training and Entreprenuerial Development USTED (Mampong Campus)"
     ],
     "Valley View University (Kumasi Campus)": [
       "VALLEY VIEW UNIVERSITY COLLEGE-KUMASI",

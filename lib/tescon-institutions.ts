@@ -647,16 +647,22 @@ export function normalizeTesconInstitution(
     s.includes("KNUST") ||
     s.includes("MAMPONG") ||
     s.includes("AAMUSTED") ||
+    s.includes("USTED") ||
+    s.includes("SKILLS TRAINING") ||
     s.includes("AGOGO") ||
     s.includes("OFFINSO") ||
     s.includes("KWADASO")
   ) {
     if (id === 259965) return "Offinso College of Education";
     if (id === 260133) return "Agogo Presbyterian Women's College of Education";
-    if (s.includes("MAMTECH") || s.includes("MAMPONG TECHNICAL")) return "AAMUSTED (Mampong Campus)";
-    if (s.includes("AAMUSTED") || s.includes("SKILLS TRAINING")) {
-      if (s.includes("MAMPONG")) return "AAMUSTED (Mampong Campus)";
-      return "AAMUSTED (Kumasi Campus)";
+    if (s.includes("MAMTECH") || s.includes("MAMPONG TECHNICAL")) {
+      return "University of Skills Training and Entreprenuerial Development USTED (Mampong Campus)";
+    }
+    if (s.includes("AAMUSTED") || s.includes("USTED") || s.includes("SKILLS TRAINING")) {
+      if (s.includes("MAMPONG")) {
+        return "University of Skills Training and Entreprenuerial Development USTED (Mampong Campus)";
+      }
+      return "University of Skills Training and Entreprenuerial Development USTED (Kumasi Campus)";
     }
     if (s.includes("AFIA KOBI") || (s.includes("ROYAL NURSING") && !s.includes("ROYAL ANN"))) {
       return "Afia Kobi Ampem Girls' / Royal Nursing College";
