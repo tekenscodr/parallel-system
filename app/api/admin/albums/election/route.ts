@@ -1309,8 +1309,13 @@ export async function GET(req: NextRequest) {
         const canonPos = normalizeCanonicalPosition(r.position, r.executive_level);
         const posRank = normalizePositionRank(r.position);
         const levelRank = CANONICAL_LEVEL_ORDER[isExternal ? "external branch" : lvl] || 99;
-        const regName = isExternal ? "External Branches" : String(r.region || "Unassigned").trim();
-        const conName = String(r.constituency || "").trim();
+        const rawRegionTrimmed = String(r.region || "Unassigned").trim();
+        const canonicalReg =
+          GHANA_REGIONS_ORDER.find((gr) => gr.toLowerCase() === rawRegionTrimmed.toLowerCase()) ||
+          rawRegionTrimmed;
+        const regName = isExternal ? "External Branches" : canonicalReg;
+        const rawConTrimmed = String(r.constituency || "").trim();
+        const conName = isExternal || lvl === "tescon" ? rawConTrimmed : (normalizeConstituency(rawConTrimmed) || rawConTrimmed);
         const age = calculateAgeIn2026(r.date_of_birth, r.age);
         const hasVoterId = Boolean(r.voter_id && String(r.voter_id).trim().length === 10);
         const isTescon = lvl === "tescon";
@@ -2219,26 +2224,28 @@ export async function GET(req: NextRequest) {
             rate: "100%",
           });
         }
+      }
 
-        // Members of Parliament (MPs) in this region
-        const mpsInReg = delegates.filter(
-          (d) =>
-            getRegionalSectionRank(d) === 4 &&
-            (String(d.region || "").toLowerCase().trim() === selectedRegion.toLowerCase().trim() ||
-              selectedRegion.toLowerCase().includes(String(d.region || "").toLowerCase().trim()))
-        );
-        if (mpsInReg.length > 0) {
-          auditItems.push({
-            isRegional: true,
-            num: "MP",
-            name: `${selectedRegion} Members of Parliament (MPs)`,
-            level: "Parliament",
-            confirmed: mpsInReg.length,
-            target: mpsInReg.length,
-            variance: "0",
-            rate: "100%",
-          });
-        }
+      // Members of Parliament (MPs) in this region / constituency
+      const mpsInReg = delegates.filter(
+        (d) =>
+          getRegionalSectionRank(d) === 4 &&
+          (String(d.region || "").toLowerCase().trim() === selectedRegion.toLowerCase().trim() ||
+            selectedRegion.toLowerCase().includes(String(d.region || "").toLowerCase().trim()))
+      );
+      if (mpsInReg.length > 0) {
+        auditItems.push({
+          isRegional: true,
+          num: "MP",
+          name: isSingleConstituency
+            ? `${selectedConstituency} Sitting Member of Parliament (MP)`
+            : `${selectedRegion} Members of Parliament (MPs)`,
+          level: "Parliament",
+          confirmed: mpsInReg.length,
+          target: mpsInReg.length,
+          variance: "0",
+          rate: "100%",
+        });
       }
 
       if (includeConstituency) {
@@ -3137,6 +3144,8 @@ export async function GET(req: NextRequest) {
       targetElected: number;
       confirmedAppointed: number;
       targetAppointed: number;
+      sittingMp: number;
+      mpName: string | null;
       variance: number;
       complianceRate: string;
       status: "Compliant" | "Under Quota" | "Over Quota";
@@ -3192,6 +3201,24 @@ export async function GET(req: NextRequest) {
               String(d.region).toLowerCase().trim() === reg.toLowerCase().trim())
         );
 
+        const mpRows = isRegExternal
+          ? []
+          : validRows.filter(
+              (r) =>
+                getRegionalSectionRank({
+                  position: r.position,
+                  executive_level: r.executive_level,
+                }) === 4 &&
+                (normalizeConstituency(String(r.constituency || "")) === norm ||
+                  String(r.constituency || "").toLowerCase().trim() === cName.toLowerCase().trim()) &&
+                (!r.region || String(r.region).toLowerCase().trim() === reg.toLowerCase().trim())
+            );
+        const sittingMp = mpRows.length;
+        const mpName =
+          sittingMp > 0
+            ? mpRows.map((m) => String(m.executive_name || "").trim().toUpperCase()).join(", ")
+            : null;
+
         const conConfirmed = conDelegates.length;
         const target = isRegExternal ? externalTargetPerUnit : constituencyTargetPerUnit;
         const confirmedElected = conDelegates.filter((d) =>
@@ -3219,6 +3246,8 @@ export async function GET(req: NextRequest) {
           targetElected,
           confirmedAppointed,
           targetAppointed,
+          sittingMp,
+          mpName,
           variance,
           complianceRate,
           status,
@@ -4018,14 +4047,18 @@ function generateAlbumHtml(
     if (hasRegionalOrCouncilOrMp) {
       const regionalGroups = new Map<string, any[]>();
       for (const delegate of regionalDelegates) {
-        const regionName = String(delegate.region || "Unassigned").trim();
+        const rawReg = String(delegate.region || "Unassigned").trim();
+        const regionName =
+          GHANA_REGIONS_ORDER.find((gr) => gr.toLowerCase() === rawReg.toLowerCase()) || rawReg;
         if (!regionalGroups.has(regionName)) regionalGroups.set(regionName, []);
         regionalGroups.get(regionName)!.push(delegate);
       }
       for (const d of delegates) {
         const rank = getRegionalSectionRank(d);
         if (rank === 2 || rank === 3 || rank === 4) {
-          const reg = String(d.region || "").trim();
+          const rawReg = String(d.region || "").trim();
+          const reg =
+            GHANA_REGIONS_ORDER.find((gr) => gr.toLowerCase() === rawReg.toLowerCase()) || rawReg;
           if (reg && !reg.toLowerCase().includes("external") && reg.toLowerCase() !== "national" && !regionalGroups.has(reg)) {
             regionalGroups.set(reg, []);
           }

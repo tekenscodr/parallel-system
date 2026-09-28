@@ -116,6 +116,8 @@ type ConstituencyAuditItem = {
   targetElected?: number;
   confirmedAppointed?: number;
   targetAppointed?: number;
+  sittingMp?: number;
+  mpName?: string | null;
 };
 
 type AlbumData = {
@@ -3031,6 +3033,7 @@ export default function PositionAlbumsPage() {
                             <TableHead className="text-center">Total Confirmed</TableHead>
                             <TableHead className="text-center">Elected (x/11)</TableHead>
                             <TableHead className="text-center">Appointed (x/8)</TableHead>
+                            <TableHead className="text-center">Sitting MP</TableHead>
                             <TableHead className="text-center">Statutory Quota</TableHead>
                             <TableHead className="text-center">Variance</TableHead>
                             <TableHead className="text-center">Compliance Rate</TableHead>
@@ -3041,7 +3044,7 @@ export default function PositionAlbumsPage() {
                         <TableBody>
                           {pagedConstituencies.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={11} className="h-32 text-center text-muted-foreground">
+                              <TableCell colSpan={12} className="h-32 text-center text-muted-foreground">
                                 No constituencies match your search or filter.
                               </TableCell>
                             </TableRow>
@@ -3065,6 +3068,18 @@ export default function PositionAlbumsPage() {
                                   <span className={c.confirmedAppointed !== undefined && c.confirmedAppointed < (c.targetAppointed ?? 8) ? "text-amber-600 dark:text-amber-400 font-medium" : "text-emerald-700 dark:text-emerald-400 font-semibold"}>
                                     {c.confirmedAppointed ?? "—"} / {c.targetAppointed ?? 8}
                                   </span>
+                                </TableCell>
+                                <TableCell className="text-center text-xs" title={c.mpName || undefined}>
+                                  {(c.sittingMp ?? 0) > 0 ? (
+                                    <span className="inline-flex flex-col items-center leading-tight">
+                                      <span className="text-blue-700 dark:text-blue-400 font-semibold">Yes ({c.sittingMp})</span>
+                                      {c.mpName && (
+                                        <span className="text-[10px] text-muted-foreground max-w-[140px] truncate">{c.mpName}</span>
+                                      )}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground">—</span>
+                                  )}
                                 </TableCell>
                                 <TableCell className="text-center text-xs">{c.target}</TableCell>
                                 <TableCell className="text-center text-xs">
