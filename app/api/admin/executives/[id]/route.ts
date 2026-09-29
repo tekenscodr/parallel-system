@@ -6,6 +6,7 @@ import { getVoterPhotoUrl } from "@/lib/voter-photo";
 import { saveUploadedExecutiveImage } from "@/lib/image-upload";
 import { normalizeConstituency, normalizeRegionName } from "@/lib/constituency-normalizer";
 import { getC1SqlCondition, isC1FemaleElectoralDelegate } from "@/lib/c1-electoral-college";
+import { normalizeTesconInstitution } from "@/lib/tescon-institutions";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -85,10 +86,17 @@ export async function GET(req: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Executive record not found" }, { status: 404 });
     }
 
+    const normRegion = row.region ? normalizeRegionName(row.region) : row.region;
+    const normConst = row.constituency ? normalizeConstituency(row.constituency) : row.constituency;
+    const isTescon = String(row.executiveLevel || "").toUpperCase() === "TESCON";
+
     const normalizedExecutive = {
       ...row,
-      region: row.region ? normalizeRegionName(row.region) : row.region,
-      constituency: row.constituency ? normalizeConstituency(row.constituency) : row.constituency,
+      region: normRegion,
+      constituency: normConst,
+      pollingStation: isTescon && row.pollingStation
+        ? normalizeTesconInstitution(row.pollingStation, normRegion, normConst, row.id)
+        : row.pollingStation,
     };
 
     return NextResponse.json({ executive: normalizedExecutive });

@@ -133,9 +133,7 @@ export const CANONICAL_TESCON_INSTITUTIONS_BY_REGION: Record<string, string[]> =
     "S.D.A. College of Education, Asokore-Koforidua",
     "Saviour Church Nursing and Midwifery Training College",
     "University College of Agriculture and Environmental Studies, Bunso",
-    "University of Education, Winneba (Ajumako Campus)",
-    "University of Environment and Sustainable Development (UESD)",
-    "University of Ghana (Main Campus - Legon)"
+    "University of Environment and Sustainable Development (UESD)"
   ],
   "Greater Accra": [
     "Accra Business School",
@@ -851,15 +849,9 @@ export const CANONICAL_TO_RAW_STATIONS_BY_REGION: Record<string, Record<string, 
       "University College Of Agriculture And Environmental Studies",
       "University College of Agriculture and Environmental Studies"
     ],
-    "University of Education, Winneba (Ajumako Campus)": [
-      "University of Education, Winneba (Ajumako Campus)"
-    ],
     "University of Environment and Sustainable Development (UESD)": [
       "UNIVERSITY OF ENVIRONMENT AND SUSTAINABLE DEVELOPMENT",
       "University of Environment and Sustainable Development Somanya"
-    ],
-    "University of Ghana (Main Campus - Legon)": [
-      "University Of Ghana Main Campus"
     ]
   },
   "Greater Accra": {
@@ -1442,9 +1434,40 @@ export function buildTesconInstitutionCondition(
 
   const aliases = Array.from(aliasSet).filter((a) => Boolean(a && a.trim()));
 
+  if (inst === "Methodist University Ghana (Dansoman Campus)") {
+    return sql`(
+      (
+        polling_station = ${inst}
+        OR polling_station ILIKE ${"%" + inst + "%"}
+        ${aliases.length > 0 ? sql`OR polling_station IN ${sql(aliases)}` : sql``}
+        OR (polling_station ILIKE '%Methodist%' AND constituency ILIKE '%ABLEKUMA%')
+      )
+      AND polling_station NOT ILIKE '%Tema%'
+      AND polling_station NOT ILIKE '%Wenchi%'
+      AND polling_station NOT ILIKE '%Ofuman%'
+      AND COALESCE(constituency, '') NOT ILIKE '%TEMA%'
+    )`;
+  }
+
+  if (inst === "Methodist University Ghana (Tema Campus)") {
+    return sql`(
+      (
+        polling_station = ${inst}
+        OR polling_station ILIKE ${"%" + inst + "%"}
+        ${aliases.length > 0 ? sql`OR polling_station IN ${sql(aliases)}` : sql``}
+        OR (polling_station ILIKE '%Methodist%' AND constituency ILIKE '%TEMA%')
+      )
+      AND polling_station NOT ILIKE '%Dansoman%'
+      AND polling_station NOT ILIKE '%Wenchi%'
+      AND polling_station NOT ILIKE '%Ofuman%'
+      AND COALESCE(constituency, '') NOT ILIKE '%ABLEKUMA%'
+    )`;
+  }
+
   return sql`(
     polling_station = ${inst}
     OR polling_station ILIKE ${"%" + inst + "%"}
     ${aliases.length > 0 ? sql`OR polling_station IN ${sql(aliases)}` : sql``}
   )`;
 }
+

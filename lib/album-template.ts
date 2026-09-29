@@ -161,13 +161,15 @@ export function generateAlbumHtml(
     const isConstituency = String(d.executive_level || "").toLowerCase().trim() === "constituency";
     const isExtBranch = String(d.executive_level || "").toLowerCase().trim() === "external branch";
 
-    // For Nasara, Women and Youth: constituency cards display jurisdiction beside Level; For MPs, display constituency
+    // For Nasara, Women and Youth: constituency cards display jurisdiction beside Level; For MPs & TESCON, display constituency
     const isMp = getRegionalSectionRank(d) === 4;
     const isNational = String(d.executive_level || "").toLowerCase().trim() === "national";
     const natSectionInfo = isNational ? getNationalSectionInfo(d) : null;
     const jurisdictionSuffix =
       isNational && natSectionInfo
         ? ` · ${natSectionInfo.section}`
+        : isTescon && d.constituency
+        ? ` (${String(d.constituency).trim()})`
         : ((isWingAlbum && (isConstituency || isExtBranch) && d.constituency) || (isMp && d.constituency))
         ? ` (${String(d.constituency).trim()})`
         : "";
@@ -200,7 +202,7 @@ export function generateAlbumHtml(
             </div>
             ` : ""}
             ${showInstitution && isTescon && institution ? `
-            <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${institution}">
+            <div class="detail-line" style="line-height: 1.12;" title="${institution}">
               <span class="lbl">Institution:</span> <span class="val" style="font-weight: 700;">${institution}</span>
             </div>
             ` : ""}
@@ -224,7 +226,7 @@ export function generateAlbumHtml(
               <span class="lbl">${isYouthAlbum ? "Gender:" : "Demographics:"}</span> <span class="val">${isYouthAlbum && d.gender && d.gender !== "Unknown" ? d.gender : demographicText}</span>
             </div>
             ` : ""}
-            ${showPollingStation && d.polling_station ? `
+            ${showPollingStation && !isTescon && d.polling_station ? `
             <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${d.polling_station}">
               <span class="lbl">Station:</span> <span class="val">${d.polling_station}</span>
             </div>

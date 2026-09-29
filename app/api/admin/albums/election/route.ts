@@ -785,6 +785,7 @@ export async function GET(req: NextRequest) {
       : [];
   const isSingleConstituency = rawConstituenciesList.length === 1;
   const selectedConstituency = isSingleConstituency ? normalizeConstituency(rawConstituenciesList[0]) : "";
+  const institutionQuery = (searchParams.get("institution") || searchParams.get("inst") || "").trim();
   const scopeQuery = expandShortScopeCode((searchParams.get("scope") || searchParams.get("sc") || "").trim().toLowerCase());
   const format = (searchParams.get("format") || "json").toLowerCase();
   const rawAlbumType = (searchParams.get("album_type") || searchParams.get("type") || searchParams.get("t") || "provisional").trim().toLowerCase();
@@ -1419,6 +1420,17 @@ export async function GET(req: NextRequest) {
           return rowCon.toLowerCase() === tLower || normRowCon === normTarget;
         });
         if (!matchesConstituency) {
+          return false;
+        }
+      }
+
+      // Optional TESCON Institution / Campus Filter
+      if (institutionQuery && institutionQuery.toLowerCase() !== "all") {
+        const rowLvl = String(r.executive_level || "").toLowerCase().trim();
+        if (rowLvl !== "tescon") return false;
+        const rowInst = getTesconInstitution(r as any).toLowerCase().trim();
+        const targetInst = institutionQuery.toLowerCase().trim();
+        if (rowInst !== targetInst) {
           return false;
         }
       }
@@ -3939,13 +3951,15 @@ function generateAlbumHtml(
     const isConstituency = String(d.executive_level || "").toLowerCase().trim() === "constituency";
     const isExtBranch = String(d.executive_level || "").toLowerCase().trim() === "external branch";
 
-    // For Nasara, Women and Youth: constituency cards display jurisdiction beside Level; For MPs, display constituency
+    // For Nasara, Women and Youth: constituency cards display jurisdiction beside Level; For MPs & TESCON, display constituency
     const isMp = getRegionalSectionRank(d) === 4;
     const isNational = String(d.executive_level || "").toLowerCase().trim() === "national";
     const natSectionInfo = isNational ? getNationalSectionInfo(d) : null;
     const jurisdictionSuffix =
       isNational && natSectionInfo
         ? ` · ${natSectionInfo.section}`
+        : isTescon && d.constituency
+        ? ` (${String(d.constituency).trim()})`
         : ((isWingAlbum && (isConstituency || isExtBranch) && d.constituency) || (isMp && d.constituency))
         ? ` (${String(d.constituency).trim()})`
         : "";
@@ -3981,7 +3995,7 @@ function generateAlbumHtml(
             </div>
             ` : ""}
             ${showInstitution && isTescon && institution ? `
-            <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${institution}">
+            <div class="detail-line" style="line-height: 1.12;" title="${institution}">
               <span class="lbl">Institution:</span> <span class="val" style="font-weight: 700;">${institution}</span>
             </div>
             ` : ""}
@@ -4005,7 +4019,7 @@ function generateAlbumHtml(
               <span class="lbl">${isYouthAlbum ? "Gender:" : "Demographics:"}</span> <span class="val">${isYouthAlbum && d.gender && d.gender !== "Unknown" ? d.gender : demographicText}</span>
             </div>
             ` : ""}
-            ${showPollingStation && d.polling_station ? `
+            ${showPollingStation && !isTescon && d.polling_station ? `
             <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${d.polling_station}">
               <span class="lbl">Station:</span> <span class="val">${d.polling_station}</span>
             </div>
@@ -4855,7 +4869,7 @@ function generateAlbumHtml(
                 <td><strong>${escapeHtmlText(v.name)}</strong></td>
                 <td>${escapeHtmlText(v.position)}</td>
                 <td>${escapeHtmlText(
-                  [v.level, v.constituency || v.institution || v.region]
+                  [v.level, v.institution, v.constituency || v.region]
                     .filter(Boolean)
                     .join(" · ")
                 )}</td>
@@ -4907,7 +4921,7 @@ function generateAlbumHtml(
       } else {
         var pageImgs = document.querySelectorAll('#album-page-' + entry.page + ' .voter-card .voter-img');
         var rowsHtml = entry.voters.map(function(v, idx) {
-          var jur = [v.level, v.constituency || v.institution || v.region].filter(Boolean).join(" · ");
+          var jur = [v.level, v.institution, v.constituency || v.region].filter(Boolean).join(" · ");
           var imgEl = pageImgs[idx];
           var thumbSrc = imgEl ? (imgEl.getAttribute('src') || '') : '';
           var thumbHtml = thumbSrc

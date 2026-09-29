@@ -163,7 +163,7 @@ export function getNationalSectionInfo(delegate: {
     ((s.includes("organiser") || s.includes("organizer")) && !s.includes("director") && !s.includes("branch")) ||
     s.includes("women organiser") || s.includes("woman organiser") ||
     s.includes("youth organiser") ||
-    s.includes("nasara");
+    s.includes("nasara") || s.includes("national council rep");
 
   if (
     (isNationalExecutive || isDirector) &&

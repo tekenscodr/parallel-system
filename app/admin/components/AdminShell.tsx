@@ -57,35 +57,33 @@ export function AdminShell({
   // Monitor token expiration & auto-logout when expired
   useSessionGuard();
 
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        if (window.innerWidth < 1024) return false;
-        const savedSidebar = localStorage.getItem("admin_sidebar_open");
-        if (savedSidebar !== null) return savedSidebar === "true";
-      } catch {
-        // ignore
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [cachedRole, setCachedRole] = useState("");
+
+  useEffect(() => {
+    try {
+      const savedRole = localStorage.getItem("admin_user_role");
+      if (savedRole) {
+        setCachedRole(savedRole);
       }
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false);
+      } else {
+        const savedSidebar = localStorage.getItem("admin_sidebar_open");
+        if (savedSidebar !== null) {
+          setSidebarOpen(savedSidebar === "true");
+        }
+      }
+    } catch {
+      // ignore
     }
-    return true;
-  });
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
       setSidebarOpen(false);
     }
   }, [pathname]);
-
-  const [cachedRole] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        return localStorage.getItem("admin_user_role") || "";
-      } catch {
-        // ignore
-      }
-    }
-    return "";
-  });
 
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState<"prompt" | "form">("prompt");
@@ -147,6 +145,7 @@ export function AdminShell({
   useEffect(() => {
     if (currentUser?.role) {
       const upper = String(currentUser.role).toUpperCase();
+      setCachedRole(upper);
       try {
         localStorage.setItem("admin_user_role", upper);
       } catch {

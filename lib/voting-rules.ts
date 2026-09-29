@@ -1,4 +1,5 @@
 import { normalizeConstituency, normalizeRegionName } from "@/lib/constituency-normalizer";
+import { normalizeTesconInstitution } from "@/lib/tescon-institutions";
 
 export type VotingSource = {
   id: number; executive_name: string | null; executive_level: string | null;
@@ -205,7 +206,15 @@ export function buildVotingReport(source: VotingSource[]) {
     const constituencies = unique(rows.map(r => {
       const level = getRowLevel(r);
       const regNorm = normalizeRegionName(clean(r.region));
-      return level==='national' ? 'National level' : ['region','regional'].includes(level) ? 'Regional level' : regNorm==='External Branch' ? clean(r.constituency) : normalizeConstituency(clean(r.constituency));
+      if (level === 'national') return 'National level';
+      if (['region', 'regional'].includes(level)) return 'Regional level';
+      if (regNorm === 'External Branch') return clean(r.constituency);
+      const normCon = normalizeConstituency(clean(r.constituency));
+      if (level === 'tescon' && r.polling_station) {
+        const inst = normalizeTesconInstitution(r.polling_station, regNorm, normCon, r.id);
+        if (inst) return normCon ? `${inst} (${normCon})` : inst;
+      }
+      return normCon;
     }));
     const constituency = constituencies.length===1 ? constituencies[0] : constituencies.length===0 ? 'Unassigned' : 'Multiple jurisdictions - review';
     if (region.includes('review') || constituency.includes('review')) issues.push('Multiple jurisdictions require allocation');

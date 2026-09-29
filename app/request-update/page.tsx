@@ -45,6 +45,7 @@ interface ExecutiveRecord {
   executive_level: string;
   region: string;
   constituency: string | null;
+  polling_station?: string | null;
   position: string;
   phone: string | null;
   email: string | null;
@@ -441,6 +442,7 @@ export default function PublicRequestUpdatePage() {
                                 <div className="text-xs text-slate-400">{exec.position}</div>
                                 <div className="text-[11px] text-slate-500">
                                   {exec.region} {exec.constituency ? `• ${exec.constituency}` : ""}
+                                  {exec.polling_station ? ` • ${exec.polling_station}` : ""}
                                 </div>
                               </div>
                             </div>
@@ -469,7 +471,9 @@ export default function PublicRequestUpdatePage() {
                     <CardDescription className="text-xs text-slate-400 mt-1">
                       Modifying record for{" "}
                       <span className="font-bold text-slate-200">{selectedExecutive.executive_name}</span>{" "}
-                      ({selectedExecutive.position} • {selectedExecutive.region})
+                      ({selectedExecutive.position} • {selectedExecutive.region}
+                      {selectedExecutive.constituency ? ` • ${selectedExecutive.constituency}` : ""}
+                      {selectedExecutive.polling_station ? ` • ${selectedExecutive.polling_station}` : ""})
                     </CardDescription>
                   </div>
 

@@ -300,3 +300,56 @@ test("users API creation route accepts C1 role", () => {
   assert.equal(getTargetRole("NATIONAL"), "NATIONAL");
   assert.equal(getTargetRole("UNKNOWN"), "NATIONAL");
 });
+
+test("AdminShell and Dashboard are hydration-safe and display Aspirant page / All Women light theme", () => {
+  const adminShellSource = readFileSync(path.join(root, "app/admin/components/AdminShell.tsx"), "utf8");
+  const dashboardSource = readFileSync(path.join(root, "app/admin/dashboard/page.tsx"), "utf8");
+  const usersSource = readFileSync(path.join(root, "app/admin/users/page.tsx"), "utf8");
+
+  // 1. Ensure no synchronous localStorage reads in useState initializer or render body in AdminShell
+  assert.equal(
+    adminShellSource.includes('useState<string>(() =>'),
+    false,
+    "AdminShell must not read localStorage in useState initializer (causes SSR/client hydration mismatch)"
+  );
+  assert.equal(
+    adminShellSource.includes('useState(() =>'),
+    false,
+    "AdminShell must not read window.innerWidth in useState initializer (causes SSR/client hydration mismatch)"
+  );
+
+  // 2. Ensure Dashboard does not read localStorage synchronously during render
+  assert.equal(
+    dashboardSource.includes('typeof window !== "undefined" ? localStorage.getItem("admin_user_role")'),
+    false,
+    "Dashboard must not read localStorage synchronously during render (causes SSR/client hydration mismatch)"
+  );
+
+  // 3. Ensure branding displays "Aspirant page" and "All Women", with white background (#ffffff)
+  assert.equal(
+    adminShellSource.includes('"Aspirant page"'),
+    true,
+    "AdminShell should display 'Aspirant page' for C1 users"
+  );
+  assert.equal(
+    adminShellSource.includes('"All Women"'),
+    true,
+    "AdminShell should display 'All Women' instead of 'C1'"
+  );
+  assert.equal(
+    dashboardSource.includes('title={isC1 ? "Aspirant page"'),
+    true,
+    "Dashboard should pass 'Aspirant page' title for C1 users"
+  );
+  assert.equal(
+    dashboardSource.includes("dash-light-theme"),
+    true,
+    "Dashboard should apply light theme class for C1 users"
+  );
+  assert.equal(
+    usersSource.includes("All Women"),
+    true,
+    "Users management page should display 'All Women' label for C1 role"
+  );
+});
+

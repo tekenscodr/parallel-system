@@ -2,7 +2,7 @@ import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { withEcSql } from "@/lib/db-ec";
 import { logAuditEvent, getClientIp } from "@/lib/audit-logger";
 import { buildPositionCondition } from "@/lib/position-matcher";
-import { buildTesconInstitutionCondition } from "@/lib/tescon-institutions";
+import { buildTesconInstitutionCondition, normalizeTesconInstitution } from "@/lib/tescon-institutions";
 import {
   normalizeConstituency,
   normalizeRegionName,
@@ -72,11 +72,11 @@ export async function GET(req: Request) {
         if (normSearchConst && normSearchConst.toUpperCase() !== search.toUpperCase()) {
           const normPattern = `%${normSearchConst}%`;
           conditions.push(
-            sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s} OR constituency ILIKE ${normPattern})`
+            sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s} OR constituency ILIKE ${normPattern} OR polling_station ILIKE ${s})`
           );
         } else {
           conditions.push(
-            sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s})`
+            sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s} OR polling_station ILIKE ${s})`
           );
         }
       }
@@ -244,12 +244,15 @@ export async function GET(req: Request) {
         orderBySql = sql`ORDER BY LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, electoral_area ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       } else if (lowerLevel === "polling station") {
         orderBySql = sql`ORDER BY LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, electoral_area ASC, polling_station ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+      } else if (lowerLevel === "tescon") {
+        orderBySql = sql`ORDER BY LOWER(TRIM(region)) ASC, polling_station ASC, UPPER(TRIM(constituency)) ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       } else {
-        orderBySql = sql`ORDER BY ${levelRankSql} ASC, LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+        orderBySql = sql`ORDER BY ${levelRankSql} ASC, LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, polling_station ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       }
 
       return await sql`
         SELECT 
+          id,
           voter_id,
           executive_name,
           CASE
@@ -309,19 +312,25 @@ export async function GET(req: Request) {
 
     let csvContent = headers.map(escapeCsv).join(",") + "\n";
     for (const r of rows) {
+      const normRegion = r.region ? normalizeRegionName(r.region) : r.region;
+      const normConst = r.constituency ? normalizeConstituency(r.constituency) : r.constituency;
+      const isTescon = String(r.executive_level || "").toUpperCase() === "TESCON";
+      const normStation = isTescon && r.polling_station
+        ? normalizeTesconInstitution(r.polling_station, normRegion, normConst, r.id)
+        : r.polling_station;
       csvContent += [
         r.voter_id,
         r.executive_name,
         r.age,
         r.date_of_birth,
         r.phone,
-        r.region ? normalizeRegionName(r.region) : r.region,
-        r.constituency ? normalizeConstituency(r.constituency) : r.constituency,
+        normRegion,
+        normConst,
         r.position,
         r.executive_level,
         r.slot_status,
         r.electoral_area,
-        r.polling_station,
+        normStation,
         r.gender,
         r.membership_id,
         r.status

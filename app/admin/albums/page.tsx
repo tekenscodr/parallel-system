@@ -76,6 +76,7 @@ import {
   normalizeConstituency,
   OFFICIAL_CONSTITUENCIES_BY_REGION,
 } from "@/lib/constituency-normalizer";
+import { getTesconInstitutionsForRegion } from "@/lib/tescon-institutions";
 
 const REGION_OPTIONS = [
   { value: "all", label: "All Ghana · Nationwide Roll" },
@@ -100,7 +101,7 @@ const REGION_OPTIONS = [
 
 type Delegate = {
   id: string; executive_name: string; executive_level: string; region: string;
-  constituency: string; canonical_position: string; voter_id: string; phone: string;
+  constituency: string; institution?: string; polling_station?: string; canonical_position: string; voter_id: string; phone: string;
   gender: string; age: number | null; is_under_40?: boolean; image_url: string; webp_image_url?: string | null; avatar_svg: string;
 };
 
@@ -155,6 +156,7 @@ export default function PositionAlbumsPage() {
   const [contest, setContest] = useState<ContestType>("Women Organiser");
   const [region, setRegion] = useState("all");
   const [constituency, setConstituency] = useState("all");
+  const [tesconInstitution, setTesconInstitution] = useState("all");
   const [selectedRegions, setSelectedRegions] = useState<string[]>([...ALL_JURISDICTION_IDS]);
   const [albumType, setAlbumType] = useState<"provisional" | "final">("provisional");
   const [gender, setGender] = useState<"all" | "male" | "female">("all");
@@ -273,8 +275,10 @@ export default function PositionAlbumsPage() {
       : "";
   const constituencyQuery =
     constituency !== "all" ? `&constituency=${encodeURIComponent(constituency)}` : "";
+  const institutionQuery =
+    tesconInstitution !== "all" ? `&institution=${encodeURIComponent(tesconInstitution)}` : "";
   const albumTypeQuery = albumType === "final" ? "&album_type=final" : "";
-  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${constituencyQuery}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}${detailsQuery}${genderQuery}${under40Query}${regionsQuery}${albumTypeQuery}`;
+  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${constituencyQuery}${institutionQuery}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}${detailsQuery}${genderQuery}${under40Query}${regionsQuery}${albumTypeQuery}`;
   const requestKey = `${query}&revision=${retry}`;
   const previewUrl = `/api/admin/albums/election?${requestKey}&format=html`;
   const excelDownloadUrl = `/api/admin/albums/election?${query}&format=excel&download=1`;
@@ -483,12 +487,15 @@ export default function PositionAlbumsPage() {
       if (next.length === ALL_JURISDICTION_IDS.length) {
         setRegion("all");
         setConstituency("all");
+        setTesconInstitution("all");
       } else if (next.length === 1) {
         setRegion(next[0]);
         setConstituency("all");
+        setTesconInstitution("all");
       } else {
         setRegion("all");
         setConstituency("all");
+        setTesconInstitution("all");
       }
       return next;
     });
@@ -499,12 +506,14 @@ export default function PositionAlbumsPage() {
     setSelectedRegions([...ALL_JURISDICTION_IDS]);
     setRegion("all");
     setConstituency("all");
+    setTesconInstitution("all");
     setPage(1);
   };
 
   const clearAllRegions = () => {
     setSelectedRegions([]);
     setConstituency("all");
+    setTesconInstitution("all");
     setPage(1);
   };
 
@@ -512,6 +521,7 @@ export default function PositionAlbumsPage() {
     const ids = [...JURISDICTION_PRESETS[presetKey].ids];
     setSelectedRegions(ids);
     setConstituency("all");
+    setTesconInstitution("all");
     if (ids.length === ALL_JURISDICTION_IDS.length) {
       setRegion("all");
     } else if (ids.length === 1) {
@@ -527,6 +537,7 @@ export default function PositionAlbumsPage() {
     setSelectedPositions(getDefaultPositionIdsForContest("Women Organiser", "all_voters"));
     setRegion("all");
     setConstituency("all");
+    setTesconInstitution("all");
     setSelectedRegions([...ALL_JURISDICTION_IDS]);
     setGender("all");
     setUnder40(false);
@@ -547,6 +558,7 @@ export default function PositionAlbumsPage() {
     setRegion(targetRegion);
     setSelectedRegions([targetRegion]);
     setConstituency(targetConstituency);
+    setTesconInstitution("all");
     setSelectedLevels(["Constituency"]);
     setLevel("Constituency");
     setGender("all");
@@ -610,6 +622,10 @@ export default function PositionAlbumsPage() {
       constituency === "all" ||
       normalizeConstituency(d.constituency).toLowerCase() === normalizeConstituency(constituency).toLowerCase();
 
+    const matchesInstitution =
+      tesconInstitution === "all" ||
+      String(d.institution || d.polling_station || "").toLowerCase() === tesconInstitution.toLowerCase();
+
     return (
       matchesLevel &&
       matchesGender &&
@@ -617,7 +633,8 @@ export default function PositionAlbumsPage() {
       matchesTablePosition &&
       matchesRegion &&
       matchesConstituency &&
-      [d.executive_name, d.voter_id, d.constituency, d.region, d.canonical_position].some((value) =>
+      matchesInstitution &&
+      [d.executive_name, d.voter_id, d.constituency, d.region, d.canonical_position, d.institution, d.polling_station].some((value) =>
         String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())
       )
     );
@@ -1956,6 +1973,7 @@ export default function PositionAlbumsPage() {
                               const val = e.target.value;
                               setRegion(val);
                               setConstituency("all");
+                              setTesconInstitution("all");
                               if (val === "all") {
                                 setSelectedRegions([...ALL_JURISDICTION_IDS]);
                               } else {
@@ -2016,6 +2034,35 @@ export default function PositionAlbumsPage() {
                                 </optgroup>
                               ))
                             )}
+                          </NativeSelect>
+
+                          <label htmlFor="tescon-institution" className="text-xs font-semibold text-muted-foreground">
+                            TESCON Institution Filter:
+                          </label>
+                          <NativeSelect
+                            id="tescon-institution"
+                            value={tesconInstitution}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setTesconInstitution(val);
+                              if (val !== "all") {
+                                setSelectedLevels(["TESCON"]);
+                                setLevel("TESCON");
+                              }
+                              setPage(1);
+                            }}
+                            className="w-80 text-xs"
+                          >
+                            <option value="all">
+                              {region === "all"
+                                ? "All Accredited TESCON Campuses (251)"
+                                : `All ${region} TESCON Campuses (${getTesconInstitutionsForRegion(region).length})`}
+                            </option>
+                            {getTesconInstitutionsForRegion(region === "all" ? "" : region).map((instName) => (
+                              <option key={instName} value={instName}>
+                                {instName}
+                              </option>
+                            ))}
                           </NativeSelect>
 
                           {constituency !== "all" && (
@@ -2837,8 +2884,10 @@ export default function PositionAlbumsPage() {
                             setLevel(val);
                             if (val === "all") {
                               setSelectedLevels(ALL_CUSTOMIZABLE_LEVELS.map((l) => l.id));
+                              setTesconInstitution("all");
                             } else if (val !== "custom") {
                               setSelectedLevels([val]);
+                              if (val !== "TESCON") setTesconInstitution("all");
                             }
                             setPage(1);
                           }}
@@ -2851,6 +2900,28 @@ export default function PositionAlbumsPage() {
                             <option key={item} value={item}>{item}</option>
                           ))}
                         </NativeSelect>
+                        {(level === "TESCON" || tesconInstitution !== "all") && (
+                          <NativeSelect
+                            aria-label="Filter by TESCON campus"
+                            className="sm:w-72"
+                            value={tesconInstitution}
+                            onChange={(e) => {
+                              setTesconInstitution(e.target.value);
+                              setPage(1);
+                            }}
+                          >
+                            <option value="all">
+                              {region === "all"
+                                ? "All TESCON Campuses (251)"
+                                : `All ${region} Campuses (${getTesconInstitutionsForRegion(region).length})`}
+                            </option>
+                            {getTesconInstitutionsForRegion(region === "all" ? "" : region).map((instName) => (
+                              <option key={instName} value={instName}>
+                                {instName}
+                              </option>
+                            ))}
+                          </NativeSelect>
+                        )}
                         <Button asChild variant="outline" size="sm">
                           <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${region}_Voter_Directory_2026.xlsx`}>
                             <Download className="size-4" /> Export Excel (.xlsx)
@@ -2864,7 +2935,7 @@ export default function PositionAlbumsPage() {
                       <TableHead>#</TableHead>
                       <TableHead>Delegate</TableHead>
                       {selectedDetails.includes("level") && <TableHead>Level</TableHead>}
-                      <TableHead>Constituency / Region</TableHead>
+                      <TableHead>Institution / Constituency / Region</TableHead>
                       {selectedDetails.includes("position") && <TableHead>Position</TableHead>}
                       {selectedDetails.includes("voter_id") && <TableHead>Voter ID</TableHead>}
                       {selectedDetails.includes("phone") && <TableHead>Phone</TableHead>}
@@ -2892,7 +2963,16 @@ export default function PositionAlbumsPage() {
                           </div>
                         </TableCell>
                         {selectedDetails.includes("level") && <TableCell><Badge variant="secondary">{d.executive_level}</Badge></TableCell>}
-                        <TableCell>{[d.constituency, d.region].filter(Boolean).join(" / ")}</TableCell>
+                        <TableCell>
+                          {String(d.executive_level || "").toUpperCase() === "TESCON" && (d.institution || d.polling_station) ? (
+                            <div className="space-y-0.5">
+                              <div className="font-semibold text-xs text-foreground">{d.institution || d.polling_station}</div>
+                              <div className="text-[11px] text-muted-foreground">{[d.constituency, d.region].filter(Boolean).join(" / ")}</div>
+                            </div>
+                          ) : (
+                            [d.constituency, d.region].filter(Boolean).join(" / ")
+                          )}
+                        </TableCell>
                         {selectedDetails.includes("position") && <TableCell>{d.canonical_position || (d as any).position}</TableCell>}
                         {selectedDetails.includes("voter_id") && <TableCell className="whitespace-nowrap font-mono text-xs">{d.voter_id || "—"}</TableCell>}
                         {selectedDetails.includes("phone") && <TableCell className="whitespace-nowrap">{d.phone || "—"}</TableCell>}

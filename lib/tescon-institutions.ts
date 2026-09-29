@@ -384,6 +384,7 @@ export function normalizeTesconInstitution(
   if (
     reg === "Central" ||
     s.includes("WINNEBA") ||
+    s.includes("AJUMAKO") ||
     s.includes("CAPE COAST") ||
     s.includes("ASSINMAN") ||
     s.includes("FOSU") ||
@@ -570,12 +571,10 @@ export function normalizeTesconInstitution(
     if (s.includes("AGRICULTURE AND ENVIRONMENTAL")) {
       return "University College of Agriculture and Environmental Studies, Bunso";
     }
-    if (s.includes("AJUMAKO")) return "University of Education, Winneba (Ajumako Campus)";
     if (s.includes("ENVIRONMENT AND SUSTAINABLE DEVELOPMENT") || s.includes("UESD")) {
       return "University of Environment and Sustainable Development (UESD)";
     }
     if (s.includes("ASENE") || s.includes("AKROSO")) return "Methodist College of Education, Akim Asene";
-    if (s.includes("GHANA") && s.includes("MAIN CAMPUS")) return "University of Ghana (Main Campus - Legon)";
   }
 
   // 15. GREATER ACCRA (36 institutions)
@@ -584,6 +583,7 @@ export function normalizeTesconInstitution(
     s.includes("ACCRA") ||
     s.includes("KORLE") ||
     s.includes("LEGON") ||
+    (s.includes("GHANA") && s.includes("MAIN CAMPUS")) ||
     s.includes("UPSA") ||
     s.includes("PANTANG") ||
     s.includes("TEMA") ||
@@ -619,7 +619,13 @@ export function normalizeTesconInstitution(
       return "Korle-Bu Nursing and Midwifery Training College";
     }
     if (s.includes("METHODIST")) {
-      if (s.includes("TEMA") || con === "TEMA CENTRAL") {
+      if (
+        s.includes("TEMA") ||
+        con.includes("TEMA") ||
+        id === 264607 ||
+        id === 264657 ||
+        id === 264714
+      ) {
         return "Methodist University Ghana (Tema Campus)";
       }
       return "Methodist University Ghana (Dansoman Campus)";

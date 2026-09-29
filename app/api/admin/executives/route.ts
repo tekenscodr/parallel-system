@@ -11,7 +11,8 @@ import { getVoterPhotoUrl } from "@/lib/voter-photo";
 import { buildPositionCondition } from "@/lib/position-matcher";
 import { saveUploadedExecutiveImage } from "@/lib/image-upload";
 import { getC1SqlCondition, isC1FemaleElectoralDelegate } from "@/lib/c1-electoral-college";
-import { buildTesconInstitutionCondition } from "@/lib/tescon-institutions";
+import { buildTesconInstitutionCondition, normalizeTesconInstitution } from "@/lib/tescon-institutions";
+import { ensureProxyAssignmentsTableExists } from "@/lib/proxy-voting";
 
 export async function GET(req: Request) {
   try {
@@ -69,11 +70,11 @@ export async function GET(req: Request) {
         if (normSearchConst && normSearchConst.toUpperCase() !== search.toUpperCase()) {
           const normPattern = `%${normSearchConst}%`;
           conditions.push(
-            sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s} OR constituency ILIKE ${normPattern})`
+            sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR phone ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s} OR constituency ILIKE ${normPattern} OR polling_station ILIKE ${s})`
           );
         } else {
           conditions.push(
-            sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s})`
+            sql`(executive_name ILIKE ${s} OR voter_id ILIKE ${s} OR phone ILIKE ${s} OR position ILIKE ${s} OR constituency ILIKE ${s} OR polling_station ILIKE ${s})`
           );
         }
       }
@@ -250,8 +251,10 @@ export async function GET(req: Request) {
         orderBySql = sql`ORDER BY LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, electoral_area ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       } else if (lowerLevel === "polling station") {
         orderBySql = sql`ORDER BY LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, electoral_area ASC, polling_station ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+      } else if (lowerLevel === "tescon") {
+        orderBySql = sql`ORDER BY LOWER(TRIM(region)) ASC, polling_station ASC, UPPER(TRIM(constituency)) ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       } else {
-        orderBySql = sql`ORDER BY ${levelRankSql} ASC, LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, ${positionRankSql} ASC, position ASC, id ASC`;
+        orderBySql = sql`ORDER BY ${levelRankSql} ASC, LOWER(TRIM(region)) ASC, UPPER(TRIM(constituency)) ASC, polling_station ASC, ${positionRankSql} ASC, position ASC, id ASC`;
       }
 
       const [countRes, rowsRes] = await Promise.all([
@@ -309,11 +312,125 @@ export async function GET(req: Request) {
       const total = countRes[0]?.total || 0;
       const totalPages = Math.ceil(total / limit);
 
-      const normalizedRows = rowsRes.map((r: any) => ({
-        ...r,
-        region: r.region ? normalizeRegionName(r.region) : r.region,
-        constituency: r.constituency ? normalizeConstituency(r.constituency) : r.constituency,
-      }));
+      await ensureProxyAssignmentsTableExists();
+      const rowIds = rowsRes.map((r: any) => Number(r.id)).filter((id: number) => Number.isFinite(id));
+      const proxyByPrincipalId = new Map<number, any>();
+      const actingForByProxyId = new Map<number, any>();
+
+      if (rowIds.length > 0) {
+        try {
+          const proxyRows = await sql`
+            SELECT
+              p.*,
+              e.executive_name AS live_proxy_name,
+              e.voter_id AS live_proxy_voter_id,
+              e.phone AS live_proxy_phone,
+              e.position AS live_proxy_position,
+              e.executive_level AS live_proxy_level,
+              e.region AS live_proxy_region,
+              e.constituency AS live_proxy_constituency,
+              e.polling_station AS live_proxy_polling_station,
+              e.gender AS live_proxy_gender,
+              e.date_of_birth AS live_proxy_dob,
+              CASE
+                WHEN e.date_of_birth ~ '[0-9]{4}'
+                THEN (2026 - substring(e.date_of_birth from '([0-9]{4})')::int)
+                WHEN e.age IS NOT NULL
+                THEN (e.age + 2)
+                ELSE p.proxy_age
+              END AS live_proxy_age,
+              e.image_url AS live_proxy_image_url
+            FROM proxy_voter_assignments p
+            LEFT JOIN executives_all e ON e.id = p.proxy_executive_id
+            WHERE p.principal_executive_id = ANY(${rowIds})
+               OR p.proxy_executive_id = ANY(${rowIds})
+          `;
+
+          for (const pr of proxyRows) {
+            const pExecId = Number(pr.principal_executive_id);
+            const hExecId = Number(pr.proxy_executive_id);
+            const normPReg = (pr.live_proxy_region || pr.proxy_region)
+              ? normalizeRegionName(String(pr.live_proxy_region || pr.proxy_region))
+              : null;
+            const normPCon = (pr.live_proxy_constituency || pr.proxy_constituency)
+              ? normalizeConstituency(String(pr.live_proxy_constituency || pr.proxy_constituency))
+              : null;
+
+            proxyByPrincipalId.set(pExecId, {
+              id: Number(pr.id),
+              principalExecutiveId: pExecId,
+              principalName: String(pr.principal_name || ""),
+              principalVoterId: pr.principal_voter_id ? String(pr.principal_voter_id) : null,
+              proxyExecutiveId: hExecId,
+              proxyName: String(pr.live_proxy_name || pr.proxy_name || ""),
+              proxyVoterId: (pr.live_proxy_voter_id ?? pr.proxy_voter_id)
+                ? String(pr.live_proxy_voter_id ?? pr.proxy_voter_id)
+                : null,
+              proxyPhone: (pr.live_proxy_phone ?? pr.proxy_phone)
+                ? String(pr.live_proxy_phone ?? pr.proxy_phone)
+                : null,
+              proxyPosition: (pr.live_proxy_position ?? pr.proxy_position)
+                ? String(pr.live_proxy_position ?? pr.proxy_position)
+                : null,
+              proxyLevel: (pr.live_proxy_level ?? pr.proxy_level)
+                ? String(pr.live_proxy_level ?? pr.proxy_level)
+                : null,
+              proxyRegion: normPReg,
+              proxyConstituency: normPCon,
+              proxyPollingStation: (pr.live_proxy_polling_station ?? pr.proxy_polling_station)
+                ? String(pr.live_proxy_polling_station ?? pr.proxy_polling_station)
+                : null,
+              proxyGender: (pr.live_proxy_gender ?? pr.proxy_gender)
+                ? String(pr.live_proxy_gender ?? pr.proxy_gender)
+                : null,
+              proxyDateOfBirth: (pr.live_proxy_dob ?? pr.proxy_date_of_birth)
+                ? String(pr.live_proxy_dob ?? pr.proxy_date_of_birth)
+                : null,
+              proxyAge:
+                pr.live_proxy_age !== null && pr.live_proxy_age !== undefined
+                  ? Number(pr.live_proxy_age)
+                  : pr.proxy_age !== null && pr.proxy_age !== undefined
+                  ? Number(pr.proxy_age)
+                  : null,
+              proxyImageUrl: (pr.live_proxy_image_url ?? pr.proxy_image_url)
+                ? String(pr.live_proxy_image_url ?? pr.proxy_image_url)
+                : null,
+              notes: pr.notes ? String(pr.notes) : null,
+              assignedByName: pr.assigned_by_name ? String(pr.assigned_by_name) : null,
+              createdAt: pr.created_at ? new Date(pr.created_at).toISOString() : null,
+            });
+
+            actingForByProxyId.set(hExecId, {
+              principalExecutiveId: pExecId,
+              principalName: String(pr.principal_name || ""),
+              principalVoterId: pr.principal_voter_id ? String(pr.principal_voter_id) : null,
+              principalPosition: pr.principal_position ? String(pr.principal_position) : null,
+              principalRegion: pr.principal_region ? normalizeRegionName(String(pr.principal_region)) : null,
+              principalConstituency: pr.principal_constituency
+                ? normalizeConstituency(String(pr.principal_constituency))
+                : null,
+            });
+          }
+        } catch (proxyErr) {
+          console.warn("[EXECUTIVES GET] Proxy lookup skipped:", proxyErr);
+        }
+      }
+
+      const normalizedRows = rowsRes.map((r: any) => {
+        const normRegion = r.region ? normalizeRegionName(r.region) : r.region;
+        const normConst = r.constituency ? normalizeConstituency(r.constituency) : r.constituency;
+        const isTescon = String(r.executiveLevel || "").toUpperCase() === "TESCON";
+        return {
+          ...r,
+          region: normRegion,
+          constituency: normConst,
+          pollingStation: isTescon && r.pollingStation
+            ? normalizeTesconInstitution(r.pollingStation, normRegion, normConst, r.id)
+            : r.pollingStation,
+          proxyAssignment: proxyByPrincipalId.get(Number(r.id)) || null,
+          actingAsProxyFor: actingForByProxyId.get(Number(r.id)) || null,
+        };
+      });
 
       return {
         data: normalizedRows,

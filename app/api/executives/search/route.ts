@@ -5,6 +5,7 @@ import {
   normalizeConstituency,
   normalizeRegionName,
 } from "@/lib/constituency-normalizer";
+import { normalizeTesconInstitution } from "@/lib/tescon-institutions";
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
             OR voter_id LIKE ${q + "%"}
             OR ghana_card ILIKE ${searchPattern}
             OR LOWER(position) LIKE ${searchPattern}
+            OR LOWER(COALESCE(polling_station, '')) LIKE ${searchPattern}
           ))
         ORDER BY executive_name ASC
         LIMIT ${limit};
@@ -69,10 +71,14 @@ export async function GET(request: NextRequest) {
           : r.constituency
           ? normalizeConstituency(r.constituency)
           : r.constituency;
+      const isTescon = String(r.executive_level || "").toUpperCase() === "TESCON";
       return {
         ...r,
         region: normReg,
         constituency: normConst,
+        polling_station: isTescon && r.polling_station
+          ? normalizeTesconInstitution(r.polling_station, normReg, normConst, r.id)
+          : r.polling_station,
       };
     });
 

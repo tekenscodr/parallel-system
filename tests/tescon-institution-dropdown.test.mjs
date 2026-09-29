@@ -15,7 +15,7 @@ test("getTesconInstitutionsForRegion returns exact statutory institutions per re
   assert.equal(getTesconInstitutionsForRegion("Bono").length, 17);
   assert.equal(getTesconInstitutionsForRegion("Bono East").length, 8);
   assert.equal(getTesconInstitutionsForRegion("Central").length, 16);
-  assert.equal(getTesconInstitutionsForRegion("Eastern").length, 25);
+  assert.equal(getTesconInstitutionsForRegion("Eastern").length, 23);
   assert.equal(getTesconInstitutionsForRegion("Greater Accra").length, 36);
   assert.equal(getTesconInstitutionsForRegion("North East").length, 4);
   assert.equal(getTesconInstitutionsForRegion("Northern").length, 20);
@@ -26,6 +26,11 @@ test("getTesconInstitutionsForRegion returns exact statutory institutions per re
   assert.equal(getTesconInstitutionsForRegion("Volta").length, 17);
   assert.equal(getTesconInstitutionsForRegion("Western").length, 14);
   assert.equal(getTesconInstitutionsForRegion("Western North").length, 6);
+
+  // Eastern must not include Central or Greater Accra institutions
+  const easternInsts = getTesconInstitutionsForRegion("Eastern");
+  assert.ok(!easternInsts.includes("University of Education, Winneba (Ajumako Campus)"));
+  assert.ok(!easternInsts.includes("University of Ghana (Main Campus - Legon)"));
 
   // Bono must separate Methodist University Wenchi and Ofuman campuses
   const bonoInsts = getTesconInstitutionsForRegion("Bono");

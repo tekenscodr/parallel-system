@@ -58,7 +58,7 @@ import { checkClientRateLimit } from "@/lib/client-rate-limit";
 import { getPositionRank } from "@/lib/position-matcher";
 import { getConstituenciesForRegion, normalizeConstituency, normalizeRegionName } from "@/lib/constituency-normalizer";
 import { computeExecutiveAgeAndDob, isUnder40AsOfCutoff } from "@/lib/voting-rules";
-import { getTesconInstitutionsForRegion } from "@/lib/tescon-institutions";
+import { getTesconInstitutionsForRegion, normalizeTesconInstitution } from "@/lib/tescon-institutions";
 import { logoutAndRedirect, saveClientSession, SESSION_TOKEN_KEY } from "@/lib/client-session";
 
 type OverviewData = {
@@ -98,6 +98,73 @@ type OverviewData = {
   user: { id: string; email: string; name: string; role: string };
 };
 
+type ProxyAssignmentInfo = {
+  id: number;
+  proxyExecutiveId: number;
+  proxyName: string;
+  proxyVoterId: string | null;
+  proxyPhone: string | null;
+  proxyRegion: string | null;
+  proxyConstituency: string | null;
+  proxyLevel: string | null;
+  proxyPosition: string | null;
+  assignedByEmail: string | null;
+  assignedByName: string | null;
+  createdAt: string;
+  notes?: string | null;
+  proxyExecutive?: {
+    id: number;
+    executiveName: string;
+    voterId: string | null;
+    phone: string | null;
+    gender: string | null;
+    dateOfBirth: string | null;
+    age: number | null;
+    region: string | null;
+    constituency: string | null;
+    electoralArea?: string | null;
+    pollingStation?: string | null;
+    executiveLevel: string | null;
+    position: string | null;
+    slotStatus?: string | null;
+    imageUrl: string | null;
+  } | null;
+};
+
+type ActingProxyInfo = {
+  id: number;
+  principalExecutiveId: number;
+  principalName: string;
+  principalVoterId: string | null;
+  principalPhone?: string | null;
+  principalRegion: string | null;
+  principalConstituency: string | null;
+  principalLevel: string | null;
+  principalPosition: string | null;
+  createdAt?: string;
+};
+
+type ProxyCandidate = {
+  id: number;
+  executiveName: string;
+  voterId: string | null;
+  phone: string | null;
+  gender: string | null;
+  dateOfBirth: string | null;
+  age: number | null;
+  region: string | null;
+  constituency: string | null;
+  electoralArea: string | null;
+  pollingStation: string | null;
+  executiveLevel: string | null;
+  position: string | null;
+  slotStatus: string | null;
+  imageUrl: string | null;
+  alreadyAssignedToPrincipalId: number | null;
+  alreadyAssignedToPrincipalName: string | null;
+  alreadyAssignedToPrincipalVoterId: string | null;
+};
+
 type ExecutiveRow = {
   id: number;
   executiveLevel: string;
@@ -118,6 +185,8 @@ type ExecutiveRow = {
   phone?: string | null;
   status: string;
   imageUrl?: string | null;
+  proxyAssignment?: ProxyAssignmentInfo | null;
+  actingAsProxyFor?: ActingProxyInfo | null;
 };
 
 type ExecutiveDetail = {
@@ -143,11 +212,18 @@ type ExecutiveDetail = {
 };
 
 function sortRosterRows(rows: ExecutiveRow[], level: string): ExecutiveRow[] {
-  if (level !== "Region" && level !== "Constituency") return rows;
+  if (level !== "Region" && level !== "Constituency" && level !== "TESCON") return rows;
 
   return [...rows].sort((a, b) => {
     const regionOrder = normalizeRegionName(a.region).localeCompare(normalizeRegionName(b.region));
     if (regionOrder !== 0) return regionOrder;
+
+    if (level === "TESCON") {
+      const instA = normalizeTesconInstitution(a.pollingStation, a.region, a.constituency, a.id);
+      const instB = normalizeTesconInstitution(b.pollingStation, b.region, b.constituency, b.id);
+      const instOrder = instA.localeCompare(instB);
+      if (instOrder !== 0) return instOrder;
+    }
 
     if (level === "Constituency") {
       const constituencyOrder = normalizeConstituency(a.constituency).localeCompare(normalizeConstituency(b.constituency));
@@ -419,11 +495,17 @@ export default function NationalAdminDashboard() {
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
 
-  const userRole = String(
-    currentUser?.role ||
-    (typeof window !== "undefined" ? localStorage.getItem("admin_user_role") : "") ||
-    ""
-  ).toUpperCase();
+  const [cachedRole, setCachedRole] = useState<string>("");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("admin_user_role");
+      if (saved) setCachedRole(saved);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const userRole = String(currentUser?.role || cachedRole || "").toUpperCase();
   const isAdminNational = userRole === "ADMIN_NATIONAL" || userRole === "ADMIN";
   const isC1 = userRole === "C1";
 
@@ -620,6 +702,10 @@ export default function NationalAdminDashboard() {
       return;
     }
 
+    const fallbackList = getTesconInstitutionsForRegion(selectedRegion);
+    setTesconInstitutions(fallbackList);
+    setSelectedInstitution((prev) => (prev && !fallbackList.includes(prev) ? "" : prev));
+
     setLoadingInstitutions(true);
     const params = new URLSearchParams();
     if (selectedRegion) params.set("region", selectedRegion);
@@ -628,16 +714,19 @@ export default function NationalAdminDashboard() {
       credentials: "include",
       headers: getAuthHeaders(),
     })
-      .then((res) => (res.ok ? res.json() : { institutions: [] }))
+      .then((res) => (res.ok ? res.json() : { institutions: fallbackList }))
       .then((data) => {
-        const list: string[] = Array.isArray(data.institutions) ? data.institutions : [];
+        const list: string[] =
+          Array.isArray(data.institutions) && data.institutions.length > 0
+            ? data.institutions
+            : fallbackList;
         setTesconInstitutions(list);
         setLoadingInstitutions(false);
         // Clear selected institution if it is not present in the new region's institution list
         setSelectedInstitution((prev) => (prev && !list.includes(prev) ? "" : prev));
       })
       .catch(() => {
-        setTesconInstitutions([]);
+        setTesconInstitutions(fallbackList);
         setLoadingInstitutions(false);
       });
   }, [selectedLevel, selectedRegion]);
@@ -1741,6 +1830,359 @@ export default function NationalAdminDashboard() {
     }
   };
 
+  // =========================================================================
+  // PROXY VOTING MODAL STATE & HANDLERS
+  // =========================================================================
+  const [proxyModalOpen, setProxyModalOpen] = useState(false);
+  const [proxyModalPrincipal, setProxyModalPrincipal] = useState<ExecutiveRow | null>(null);
+  const [proxyModalLoading, setProxyModalLoading] = useState(false);
+  const [proxyModalAssignment, setProxyModalAssignment] = useState<ProxyAssignmentInfo | null>(null);
+  const [proxyModalActingFor, setProxyModalActingFor] = useState<ActingProxyInfo | null>(null);
+  const [proxyModalViewMode, setProxyModalViewMode] = useState<"details" | "search">("search");
+
+  // Search filters inside Proxy Modal
+  const [proxySearchQuery, setProxySearchQuery] = useState("");
+  const [debouncedProxySearch, setDebouncedProxySearch] = useState("");
+  const [proxyFilterLevel, setProxyFilterLevel] = useState("");
+  const [proxyFilterRegion, setProxyFilterRegion] = useState("");
+  const [proxyFilterConstituency, setProxyFilterConstituency] = useState("");
+  const [proxyConstituencyList, setProxyConstituencyList] = useState<string[]>([]);
+  const [loadingProxyConstituencies, setLoadingProxyConstituencies] = useState(false);
+
+  // Candidate results & mutation status
+  const [proxyCandidates, setProxyCandidates] = useState<ProxyCandidate[]>([]);
+  const [proxySearching, setProxySearching] = useState(false);
+  const [proxyAssigningId, setProxyAssigningId] = useState<number | null>(null);
+  const [proxyRevoking, setProxyRevoking] = useState(false);
+  const [proxyConfirmRevoke, setProxyConfirmRevoke] = useState(false);
+  const [proxyModalError, setProxyModalError] = useState("");
+  const [proxyModalSuccess, setProxyModalSuccess] = useState("");
+  const [copiedProxyVoterId, setCopiedProxyVoterId] = useState(false);
+
+  // Debounce proxy search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedProxySearch(proxySearchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [proxySearchQuery]);
+
+  // Load constituencies when proxyFilterRegion changes
+  useEffect(() => {
+    if (!proxyFilterRegion) {
+      setProxyConstituencyList([]);
+      setProxyFilterConstituency("");
+      setLoadingProxyConstituencies(false);
+      return;
+    }
+
+    const fallbackList = getConstituenciesForRegion(proxyFilterRegion);
+    if (fallbackList.length > 0) {
+      setProxyConstituencyList(fallbackList);
+    }
+
+    setLoadingProxyConstituencies(true);
+    const params = new URLSearchParams({ region: proxyFilterRegion });
+    fetch(`/api/admin/constituencies?${params.toString()}`, {
+      credentials: "include",
+      headers: getAuthHeaders(),
+    })
+      .then((res) => (res.ok ? res.json() : { constituencies: [] }))
+      .then((data) => {
+        const rawList: string[] = Array.isArray(data.constituencies) ? data.constituencies : [];
+        const normalizedList = Array.from(
+          new Set(
+            rawList
+              .map((c) =>
+                proxyFilterRegion === "External Branch"
+                  ? String(c || "").trim()
+                  : normalizeConstituency(c)
+              )
+              .filter(Boolean)
+          )
+        ).sort((a, b) => a.localeCompare(b));
+        if (normalizedList.length > 0) {
+          setProxyConstituencyList(normalizedList);
+        }
+        setLoadingProxyConstituencies(false);
+      })
+      .catch(() => {
+        setProxyConstituencyList(fallbackList);
+        setLoadingProxyConstituencies(false);
+      });
+  }, [proxyFilterRegion]);
+
+  // Search proxy candidates when modal is open in "search" mode
+  useEffect(() => {
+    if (!proxyModalOpen || proxyModalViewMode !== "search" || !proxyModalPrincipal) {
+      return;
+    }
+
+    let active = true;
+    setProxySearching(true);
+
+    const params = new URLSearchParams({
+      mode: "search",
+      excludeId: String(proxyModalPrincipal.id),
+      limit: "35",
+    });
+    if (debouncedProxySearch.trim()) params.set("search", debouncedProxySearch.trim());
+    if (proxyFilterRegion) params.set("region", proxyFilterRegion);
+    if (proxyFilterConstituency) params.set("constituency", proxyFilterConstituency);
+    if (proxyFilterLevel) params.set("level", proxyFilterLevel);
+
+    fetch(`/api/admin/proxies?${params.toString()}`, {
+      credentials: "include",
+      headers: getAuthHeaders(),
+      cache: "no-store",
+    })
+      .then((res) => (res.ok ? res.json() : { candidates: [] }))
+      .then((data) => {
+        if (!active) return;
+        setProxyCandidates(Array.isArray(data.candidates) ? data.candidates : []);
+        setProxySearching(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setProxyCandidates([]);
+        setProxySearching(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    proxyModalOpen,
+    proxyModalViewMode,
+    proxyModalPrincipal,
+    debouncedProxySearch,
+    proxyFilterRegion,
+    proxyFilterConstituency,
+    proxyFilterLevel,
+  ]);
+
+  const mapAssignmentFromApi = (raw: any): ProxyAssignmentInfo | null => {
+    if (!raw) return null;
+    const pe = raw.proxyExecutive || null;
+    return {
+      id: Number(raw.id),
+      proxyExecutiveId: Number(raw.proxy_executive_id ?? raw.proxyExecutiveId),
+      proxyName: String(raw.proxy_name ?? raw.proxyName ?? pe?.executiveName ?? ""),
+      proxyVoterId: raw.proxy_voter_id ?? raw.proxyVoterId ?? pe?.voterId ?? null,
+      proxyPhone: raw.proxy_phone ?? raw.proxyPhone ?? pe?.phone ?? null,
+      proxyRegion: raw.proxy_region ?? raw.proxyRegion ?? pe?.region ?? null,
+      proxyConstituency: raw.proxy_constituency ?? raw.proxyConstituency ?? pe?.constituency ?? null,
+      proxyLevel: raw.proxy_level ?? raw.proxyLevel ?? pe?.executiveLevel ?? null,
+      proxyPosition: raw.proxy_position ?? raw.proxyPosition ?? pe?.position ?? null,
+      assignedByEmail: raw.assigned_by_email ?? raw.assignedByEmail ?? null,
+      assignedByName: raw.assigned_by_name ?? raw.assignedByName ?? null,
+      createdAt: String(raw.created_at ?? raw.createdAt ?? ""),
+      notes: raw.notes ?? null,
+      proxyExecutive: pe
+        ? {
+            id: Number(pe.id),
+            executiveName: String(pe.executiveName || ""),
+            voterId: pe.voterId || null,
+            phone: pe.phone || null,
+            gender: pe.gender || null,
+            dateOfBirth: pe.dateOfBirth || null,
+            age: pe.age != null ? Number(pe.age) : null,
+            region: pe.region || null,
+            constituency: pe.constituency || null,
+            electoralArea: pe.electoralArea || null,
+            pollingStation: pe.pollingStation || null,
+            executiveLevel: pe.executiveLevel || null,
+            position: pe.position || null,
+            slotStatus: pe.slotStatus || null,
+            imageUrl: pe.imageUrl || null,
+          }
+        : null,
+    };
+  };
+
+  const handleOpenProxyModal = async (row: ExecutiveRow) => {
+    setProxyModalPrincipal(row);
+    setProxyModalOpen(true);
+    setProxyModalError("");
+    setProxyModalSuccess("");
+    setProxyConfirmRevoke(false);
+    setCopiedProxyVoterId(false);
+
+    const initialAssignment = row.proxyAssignment || null;
+    setProxyModalAssignment(initialAssignment);
+    setProxyModalActingFor(row.actingAsProxyFor || null);
+    setProxyModalViewMode(initialAssignment ? "details" : "search");
+
+    // Reset search filters (default to principal's region if no proxy assigned so relevant voters appear immediately, while still allowing full search)
+    setProxySearchQuery("");
+    setDebouncedProxySearch("");
+    setProxyFilterRegion(row.region ? normalizeRegionName(row.region) : "");
+    setProxyFilterConstituency(
+      row.constituency
+        ? normalizeRegionName(row.region) === "External Branch"
+          ? row.constituency
+          : normalizeConstituency(row.constituency)
+        : ""
+    );
+    setProxyFilterLevel("");
+
+    setProxyModalLoading(true);
+    try {
+      const res = await fetch(`/api/admin/proxies?principalId=${row.id}`, {
+        credentials: "include",
+        headers: getAuthHeaders(),
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const freshAssignment = mapAssignmentFromApi(data.assignment);
+        setProxyModalAssignment(freshAssignment);
+        if (data.actingAsProxyFor) {
+          setProxyModalActingFor({
+            id: Number(data.actingAsProxyFor.id),
+            principalExecutiveId: Number(data.actingAsProxyFor.principal_executive_id),
+            principalName: String(data.actingAsProxyFor.principal_name || ""),
+            principalVoterId: data.actingAsProxyFor.principal_voter_id || null,
+            principalPhone: data.actingAsProxyFor.principal_phone || null,
+            principalRegion: data.actingAsProxyFor.principal_region || null,
+            principalConstituency: data.actingAsProxyFor.principal_constituency || null,
+            principalLevel: data.actingAsProxyFor.principal_level || null,
+            principalPosition: data.actingAsProxyFor.principal_position || null,
+            createdAt: data.actingAsProxyFor.created_at || "",
+          });
+        } else {
+          setProxyModalActingFor(null);
+        }
+        setProxyModalViewMode(freshAssignment ? "details" : "search");
+      }
+    } catch {
+      // Keep initial row state if network request fails
+    } finally {
+      setProxyModalLoading(false);
+    }
+  };
+
+  const handleCloseProxyModal = () => {
+    if (proxyAssigningId !== null || proxyRevoking) return;
+    setProxyModalOpen(false);
+    setProxyModalPrincipal(null);
+    setProxyModalAssignment(null);
+    setProxyModalActingFor(null);
+    setProxyModalError("");
+    setProxyModalSuccess("");
+    setProxyConfirmRevoke(false);
+  };
+
+  const handleAssignProxy = async (candidate: ProxyCandidate) => {
+    if (!proxyModalPrincipal) return;
+    setProxyAssigningId(candidate.id);
+    setProxyModalError("");
+    setProxyModalSuccess("");
+
+    try {
+      const res = await fetch("/api/admin/proxies", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          principalExecutiveId: proxyModalPrincipal.id,
+          proxyExecutiveId: candidate.id,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setProxyModalError(data.error || "Failed to assign proxy voter.");
+        setProxyAssigningId(null);
+        return;
+      }
+
+      const newAssignment = mapAssignmentFromApi(data.assignment);
+      setProxyModalAssignment(newAssignment);
+      setProxyModalViewMode("details");
+      setProxyModalSuccess(
+        `Assigned ${candidate.executiveName} (${candidate.voterId || "No Voter ID"}) as proxy voter for ${proxyModalPrincipal.executiveName}.`
+      );
+
+      // Update rows optimistically & refresh roster
+      setRows((prev) =>
+        prev.map((r) => {
+          if (r.id === proxyModalPrincipal.id) {
+            return { ...r, proxyAssignment: newAssignment };
+          }
+          if (r.id === candidate.id && newAssignment) {
+            return {
+              ...r,
+              actingAsProxyFor: {
+                id: newAssignment.id,
+                principalExecutiveId: proxyModalPrincipal.id,
+                principalName: proxyModalPrincipal.executiveName,
+                principalVoterId: proxyModalPrincipal.voterId || null,
+                principalRegion: proxyModalPrincipal.region || null,
+                principalConstituency: proxyModalPrincipal.constituency || null,
+                principalLevel: proxyModalPrincipal.executiveLevel || null,
+                principalPosition: proxyModalPrincipal.position || null,
+              },
+            };
+          }
+          return r;
+        })
+      );
+      fetchRoster(true);
+    } catch (err: unknown) {
+      setProxyModalError(err instanceof Error ? err.message : "Network error while assigning proxy.");
+    } finally {
+      setProxyAssigningId(null);
+    }
+  };
+
+  const handleRemoveProxy = async () => {
+    if (!proxyModalPrincipal) return;
+    setProxyRevoking(true);
+    setProxyModalError("");
+    setProxyModalSuccess("");
+
+    const previousProxyExecId = proxyModalAssignment?.proxyExecutiveId;
+
+    try {
+      const res = await fetch(`/api/admin/proxies?principalId=${proxyModalPrincipal.id}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: getAuthHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setProxyModalError(data.error || "Failed to revoke proxy assignment.");
+        setProxyRevoking(false);
+        return;
+      }
+
+      setProxyModalAssignment(null);
+      setProxyConfirmRevoke(false);
+      setProxyModalViewMode("search");
+      setProxyModalSuccess("Proxy assignment removed. You can now search and assign a new proxy voter.");
+
+      setRows((prev) =>
+        prev.map((r) => {
+          if (r.id === proxyModalPrincipal.id) {
+            return { ...r, proxyAssignment: null };
+          }
+          if (previousProxyExecId && r.id === previousProxyExecId) {
+            return { ...r, actingAsProxyFor: null };
+          }
+          return r;
+        })
+      );
+      fetchRoster(true);
+    } catch (err: unknown) {
+      setProxyModalError(err instanceof Error ? err.message : "Network error while revoking proxy.");
+    } finally {
+      setProxyRevoking(false);
+    }
+  };
+
   const visibleTiers = isC1
     ? TIERS.filter((t) => t.id !== "Electoral Area" && t.id !== "Polling Station")
     : TIERS;
@@ -1821,8 +2263,12 @@ export default function NationalAdminDashboard() {
 
   return (
     <AdminShell
-      title="Executives Directory & Command Centre"
-      subtitle="Comprehensive nationwide registry of all 261,553 party executives across all 6 administrative tiers"
+      title={isC1 ? "Aspirant page" : "Executives Directory & Command Centre"}
+      subtitle={
+        isC1
+          ? "All Women in Electoral College — Constituency, Region, External Branches, TESCON (Presidents & WOCOM), and National"
+          : "Comprehensive nationwide registry of all 261,553 party executives across all 6 administrative tiers"
+      }
       currentUser={currentUser}
       onLogout={handleLogout}
     >
@@ -1929,6 +2375,65 @@ export default function NationalAdminDashboard() {
           display: flex;
           align-items: center;
           gap: 12px;
+        }
+
+        /* Light Theme Overrides for All Women / Aspirant Page */
+        .dash-light-theme {
+          background: #ffffff !important;
+          color: #0f172a !important;
+        }
+        .dash-light-theme .dash-toolbar-card {
+          background: #ffffff !important;
+          border: 1px solid #e2e8f0 !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        }
+        .dash-light-theme .dash-search-container input {
+          background: #f8fafc !important;
+          border: 1px solid #cbd5e1 !important;
+          color: #0f172a !important;
+        }
+        .dash-light-theme .dash-filter-select {
+          background: #ffffff !important;
+          border: 1px solid #cbd5e1 !important;
+          color: #0f172a !important;
+        }
+        .dash-light-theme .dash-filter-select:disabled {
+          background: #f1f5f9 !important;
+          color: #94a3b8 !important;
+        }
+        .dash-light-theme .dash-region-cluster {
+          background: #f8fafc !important;
+          border: 1px solid #e2e8f0 !important;
+        }
+        .dash-light-theme .dash-matches-count {
+          color: #475569 !important;
+        }
+        .dash-light-theme .dash-matches-count strong {
+          color: #0f172a !important;
+        }
+        .dash-light-theme .dash-scroll-hint {
+          background: #f8fafc !important;
+          border-bottom: 1px solid #e2e8f0 !important;
+          color: #475569 !important;
+        }
+        .dash-light-theme .dash-pagination {
+          background: #ffffff !important;
+          border-top: 1px solid #e2e8f0 !important;
+          color: #475569 !important;
+        }
+        .dash-light-theme .dash-pagination strong {
+          color: #0f172a !important;
+        }
+        .dash-light-theme .dash-pagination select,
+        .dash-light-theme .dash-pagination button {
+          background: #ffffff !important;
+          border: 1px solid #cbd5e1 !important;
+          color: #0f172a !important;
+        }
+        .dash-light-theme .dash-pagination button:disabled {
+          background: #f8fafc !important;
+          color: #94a3b8 !important;
+          border-color: #e2e8f0 !important;
         }
 
         /* Responsive Breakpoints */
@@ -2065,12 +2570,12 @@ export default function NationalAdminDashboard() {
           }
         }
       `}</style>
-      <div className="dash-container">
+      <div className={`dash-container ${isC1 ? "dash-light-theme" : ""}`}>
         {/* Tier Cards Grid (6 Levels) with Grey Lucide Icons */}
         <section style={{ marginBottom: "24px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", margin: 0 }}>
-              Executive Levels Command Selector
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+            <h2 style={{ fontSize: "14px", fontWeight: "600", color: isC1 ? "#334155" : "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", margin: 0 }}>
+              {isC1 ? "All Women Electoral Levels" : "Executive Levels Command Selector"}
             </h2>
             <span style={{ fontSize: "12px", color: "#64748b" }}>Click a level card to filter directory roster</span>
           </div>
@@ -2089,9 +2594,15 @@ export default function NationalAdminDashboard() {
                     setPage(1);
                   }}
                   style={{
-                    background: isActive ? "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%)" : "rgba(15, 23, 42, 0.6)",
-                    border: isActive ? "1px solid #10b981" : "1px solid rgba(255, 255, 255, 0.08)",
-                    boxShadow: isActive ? "0 8px 20px -4px rgba(16, 185, 129, 0.2)" : "none"
+                    background: isC1
+                      ? (isActive ? "#fdf2f8" : "#ffffff")
+                      : (isActive ? "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%)" : "rgba(15, 23, 42, 0.6)"),
+                    border: isC1
+                      ? (isActive ? "2px solid #db2777" : "1px solid #e2e8f0")
+                      : (isActive ? "1px solid #10b981" : "1px solid rgba(255, 255, 255, 0.08)"),
+                    boxShadow: isC1
+                      ? (isActive ? "0 4px 14px rgba(219, 39, 119, 0.15)" : "0 1px 3px rgba(0, 0, 0, 0.05)")
+                      : (isActive ? "0 8px 20px -4px rgba(16, 185, 129, 0.2)" : "none")
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
@@ -2099,18 +2610,18 @@ export default function NationalAdminDashboard() {
                       width: "36px",
                       height: "36px",
                       borderRadius: "8px",
-                      background: "rgba(255, 255, 255, 0.04)",
-                      border: "1px solid rgba(255, 255, 255, 0.08)",
+                      background: isC1 ? (isActive ? "#fce7f3" : "#f1f5f9") : "rgba(255, 255, 255, 0.04)",
+                      border: isC1 ? (isActive ? "1px solid #fbcfe8" : "1px solid #e2e8f0") : "1px solid rgba(255, 255, 255, 0.08)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                     }}>
-                      <IconComp size={20} color="#94a3b8" />
+                      <IconComp size={20} color={isC1 ? (isActive ? "#db2777" : "#64748b") : "#94a3b8"} />
                     </div>
                     {isActive && (
                       <span style={{
                         fontSize: "10px",
-                        background: "#10b981",
+                        background: isC1 ? "#db2777" : "#10b981",
                         color: "#ffffff",
                         padding: "1px 6px",
                         borderRadius: "4px",
@@ -2120,14 +2631,14 @@ export default function NationalAdminDashboard() {
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: "13px", fontWeight: "600", color: isActive ? "#34d399" : "#cbd5e1" }}>
+                  <div style={{ fontSize: "13px", fontWeight: "600", color: isC1 ? (isActive ? "#be185d" : "#334155") : (isActive ? "#34d399" : "#cbd5e1") }}>
                     {tier.label}
                   </div>
-                  <div style={{ fontSize: "22px", fontWeight: "800", color: "#ffffff", marginTop: "2px" }}>
+                  <div style={{ fontSize: "22px", fontWeight: "800", color: isC1 ? "#0f172a" : "#ffffff", marginTop: "2px" }}>
                     {loadingOverview ? "…" : count.toLocaleString()}
                   </div>
                   <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>
-                    {tier.id === "" ? "Total across all 6 levels" : `Registered ${tier.label.toLowerCase()} officers`}
+                    {tier.id === "" ? (isC1 ? "Total across electoral college levels" : "Total across all 6 levels") : `Registered ${tier.label.toLowerCase()} officers`}
                   </div>
                 </div>
               );
@@ -2137,25 +2648,25 @@ export default function NationalAdminDashboard() {
 
         {/* Executive Directorate & Electoral College KPI Metrics Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "10px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", margin: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+            <h2 style={{ fontSize: "14px", fontWeight: "600", color: isC1 ? "#334155" : "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", margin: 0 }}>
               {selectedConstituency ? (
-                <span>Metrics for <strong style={{ color: "#38bdf8" }}>{selectedConstituency}</strong> <span style={{ color: "#64748b" }}>({selectedRegion})</span></span>
+                <span>Metrics for <strong style={{ color: isC1 ? "#0284c7" : "#38bdf8" }}>{selectedConstituency}</strong> <span style={{ color: "#64748b" }}>({selectedRegion})</span></span>
               ) : selectedRegion ? (
-                <span>Metrics for <strong style={{ color: "#38bdf8" }}>{selectedRegion} Region</strong></span>
+                <span>Metrics for <strong style={{ color: isC1 ? "#0284c7" : "#38bdf8" }}>{selectedRegion} Region</strong></span>
               ) : selectedPosition ? (
-                <span>Metrics for <strong style={{ color: "#38bdf8" }}>{selectedPosition}</strong></span>
+                <span>Metrics for <strong style={{ color: isC1 ? "#0284c7" : "#38bdf8" }}>{selectedPosition}</strong></span>
               ) : (
-                <span>Nationwide Directorate & Electoral College Metrics</span>
+                <span>{isC1 ? "All Women Directorate & Electoral College Metrics" : "Nationwide Directorate & Electoral College Metrics"}</span>
               )}
             </h2>
             {(selectedRegion || selectedConstituency || selectedPosition) && (
-              <span style={{ fontSize: "11px", background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", padding: "2px 8px", borderRadius: "4px", border: "1px solid rgba(56, 189, 248, 0.3)", fontWeight: "600" }}>
+              <span style={{ fontSize: "11px", background: isC1 ? "#e0f2fe" : "rgba(56, 189, 248, 0.15)", color: isC1 ? "#0284c7" : "#38bdf8", padding: "2px 8px", borderRadius: "4px", border: isC1 ? "1px solid #bae6fd" : "1px solid rgba(56, 189, 248, 0.3)", fontWeight: "600" }}>
                 FILTERED {selectedPosition ? `· ${selectedPosition}` : ""}
               </span>
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
             {(selectedRegion || selectedConstituency || selectedPosition) && (
               <button
                 type="button"
@@ -2166,9 +2677,9 @@ export default function NationalAdminDashboard() {
                   setPage(1);
                 }}
                 style={{
-                  background: "transparent",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  color: "#94a3b8",
+                  background: isC1 ? "#f1f5f9" : "transparent",
+                  border: isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                  color: isC1 ? "#334155" : "#94a3b8",
                   fontSize: "12px",
                   padding: "5px 12px",
                   borderRadius: "6px",
@@ -2189,9 +2700,9 @@ export default function NationalAdminDashboard() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
-                background: "rgba(30, 41, 59, 0.8)",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
-                color: "#34d399",
+                background: isC1 ? "#f0fdf4" : "rgba(30, 41, 59, 0.8)",
+                border: isC1 ? "1px solid #bbf7d0" : "1px solid rgba(255, 255, 255, 0.15)",
+                color: isC1 ? "#15803d" : "#34d399",
                 fontSize: "12px",
                 fontWeight: "600",
                 padding: "5px 12px",
@@ -2199,7 +2710,7 @@ export default function NationalAdminDashboard() {
                 textDecoration: "none"
               }}
             >
-              <Download size={13} color="#34d399" />
+              <Download size={13} color={isC1 ? "#15803d" : "#34d399"} />
               <span>Metrics Excel (.xlsx)</span>
             </a>
           </div>
@@ -2208,42 +2719,42 @@ export default function NationalAdminDashboard() {
         {/* Executive Directorate KPI Metrics */}
         {overview && (
           <section className="dash-kpi-grid">
-            <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
+            <div style={{ background: isC1 ? "#ffffff" : "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.06)", boxShadow: isC1 ? "0 1px 3px rgba(0,0,0,0.05)" : "none" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>
-                  {selectedConstituency ? "Constituency Officers" : selectedRegion ? "Regional Officers" : "Total Nationwide Officers"}
+                <span style={{ fontSize: "11px", color: isC1 ? "#475569" : "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>
+                  {selectedConstituency ? "Constituency Officers" : selectedRegion ? "Regional Officers" : (isC1 ? "Total Women in Directory" : "Total Nationwide Officers")}
                 </span>
-                <Users size={15} color="#94a3b8" />
+                <Users size={15} color={isC1 ? "#64748b" : "#94a3b8"} />
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "4px" }}>
-                <span style={{ fontSize: "22px", fontWeight: "700", color: "#ffffff" }}>{overview.totals.total.toLocaleString()}</span>
+                <span style={{ fontSize: "22px", fontWeight: "700", color: isC1 ? "#0f172a" : "#ffffff" }}>{overview.totals.total.toLocaleString()}</span>
               </div>
               <span style={{ fontSize: "11px", color: "#64748b" }}>
-                {selectedConstituency ? selectedConstituency : selectedRegion ? `${selectedRegion} Region` : "Across 6 executive levels"}
+                {selectedConstituency ? selectedConstituency : selectedRegion ? `${selectedRegion} Region` : (isC1 ? "All Women Electoral College" : "Across 6 executive levels")}
               </span>
             </div>
 
-            <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
+            <div style={{ background: isC1 ? "#ffffff" : "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.06)", boxShadow: isC1 ? "0 1px 3px rgba(0,0,0,0.05)" : "none" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Elected Officers</span>
-                <Vote size={15} color="#94a3b8" />
+                <span style={{ fontSize: "11px", color: isC1 ? "#475569" : "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Elected Officers</span>
+                <Vote size={15} color={isC1 ? "#16a34a" : "#94a3b8"} />
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "4px" }}>
-                <span style={{ fontSize: "22px", fontWeight: "700", color: "#34d399" }}>{overview.totals.elected.toLocaleString()}</span>
-                <span style={{ fontSize: "12px", color: "#34d399" }}>
+                <span style={{ fontSize: "22px", fontWeight: "700", color: isC1 ? "#16a34a" : "#34d399" }}>{overview.totals.elected.toLocaleString()}</span>
+                <span style={{ fontSize: "12px", color: isC1 ? "#16a34a" : "#34d399" }}>
                   ({overview.totals.total > 0 ? Math.round((overview.totals.elected / overview.totals.total) * 100) : 0}%)
                 </span>
               </div>
               <span style={{ fontSize: "11px", color: "#64748b" }}>Formally elected slates</span>
             </div>
 
-            <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
+            <div style={{ background: isC1 ? "#ffffff" : "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.06)", boxShadow: isC1 ? "0 1px 3px rgba(0,0,0,0.05)" : "none" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Appointed Officers</span>
-                <FileCheck size={15} color="#94a3b8" />
+                <span style={{ fontSize: "11px", color: isC1 ? "#475569" : "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Appointed Officers</span>
+                <FileCheck size={15} color={isC1 ? "#d97706" : "#94a3b8"} />
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "4px" }}>
-                <span style={{ fontSize: "22px", fontWeight: "700", color: "#fbbf24" }}>{overview.totals.appointed.toLocaleString()}</span>
+                <span style={{ fontSize: "22px", fontWeight: "700", color: isC1 ? "#d97706" : "#fbbf24" }}>{overview.totals.appointed.toLocaleString()}</span>
               </div>
               <span style={{ fontSize: "11px", color: "#64748b" }}>Deputies, Officers & Patrons</span>
             </div>
@@ -2251,56 +2762,62 @@ export default function NationalAdminDashboard() {
             <div
               onClick={handleToggleUnder40}
               style={{
-                background: isUnder40Active ? "rgba(16, 185, 129, 0.15)" : "rgba(30, 41, 59, 0.5)",
+                background: isC1
+                  ? (isUnder40Active ? "#f0fdf4" : "#ffffff")
+                  : (isUnder40Active ? "rgba(16, 185, 129, 0.15)" : "rgba(30, 41, 59, 0.5)"),
                 padding: "16px",
                 borderRadius: "10px",
-                border: isUnder40Active ? "1px solid rgba(52, 211, 153, 0.5)" : "1px solid rgba(255, 255, 255, 0.06)",
+                border: isC1
+                  ? (isUnder40Active ? "2px solid #16a34a" : "1px solid #e2e8f0")
+                  : (isUnder40Active ? "1px solid rgba(52, 211, 153, 0.5)" : "1px solid rgba(255, 255, 255, 0.06)"),
                 cursor: "pointer",
                 transition: "all 0.15s ease",
-                boxShadow: isUnder40Active ? "0 0 12px rgba(16, 185, 129, 0.2)" : "none"
+                boxShadow: isC1
+                  ? (isUnder40Active ? "0 4px 12px rgba(22, 163, 74, 0.12)" : "0 1px 3px rgba(0,0,0,0.05)")
+                  : (isUnder40Active ? "0 0 12px rgba(16, 185, 129, 0.2)" : "none")
               }}
               title="Click to toggle Under 40 (Youth) filter"
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "11px", color: isUnder40Active ? "#6ee7b7" : "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>
+                <span style={{ fontSize: "11px", color: isC1 ? (isUnder40Active ? "#15803d" : "#475569") : (isUnder40Active ? "#6ee7b7" : "#94a3b8"), textTransform: "uppercase", fontWeight: "600" }}>
                   Under 40 (Youth)
                 </span>
-                <Sparkles size={15} color={isUnder40Active ? "#34d399" : "#94a3b8"} />
+                <Sparkles size={15} color={isC1 ? "#16a34a" : (isUnder40Active ? "#34d399" : "#94a3b8")} />
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "4px" }}>
-                <span style={{ fontSize: "22px", fontWeight: "700", color: "#34d399" }}>
+                <span style={{ fontSize: "22px", fontWeight: "700", color: isC1 ? "#16a34a" : "#34d399" }}>
                   {(overview.totals.under_40 ?? 0).toLocaleString()}
                 </span>
-                <span style={{ fontSize: "12px", color: "#34d399" }}>
+                <span style={{ fontSize: "12px", color: isC1 ? "#16a34a" : "#34d399" }}>
                   ({overview.totals.total > 0 ? Math.round(((overview.totals.under_40 ?? 0) / overview.totals.total) * 100) : 0}%)
                 </span>
               </div>
-              <span style={{ fontSize: "11px", color: isUnder40Active ? "#a7f3d0" : "#64748b" }}>
+              <span style={{ fontSize: "11px", color: isC1 ? (isUnder40Active ? "#15803d" : "#64748b") : (isUnder40Active ? "#a7f3d0" : "#64748b") }}>
                 Cutoff: 21 Aug 2026 {isUnder40Active ? "• Active" : "• Click to filter"}
               </span>
             </div>
 
-            <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
+            <div style={{ background: isC1 ? "#ffffff" : "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.06)", boxShadow: isC1 ? "0 1px 3px rgba(0,0,0,0.05)" : "none" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Women Executives</span>
-                <UserCheck size={15} color="#94a3b8" />
+                <span style={{ fontSize: "11px", color: isC1 ? "#475569" : "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Women Executives</span>
+                <UserCheck size={15} color={isC1 ? "#db2777" : "#94a3b8"} />
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "4px" }}>
-                <span style={{ fontSize: "22px", fontWeight: "700", color: "#f472b6" }}>{overview.totals.women.toLocaleString()}</span>
-                <span style={{ fontSize: "12px", color: "#f472b6" }}>
+                <span style={{ fontSize: "22px", fontWeight: "700", color: isC1 ? "#db2777" : "#f472b6" }}>{overview.totals.women.toLocaleString()}</span>
+                <span style={{ fontSize: "12px", color: isC1 ? "#db2777" : "#f472b6" }}>
                   ({overview.totals.total > 0 ? Math.round((overview.totals.women / overview.totals.total) * 100) : 0}%)
                 </span>
               </div>
               <span style={{ fontSize: "11px", color: "#64748b" }}>Female officers in directory</span>
             </div>
 
-            <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
+            <div style={{ background: isC1 ? "#ffffff" : "rgba(30, 41, 59, 0.5)", padding: "16px", borderRadius: "10px", border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.06)", boxShadow: isC1 ? "0 1px 3px rgba(0,0,0,0.05)" : "none" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Nasara Directorate</span>
-                <Compass size={15} color="#94a3b8" />
+                <span style={{ fontSize: "11px", color: isC1 ? "#475569" : "#94a3b8", textTransform: "uppercase", fontWeight: "600" }}>Nasara Directorate</span>
+                <Compass size={15} color={isC1 ? "#0284c7" : "#94a3b8"} />
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "4px" }}>
-                <span style={{ fontSize: "22px", fontWeight: "700", color: "#38bdf8" }}>{overview.totals.nasara.toLocaleString()}</span>
+                <span style={{ fontSize: "22px", fontWeight: "700", color: isC1 ? "#0284c7" : "#38bdf8" }}>{overview.totals.nasara.toLocaleString()}</span>
               </div>
               <span style={{ fontSize: "11px", color: "#64748b" }}>Coordinators & Organisers</span>
             </div>
@@ -2310,12 +2827,12 @@ export default function NationalAdminDashboard() {
         {/* National Election Electoral College Voting Metrics */}
         {overview?.electoralCollege && (
           <div style={{ marginTop: "14px", marginBottom: "20px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-              <span style={{ fontSize: "11px", fontWeight: "700", color: "#38bdf8", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", color: isC1 ? "#0284c7" : "#38bdf8", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 National election eligibility ({selectedConstituency || (selectedRegion ? `${selectedRegion} Region` : "Nationwide Pool")})
               </span>
-              <span style={{ fontSize: "11px", color: "#64748b" }}>
-                Master Pool: <strong style={{ color: "#ffffff" }}>{overview.electoralCollege.total_delegates.toLocaleString()}</strong> delegates
+              <span style={{ fontSize: "11px", color: isC1 ? "#475569" : "#64748b" }}>
+                Master Pool: <strong style={{ color: isC1 ? "#0f172a" : "#ffffff" }}>{overview.electoralCollege.total_delegates.toLocaleString()}</strong> delegates
               </span>
             </div>
             <div style={{
@@ -2324,36 +2841,36 @@ export default function NationalAdminDashboard() {
               gap: "12px"
             }}>
               {/* General Positions */}
-              <div style={{ background: "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase", fontWeight: "700" }}>General Positions</div>
-                <div style={{ fontSize: "20px", fontWeight: "800", color: "#ffffff", marginTop: "4px" }}>
+              <div style={{ background: isC1 ? "#ffffff" : "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.08)", boxShadow: isC1 ? "0 1px 3px rgba(0,0,0,0.05)" : "none" }}>
+                <div style={{ fontSize: "10px", color: isC1 ? "#475569" : "#94a3b8", textTransform: "uppercase", fontWeight: "700" }}>General Positions</div>
+                <div style={{ fontSize: "20px", fontWeight: "800", color: isC1 ? "#0f172a" : "#ffffff", marginTop: "4px" }}>
                   {overview.electoralCollege.general_voters.toLocaleString()}
                 </div>
-                <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>Constituency, regional, national + TESCON Presidents</div>
+                <div style={{ fontSize: "12px", color: isC1 ? "#64748b" : "#94a3b8", marginTop: "2px" }}>Constituency, regional, national + TESCON Presidents</div>
               </div>
 
               {/* Youth Organiser */}
-              <div style={{ background: "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                <div style={{ fontSize: "10px", color: "#38bdf8", textTransform: "uppercase", fontWeight: "700" }}>Youth Organiser</div>
-                <div style={{ fontSize: "20px", fontWeight: "800", color: "#38bdf8", marginTop: "4px" }}>
+              <div style={{ background: isC1 ? "#ffffff" : "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.08)", boxShadow: isC1 ? "0 1px 3px rgba(0,0,0,0.05)" : "none" }}>
+                <div style={{ fontSize: "10px", color: isC1 ? "#0284c7" : "#38bdf8", textTransform: "uppercase", fontWeight: "700" }}>Youth Organiser</div>
+                <div style={{ fontSize: "20px", fontWeight: "800", color: isC1 ? "#0284c7" : "#38bdf8", marginTop: "4px" }}>
                   {overview.electoralCollege.youth_voters.toLocaleString()}
                 </div>
-                <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>Below 40 + all TESCON except patrons</div>
+                <div style={{ fontSize: "12px", color: isC1 ? "#64748b" : "#94a3b8", marginTop: "2px" }}>Below 40 + all TESCON except patrons</div>
               </div>
 
               {/* Women Organiser */}
-              <div style={{ background: "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                <div style={{ fontSize: "10px", color: "#f472b6", textTransform: "uppercase", fontWeight: "700" }}>Women Organiser</div>
-                <div style={{ fontSize: "20px", fontWeight: "800", color: "#f472b6", marginTop: "4px" }}>
+              <div style={{ background: isC1 ? "#ffffff" : "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.08)", boxShadow: isC1 ? "0 1px 3px rgba(0,0,0,0.05)" : "none" }}>
+                <div style={{ fontSize: "10px", color: isC1 ? "#be185d" : "#f472b6", textTransform: "uppercase", fontWeight: "700" }}>Women Organiser</div>
+                <div style={{ fontSize: "20px", fontWeight: "800", color: isC1 ? "#be185d" : "#f472b6", marginTop: "4px" }}>
                   {overview.electoralCollege.women_voters.toLocaleString()}
                 </div>
-                <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>Female constituency, regional, national + TESCON WOCOM, female presidents & female Nasara</div>
+                <div style={{ fontSize: "12px", color: isC1 ? "#64748b" : "#94a3b8", marginTop: "2px" }}>Female constituency, regional, national + TESCON WOCOM, female presidents & female Nasara</div>
               </div>
 
               {/* Nasara Coordinator */}
-              <div style={{ background: "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                <div style={{ fontSize: "10px", color: "#fbbf24", textTransform: "uppercase", fontWeight: "700" }}>Nasara Organiser</div>
-                <div style={{ fontSize: "20px", fontWeight: "800", color: "#fbbf24", marginTop: "4px" }}>
+              <div style={{ background: isC1 ? "#ffffff" : "rgba(15, 23, 42, 0.7)", padding: "14px", borderRadius: "8px", border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.08)", boxShadow: isC1 ? "0 1px 3px rgba(0,0,0,0.05)" : "none" }}>
+                <div style={{ fontSize: "10px", color: isC1 ? "#b45309" : "#fbbf24", textTransform: "uppercase", fontWeight: "700" }}>Nasara Organiser</div>
+                <div style={{ fontSize: "20px", fontWeight: "800", color: isC1 ? "#b45309" : "#fbbf24", marginTop: "4px" }}>
                   {overview.electoralCollege.nasara_voters.toLocaleString()}
                 </div>
                 <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Nasara Execs + TESCON Nasara</div>
@@ -2362,27 +2879,29 @@ export default function NationalAdminDashboard() {
           </div>
         )}
 
-        <p><Link href="/admin/voting">View all nine contests, regional metrics, constituency metrics and electorate details →</Link></p>
+        <p><Link href="/admin/voting" style={{ color: isC1 ? "#db2777" : undefined, fontWeight: isC1 ? "600" : undefined }}>View all nine contests, regional metrics, constituency metrics and electorate details →</Link></p>
 
         {isC1 && (
           <div
             style={{
               marginBottom: "16px",
-              padding: "12px 18px",
-              borderRadius: "8px",
-              background: "rgba(236, 72, 153, 0.12)",
-              border: "1px solid rgba(236, 72, 153, 0.3)",
+              padding: "14px 18px",
+              borderRadius: "10px",
+              background: "#fdf2f8",
+              border: "1px solid #fbcfe8",
               display: "flex",
               alignItems: "center",
-              gap: "12px",
-              color: "#f472b6",
+              flexWrap: "wrap",
+              gap: "8px",
+              color: "#be185d",
               fontSize: "13px",
+              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
             }}
           >
-            <span style={{ fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              C1 Access Scope Active:
+            <span style={{ fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", color: "#9d174d" }}>
+              All Women Electorate Active:
             </span>
-            <span style={{ color: "#fbcfe8" }}>
+            <span style={{ color: "#831843" }}>
               Directory is filtered strictly to female executives in the Electoral College (Constituency, Regional, External Branches, National, and TESCON female Presidents &amp; WOCOM). Non-electoral tiers and non-female executives are restricted.
             </span>
           </div>
@@ -2394,7 +2913,7 @@ export default function NationalAdminDashboard() {
             {/* Search Input with Grey Search Icon */}
             <div className="dash-search-container">
               <div style={{ position: "absolute", left: "12px", pointerEvents: "none", display: "flex" }}>
-                <Search size={15} color="#94a3b8" />
+                <Search size={15} color={isC1 ? "#64748b" : "#94a3b8"} />
               </div>
               <input
                 type="text"
@@ -2405,9 +2924,9 @@ export default function NationalAdminDashboard() {
                   width: "100%",
                   padding: "10px 14px 10px 36px",
                   borderRadius: "8px",
-                  background: "rgba(2, 6, 23, 0.8)",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  color: "#ffffff",
+                  background: isC1 ? "#f8fafc" : "rgba(2, 6, 23, 0.8)",
+                  border: isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                  color: isC1 ? "#0f172a" : "#ffffff",
                   fontSize: "13px",
                   outline: "none",
                   boxSizing: "border-box"
@@ -2568,12 +3087,12 @@ export default function NationalAdminDashboard() {
                   padding: "9px 13px",
                   borderRadius: "8px",
                   background: filterMissingImages
-                    ? "rgba(245, 158, 11, 0.18)"
-                    : "rgba(15, 23, 42, 0.8)",
+                    ? isC1 ? "#fffbeb" : "rgba(245, 158, 11, 0.18)"
+                    : isC1 ? "#f8fafc" : "rgba(15, 23, 42, 0.8)",
                   border: filterMissingImages
-                    ? "1px solid rgba(245, 158, 11, 0.55)"
-                    : "1px solid rgba(255, 255, 255, 0.15)",
-                  color: filterMissingImages ? "#fbbf24" : "#cbd5e1",
+                    ? isC1 ? "1px solid #f59e0b" : "1px solid rgba(245, 158, 11, 0.55)"
+                    : isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                  color: filterMissingImages ? (isC1 ? "#b45309" : "#fbbf24") : (isC1 ? "#334155" : "#cbd5e1"),
                   fontSize: "13px",
                   fontWeight: "600",
                   cursor: "pointer",
@@ -2592,7 +3111,7 @@ export default function NationalAdminDashboard() {
                     width: "26px",
                     height: "15px",
                     borderRadius: "10px",
-                    background: filterMissingImages ? "#f59e0b" : "rgba(255, 255, 255, 0.2)",
+                    background: filterMissingImages ? "#f59e0b" : isC1 ? "#cbd5e1" : "rgba(255, 255, 255, 0.2)",
                     position: "relative",
                     transition: "background 0.2s ease",
                     flexShrink: 0,
@@ -2612,15 +3131,15 @@ export default function NationalAdminDashboard() {
                     }}
                   />
                 </div>
-                <ImageOff size={14} color={filterMissingImages ? "#fbbf24" : "#94a3b8"} />
+                <ImageOff size={14} color={filterMissingImages ? (isC1 ? "#b45309" : "#fbbf24") : "#64748b"} />
                 <span>{filterMissingImages ? "Missing Images" : "Reload Missing Images"}</span>
                 {overview?.totals?.missing_photos != null && overview.totals.missing_photos > 0 && (
                   <span
                     style={{
                       padding: "1px 6px",
                       borderRadius: "10px",
-                      background: filterMissingImages ? "#b45309" : "rgba(255, 255, 255, 0.1)",
-                      color: filterMissingImages ? "#ffffff" : "#94a3b8",
+                      background: filterMissingImages ? "#b45309" : isC1 ? "#e2e8f0" : "rgba(255, 255, 255, 0.1)",
+                      color: filterMissingImages ? "#ffffff" : isC1 ? "#475569" : "#94a3b8",
                       fontSize: "11px",
                       fontWeight: "700",
                     }}
@@ -2643,12 +3162,12 @@ export default function NationalAdminDashboard() {
                   padding: "9px 13px",
                   borderRadius: "8px",
                   background: isUnder40Active
-                    ? "rgba(16, 185, 129, 0.18)"
-                    : "rgba(15, 23, 42, 0.8)",
+                    ? isC1 ? "#ecfdf5" : "rgba(16, 185, 129, 0.18)"
+                    : isC1 ? "#f8fafc" : "rgba(15, 23, 42, 0.8)",
                   border: isUnder40Active
-                    ? "1px solid rgba(52, 211, 153, 0.55)"
-                    : "1px solid rgba(255, 255, 255, 0.15)",
-                  color: isUnder40Active ? "#34d399" : "#cbd5e1",
+                    ? isC1 ? "1px solid #10b981" : "1px solid rgba(52, 211, 153, 0.55)"
+                    : isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                  color: isUnder40Active ? (isC1 ? "#047857" : "#34d399") : (isC1 ? "#334155" : "#cbd5e1"),
                   fontSize: "13px",
                   fontWeight: "600",
                   cursor: "pointer",
@@ -2667,7 +3186,7 @@ export default function NationalAdminDashboard() {
                     width: "26px",
                     height: "15px",
                     borderRadius: "10px",
-                    background: isUnder40Active ? "#10b981" : "rgba(255, 255, 255, 0.2)",
+                    background: isUnder40Active ? "#10b981" : isC1 ? "#cbd5e1" : "rgba(255, 255, 255, 0.2)",
                     position: "relative",
                     transition: "background 0.2s ease",
                     flexShrink: 0,
@@ -2687,15 +3206,15 @@ export default function NationalAdminDashboard() {
                     }}
                   />
                 </div>
-                <Sparkles size={14} color={isUnder40Active ? "#34d399" : "#94a3b8"} />
+                <Sparkles size={14} color={isUnder40Active ? (isC1 ? "#059669" : "#34d399") : "#64748b"} />
                 <span>Under 40</span>
                 {overview?.totals?.under_40 != null && (
                   <span
                     style={{
                       padding: "1px 6px",
                       borderRadius: "10px",
-                      background: isUnder40Active ? "#047857" : "rgba(255, 255, 255, 0.1)",
-                      color: isUnder40Active ? "#ffffff" : "#94a3b8",
+                      background: isUnder40Active ? "#047857" : isC1 ? "#e2e8f0" : "rgba(255, 255, 255, 0.1)",
+                      color: isUnder40Active ? "#ffffff" : isC1 ? "#475569" : "#94a3b8",
                       fontSize: "11px",
                       fontWeight: "700",
                     }}
@@ -2717,22 +3236,22 @@ export default function NationalAdminDashboard() {
                   padding: "9px 14px",
                   borderRadius: "8px",
                   background: reloadingFullData
-                    ? "rgba(59, 130, 246, 0.2)"
-                    : "rgba(30, 41, 59, 0.8)",
-                  border: "1px solid rgba(59, 130, 246, 0.35)",
-                  color: "#93c5fd",
+                    ? isC1 ? "#eff6ff" : "rgba(59, 130, 246, 0.2)"
+                    : isC1 ? "#f8fafc" : "rgba(30, 41, 59, 0.8)",
+                  border: isC1 ? "1px solid #bfdbfe" : "1px solid rgba(59, 130, 246, 0.35)",
+                  color: isC1 ? "#1d4ed8" : "#93c5fd",
                   fontSize: "13px",
                   fontWeight: "600",
                   cursor: reloadingFullData ? "not-allowed" : "pointer",
                   transition: "all 0.15s ease",
-                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                  boxShadow: isC1 ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "0 2px 6px rgba(0, 0, 0, 0.2)",
                   opacity: reloadingFullData ? 0.75 : 1,
                 }}
                 title="Reload full roster data and overview statistics directly from the database"
               >
                 <RotateCw
                   size={14}
-                  color="#60a5fa"
+                  color={isC1 ? "#2563eb" : "#60a5fa"}
                   style={{
                     animation: reloadingFullData ? "spin 1s linear infinite" : undefined,
                   }}
@@ -2748,14 +3267,14 @@ export default function NationalAdminDashboard() {
                     gap: "6px",
                     padding: "7px 12px",
                     borderRadius: "8px",
-                    background: "rgba(16, 185, 129, 0.15)",
-                    border: "1px solid rgba(16, 185, 129, 0.35)",
-                    color: "#34d399",
+                    background: isC1 ? "#ecfdf5" : "rgba(16, 185, 129, 0.15)",
+                    border: isC1 ? "1px solid #a7f3d0" : "1px solid rgba(16, 185, 129, 0.35)",
+                    color: isC1 ? "#047857" : "#34d399",
                     fontSize: "12px",
                     fontWeight: "600",
                   }}
                 >
-                  <CheckCircle2 size={13} color="#34d399" />
+                  <CheckCircle2 size={13} color={isC1 ? "#059669" : "#34d399"} />
                   <span>{fullReloadToast}</span>
                 </div>
               )}
@@ -2825,7 +3344,7 @@ export default function NationalAdminDashboard() {
               </select>
 
               <div className="dash-region-arrow" style={{ display: "flex", alignItems: "center" }}>
-                <ArrowRight size={13} color={(selectedRegion || (selectedLevel === "TESCON" && selectedInstitution)) ? "#34d399" : "#64748b"} />
+                <ArrowRight size={13} color={(selectedRegion || (selectedLevel === "TESCON" && selectedInstitution)) ? "#10b981" : "#64748b"} />
               </div>
 
               {/* Dynamic Branch: TESCON Institutions Dropdown vs Constituency Dropdown */}
@@ -3040,9 +3559,11 @@ export default function NationalAdminDashboard() {
                 gap: "7px",
                 padding: "8px 13px",
                 borderRadius: "6px",
-                background: isUnder40Active ? "rgba(16, 185, 129, 0.25)" : "rgba(2, 6, 23, 0.8)",
-                border: isUnder40Active ? "1.5px solid #10b981" : "1px solid rgba(52, 211, 153, 0.4)",
-                color: isUnder40Active ? "#34d399" : "#a7f3d0",
+                background: isUnder40Active
+                  ? isC1 ? "#ecfdf5" : "rgba(16, 185, 129, 0.25)"
+                  : isC1 ? "#f8fafc" : "rgba(2, 6, 23, 0.8)",
+                border: isUnder40Active ? "1.5px solid #10b981" : isC1 ? "1px solid #a7f3d0" : "1px solid rgba(52, 211, 153, 0.4)",
+                color: isUnder40Active ? (isC1 ? "#047857" : "#34d399") : (isC1 ? "#059669" : "#a7f3d0"),
                 fontSize: "13px",
                 fontWeight: "600",
                 cursor: "pointer",
@@ -3052,7 +3573,7 @@ export default function NationalAdminDashboard() {
               }}
               title="Click to toggle Under 40 (Youth) filter"
             >
-              <Sparkles size={14} color="#34d399" />
+              <Sparkles size={14} color={isC1 ? "#059669" : "#34d399"} />
               <span>Under 40 {isUnder40Active ? "✓ Active" : ""}</span>
               {overview?.totals?.under_40 != null && (
                 <span
@@ -3061,8 +3582,8 @@ export default function NationalAdminDashboard() {
                     fontWeight: "700",
                     padding: "1px 6px",
                     borderRadius: "8px",
-                    background: isUnder40Active ? "#047857" : "rgba(52, 211, 153, 0.2)",
-                    color: isUnder40Active ? "#ffffff" : "#6ee7b7"
+                    background: isUnder40Active ? "#047857" : isC1 ? "#d1fae5" : "rgba(52, 211, 153, 0.2)",
+                    color: isUnder40Active ? "#ffffff" : isC1 ? "#065f46" : "#6ee7b7"
                   }}
                 >
                   {overview.totals.under_40.toLocaleString()}
@@ -3214,9 +3735,10 @@ export default function NationalAdminDashboard() {
 
         {/* Executive Roster Grid Table with 'Level' Column and Action Buttons */}
         <section style={{
-          background: "rgba(15, 23, 42, 0.8)",
+          background: isC1 ? "#ffffff" : "rgba(15, 23, 42, 0.8)",
           borderRadius: "12px",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
+          border: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.08)",
+          boxShadow: isC1 ? "0 1px 3px rgba(0, 0, 0, 0.05)" : "none",
           overflow: "hidden"
         }}>
           <div className="dash-scroll-hint">
@@ -3227,29 +3749,29 @@ export default function NationalAdminDashboard() {
             <Table className="dash-table w-full">
               <TableHeader>
                 <TableRow style={{
-                  background: "rgba(30, 41, 59, 0.8)",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                  color: "#94a3b8",
+                  background: isC1 ? "#f8fafc" : "rgba(30, 41, 59, 0.8)",
+                  borderBottom: isC1 ? "1px solid #e2e8f0" : "1px solid rgba(255, 255, 255, 0.1)",
+                  color: isC1 ? "#475569" : "#94a3b8",
                   fontSize: "11px",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px"
                 }}>
-                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Voter ID</TableHead>
-                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Name</TableHead>
-                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Age / DOB</TableHead>
-                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Phone / Gender</TableHead>
-                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Region</TableHead>
-                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Constituency</TableHead>
-                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: "#94a3b8" }}>Level</TableHead>
-                  <TableHead style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap", color: "#94a3b8" }}>Actions</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: isC1 ? "#475569" : "#94a3b8" }}>Voter ID</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: isC1 ? "#475569" : "#94a3b8" }}>Name</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: isC1 ? "#475569" : "#94a3b8" }}>Age / DOB</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: isC1 ? "#475569" : "#94a3b8" }}>Phone / Gender</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: isC1 ? "#475569" : "#94a3b8" }}>Region</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: isC1 ? "#475569" : "#94a3b8" }}>Constituency</TableHead>
+                  <TableHead style={{ padding: "12px 14px", whiteSpace: "nowrap", color: isC1 ? "#475569" : "#94a3b8" }}>Level</TableHead>
+                  <TableHead style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap", color: isC1 ? "#475569" : "#94a3b8" }}>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loadingRows ? (
                   <TableRow>
-                    <TableCell colSpan={8} style={{ textAlign: "center", padding: "48px", color: "#94a3b8" }}>
+                    <TableCell colSpan={8} style={{ textAlign: "center", padding: "48px", color: isC1 ? "#64748b" : "#94a3b8" }}>
                       <div style={{ display: "flex", justifyContent: "center", marginBottom: "10px" }}>
-                        <Loader2 size={24} color="#94a3b8" style={{ animation: "spin 1s linear infinite" }} />
+                        <Loader2 size={24} color={isC1 ? "#64748b" : "#94a3b8"} style={{ animation: "spin 1s linear infinite" }} />
                       </div>
                       Querying ec-data PostgreSQL database…
                     </TableCell>
@@ -3262,33 +3784,36 @@ export default function NationalAdminDashboard() {
                   </TableRow>
                 ) : (
                   rows.map((row) => {
-                    const unitDetail = row.pollingStation || row.electoralArea;
+                    const isTesconRow = String(row.executiveLevel || "").toUpperCase() === "TESCON";
+                    const unitDetail = isTesconRow && row.pollingStation
+                      ? normalizeTesconInstitution(row.pollingStation, row.region, row.constituency, row.id)
+                      : row.pollingStation || row.electoralArea;
 
                     return (
                       <TableRow
                         key={row.id}
                         onClick={() => handleOpenModal(row.id)}
                         style={{
-                          borderBottom: "1px solid rgba(255, 255, 255, 0.04)",
+                          borderBottom: isC1 ? "1px solid #f1f5f9" : "1px solid rgba(255, 255, 255, 0.04)",
                           transition: "background 0.15s ease",
                           cursor: "pointer"
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.03)";
+                          e.currentTarget.style.backgroundColor = isC1 ? "#f8fafc" : "rgba(255, 255, 255, 0.03)";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = "transparent";
                         }}
                       >
                         {/* 1. Voter ID */}
-                        <TableCell style={{ padding: "12px 16px", fontFamily: "monospace", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "12px 16px", fontFamily: "monospace", color: isC1 ? "#334155" : "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.voterId ? (
                             <span style={{
                               padding: "2px 6px",
                               borderRadius: "4px",
-                              background: "rgba(59, 130, 246, 0.1)",
-                              border: "1px solid rgba(59, 130, 246, 0.2)",
-                              color: "#93c5fd",
+                              background: isC1 ? "#eff6ff" : "rgba(59, 130, 246, 0.1)",
+                              border: isC1 ? "1px solid #bfdbfe" : "1px solid rgba(59, 130, 246, 0.2)",
+                              color: isC1 ? "#1d4ed8" : "#93c5fd",
                               fontSize: "12px"
                             }}>
                               {row.voterId}
@@ -3299,7 +3824,7 @@ export default function NationalAdminDashboard() {
                         </TableCell>
 
                         {/* 2. Name & Position */}
-                        <TableCell style={{ padding: "10px 16px", color: "#ffffff", fontWeight: "600" }}>
+                        <TableCell style={{ padding: "10px 16px", color: isC1 ? "#0f172a" : "#ffffff", fontWeight: "600" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                             <div style={{ position: "relative", flexShrink: 0 }} title="Click row to view or update executive profile & photo">
                               <ExecutiveAvatar
@@ -3313,10 +3838,64 @@ export default function NationalAdminDashboard() {
                               />
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                              <span style={{ color: "#ffffff", fontWeight: 600 }}>{row.executiveName}</span>
+                              <span style={{ color: isC1 ? "#0f172a" : "#ffffff", fontWeight: 600 }}>{row.executiveName}</span>
                               {row.position && (
-                                <div style={{ fontSize: "11px", color: "#60a5fa", marginTop: "2px", fontWeight: "500" }}>
+                                <div style={{ fontSize: "11px", color: isC1 ? "#be185d" : "#60a5fa", marginTop: "2px", fontWeight: "500" }}>
                                   {row.position}
+                                </div>
+                              )}
+                              {(row.proxyAssignment || row.actingAsProxyFor) && (
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "4px" }}>
+                                  {row.proxyAssignment && (
+                                    <span
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenProxyModal(row);
+                                      }}
+                                      title={`Proxy assigned to ${row.proxyAssignment.proxyName} (${row.proxyAssignment.proxyVoterId || "No Voter ID"}). Click to view proxy details.`}
+                                      style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "4px",
+                                        padding: "2px 6px",
+                                        borderRadius: "4px",
+                                        background: isC1 ? "#f3e8ff" : "rgba(168, 85, 247, 0.16)",
+                                        border: isC1 ? "1px solid #d8b4fe" : "1px solid rgba(168, 85, 247, 0.38)",
+                                        color: isC1 ? "#7e22ce" : "#d8b4fe",
+                                        fontSize: "10px",
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      <UserCheck size={10} color={isC1 ? "#7e22ce" : "#c084fc"} />
+                                      <span>Proxy: {row.proxyAssignment.proxyName}</span>
+                                    </span>
+                                  )}
+                                  {row.actingAsProxyFor && (
+                                    <span
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenProxyModal(row);
+                                      }}
+                                      title={`Acting as proxy voter for ${row.actingAsProxyFor.principalName} (${row.actingAsProxyFor.principalVoterId || "No Voter ID"})`}
+                                      style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "4px",
+                                        padding: "2px 6px",
+                                        borderRadius: "4px",
+                                        background: isC1 ? "#e0f2fe" : "rgba(14, 165, 233, 0.15)",
+                                        border: isC1 ? "1px solid #bae6fd" : "1px solid rgba(14, 165, 233, 0.35)",
+                                        color: isC1 ? "#0369a1" : "#7dd3fc",
+                                        fontSize: "10px",
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      <Vote size={10} color={isC1 ? "#0284c7" : "#38bdf8"} />
+                                      <span>Voting for: {row.actingAsProxyFor.principalName}</span>
+                                    </span>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -3324,17 +3903,17 @@ export default function NationalAdminDashboard() {
                         </TableCell>
 
                         {/* 3. Age & Date of Birth */}
-                        <TableCell style={{ padding: "10px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "10px 14px", color: isC1 ? "#334155" : "#cbd5e1", whiteSpace: "nowrap" }}>
                           <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                               {row.age != null && row.age > 0 ? (
                                 <span style={{
                                   padding: "2px 7px",
                                   borderRadius: "4px",
-                                  background: "rgba(255, 255, 255, 0.06)",
+                                  background: isC1 ? "#f1f5f9" : "rgba(255, 255, 255, 0.06)",
                                   fontSize: "12px",
                                   fontWeight: "600",
-                                  color: "#e2e8f0"
+                                  color: isC1 ? "#1e293b" : "#e2e8f0"
                                 }}>
                                   {row.age} yrs
                                 </span>
@@ -3346,9 +3925,9 @@ export default function NationalAdminDashboard() {
                                   style={{
                                     padding: "2px 6px",
                                     borderRadius: "4px",
-                                    background: "rgba(52, 211, 153, 0.15)",
-                                    border: "1px solid rgba(52, 211, 153, 0.3)",
-                                    color: "#34d399",
+                                    background: isC1 ? "#d1fae5" : "rgba(52, 211, 153, 0.15)",
+                                    border: isC1 ? "1px solid #6ee7b7" : "1px solid rgba(52, 211, 153, 0.3)",
+                                    color: isC1 ? "#047857" : "#34d399",
                                     fontSize: "10px",
                                     fontWeight: "700",
                                     textTransform: "uppercase",
@@ -3359,13 +3938,13 @@ export default function NationalAdminDashboard() {
                                   }}
                                   title="Under 40 as at 21st August 2026"
                                 >
-                                  <Sparkles size={10} color="#34d399" />
+                                  <Sparkles size={10} color={isC1 ? "#059669" : "#34d399"} />
                                   <span>&lt; 40</span>
                                 </span>
                               )}
                             </div>
                             {row.dateOfBirth && (
-                              <span style={{ fontSize: "11px", color: "#94a3b8", fontFamily: "monospace" }}>
+                              <span style={{ fontSize: "11px", color: isC1 ? "#64748b" : "#94a3b8", fontFamily: "monospace" }}>
                                 {row.dateOfBirth}
                               </span>
                             )}
@@ -3373,14 +3952,14 @@ export default function NationalAdminDashboard() {
                         </TableCell>
 
                         {/* 4. Phone & Gender */}
-                        <TableCell style={{ padding: "10px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "10px 14px", color: isC1 ? "#334155" : "#cbd5e1", whiteSpace: "nowrap" }}>
                           <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
                             {row.phone ? (
                               <a
                                 href={`tel:${row.phone}`}
                                 onClick={(e) => e.stopPropagation()}
                                 style={{
-                                  color: "#38bdf8",
+                                  color: isC1 ? "#0284c7" : "#38bdf8",
                                   textDecoration: "none",
                                   display: "inline-flex",
                                   alignItems: "center",
@@ -3404,22 +3983,22 @@ export default function NationalAdminDashboard() {
                                     fontWeight: 500,
                                     color:
                                       row.gender.toLowerCase() === "female"
-                                        ? "#f472b6"
+                                        ? isC1 ? "#be185d" : "#f472b6"
                                         : row.gender.toLowerCase() === "male"
-                                        ? "#60a5fa"
-                                        : "#94a3b8",
+                                        ? isC1 ? "#1d4ed8" : "#60a5fa"
+                                        : isC1 ? "#475569" : "#94a3b8",
                                     backgroundColor:
                                       row.gender.toLowerCase() === "female"
-                                        ? "rgba(244, 114, 182, 0.12)"
+                                        ? isC1 ? "#fdf2f8" : "rgba(244, 114, 182, 0.12)"
                                         : row.gender.toLowerCase() === "male"
-                                        ? "rgba(96, 165, 250, 0.12)"
-                                        : "rgba(148, 163, 184, 0.1)",
+                                        ? isC1 ? "#eff6ff" : "rgba(96, 165, 250, 0.12)"
+                                        : isC1 ? "#f1f5f9" : "rgba(148, 163, 184, 0.1)",
                                     border:
                                       row.gender.toLowerCase() === "female"
-                                        ? "1px solid rgba(244, 114, 182, 0.25)"
+                                        ? isC1 ? "1px solid #fbcfe8" : "1px solid rgba(244, 114, 182, 0.25)"
                                         : row.gender.toLowerCase() === "male"
-                                        ? "1px solid rgba(96, 165, 250, 0.25)"
-                                        : "1px solid rgba(148, 163, 184, 0.2)",
+                                        ? isC1 ? "1px solid #bfdbfe" : "1px solid rgba(96, 165, 250, 0.25)"
+                                        : isC1 ? "1px solid #cbd5e1" : "1px solid rgba(148, 163, 184, 0.2)",
                                     borderRadius: "4px",
                                     padding: "1px 6px",
                                     textTransform: "capitalize",
@@ -3435,12 +4014,12 @@ export default function NationalAdminDashboard() {
                         </TableCell>
 
                         {/* 5. Region */}
-                        <TableCell style={{ padding: "12px 14px", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "12px 14px", color: isC1 ? "#334155" : "#cbd5e1", whiteSpace: "nowrap" }}>
                           {row.region ? normalizeRegionName(row.region) : "—"}
                         </TableCell>
 
                         {/* 6. Constituency */}
-                        <TableCell style={{ padding: "12px 14px", color: "#cbd5e1", fontWeight: "500", whiteSpace: "nowrap" }}>
+                        <TableCell style={{ padding: "12px 14px", color: isC1 ? "#1e293b" : "#cbd5e1", fontWeight: "500", whiteSpace: "nowrap" }}>
                           {row.constituency
                             ? normalizeRegionName(row.region) === "External Branch"
                               ? row.constituency
@@ -3457,30 +4036,67 @@ export default function NationalAdminDashboard() {
                               borderRadius: "5px",
                               fontWeight: "600",
                               width: "fit-content",
-                              background: row.executiveLevel === "National" ? "rgba(168, 85, 247, 0.2)" :
-                                          row.executiveLevel === "Region" ? "rgba(59, 130, 246, 0.2)" :
-                                          row.executiveLevel === "Constituency" ? "rgba(16, 185, 129, 0.2)" :
-                                          row.executiveLevel === "External Branch" ? "rgba(6, 182, 212, 0.2)" :
-                                          row.executiveLevel === "TESCON" ? "rgba(234, 179, 8, 0.2)" : "rgba(148, 163, 184, 0.12)",
-                              color: row.executiveLevel === "National" ? "#c084fc" :
-                                     row.executiveLevel === "Region" ? "#60a5fa" :
-                                     row.executiveLevel === "Constituency" ? "#34d399" :
-                                     row.executiveLevel === "External Branch" ? "#22d3ee" :
-                                     row.executiveLevel === "TESCON" ? "#facc15" : "#cbd5e1"
+                              background: row.executiveLevel === "National" ? (isC1 ? "#f3e8ff" : "rgba(168, 85, 247, 0.2)") :
+                                          row.executiveLevel === "Region" ? (isC1 ? "#eff6ff" : "rgba(59, 130, 246, 0.2)") :
+                                          row.executiveLevel === "Constituency" ? (isC1 ? "#ecfdf5" : "rgba(16, 185, 129, 0.2)") :
+                                          row.executiveLevel === "External Branch" ? (isC1 ? "#ecfeff" : "rgba(6, 182, 212, 0.2)") :
+                                          row.executiveLevel === "TESCON" ? (isC1 ? "#fefce8" : "rgba(234, 179, 8, 0.2)") : (isC1 ? "#f1f5f9" : "rgba(148, 163, 184, 0.12)"),
+                              color: row.executiveLevel === "National" ? (isC1 ? "#7e22ce" : "#c084fc") :
+                                     row.executiveLevel === "Region" ? (isC1 ? "#1d4ed8" : "#60a5fa") :
+                                     row.executiveLevel === "Constituency" ? (isC1 ? "#047857" : "#34d399") :
+                                     row.executiveLevel === "External Branch" ? (isC1 ? "#0e7490" : "#22d3ee") :
+                                     row.executiveLevel === "TESCON" ? (isC1 ? "#a16207" : "#facc15") : (isC1 ? "#475569" : "#cbd5e1")
                             }}>
                               {row.executiveLevel}
                             </span>
                             {unitDetail && (
-                              <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                              <span style={{ fontSize: "11px", color: isC1 ? "#64748b" : "#94a3b8" }}>
                                 {unitDetail}
                               </span>
                             )}
                           </div>
                         </TableCell>
 
-                        {/* Actions (Always visible: View/Edit + Delete) */}
+                        {/* Actions (Always visible: Proxy + View/Edit + Delete) */}
                         <TableCell style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenProxyModal(row);
+                              }}
+                              title={
+                                row.proxyAssignment
+                                  ? `Proxy Assigned: ${row.proxyAssignment.proxyName} — Click to view proxy voter details`
+                                  : "Assign Proxy Voter"
+                              }
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                padding: "5px 10px",
+                                borderRadius: "6px",
+                                background: row.proxyAssignment
+                                  ? isC1 ? "#f3e8ff" : "rgba(168, 85, 247, 0.18)"
+                                  : isC1 ? "#eef2ff" : "rgba(99, 102, 241, 0.12)",
+                                border: row.proxyAssignment
+                                  ? isC1 ? "1px solid #d8b4fe" : "1px solid rgba(168, 85, 247, 0.45)"
+                                  : isC1 ? "1px solid #c7d2fe" : "1px solid rgba(99, 102, 241, 0.3)",
+                                color: row.proxyAssignment ? (isC1 ? "#7e22ce" : "#e9d5ff") : (isC1 ? "#4338ca" : "#a5b4fc"),
+                                fontSize: "12px",
+                                fontWeight: "600",
+                                cursor: "pointer",
+                                transition: "all 0.15s ease",
+                              }}
+                            >
+                              <UserCheck
+                                size={12}
+                                color={row.proxyAssignment ? (isC1 ? "#7e22ce" : "#c084fc") : (isC1 ? "#4f46e5" : "#818cf8")}
+                              />
+                              <span>{row.proxyAssignment ? "Proxy Assigned" : "Proxy"}</span>
+                            </button>
+
                             <button
                               type="button"
                               onClick={(e) => {
@@ -3494,16 +4110,16 @@ export default function NationalAdminDashboard() {
                                 gap: "5px",
                                 padding: "5px 10px",
                                 borderRadius: "6px",
-                                background: "rgba(255, 255, 255, 0.06)",
-                                border: "1px solid rgba(255, 255, 255, 0.12)",
-                                color: "#cbd5e1",
+                                background: isC1 ? "#f8fafc" : "rgba(255, 255, 255, 0.06)",
+                                border: isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.12)",
+                                color: isC1 ? "#334155" : "#cbd5e1",
                                 fontSize: "12px",
                                 fontWeight: "600",
                                 cursor: "pointer",
                                 transition: "all 0.15s ease",
                               }}
                             >
-                              <Pencil size={12} color="#94a3b8" />
+                              <Pencil size={12} color={isC1 ? "#64748b" : "#94a3b8"} />
                               <span>Edit</span>
                             </button>
 
@@ -3520,16 +4136,16 @@ export default function NationalAdminDashboard() {
                                 gap: "5px",
                                 padding: "5px 10px",
                                 borderRadius: "6px",
-                                background: "rgba(239, 68, 68, 0.12)",
-                                border: "1px solid rgba(239, 68, 68, 0.25)",
-                                color: "#f87171",
+                                background: isC1 ? "#fef2f2" : "rgba(239, 68, 68, 0.12)",
+                                border: isC1 ? "1px solid #fecaca" : "1px solid rgba(239, 68, 68, 0.25)",
+                                color: isC1 ? "#dc2626" : "#f87171",
                                 fontSize: "12px",
                                 fontWeight: "600",
                                 cursor: "pointer",
                                 transition: "all 0.15s ease",
                               }}
                             >
-                              <Trash2 size={12} color="#f87171" />
+                              <Trash2 size={12} color={isC1 ? "#dc2626" : "#f87171"} />
                               <span>Delete</span>
                             </button>
                           </div>
@@ -3555,9 +4171,9 @@ export default function NationalAdminDashboard() {
                 style={{
                   padding: "4px 8px",
                   borderRadius: "6px",
-                  background: "rgba(2, 6, 23, 0.8)",
-                  border: "1px solid rgba(255, 255, 255, 0.12)",
-                  color: "#ffffff",
+                  background: isC1 ? "#ffffff" : "rgba(2, 6, 23, 0.8)",
+                  border: isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.12)",
+                  color: isC1 ? "#0f172a" : "#ffffff",
                   fontSize: "12px"
                 }}
               >
@@ -3580,13 +4196,13 @@ export default function NationalAdminDashboard() {
                   gap: "4px",
                   padding: "6px 12px",
                   borderRadius: "6px",
-                  background: page <= 1 ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.1)",
-                  color: page <= 1 ? "#475569" : "#ffffff",
-                  border: "none",
+                  background: page <= 1 ? (isC1 ? "#f8fafc" : "rgba(255, 255, 255, 0.03)") : (isC1 ? "#ffffff" : "rgba(255, 255, 255, 0.1)"),
+                  color: page <= 1 ? (isC1 ? "#94a3b8" : "#475569") : (isC1 ? "#0f172a" : "#ffffff"),
+                  border: isC1 ? "1px solid #cbd5e1" : "none",
                   cursor: page <= 1 ? "not-allowed" : "pointer"
                 }}
               >
-                <ChevronLeft size={14} color={page <= 1 ? "#475569" : "#94a3b8"} /> Previous
+                <ChevronLeft size={14} color={page <= 1 ? (isC1 ? "#94a3b8" : "#475569") : (isC1 ? "#475569" : "#94a3b8")} /> Previous
               </button>
               <button
                 disabled={page >= totalPages || loadingRows}
@@ -3597,13 +4213,13 @@ export default function NationalAdminDashboard() {
                   gap: "4px",
                   padding: "6px 12px",
                   borderRadius: "6px",
-                  background: page >= totalPages ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.1)",
-                  color: page >= totalPages ? "#475569" : "#ffffff",
-                  border: "none",
+                  background: page >= totalPages ? (isC1 ? "#f8fafc" : "rgba(255, 255, 255, 0.03)") : (isC1 ? "#ffffff" : "rgba(255, 255, 255, 0.1)"),
+                  color: page >= totalPages ? (isC1 ? "#94a3b8" : "#475569") : (isC1 ? "#0f172a" : "#ffffff"),
+                  border: isC1 ? "1px solid #cbd5e1" : "none",
                   cursor: page >= totalPages ? "not-allowed" : "pointer"
                 }}
               >
-                Next <ChevronRight size={14} color={page >= totalPages ? "#475569" : "#94a3b8"} />
+                Next <ChevronRight size={14} color={page >= totalPages ? (isC1 ? "#94a3b8" : "#475569") : (isC1 ? "#475569" : "#94a3b8")} />
               </button>
             </div>
           </div>
@@ -6715,6 +7331,1328 @@ export default function NationalAdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* ===================================================================== */}
+      {/* PROXY VOTING MODAL (View Assigned Proxy Details OR Search & Assign)   */}
+      {/* ===================================================================== */}
+      {proxyModalOpen && proxyModalPrincipal && (
+        <div
+          className="dash-modal-backdrop"
+          onClick={handleCloseProxyModal}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(3, 7, 18, 0.84)",
+            backdropFilter: "blur(8px)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+        >
+          <div
+            className="dash-modal-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "860px",
+              maxHeight: "90vh",
+              background: "#0f172a",
+              border: "1px solid rgba(168, 85, 247, 0.3)",
+              borderRadius: "16px",
+              boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.75)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: "18px 24px",
+                background: "linear-gradient(135deg, rgba(88, 28, 135, 0.35) 0%, rgba(30, 41, 59, 0.9) 100%)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "12px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "10px",
+                    background: "rgba(168, 85, 247, 0.2)",
+                    border: "1px solid rgba(168, 85, 247, 0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#c084fc",
+                  }}
+                >
+                  <UserCheck size={20} />
+                </div>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 700, color: "#f8fafc" }}>
+                      {proxyModalAssignment && proxyModalViewMode === "details"
+                        ? "Assigned Proxy Voter Details"
+                        : "Assign Proxy Voter"}
+                    </h3>
+                    <span
+                      style={{
+                        padding: "2px 8px",
+                        borderRadius: "999px",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        background: proxyModalAssignment
+                          ? "rgba(16, 185, 129, 0.18)"
+                          : "rgba(148, 163, 184, 0.15)",
+                        border: proxyModalAssignment
+                          ? "1px solid rgba(16, 185, 129, 0.4)"
+                          : "1px solid rgba(148, 163, 184, 0.25)",
+                        color: proxyModalAssignment ? "#34d399" : "#cbd5e1",
+                      }}
+                    >
+                      {proxyModalAssignment ? "Proxy Assigned" : "No Proxy Assigned"}
+                    </span>
+                  </div>
+                  <p style={{ margin: "2px 0 0 0", fontSize: "12px", color: "#94a3b8" }}>
+                    Rule: Each voter may only hold a maximum of one (1) proxy assignment.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCloseProxyModal}
+                style={{
+                  background: "rgba(255, 255, 255, 0.06)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  borderRadius: "8px",
+                  width: "34px",
+                  height: "34px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#94a3b8",
+                  cursor: "pointer",
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Principal Executive Banner */}
+            <div
+              style={{
+                padding: "14px 24px",
+                background: "rgba(15, 23, 42, 0.9)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.07)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: "12px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <ExecutiveAvatar
+                  imageUrl={proxyModalPrincipal.imageUrl}
+                  name={proxyModalPrincipal.executiveName}
+                  voterId={proxyModalPrincipal.voterId}
+                  region={proxyModalPrincipal.region}
+                  constituency={proxyModalPrincipal.constituency}
+                  size={44}
+                  reloadKey={rosterImageReloadKey}
+                />
+                <div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#a855f7", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    Principal Voter (Delegating Vote)
+                  </div>
+                  <div style={{ fontSize: "15px", fontWeight: 700, color: "#ffffff" }}>
+                    {proxyModalPrincipal.executiveName}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "2px", fontSize: "12px", color: "#94a3b8" }}>
+                    <span style={{ color: "#60a5fa", fontWeight: 600 }}>{proxyModalPrincipal.position || "Executive"}</span>
+                    <span>•</span>
+                    <span>{proxyModalPrincipal.executiveLevel}</span>
+                    {proxyModalPrincipal.region && (
+                      <>
+                        <span>•</span>
+                        <span>{normalizeRegionName(proxyModalPrincipal.region)}</span>
+                      </>
+                    )}
+                    {proxyModalPrincipal.constituency && (
+                      <>
+                        <span>•</span>
+                        <span>{normalizeConstituency(proxyModalPrincipal.constituency)}</span>
+                      </>
+                    )}
+                    {proxyModalPrincipal.voterId && (
+                      <span
+                        style={{
+                          padding: "1px 6px",
+                          borderRadius: "4px",
+                          background: "rgba(59, 130, 246, 0.14)",
+                          border: "1px solid rgba(59, 130, 246, 0.3)",
+                          color: "#93c5fd",
+                          fontFamily: "monospace",
+                          fontSize: "11px",
+                        }}
+                      >
+                        Voter ID: {proxyModalPrincipal.voterId}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {proxyModalAssignment && (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProxyModalError("");
+                      setProxyModalSuccess("");
+                      setProxyConfirmRevoke(false);
+                      setProxyModalViewMode(proxyModalViewMode === "details" ? "search" : "details");
+                    }}
+                    style={{
+                      padding: "7px 12px",
+                      borderRadius: "8px",
+                      background:
+                        proxyModalViewMode === "search"
+                          ? "rgba(168, 85, 247, 0.2)"
+                          : "rgba(255, 255, 255, 0.07)",
+                      border:
+                        proxyModalViewMode === "search"
+                          ? "1px solid rgba(168, 85, 247, 0.45)"
+                          : "1px solid rgba(255, 255, 255, 0.14)",
+                      color: proxyModalViewMode === "search" ? "#e9d5ff" : "#e2e8f0",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    {proxyModalViewMode === "details" ? (
+                      <>
+                        <Search size={13} />
+                        <span>Change Proxy Voter</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck size={13} />
+                        <span>Back to Assigned Proxy Details</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Notice if Principal is also acting as a proxy for someone else */}
+            {proxyModalActingFor && (
+              <div
+                style={{
+                  padding: "10px 24px",
+                  background: "rgba(14, 165, 233, 0.12)",
+                  borderBottom: "1px solid rgba(14, 165, 233, 0.25)",
+                  color: "#7dd3fc",
+                  fontSize: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Vote size={15} color="#38bdf8" />
+                <span>
+                  Note: <strong>{proxyModalPrincipal.executiveName}</strong> is currently assigned to vote as a proxy on behalf of{" "}
+                  <strong>{proxyModalActingFor.principalName}</strong>
+                  {proxyModalActingFor.principalVoterId ? ` (Voter ID: ${proxyModalActingFor.principalVoterId})` : ""}.
+                </span>
+              </div>
+            )}
+
+            {/* Modal Body */}
+            <div style={{ padding: "20px 24px", overflowY: "auto", flex: 1 }}>
+              {proxyModalError && (
+                <div
+                  style={{
+                    padding: "12px 14px",
+                    borderRadius: "8px",
+                    background: "rgba(239, 68, 68, 0.14)",
+                    border: "1px solid rgba(239, 68, 68, 0.35)",
+                    color: "#fca5a5",
+                    fontSize: "13px",
+                    marginBottom: "16px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <AlertCircle size={16} color="#f87171" style={{ flexShrink: 0 }} />
+                  <span>{proxyModalError}</span>
+                </div>
+              )}
+
+              {proxyModalSuccess && (
+                <div
+                  style={{
+                    padding: "12px 14px",
+                    borderRadius: "8px",
+                    background: "rgba(16, 185, 129, 0.14)",
+                    border: "1px solid rgba(16, 185, 129, 0.35)",
+                    color: "#6ee7b7",
+                    fontSize: "13px",
+                    marginBottom: "16px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <CheckCircle2 size={16} color="#34d399" style={{ flexShrink: 0 }} />
+                  <span>{proxyModalSuccess}</span>
+                </div>
+              )}
+
+              {proxyModalLoading ? (
+                <div style={{ padding: "48px 20px", textAlign: "center", color: "#94a3b8" }}>
+                  <Loader2 size={28} style={{ animation: "spin 1s linear infinite", margin: "0 auto 10px" }} />
+                  <div>Loading proxy voter assignment details…</div>
+                </div>
+              ) : proxyModalAssignment && proxyModalViewMode === "details" ? (
+                /* ========================================================= */
+                /* VIEW 1: ASSIGNED PROXY VOTER DETAILS                      */
+                /* ========================================================= */
+                <div>
+                  <div
+                    style={{
+                      borderRadius: "14px",
+                      background: "linear-gradient(145deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%)",
+                      border: "1px solid rgba(168, 85, 247, 0.35)",
+                      padding: "22px",
+                      boxShadow: "0 12px 30px -10px rgba(0, 0, 0, 0.5)",
+                    }}
+                  >
+                    {/* Top Status & Timestamp Row */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: "10px",
+                        paddingBottom: "16px",
+                        marginBottom: "18px",
+                        borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "6px",
+                            background: "rgba(168, 85, 247, 0.2)",
+                            border: "1px solid rgba(168, 85, 247, 0.45)",
+                            color: "#e9d5ff",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            letterSpacing: "0.4px",
+                            textTransform: "uppercase",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "5px",
+                          }}
+                        >
+                          <UserCheck size={13} color="#c084fc" />
+                          <span>Authorized Proxy Voter</span>
+                        </span>
+                        {proxyModalAssignment.proxyExecutive?.slotStatus && (
+                          <span
+                            style={{
+                              padding: "3px 8px",
+                              borderRadius: "6px",
+                              background: "rgba(59, 130, 246, 0.14)",
+                              border: "1px solid rgba(59, 130, 246, 0.3)",
+                              color: "#93c5fd",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {proxyModalAssignment.proxyExecutive.slotStatus}
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ fontSize: "11px", color: "#94a3b8" }}>
+                        {proxyModalAssignment.createdAt && (
+                          <span>
+                            Assigned on{" "}
+                            <strong style={{ color: "#cbd5e1" }}>
+                              {new Date(proxyModalAssignment.createdAt).toLocaleString()}
+                            </strong>
+                          </span>
+                        )}
+                        {(proxyModalAssignment.assignedByName || proxyModalAssignment.assignedByEmail) && (
+                          <span>
+                            {" "}
+                            by{" "}
+                            <strong style={{ color: "#cbd5e1" }}>
+                              {proxyModalAssignment.assignedByName || proxyModalAssignment.assignedByEmail}
+                            </strong>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Proxy Voter Profile Header */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "18px",
+                        flexWrap: "wrap",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <ExecutiveAvatar
+                        imageUrl={proxyModalAssignment.proxyExecutive?.imageUrl || null}
+                        name={proxyModalAssignment.proxyExecutive?.executiveName || proxyModalAssignment.proxyName}
+                        voterId={proxyModalAssignment.proxyExecutive?.voterId || proxyModalAssignment.proxyVoterId || ""}
+                        region={proxyModalAssignment.proxyExecutive?.region || proxyModalAssignment.proxyRegion || ""}
+                        constituency={
+                          proxyModalAssignment.proxyExecutive?.constituency ||
+                          proxyModalAssignment.proxyConstituency ||
+                          ""
+                        }
+                        size={74}
+                        reloadKey={rosterImageReloadKey}
+                      />
+
+                      <div style={{ flex: 1, minWidth: "220px" }}>
+                        <div style={{ fontSize: "20px", fontWeight: 800, color: "#ffffff", lineHeight: 1.2 }}>
+                          {proxyModalAssignment.proxyExecutive?.executiveName || proxyModalAssignment.proxyName}
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            flexWrap: "wrap",
+                            marginTop: "6px",
+                          }}
+                        >
+                          {(proxyModalAssignment.proxyExecutive?.position || proxyModalAssignment.proxyPosition) && (
+                            <span
+                              style={{
+                                padding: "3px 9px",
+                                borderRadius: "6px",
+                                background: "rgba(59, 130, 246, 0.16)",
+                                border: "1px solid rgba(59, 130, 246, 0.35)",
+                                color: "#60a5fa",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {proxyModalAssignment.proxyExecutive?.position || proxyModalAssignment.proxyPosition}
+                            </span>
+                          )}
+                          {(proxyModalAssignment.proxyExecutive?.executiveLevel || proxyModalAssignment.proxyLevel) && (
+                            <span
+                              style={{
+                                padding: "3px 9px",
+                                borderRadius: "6px",
+                                background: "rgba(16, 185, 129, 0.15)",
+                                border: "1px solid rgba(16, 185, 129, 0.35)",
+                                color: "#34d399",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {proxyModalAssignment.proxyExecutive?.executiveLevel || proxyModalAssignment.proxyLevel}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Proxy Voter Details Grid */}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+                        gap: "12px",
+                      }}
+                    >
+                      {/* Voter ID */}
+                      <div
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: "10px",
+                          background: "rgba(15, 23, 42, 0.75)",
+                          border: "1px solid rgba(255, 255, 255, 0.07)",
+                        }}
+                      >
+                        <div style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "4px", fontWeight: 600 }}>
+                          VOTER ID NUMBER
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                          <span
+                            style={{
+                              fontFamily: "monospace",
+                              fontSize: "15px",
+                              fontWeight: 700,
+                              color: "#93c5fd",
+                            }}
+                          >
+                            {proxyModalAssignment.proxyExecutive?.voterId || proxyModalAssignment.proxyVoterId || "—"}
+                          </span>
+                          {(proxyModalAssignment.proxyExecutive?.voterId || proxyModalAssignment.proxyVoterId) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const vid =
+                                  proxyModalAssignment.proxyExecutive?.voterId ||
+                                  proxyModalAssignment.proxyVoterId ||
+                                  "";
+                                if (vid && navigator.clipboard) {
+                                  navigator.clipboard.writeText(vid);
+                                  setCopiedProxyVoterId(true);
+                                  setTimeout(() => setCopiedProxyVoterId(false), 1800);
+                                }
+                              }}
+                              style={{
+                                padding: "3px 7px",
+                                borderRadius: "5px",
+                                background: "rgba(255, 255, 255, 0.07)",
+                                border: "1px solid rgba(255, 255, 255, 0.12)",
+                                color: copiedProxyVoterId ? "#34d399" : "#cbd5e1",
+                                fontSize: "11px",
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              <Copy size={11} />
+                              <span>{copiedProxyVoterId ? "Copied" : "Copy"}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Phone Number */}
+                      <div
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: "10px",
+                          background: "rgba(15, 23, 42, 0.75)",
+                          border: "1px solid rgba(255, 255, 255, 0.07)",
+                        }}
+                      >
+                        <div style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "4px", fontWeight: 600 }}>
+                          PHONE NUMBER
+                        </div>
+                        <div style={{ fontSize: "14px", fontWeight: 600, color: "#f8fafc" }}>
+                          {proxyModalAssignment.proxyExecutive?.phone || proxyModalAssignment.proxyPhone ? (
+                            <a
+                              href={`tel:${proxyModalAssignment.proxyExecutive?.phone || proxyModalAssignment.proxyPhone}`}
+                              style={{
+                                color: "#38bdf8",
+                                textDecoration: "none",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                              }}
+                            >
+                              <Phone size={13} />
+                              <span>{proxyModalAssignment.proxyExecutive?.phone || proxyModalAssignment.proxyPhone}</span>
+                            </a>
+                          ) : (
+                            <span style={{ color: "#64748b" }}>—</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Region */}
+                      <div
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: "10px",
+                          background: "rgba(15, 23, 42, 0.75)",
+                          border: "1px solid rgba(255, 255, 255, 0.07)",
+                        }}
+                      >
+                        <div style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "4px", fontWeight: 600 }}>
+                          REGION
+                        </div>
+                        <div style={{ fontSize: "14px", fontWeight: 600, color: "#f8fafc" }}>
+                          {proxyModalAssignment.proxyExecutive?.region || proxyModalAssignment.proxyRegion
+                            ? normalizeRegionName(
+                                proxyModalAssignment.proxyExecutive?.region || proxyModalAssignment.proxyRegion || ""
+                              )
+                            : "—"}
+                        </div>
+                      </div>
+
+                      {/* Constituency */}
+                      <div
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: "10px",
+                          background: "rgba(15, 23, 42, 0.75)",
+                          border: "1px solid rgba(255, 255, 255, 0.07)",
+                        }}
+                      >
+                        <div style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "4px", fontWeight: 600 }}>
+                          CONSTITUENCY / BRANCH
+                        </div>
+                        <div style={{ fontSize: "14px", fontWeight: 600, color: "#f8fafc" }}>
+                          {proxyModalAssignment.proxyExecutive?.constituency || proxyModalAssignment.proxyConstituency
+                            ? normalizeConstituency(
+                                proxyModalAssignment.proxyExecutive?.constituency ||
+                                  proxyModalAssignment.proxyConstituency ||
+                                  ""
+                              )
+                            : "—"}
+                        </div>
+                      </div>
+
+                      {/* Gender & Age */}
+                      <div
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: "10px",
+                          background: "rgba(15, 23, 42, 0.75)",
+                          border: "1px solid rgba(255, 255, 255, 0.07)",
+                        }}
+                      >
+                        <div style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "4px", fontWeight: 600 }}>
+                          GENDER & AGE
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", fontSize: "14px", fontWeight: 600, color: "#f8fafc" }}>
+                          <span>{proxyModalAssignment.proxyExecutive?.gender || "—"}</span>
+                          {proxyModalAssignment.proxyExecutive?.age != null && (
+                            <>
+                              <span>•</span>
+                              <span>{proxyModalAssignment.proxyExecutive.age} yrs</span>
+                            </>
+                          )}
+                          {proxyModalAssignment.proxyExecutive?.dateOfBirth && (
+                            <span style={{ fontSize: "12px", color: "#94a3b8", fontFamily: "monospace" }}>
+                              ({proxyModalAssignment.proxyExecutive.dateOfBirth})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Polling Station / Institution */}
+                      <div
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: "10px",
+                          background: "rgba(15, 23, 42, 0.75)",
+                          border: "1px solid rgba(255, 255, 255, 0.07)",
+                        }}
+                      >
+                        <div style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "4px", fontWeight: 600 }}>
+                          POLLING STATION / INSTITUTION
+                        </div>
+                        <div style={{ fontSize: "13px", fontWeight: 600, color: "#f8fafc" }}>
+                          {proxyModalAssignment.proxyExecutive?.pollingStation ||
+                            proxyModalAssignment.proxyExecutive?.electoralArea ||
+                            "—"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions on Assigned Proxy Card */}
+                    <div
+                      style={{
+                        marginTop: "20px",
+                        paddingTop: "16px",
+                        borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: "12px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const execId =
+                              proxyModalAssignment.proxyExecutive?.id || proxyModalAssignment.proxyExecutiveId;
+                            if (execId) {
+                              handleCloseProxyModal();
+                              handleOpenModal(execId);
+                            }
+                          }}
+                          style={{
+                            padding: "8px 14px",
+                            borderRadius: "8px",
+                            background: "rgba(59, 130, 246, 0.14)",
+                            border: "1px solid rgba(59, 130, 246, 0.35)",
+                            color: "#93c5fd",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          <ExternalLink size={13} />
+                          <span>Open Full Voter Profile</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProxyModalError("");
+                            setProxyModalSuccess("");
+                            setProxyConfirmRevoke(false);
+                            setProxyModalViewMode("search");
+                          }}
+                          style={{
+                            padding: "8px 14px",
+                            borderRadius: "8px",
+                            background: "rgba(168, 85, 247, 0.16)",
+                            border: "1px solid rgba(168, 85, 247, 0.4)",
+                            color: "#e9d5ff",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          <Search size={13} />
+                          <span>Reassign / Change Proxy</span>
+                        </button>
+                      </div>
+
+                      {!proxyConfirmRevoke ? (
+                        <button
+                          type="button"
+                          onClick={() => setProxyConfirmRevoke(true)}
+                          style={{
+                            padding: "8px 14px",
+                            borderRadius: "8px",
+                            background: "rgba(239, 68, 68, 0.12)",
+                            border: "1px solid rgba(239, 68, 68, 0.3)",
+                            color: "#fca5a5",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          <Trash2 size={13} />
+                          <span>Remove Proxy Assignment</span>
+                        </button>
+                      ) : (
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                          <span style={{ fontSize: "12px", color: "#fca5a5", fontWeight: 600 }}>
+                            Confirm removal?
+                          </span>
+                          <button
+                            type="button"
+                            disabled={proxyRevoking}
+                            onClick={handleRemoveProxy}
+                            style={{
+                              padding: "7px 12px",
+                              borderRadius: "7px",
+                              background: "#ef4444",
+                              border: "none",
+                              color: "#ffffff",
+                              fontSize: "12px",
+                              fontWeight: 700,
+                              cursor: proxyRevoking ? "not-allowed" : "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "5px",
+                            }}
+                          >
+                            {proxyRevoking ? (
+                              <>
+                                <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />
+                                <span>Removing…</span>
+                              </>
+                            ) : (
+                              <span>Yes, Remove</span>
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={proxyRevoking}
+                            onClick={() => setProxyConfirmRevoke(false)}
+                            style={{
+                              padding: "7px 10px",
+                              borderRadius: "7px",
+                              background: "rgba(255, 255, 255, 0.08)",
+                              border: "none",
+                              color: "#cbd5e1",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* ========================================================= */
+                /* VIEW 2: SEARCH & ASSIGN PROXY VOTER                       */
+                /* ========================================================= */
+                <div>
+                  {/* Search & Filter Controls */}
+                  <div
+                    style={{
+                      padding: "16px",
+                      borderRadius: "12px",
+                      background: "rgba(30, 41, 59, 0.6)",
+                      border: "1px solid rgba(255, 255, 255, 0.08)",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    {/* Search Input */}
+                    <div style={{ position: "relative", marginBottom: "12px" }}>
+                      <Search
+                        size={16}
+                        color="#94a3b8"
+                        style={{
+                          position: "absolute",
+                          left: "12px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          pointerEvents: "none",
+                        }}
+                      />
+                      <input
+                        type="text"
+                        value={proxySearchQuery}
+                        onChange={(e) => setProxySearchQuery(e.target.value)}
+                        placeholder="Search proxy candidate by Name, Voter ID, or Phone number…"
+                        autoFocus
+                        style={{
+                          width: "100%",
+                          padding: "10px 36px 10px 38px",
+                          borderRadius: "8px",
+                          background: "#0f172a",
+                          border: "1px solid rgba(168, 85, 247, 0.4)",
+                          color: "#f8fafc",
+                          fontSize: "13px",
+                          outline: "none",
+                        }}
+                      />
+                      {proxySearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setProxySearchQuery("")}
+                          style={{
+                            position: "absolute",
+                            right: "10px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "transparent",
+                            border: "none",
+                            color: "#94a3b8",
+                            cursor: "pointer",
+                            padding: "2px",
+                          }}
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Region, Constituency, Level Filters */}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                        gap: "10px",
+                      }}
+                    >
+                      {/* Level Filter */}
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            color: "#94a3b8",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Filter by Level
+                        </label>
+                        <select
+                          value={proxyFilterLevel}
+                          onChange={(e) => setProxyFilterLevel(e.target.value)}
+                          style={{
+                            width: "100%",
+                            padding: "8px 10px",
+                            borderRadius: "7px",
+                            background: "#0f172a",
+                            border: "1px solid rgba(255, 255, 255, 0.12)",
+                            color: "#e2e8f0",
+                            fontSize: "12px",
+                          }}
+                        >
+                          <option value="">All Levels</option>
+                          <option value="National">National</option>
+                          <option value="Region">Regional</option>
+                          <option value="Constituency">Constituency</option>
+                          <option value="External Branch">External Branch</option>
+                          <option value="Electoral Area">Electoral Area</option>
+                          <option value="Polling Station">Polling Station</option>
+                          <option value="TESCON">TESCON</option>
+                        </select>
+                      </div>
+
+                      {/* Region Filter */}
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            color: "#94a3b8",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Filter by Region
+                        </label>
+                        <select
+                          value={proxyFilterRegion}
+                          onChange={(e) => {
+                            setProxyFilterRegion(e.target.value);
+                            setProxyFilterConstituency("");
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "8px 10px",
+                            borderRadius: "7px",
+                            background: "#0f172a",
+                            border: "1px solid rgba(255, 255, 255, 0.12)",
+                            color: "#e2e8f0",
+                            fontSize: "12px",
+                          }}
+                        >
+                          <option value="">All Regions</option>
+                          {REGIONS.map((reg) => (
+                            <option key={reg} value={reg}>
+                              {reg}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Constituency Filter */}
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            color: "#94a3b8",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Filter by Constituency
+                        </label>
+                        <select
+                          value={proxyFilterConstituency}
+                          onChange={(e) => setProxyFilterConstituency(e.target.value)}
+                          disabled={!proxyFilterRegion || loadingProxyConstituencies}
+                          style={{
+                            width: "100%",
+                            padding: "8px 10px",
+                            borderRadius: "7px",
+                            background: "#0f172a",
+                            border: "1px solid rgba(255, 255, 255, 0.12)",
+                            color: !proxyFilterRegion ? "#64748b" : "#e2e8f0",
+                            fontSize: "12px",
+                          }}
+                        >
+                          <option value="">
+                            {!proxyFilterRegion
+                              ? "Select Region First"
+                              : loadingProxyConstituencies
+                              ? "Loading Constituencies…"
+                              : "All Constituencies"}
+                          </option>
+                          {proxyConstituencyList.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Quick Filter Chips */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: "8px",
+                        marginTop: "10px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProxyFilterRegion(
+                              proxyModalPrincipal.region ? normalizeRegionName(proxyModalPrincipal.region) : ""
+                            );
+                            setProxyFilterConstituency(
+                              proxyModalPrincipal.constituency
+                                ? normalizeRegionName(proxyModalPrincipal.region) === "External Branch"
+                                  ? proxyModalPrincipal.constituency
+                                  : normalizeConstituency(proxyModalPrincipal.constituency)
+                                : ""
+                            );
+                          }}
+                          style={{
+                            padding: "4px 9px",
+                            borderRadius: "6px",
+                            background: "rgba(59, 130, 246, 0.12)",
+                            border: "1px solid rgba(59, 130, 246, 0.28)",
+                            color: "#93c5fd",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Same Region/Constituency as Principal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProxySearchQuery("");
+                            setProxyFilterLevel("");
+                            setProxyFilterRegion("");
+                            setProxyFilterConstituency("");
+                          }}
+                          style={{
+                            padding: "4px 9px",
+                            borderRadius: "6px",
+                            background: "rgba(255, 255, 255, 0.06)",
+                            border: "1px solid rgba(255, 255, 255, 0.12)",
+                            color: "#cbd5e1",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Search All Nationwide
+                        </button>
+                      </div>
+
+                      <div style={{ fontSize: "11px", color: "#94a3b8" }}>
+                        Showing up to 35 matching voters
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Candidate Results List */}
+                  {proxySearching ? (
+                    <div style={{ padding: "40px 20px", textAlign: "center", color: "#94a3b8" }}>
+                      <Loader2 size={24} style={{ animation: "spin 1s linear infinite", margin: "0 auto 8px" }} />
+                      <div>Searching eligible proxy voters…</div>
+                    </div>
+                  ) : proxyCandidates.length === 0 ? (
+                    <div
+                      style={{
+                        padding: "36px 20px",
+                        textAlign: "center",
+                        color: "#94a3b8",
+                        background: "rgba(15, 23, 42, 0.5)",
+                        borderRadius: "10px",
+                        border: "1px dashed rgba(255, 255, 255, 0.1)",
+                      }}
+                    >
+                      No matching voters found for the selected filters. Try clearing Region/Constituency filters or searching by Voter ID / Name / Phone.
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {proxyCandidates.map((candidate) => {
+                        const isAlreadyAssignedToOther =
+                          candidate.alreadyAssignedToPrincipalId !== null &&
+                          candidate.alreadyAssignedToPrincipalId !== proxyModalPrincipal.id;
+                        const isCurrentlyAssignedToThis =
+                          candidate.alreadyAssignedToPrincipalId === proxyModalPrincipal.id;
+                        const isAssigningThis = proxyAssigningId === candidate.id;
+
+                        return (
+                          <div
+                            key={candidate.id}
+                            style={{
+                              padding: "12px 14px",
+                              borderRadius: "10px",
+                              background: isAlreadyAssignedToOther
+                                ? "rgba(15, 23, 42, 0.45)"
+                                : "rgba(30, 41, 59, 0.65)",
+                              border: isAlreadyAssignedToOther
+                                ? "1px solid rgba(239, 68, 68, 0.22)"
+                                : isCurrentlyAssignedToThis
+                                ? "1px solid rgba(16, 185, 129, 0.45)"
+                                : "1px solid rgba(255, 255, 255, 0.08)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: "12px",
+                              flexWrap: "wrap",
+                              opacity: isAlreadyAssignedToOther ? 0.72 : 1,
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: "240px", flex: 1 }}>
+                              <ExecutiveAvatar
+                                imageUrl={candidate.imageUrl}
+                                name={candidate.executiveName}
+                                voterId={candidate.voterId || ""}
+                                region={candidate.region || ""}
+                                constituency={candidate.constituency || ""}
+                                size={42}
+                                reloadKey={rosterImageReloadKey}
+                              />
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                                  <span style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>
+                                    {candidate.executiveName}
+                                  </span>
+                                  {candidate.voterId && (
+                                    <span
+                                      style={{
+                                        padding: "1px 6px",
+                                        borderRadius: "4px",
+                                        background: "rgba(59, 130, 246, 0.14)",
+                                        border: "1px solid rgba(59, 130, 246, 0.28)",
+                                        color: "#93c5fd",
+                                        fontFamily: "monospace",
+                                        fontSize: "11px",
+                                      }}
+                                    >
+                                      {candidate.voterId}
+                                    </span>
+                                  )}
+                                  {candidate.phone && (
+                                    <span style={{ fontSize: "11px", color: "#38bdf8" }}>
+                                      • {candidate.phone}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "6px",
+                                    flexWrap: "wrap",
+                                    marginTop: "3px",
+                                    fontSize: "11px",
+                                    color: "#94a3b8",
+                                  }}
+                                >
+                                  {candidate.position && (
+                                    <span style={{ color: "#60a5fa", fontWeight: 600 }}>{candidate.position}</span>
+                                  )}
+                                  {candidate.executiveLevel && (
+                                    <>
+                                      <span>•</span>
+                                      <span style={{ color: "#cbd5e1" }}>{candidate.executiveLevel}</span>
+                                    </>
+                                  )}
+                                  {candidate.region && (
+                                    <>
+                                      <span>•</span>
+                                      <span>{normalizeRegionName(candidate.region)}</span>
+                                    </>
+                                  )}
+                                  {candidate.constituency && (
+                                    <>
+                                      <span>•</span>
+                                      <span>{normalizeConstituency(candidate.constituency)}</span>
+                                    </>
+                                  )}
+                                </div>
+
+                                {isAlreadyAssignedToOther && (
+                                  <div
+                                    style={{
+                                      marginTop: "5px",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "5px",
+                                      padding: "2px 8px",
+                                      borderRadius: "5px",
+                                      background: "rgba(239, 68, 68, 0.14)",
+                                      border: "1px solid rgba(239, 68, 68, 0.3)",
+                                      color: "#fca5a5",
+                                      fontSize: "11px",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    <Lock size={11} color="#f87171" />
+                                    <span>
+                                      Already assigned as proxy for {candidate.alreadyAssignedToPrincipalName}
+                                      {candidate.alreadyAssignedToPrincipalVoterId
+                                        ? ` (${candidate.alreadyAssignedToPrincipalVoterId})`
+                                        : ""}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Action Button */}
+                            <div>
+                              {isAlreadyAssignedToOther ? (
+                                <button
+                                  type="button"
+                                  disabled
+                                  title="One person cannot hold two proxy assignments"
+                                  style={{
+                                    padding: "7px 12px",
+                                    borderRadius: "7px",
+                                    background: "rgba(239, 68, 68, 0.1)",
+                                    border: "1px solid rgba(239, 68, 68, 0.25)",
+                                    color: "#f87171",
+                                    fontSize: "12px",
+                                    fontWeight: 600,
+                                    cursor: "not-allowed",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "5px",
+                                  }}
+                                >
+                                  <Lock size={12} />
+                                  <span>Has Proxy</span>
+                                </button>
+                              ) : isCurrentlyAssignedToThis ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setProxyModalViewMode("details")}
+                                  style={{
+                                    padding: "7px 12px",
+                                    borderRadius: "7px",
+                                    background: "rgba(16, 185, 129, 0.2)",
+                                    border: "1px solid rgba(16, 185, 129, 0.4)",
+                                    color: "#34d399",
+                                    fontSize: "12px",
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "5px",
+                                  }}
+                                >
+                                  <CheckCircle2 size={13} />
+                                  <span>Current Proxy (View)</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={proxyAssigningId !== null}
+                                  onClick={() => handleAssignProxy(candidate)}
+                                  style={{
+                                    padding: "8px 14px",
+                                    borderRadius: "8px",
+                                    background: isAssigningThis
+                                      ? "#475569"
+                                      : "linear-gradient(135deg, #9333ea 0%, #6366f1 100%)",
+                                    border: "none",
+                                    color: "#ffffff",
+                                    fontSize: "12px",
+                                    fontWeight: 700,
+                                    cursor: proxyAssigningId !== null ? "not-allowed" : "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "6px",
+                                    boxShadow: "0 4px 12px rgba(147, 51, 234, 0.3)",
+                                  }}
+                                >
+                                  {isAssigningThis ? (
+                                    <>
+                                      <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
+                                      <span>Assigning…</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UserCheck size={13} />
+                                      <span>Assign Proxy</span>
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: "14px 24px",
+                background: "rgba(15, 23, 42, 0.9)",
+                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "12px",
+              }}
+            >
+              <div style={{ fontSize: "12px", color: "#94a3b8" }}>
+                Table: <code style={{ color: "#c084fc" }}>proxy_voter_assignments</code>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseProxyModal}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: "8px",
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  color: "#e2e8f0",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminShell>
   );
 }
+
