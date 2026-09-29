@@ -4524,10 +4524,6 @@ function generateAlbumHtml(
     return svg;
   }
 
-  function formatDisplayVerifyUrl(url: string): string {
-    return url.replace(/^https?:\/\//i, "");
-  }
-
   function makeVerifyUrl(page?: number, pageConstituency?: string): string {
     return buildAlbumVerificationUrl(vBaseOrigin, vParams, {
       page,
@@ -4632,9 +4628,8 @@ function generateAlbumHtml(
               <div class="cert-title">CONSTITUENCY VALIDATED</div>
               <div class="cert-sub">${(spec.constituencyName || "").toUpperCase()} · CAPITAL: ${spec.constituencyCapital || ""}</div>
               <div class="cert-count">${spec.totalConstituencyExecutives || spec.cards.length} EXECUTIVE OFFICERS CONFIRMED</div>
-              <div class="cert-url" title="${conVerifyUrl}">${formatDisplayVerifyUrl(conVerifyUrl)}</div>
             </div>
-            <a class="constituency-qr-link" href="${conVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Scan to verify ${(spec.constituencyName || "").toUpperCase()} Constituency Executive Roll (${conVerifyUrl})">
+            <a class="constituency-qr-link" href="${conVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Scan to verify ${(spec.constituencyName || "").toUpperCase()} Constituency Executive Roll">
               ${conSlotQrMiniSvg}
             </a>
           </div>
@@ -4643,7 +4638,7 @@ function generateAlbumHtml(
           slot10Html = `
           <div class="cert-card official-qr-card">
             <div class="cert-shield">
-              <a class="constituency-qr-link" href="${conVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Scan to verify ${(spec.constituencyName || "").toUpperCase()} Constituency Executive Roll (${conVerifyUrl})">
+              <a class="constituency-qr-link" href="${conVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Scan to verify ${(spec.constituencyName || "").toUpperCase()} Constituency Executive Roll">
                 ${conSlotQrSvg}
               </a>
             </div>
@@ -4651,7 +4646,6 @@ function generateAlbumHtml(
               <div class="cert-title">CONSTITUENCY AUDIT QR</div>
               <div class="cert-sub">${(spec.constituencyName || "").toUpperCase()} · CAPITAL: ${spec.constituencyCapital || ""}</div>
               <div class="cert-count">${spec.totalConstituencyExecutives || spec.cards.length} EXECUTIVES · OFFICIAL REGISTER</div>
-              <div class="cert-url" title="${conVerifyUrl}">${formatDisplayVerifyUrl(conVerifyUrl)}</div>
             </div>
           </div>
           `;
@@ -4667,11 +4661,10 @@ function generateAlbumHtml(
               <h1>NEW PATRIOTIC PARTY</h1>
               <h2>${spec.headerSubTitle}</h2>
             </div>
-            <a class="page-audit-qr-link" href="${pageVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Page ${pageNum} Security Check QR · ${pageVerifyUrl}">
+            <a class="page-audit-qr-link" href="${pageVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Page ${pageNum} Security Check QR">
               <div class="page-audit-qr-meta">
                 <span class="page-audit-qr-title">PAGE ${pageNum} QR</span>
                 <span class="page-audit-qr-sub">${effectivePageCon ? `${effectivePageCon.toUpperCase()} · ` : ""}${spec.cards.length} VOTER${spec.cards.length === 1 ? "" : "S"}</span>
-                <span class="page-audit-qr-url">${formatDisplayVerifyUrl(pageVerifyUrl)}</span>
               </div>
               <div class="page-audit-qr-box">${pageQrSvg}</div>
             </a>
@@ -5844,7 +5837,6 @@ function generateAlbumHtml(
               <span class="cover-qr-badge">${isFinalAlbum ? "OFFICIAL ALBUM QR" : "PROVISIONAL ALBUM QR"}</span>
               <span class="cover-qr-sub">Scan to Verify Album Online</span>
               <span class="cover-qr-lock">Read-Only · No Copy · No Download</span>
-              <span class="cover-qr-url">${formatDisplayVerifyUrl(coverVerifyUrl)}</span>
             </div>
           </a>
           <div class="sig-block">
@@ -5881,7 +5873,6 @@ function generateAlbumHtml(
           <div class="page-audit-qr-meta">
             <span class="page-audit-qr-title">PAGE 2 QR</span>
             <span class="page-audit-qr-sub">METRICS AUDIT</span>
-            <span class="page-audit-qr-url">${formatDisplayVerifyUrl(page2VerifyUrl)}</span>
           </div>
           <div class="page-audit-qr-box">${page2QrSvg}</div>
         </a>
@@ -5944,7 +5935,6 @@ function generateAlbumHtml(
           <div class="page-audit-qr-meta">
             <span class="page-audit-qr-title">PAGE ${totalPages} QR</span>
             <span class="page-audit-qr-sub">AUDIT SIGN-OFF</span>
-            <span class="page-audit-qr-url">${formatDisplayVerifyUrl(finalPageVerifyUrl)}</span>
           </div>
           <div class="page-audit-qr-box">${finalPageQrSvg}</div>
         </a>
