@@ -49,11 +49,25 @@ export function ExecutiveAvatar({
   allowManualReload = true,
 }: ExecutiveAvatarProps) {
   // Determine effective photo URL (explicit imageUrl, or derive from region/constituency/voterId)
-  const resolvedUrl =
+  const rawResolvedUrl =
     imageUrl && imageUrl.trim().length > 0
       ? imageUrl.trim()
       : getVoterPhotoUrl(region, constituency, voterId);
 
+  const cleanVid =
+    voterId && voterId.trim() && voterId.trim() !== "—" ? voterId.trim() : null;
+
+  // Prefer the local WebP cache & multi-source resolver (/api/admin/albums/image) for remote URLs or voter-ID lookups
+  const proxyUrl =
+    rawResolvedUrl && /^https?:\/\//i.test(rawResolvedUrl)
+      ? `/api/admin/albums/image?url=${encodeURIComponent(rawResolvedUrl)}${cleanVid ? `&vid=${encodeURIComponent(cleanVid)}` : ""}&w=240&h=300`
+      : !rawResolvedUrl && cleanVid
+      ? `/api/admin/albums/image?vid=${encodeURIComponent(cleanVid)}&w=240&h=300`
+      : null;
+
+  const resolvedUrl = proxyUrl || rawResolvedUrl;
+
+  const [triedDirectFallback, setTriedDirectFallback] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isReloading, setIsReloading] = useState(false);
@@ -70,18 +84,21 @@ export function ExecutiveAvatar({
 
       // Clear from broken cache so it is allowed to re-fetch
       knownBrokenUrls.delete(resolvedUrl);
+      if (rawResolvedUrl) knownBrokenUrls.delete(rawResolvedUrl);
 
       // Renew state with fresh cache-busting timestamp
       setIsReloading(true);
+      setTriedDirectFallback(false);
       setImageError(false);
       setImageLoaded(false);
       setReloadTimestamp(Date.now());
     },
-    [resolvedUrl]
+    [resolvedUrl, rawResolvedUrl]
   );
 
   // Reset error & reload state when URL or external reloadKey changes
   useEffect(() => {
+    setTriedDirectFallback(false);
     if (!resolvedUrl) {
       setImageError(false);
       setImageLoaded(false);
@@ -93,6 +110,7 @@ export function ExecutiveAvatar({
     if (reloadKey != null && reloadKey !== 0) {
       // Explicit parent reload requested
       knownBrokenUrls.delete(resolvedUrl);
+      if (rawResolvedUrl) knownBrokenUrls.delete(rawResolvedUrl);
       setIsReloading(true);
       setImageError(false);
       setImageLoaded(false);
@@ -108,7 +126,7 @@ export function ExecutiveAvatar({
       setIsReloading(false);
       setReloadTimestamp(null);
     }
-  }, [resolvedUrl, reloadKey]);
+  }, [resolvedUrl, rawResolvedUrl, reloadKey]);
 
   const initials = getInitials(name);
   const palette = getAvatarPalette(name);
@@ -117,11 +135,18 @@ export function ExecutiveAvatar({
     rounded === "full" ? "50%" : rounded === "lg" ? "10px" : "6px";
   const fontSize = Math.max(10, Math.round(size * 0.38));
 
+  const activeBaseUrl =
+    triedDirectFallback &&
+    rawResolvedUrl &&
+    !/app\.newpatrioticparty\.org/i.test(rawResolvedUrl)
+      ? rawResolvedUrl
+      : resolvedUrl;
+
   // Determine effective display URL with cache-busting parameter if reloaded
-  const displayUrl = resolvedUrl
+  const displayUrl = activeBaseUrl
     ? reloadTimestamp
-      ? `${resolvedUrl}${resolvedUrl.includes("?") ? "&" : "?"}_r=${reloadTimestamp}`
-      : resolvedUrl
+      ? `${activeBaseUrl}${activeBaseUrl.includes("?") ? "&" : "?"}_r=${reloadTimestamp}`
+      : activeBaseUrl
     : null;
 
   const showImage = Boolean(displayUrl) && (!imageError || isReloading);
@@ -192,6 +217,16 @@ export function ExecutiveAvatar({
               setImageError(false);
               setIsReloading(false);
             } else if (status === "error") {
+              if (
+                !triedDirectFallback &&
+                proxyUrl &&
+                rawResolvedUrl &&
+                rawResolvedUrl !== proxyUrl &&
+                !/app\.newpatrioticparty\.org/i.test(rawResolvedUrl)
+              ) {
+                setTriedDirectFallback(true);
+                return;
+              }
               if (resolvedUrl) knownBrokenUrls.add(resolvedUrl);
               setImageLoaded(false);
               setImageError(true);
@@ -199,6 +234,16 @@ export function ExecutiveAvatar({
             }
           }}
           onError={() => {
+            if (
+              !triedDirectFallback &&
+              proxyUrl &&
+              rawResolvedUrl &&
+              rawResolvedUrl !== proxyUrl &&
+              !/app\.newpatrioticparty\.org/i.test(rawResolvedUrl)
+            ) {
+              setTriedDirectFallback(true);
+              return;
+            }
             if (resolvedUrl) {
               knownBrokenUrls.add(resolvedUrl);
             }

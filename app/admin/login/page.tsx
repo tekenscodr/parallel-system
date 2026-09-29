@@ -36,19 +36,7 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setError("");
 
-    // 1. Anti-Bot Honeypot Trap check
-    if (honeypot.trim() !== "") {
-      setError("Automated bot submission detected.");
-      return;
-    }
-
-    // 2. Anti-Script Inhuman Speed check (submitted < 400ms after render)
-    if (Date.now() - mountTime < 400) {
-      setError("Submission too rapid. Please verify credentials manually.");
-      return;
-    }
-
-    // 3. Client-side sliding window rate limit
+    // Client-side sliding window rate limit
     const clientLimit = checkClientRateLimit("LOGIN");
     if (!clientLimit.allowed) {
       setError(clientLimit.message || "Too many attempts. Please wait.");
@@ -80,6 +68,9 @@ export default function AdminLoginPage() {
 
       try {
         sessionStorage.setItem("admin_login_time", String(Date.now()));
+        if (data.user) {
+          sessionStorage.setItem("admin_cached_user", JSON.stringify(data.user));
+        }
         localStorage.setItem(
           "admin_password_updated",
           data.user?.passwordChanged ? "true" : "false"

@@ -18,6 +18,19 @@ import {
 import { resolveAlbumImage } from "@/lib/album-images";
 import { ALBUM_PRINT_SCRIPT } from "@/lib/album-print";
 import { withEcSql } from "@/lib/db-ec";
+import { renderQrCodeSvg } from "@/lib/qr-svg";
+import {
+  CANONICAL_PROD_ORIGIN,
+  buildAlbumVerificationUrl,
+  expandShortLevelsCode,
+  expandShortPositionCode,
+  expandShortPositionsCode,
+  expandShortRegionCode,
+  expandShortScopeCode,
+  resolveVerificationOrigin,
+  verifyAlbumVerificationSignature,
+  type AlbumVerifyParams,
+} from "@/lib/album-verification";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -52,10 +65,19 @@ import { getConstituencyCapital } from "@/lib/constituency-capitals";
 const ahafoPhotosByVoterId = new Map<string, string>();
 const ahafoPhotosByName = new Map<string, string>();
 
+// Pre-indexed CDN URLs from scratch/sync_progress.json and WOCOM manifest
+const syncPhotoUrlByVoterId = new Map<string, string>();
+const wocomPhotoUrlById = new Map<number, string>();
+
 // Local disk photo index: voter_id -> full file path, and filename -> full file path
 const localPhotosByVoterId = new Map<string, string>();
 const localPhotosByFilename = new Map<string, string>();
 const base64PhotoCache = new Map<string, string>();
+
+function extractVoterIdDigits(text: string): string | null {
+  const m = text.match(/(?:^|[^0-9])(\d{8,10})(?:[^0-9]|$)/);
+  return m ? m[1] : null;
+}
 
 function indexLocalPhotos(dir: string) {
   if (!fs.existsSync(dir)) return;
@@ -69,9 +91,13 @@ function indexLocalPhotos(dir: string) {
         const ext = path.extname(entry.name);
         const base = path.basename(entry.name, ext);
         localPhotosByFilename.set(entry.name.toLowerCase(), fullPath);
-        const digits = base.match(/\b\d{8,10}\b/);
+        const digits = extractVoterIdDigits(base);
         if (digits) {
-          localPhotosByVoterId.set(digits[0], fullPath);
+          localPhotosByVoterId.set(digits, fullPath);
+          localPhotosByVoterId.set(digits.replace(/^0+/, ""), fullPath);
+          if (digits.length < 10) {
+            localPhotosByVoterId.set(digits.padStart(10, "0"), fullPath);
+          }
         }
       }
     }
@@ -82,6 +108,43 @@ function indexLocalPhotos(dir: string) {
 
 try {
   indexLocalPhotos(path.join(process.cwd(), "public", "cdn"));
+  indexLocalPhotos(path.join(process.cwd(), "outputs", "wocom_2026", "portraits"));
+} catch {
+  // Non-fatal
+}
+
+try {
+  const wocomManifestPath = path.join(process.cwd(), "public", "cdn", "delegates", "manifest.json");
+  if (fs.existsSync(wocomManifestPath)) {
+    const manifest = JSON.parse(fs.readFileSync(wocomManifestPath, "utf8"));
+    for (const [key, val] of Object.entries(manifest)) {
+      const idMatch = key.match(/^wocom-(\d+)$/i);
+      const url = (val as any)?.url;
+      if (idMatch && typeof url === "string" && url.trim()) {
+        wocomPhotoUrlById.set(Number(idMatch[1]), url.trim());
+      }
+    }
+  }
+} catch {
+  // Non-fatal
+}
+
+try {
+  const syncProgressPath = path.join(process.cwd(), "scratch", "sync_progress.json");
+  if (fs.existsSync(syncProgressPath)) {
+    const syncData = JSON.parse(fs.readFileSync(syncProgressPath, "utf8"));
+    for (const [rawVid, rawUrl] of Object.entries(syncData)) {
+      if (typeof rawUrl === "string" && rawUrl.startsWith("http")) {
+        const vid = String(rawVid).trim();
+        const url = rawUrl.trim();
+        syncPhotoUrlByVoterId.set(vid, url);
+        syncPhotoUrlByVoterId.set(vid.replace(/^0+/, ""), url);
+        if (vid.length < 10) {
+          syncPhotoUrlByVoterId.set(vid.padStart(10, "0"), url);
+        }
+      }
+    }
+  }
 } catch {
   // Non-fatal
 }
@@ -103,7 +166,9 @@ try {
         d.photo_base64.startsWith("data:image/webp")
       ) {
         if (d.voter_id && String(d.voter_id).trim().length > 3) {
-          ahafoPhotosByVoterId.set(String(d.voter_id).trim(), d.photo_base64);
+          const vid = String(d.voter_id).trim();
+          ahafoPhotosByVoterId.set(vid, d.photo_base64);
+          ahafoPhotosByVoterId.set(vid.replace(/^0+/, ""), d.photo_base64);
         }
         if (d.executive_name && String(d.executive_name).trim().length > 2) {
           const cleanName = String(d.executive_name).trim().toUpperCase();
@@ -539,18 +604,23 @@ async function resolveLocalPhotoAsWebpDataUri(localPath: string): Promise<string
 async function resolveDelegateWebpImage(
   imageUrl: string | null,
   voterId?: string | null,
-  name?: string | null
+  name?: string | null,
+  region?: string | null,
+  execId?: number | null
 ): Promise<string | null> {
   const cleanVoterId = voterId && voterId !== "—" ? voterId.trim() : null;
+  const isAhafoRegion = Boolean(region && region.trim().toLowerCase() === "ahafo");
 
-  // 1. Instant check: Ahafo pre-indexed WebP portraits (by voter ID or executive name)
+  // 1. Instant check: Ahafo pre-indexed WebP portraits (by voter ID, or by name strictly within Ahafo region)
   if (cleanVoterId) {
-    const cachedByVoterId = ahafoPhotosByVoterId.get(cleanVoterId);
+    const cachedByVoterId =
+      ahafoPhotosByVoterId.get(cleanVoterId) ||
+      ahafoPhotosByVoterId.get(cleanVoterId.replace(/^0+/, ""));
     if (cachedByVoterId && cachedByVoterId.startsWith("data:image/webp")) {
       return cachedByVoterId;
     }
   }
-  if (name) {
+  if (name && isAhafoRegion && (!imageUrl || /app\.newpatrioticparty\.org/i.test(imageUrl))) {
     const cleanName = name.trim().toUpperCase();
     const cachedByName = ahafoPhotosByName.get(cleanName);
     if (cachedByName && cachedByName.startsWith("data:image/webp")) {
@@ -563,38 +633,72 @@ async function resolveDelegateWebpImage(
     return imageUrl;
   }
 
-  // 3. Local disk lookup by Voter ID (e.g. public/cdn/executives/volta/<voter_id>.webp)
+  // 3. Local disk lookup by Voter ID (e.g. public/cdn/executives/volta/<voter_id>.webp or outputs/wocom_2026/portraits)
   if (cleanVoterId) {
-    const localPath = localPhotosByVoterId.get(cleanVoterId);
+    const localPath =
+      localPhotosByVoterId.get(cleanVoterId) ||
+      localPhotosByVoterId.get(cleanVoterId.replace(/^0+/, ""));
     if (localPath) {
       const dataUri = await resolveLocalPhotoAsWebpDataUri(localPath);
       if (dataUri) return dataUri;
     }
   }
 
-  // 4. Local disk lookup by imageUrl (matching filename or embedded voter ID)
-  if (imageUrl) {
-    const cleanUrl = imageUrl.trim();
+  // 3b. WOCOM manifest lookup by executive ID
+  if (execId && wocomPhotoUrlById.has(Number(execId))) {
+    const wocomUrl = wocomPhotoUrlById.get(Number(execId))!;
+    try {
+      const buffer = await resolveAlbumImage(wocomUrl);
+      if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
+    } catch {
+      // continue
+    }
+  }
 
-    // Check if filename in imageUrl matches any local file
+  // 4. Local disk or remote lookup by imageUrl (with fallback to sync_progress.json)
+  const candidateUrls: string[] = [];
+  if (imageUrl && imageUrl.trim()) {
+    candidateUrls.push(imageUrl.trim());
+  }
+  if (cleanVoterId) {
+    const syncUrl =
+      syncPhotoUrlByVoterId.get(cleanVoterId) ||
+      syncPhotoUrlByVoterId.get(cleanVoterId.replace(/^0+/, ""));
+    if (syncUrl && !candidateUrls.includes(syncUrl)) {
+      candidateUrls.push(syncUrl);
+    }
+  }
+
+  for (const cleanUrl of candidateUrls) {
+    // Check if filename in cleanUrl matches any local file
     const urlFilename = path.basename(cleanUrl.split(/[?#]/, 1)[0]).toLowerCase();
-    const localPath = localPhotosByFilename.get(urlFilename);
+    let localPath = localPhotosByFilename.get(urlFilename);
+    if (!localPath && urlFilename) {
+      // Check if a newly uploaded file exists in public/cdn/executives
+      const dynCandidate = path.join(process.cwd(), "public", "cdn", "executives", urlFilename);
+      if (fs.existsSync(dynCandidate)) {
+        localPhotosByFilename.set(urlFilename, dynCandidate);
+        localPath = dynCandidate;
+      }
+    }
     if (localPath) {
       const dataUri = await resolveLocalPhotoAsWebpDataUri(localPath);
       if (dataUri) return dataUri;
     }
 
-    // Check if voter ID is embedded in imageUrl (e.g. /volta/2481017881.webp)
-    const urlVoterMatch = cleanUrl.match(/\b\d{8,10}\b/);
-    if (urlVoterMatch) {
-      const matchedLocalPath = localPhotosByVoterId.get(urlVoterMatch[0]);
+    // Check if voter ID is embedded in cleanUrl (including underscore-delimited voter_<id>_<ts>.webp)
+    const embeddedVid = extractVoterIdDigits(cleanUrl);
+    if (embeddedVid) {
+      const matchedLocalPath =
+        localPhotosByVoterId.get(embeddedVid) ||
+        localPhotosByVoterId.get(embeddedVid.replace(/^0+/, ""));
       if (matchedLocalPath) {
         const dataUri = await resolveLocalPhotoAsWebpDataUri(matchedLocalPath);
         if (dataUri) return dataUri;
       }
     }
 
-    // 5. Local file portrait (e.g. in public/ directory)
+    // Local file portrait (e.g. in public/ directory)
     if (!/^https?:\/\//i.test(cleanUrl)) {
       try {
         const buffer = await resolveAlbumImage(cleanUrl);
@@ -602,24 +706,36 @@ async function resolveDelegateWebpImage(
       } catch {
         // ignore local file read failure
       }
+      continue;
     }
 
-    // 6. Skip unreachable legacy domain immediately without blocking
+    // Skip unreachable legacy domain unless resolveAlbumImage can recover it via voter ID
     if (/app\.newpatrioticparty\.org/i.test(cleanUrl)) {
-      return null;
+      try {
+        const buffer = await resolveAlbumImage(cleanUrl);
+        if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
+      } catch {
+        // ignore
+      }
+      continue;
     }
 
-    // 7. Resolve remote URL through resolveAlbumImage
+    // Resolve remote URL through resolveAlbumImage
     try {
       const buffer = await resolveAlbumImage(cleanUrl);
       if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
     } catch {
       // ignore
     }
+  }
 
-    // If resolveAlbumImage didn't return a buffer, do not pass failing remote URL to client.
-    // Returning null allows safe fallback to the delegate SVG initials avatar.
-    return null;
+  // Final fallback for Ahafo by name if remote URL failed
+  if (name && isAhafoRegion) {
+    const cleanName = name.trim().toUpperCase();
+    const cachedByName = ahafoPhotosByName.get(cleanName);
+    if (cachedByName && cachedByName.startsWith("data:image/webp")) {
+      return cachedByName;
+    }
   }
 
   return null;
@@ -631,7 +747,13 @@ async function convertDelegatesImagesToWebp(delegates: any[]): Promise<void> {
     const chunk = delegates.slice(i, i + chunkSize);
     await Promise.all(
       chunk.map(async (d) => {
-        const webpUri = await resolveDelegateWebpImage(d.image_url, d.voter_id, d.executive_name);
+        const webpUri = await resolveDelegateWebpImage(
+          d.image_url,
+          d.voter_id,
+          d.executive_name,
+          d.region,
+          d.id
+        );
         d.webp_base64 = webpUri || d.avatar_svg;
         d.photo_unavailable = !webpUri;
       })
@@ -640,25 +762,13 @@ async function convertDelegatesImagesToWebp(delegates: any[]): Promise<void> {
 }
 
 export async function GET(req: NextRequest) {
-  const admin = await getAuthenticatedAdmin(req);
-  if (!admin) {
-    return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
-  }
-
-  if (!canAccessAlbums(admin.user)) {
-    return NextResponse.json(
-      { error: "Access denied: Election albums require ADMIN_NATIONAL." },
-      { status: 403 }
-    );
-  }
-
   const { searchParams } = new URL(req.url);
-  const rawPositionParam = searchParams.get("position");
-  const positionQuery = (rawPositionParam || "Youth Organisers & Deputies").trim();
-  const positionsParam = (searchParams.get("positions") || "").trim();
+  const rawPositionParam = searchParams.get("position") || searchParams.get("p");
+  const positionQuery = expandShortPositionCode((rawPositionParam || "Youth Organisers & Deputies").trim());
+  const positionsParam = expandShortPositionsCode((searchParams.get("positions") || searchParams.get("ps") || "").trim());
   const excludedPositionsParam = (searchParams.get("excluded_positions") || searchParams.get("exclude_positions") || "").trim();
-  const regionQuery = (searchParams.get("region") || "all").trim();
-  const regionsParam = (searchParams.get("regions") || searchParams.get("region") || "all").trim();
+  const regionQuery = expandShortRegionCode((searchParams.get("region") || searchParams.get("r") || "all").trim());
+  const regionsParam = expandShortRegionCode((searchParams.get("regions") || searchParams.get("region") || searchParams.get("r") || "all").trim());
   const rawRegionsList =
     regionsParam.toLowerCase() !== "all" && regionsParam !== ""
       ? regionsParam.split(",").map((s) => s.trim()).filter(Boolean)
@@ -667,19 +777,70 @@ export async function GET(req: NextRequest) {
     rawRegionsList.length === 0 ||
     rawRegionsList.length >= 18 ||
     rawRegionsList.some((r) => r.toLowerCase() === "all");
-  const constituencyQuery = (searchParams.get("constituency") || "").trim();
-  const constituenciesParam = (searchParams.get("constituencies") || searchParams.get("constituency") || "").trim();
+  const constituencyQuery = (searchParams.get("constituency") || searchParams.get("c") || "").trim();
+  const constituenciesParam = (searchParams.get("constituencies") || searchParams.get("constituency") || searchParams.get("c") || "").trim();
   const rawConstituenciesList =
     constituenciesParam.toLowerCase() !== "all" && constituenciesParam !== ""
       ? constituenciesParam.split(",").map((s) => s.trim()).filter(Boolean)
       : [];
   const isSingleConstituency = rawConstituenciesList.length === 1;
   const selectedConstituency = isSingleConstituency ? normalizeConstituency(rawConstituenciesList[0]) : "";
-  const scopeQuery = (searchParams.get("scope") || "").trim().toLowerCase();
+  const scopeQuery = expandShortScopeCode((searchParams.get("scope") || searchParams.get("sc") || "").trim().toLowerCase());
   const format = (searchParams.get("format") || "json").toLowerCase();
-  const albumType = (searchParams.get("album_type") || searchParams.get("type") || "provisional").trim().toLowerCase();
+  const rawAlbumType = (searchParams.get("album_type") || searchParams.get("type") || searchParams.get("t") || "provisional").trim().toLowerCase();
+  const albumType = rawAlbumType === "p" || rawAlbumType === "provisional" ? "provisional" : rawAlbumType === "f" || rawAlbumType === "final" ? "final" : rawAlbumType;
   const isDownload =
     searchParams.get("download") === "1" || searchParams.get("download") === "true";
+
+  const isVerifyMode =
+    searchParams.get("verify_mode") === "1" ||
+    searchParams.get("verify_mode") === "true" ||
+    searchParams.get("readonly") === "1";
+  const verifySig = searchParams.get("sig") || searchParams.get("s");
+  const targetPageParam = searchParams.get("page") || searchParams.get("pg");
+  const targetPageNum = targetPageParam ? parseInt(targetPageParam, 10) : null;
+  const targetPageConstituency = (searchParams.get("page_constituency") || searchParams.get("pc") || "").trim() || null;
+
+  const verifyParams: AlbumVerifyParams = {
+    position: positionQuery,
+    region: regionsParam !== "all" && regionsParam !== "" ? regionsParam : regionQuery,
+    constituency: selectedConstituency || constituencyQuery,
+    scope: scopeQuery,
+    levels: expandShortLevelsCode((searchParams.get("levels") || searchParams.get("level") || searchParams.get("lv") || "").trim()),
+    gender: (searchParams.get("gender") || searchParams.get("sex") || searchParams.get("g") || "").trim(),
+    under40: (searchParams.get("under40") || searchParams.get("u") || "").trim(),
+    positions: positionsParam,
+    album_type: albumType,
+  };
+
+  const hasValidVerifySig =
+    isVerifyMode && verifyAlbumVerificationSignature(verifyParams, verifySig);
+
+  if (!hasValidVerifySig) {
+    const admin = await getAuthenticatedAdmin(req);
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
+    }
+
+    if (!canAccessAlbums(admin.user)) {
+      return NextResponse.json(
+        { error: "Access denied: Election albums require ADMIN_NATIONAL." },
+        { status: 403 }
+      );
+    }
+  } else if (isDownload || format === "excel" || format === "xlsx") {
+    return NextResponse.json(
+      { error: "Downloading or exporting is strictly disabled in read-only verification mode." },
+      { status: 403 }
+    );
+  }
+
+  const forwardedProto = req.headers.get("x-forwarded-proto") || "http";
+  const forwardedHost = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  const reqOrigin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : new URL(req.url).origin;
+  const baseOrigin = resolveVerificationOrigin(reqOrigin);
 
   const genderQuery = (searchParams.get("gender") || searchParams.get("sex") || "").trim().toLowerCase();
   const filterGender =
@@ -855,7 +1016,7 @@ export async function GET(req: NextRequest) {
     // 1. Fetch certified pool (with short in-memory cache to support rapid batch generation)
     const now = Date.now();
     let rawRows: any[];
-    if (_cachedRawRows && now - _cachedRawRowsTime < 3 * 60 * 1000) {
+    if (_cachedRawRows && now - _cachedRawRowsTime < 5_000) {
       rawRows = _cachedRawRows;
     } else {
       rawRows = await sql`
@@ -1286,6 +1447,22 @@ export async function GET(req: NextRequest) {
       isSingleConstituency ||
       isExternalScope;
 
+    // Build a cross-reference of valid (non-legacy) image URLs by voter_id across all rows
+    const validRowUrlByVoterId = new Map<string, string>();
+    for (const row of rawRows) {
+      const rVid = row.voter_id ? String(row.voter_id).trim() : "";
+      const rUrl = row.image_url ? String(row.image_url).trim() : "";
+      if (
+        rVid &&
+        rVid !== "—" &&
+        rUrl.length > 5 &&
+        !/app\.newpatrioticparty\.org/i.test(rUrl)
+      ) {
+        validRowUrlByVoterId.set(rVid, rUrl);
+        validRowUrlByVoterId.set(rVid.replace(/^0+/, ""), rUrl);
+      }
+    }
+
     const delegates = contestFiltered
       .map((r) => {
         const lvl = String(r.executive_level || "").toLowerCase().trim();
@@ -1317,15 +1494,32 @@ export async function GET(req: NextRequest) {
         const rawConTrimmed = String(r.constituency || "").trim();
         const conName = isExternal || lvl === "tescon" ? rawConTrimmed : (normalizeConstituency(rawConTrimmed) || rawConTrimmed);
         const age = calculateAgeIn2026(r.date_of_birth, r.age);
-        const hasVoterId = Boolean(r.voter_id && String(r.voter_id).trim().length === 10);
+        const cleanVid = r.voter_id ? String(r.voter_id).trim() : "";
+        const hasVoterId = Boolean(cleanVid && cleanVid.length === 10);
         const isTescon = lvl === "tescon";
         const institution = isTescon ? getTesconInstitution(r as any) : "";
-        const photoUrl = r.image_url && String(r.image_url).trim().length > 5 ? r.image_url.trim() : null;
+        const cleanExecName = String(r.executive_name).trim().toUpperCase();
+
+        let photoUrl = r.image_url && String(r.image_url).trim().length > 5 ? r.image_url.trim() : null;
+        if (!photoUrl || /app\.newpatrioticparty\.org/i.test(photoUrl)) {
+          const vidNoZero = cleanVid.replace(/^0+/, "");
+          const recoveredUrl =
+            (r.id && wocomPhotoUrlById.get(Number(r.id))) ||
+            (cleanVid && (validRowUrlByVoterId.get(cleanVid) || validRowUrlByVoterId.get(vidNoZero))) ||
+            (cleanVid && (syncPhotoUrlByVoterId.get(cleanVid) || syncPhotoUrlByVoterId.get(vidNoZero))) ||
+            (cleanVid && (ahafoPhotosByVoterId.get(cleanVid) || ahafoPhotosByVoterId.get(vidNoZero))) ||
+            (regName.toLowerCase() === "ahafo" ? ahafoPhotosByName.get(cleanExecName) : null) ||
+            null;
+          if (recoveredUrl) {
+            photoUrl = recoveredUrl;
+          }
+        }
+
         const avatarSvg = generateSvgAvatar(r.executive_name, canonPos);
 
         return {
           id: r.id,
-          executive_name: String(r.executive_name).trim().toUpperCase(),
+          executive_name: cleanExecName,
           position: r.position,
           canonical_position: canonPos,
           executive_level: levelGroup,
@@ -1333,7 +1527,7 @@ export async function GET(req: NextRequest) {
           constituency: conName,
           institution,
           polling_station: r.polling_station ? String(r.polling_station).trim() : "",
-          voter_id: r.voter_id ? String(r.voter_id).trim() : "—",
+          voter_id: cleanVid || "—",
           has_voter_id: hasVoterId,
           phone: r.phone && String(r.phone).trim() !== "None" ? String(r.phone).trim() : "—",
           gender: r.gender ? String(r.gender).trim() : "Unknown",
@@ -1342,7 +1536,9 @@ export async function GET(req: NextRequest) {
           is_under_40: isUnder40AsOfCutoff(r.date_of_birth, r.age),
           image_url: photoUrl,
           webp_image_url: photoUrl
-            ? `/api/admin/albums/image?url=${encodeURIComponent(photoUrl)}&w=240&h=300`
+            ? photoUrl.startsWith("data:image/")
+              ? photoUrl
+              : `/api/admin/albums/image?url=${encodeURIComponent(photoUrl)}&w=240&h=300`
             : null,
           avatar_svg: avatarSvg,
           level_rank: levelRank,
@@ -3314,7 +3510,14 @@ export async function GET(req: NextRequest) {
         levelAudit,
         albumType,
         elephantSealDataUri,
-        visibleDetails
+        visibleDetails,
+        {
+          baseOrigin,
+          verifyParams,
+          readOnlyMode: isVerifyMode,
+          targetPage: targetPageNum,
+          targetConstituency: targetPageConstituency,
+        }
       );
 
       const headers: Record<string, string> = {
@@ -3322,7 +3525,7 @@ export async function GET(req: NextRequest) {
         "Cache-Control": "private, no-store",
       };
 
-      if (isDownload) {
+      if (isDownload && !isVerifyMode) {
         const safeContest = effectiveContestName.replace(/[\s&]+/g, "_");
         const safeRegion = regionQuery !== "all" ? `_${regionQuery.replace(/[\s&]+/g, "_")}` : "";
         headers["Content-Disposition"] = `attachment; filename="NPP_${safeContest}${safeRegion}_Election_Album_2026.html"`;
@@ -3339,6 +3542,11 @@ export async function GET(req: NextRequest) {
       constituencyAudit,
       levelAudit,
       visibleDetails: Array.from(visibleDetails),
+      verification: {
+        verifyUrl: buildAlbumVerificationUrl(baseOrigin, verifyParams),
+        albumType,
+        readOnly: isVerifyMode,
+      },
       generatedAt: new Date().toISOString(),
     }, { headers: { "Cache-Control": "private, no-store" } });
   });
@@ -3655,6 +3863,14 @@ async function generateAlbumExcel(
   return Buffer.from(rawBuffer);
 }
 
+interface AlbumVerificationContext {
+  baseOrigin: string;
+  verifyParams: AlbumVerifyParams;
+  readOnlyMode?: boolean;
+  targetPage?: number | null;
+  targetConstituency?: string | null;
+}
+
 function generateAlbumHtml(
   contest: string,
   region: string,
@@ -3665,7 +3881,8 @@ function generateAlbumHtml(
   levelAudit?: any,
   albumType: string = "provisional",
   elephantSealDataUri?: string,
-  visibleDetails?: Set<VoterDetailField>
+  visibleDetails?: Set<VoterDetailField>,
+  verificationContext?: AlbumVerificationContext
 ): string {
   const effectiveElephantSealUri = elephantSealDataUri || getElephantSealDataUriSync();
   const sealTopSvg = renderCurvedText("NATIONAL ELECTIONS COMMITTEE", 60, 60, 42.5, -156, -24, "#003399", 5.6, false);
@@ -4180,6 +4397,9 @@ function generateAlbumHtml(
           headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 1)`,
           footerLabel: `${cName.toUpperCase()}`,
           cards: part1Cards,
+          constituencyName: cName,
+          constituencyCapital: capital,
+          totalConstituencyExecutives: cList.length,
         });
         currentCardPageNum++;
 
@@ -4220,6 +4440,8 @@ function generateAlbumHtml(
             headerSubTitle: `EXTERNAL BRANCH · ${branchName.toUpperCase()} (PART ${partIdx})`,
             footerLabel: `${branchName.toUpperCase()} EXTERNAL BRANCH`,
             cards: chunk,
+            constituencyName: branchName,
+            totalConstituencyExecutives: branchDelegates.length,
           });
           currentCardPageNum++;
         }
@@ -4269,6 +4491,69 @@ function generateAlbumHtml(
   const totalPages = 2 + delegatePages.length + 1; // Page 1: Cover, Page 2: Metrics, Pages 3..N: Cards, Final: Stats
 
   const isFinalAlbum = albumType === "final";
+  const readOnlyMode = Boolean(verificationContext?.readOnlyMode);
+  const targetPage =
+    verificationContext?.targetPage &&
+    verificationContext.targetPage >= 1 &&
+    verificationContext.targetPage <= totalPages
+      ? verificationContext.targetPage
+      : null;
+  const targetConstituency = String(verificationContext?.targetConstituency || "").trim();
+  const vBaseOrigin = resolveVerificationOrigin(
+    verificationContext?.baseOrigin || CANONICAL_PROD_ORIGIN
+  );
+  const vParams: AlbumVerifyParams = verificationContext?.verifyParams || {
+    position: contest,
+    region,
+    constituency: "",
+    album_type: albumType,
+  };
+
+  const qrSvgCache = new Map<string, string>();
+  function getCachedQrSvg(url: string, size: number, _ariaLabel: string): string {
+    const cacheKey = `${size}:${url}`;
+    const existing = qrSvgCache.get(cacheKey);
+    if (existing) return existing;
+    const svg = renderQrCodeSvg(url, {
+      size,
+      margin: 2,
+      color: "#000000",
+      bgColor: "#FFFFFF",
+    });
+    qrSvgCache.set(cacheKey, svg);
+    return svg;
+  }
+
+  function formatDisplayVerifyUrl(url: string): string {
+    return url.replace(/^https?:\/\//i, "");
+  }
+
+  function makeVerifyUrl(page?: number, pageConstituency?: string): string {
+    return buildAlbumVerificationUrl(vBaseOrigin, vParams, {
+      page,
+      pageConstituency,
+    });
+  }
+
+  const coverVerifyUrl = makeVerifyUrl(1);
+  const coverQrSvg = getCachedQrSvg(
+    coverVerifyUrl,
+    74,
+    "Official Final Certified Album Verification QR Code"
+  );
+  const page2VerifyUrl = makeVerifyUrl(2);
+  const page2QrSvg = getCachedQrSvg(
+    page2VerifyUrl,
+    56,
+    "Page 2 Metrics Security Check QR Code"
+  );
+  const finalPageVerifyUrl = makeVerifyUrl(totalPages);
+  const finalPageQrSvg = getCachedQrSvg(
+    finalPageVerifyUrl,
+    56,
+    `Page ${totalPages} Regional Audit Security Check QR Code`
+  );
+
   const isExtScope =
     region.toLowerCase().includes("external") ||
     (delegates.length > 0 &&
@@ -4303,8 +4588,37 @@ function generateAlbumHtml(
       const pageNum = pageIdx + 3;
       const cardsHtml = spec.cards.map(renderVoterCard).join("\n");
 
+      const uniqueCardConstituencies = Array.from(
+        new Set(
+          spec.cards
+            .map((c) => String(c.constituency || "").trim())
+            .filter(Boolean)
+        )
+      );
+      const effectivePageCon =
+        spec.constituencyName ||
+        (uniqueCardConstituencies.length === 1 ? uniqueCardConstituencies[0] : "");
+
+      const pageVerifyUrl = makeVerifyUrl(pageNum, effectivePageCon || undefined);
+      const pageQrSvg = getCachedQrSvg(
+        pageVerifyUrl,
+        56,
+        `Page ${pageNum} Security Check QR Code`
+      );
+
       let slot10Html = "";
       if (spec.isConstituencyPart2) {
+        const conVerifyUrl = makeVerifyUrl(pageNum, spec.constituencyName || effectivePageCon || undefined);
+        const conSlotQrSvg = getCachedQrSvg(
+          conVerifyUrl,
+          92,
+          `${spec.constituencyName || "Constituency"} Audit Security QR Code`
+        );
+        const conSlotQrMiniSvg = getCachedQrSvg(
+          conVerifyUrl,
+          78,
+          `${spec.constituencyName || "Constituency"} Validation Security QR Code`
+        );
         if (albumType === "provisional") {
           slot10Html = `
           <div class="cert-card">
@@ -4318,33 +4632,26 @@ function generateAlbumHtml(
               <div class="cert-title">CONSTITUENCY VALIDATED</div>
               <div class="cert-sub">${(spec.constituencyName || "").toUpperCase()} · CAPITAL: ${spec.constituencyCapital || ""}</div>
               <div class="cert-count">${spec.totalConstituencyExecutives || spec.cards.length} EXECUTIVE OFFICERS CONFIRMED</div>
+              <div class="cert-url" title="${conVerifyUrl}">${formatDisplayVerifyUrl(conVerifyUrl)}</div>
             </div>
+            <a class="constituency-qr-link" href="${conVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Scan to verify ${(spec.constituencyName || "").toUpperCase()} Constituency Executive Roll (${conVerifyUrl})">
+              ${conSlotQrMiniSvg}
+            </a>
           </div>
           `;
         } else {
           slot10Html = `
           <div class="cert-card official-qr-card">
             <div class="cert-shield">
-              <svg width="42" height="42" viewBox="0 0 100 100" fill="#003399">
-                <rect x="10" y="10" width="25" height="25" fill="none" stroke="#003399" stroke-width="5"/>
-                <rect x="17.5" y="17.5" width="10" height="10" fill="#003399"/>
-                <rect x="65" y="10" width="25" height="25" fill="none" stroke="#003399" stroke-width="5"/>
-                <rect x="72.5" y="17.5" width="10" height="10" fill="#003399"/>
-                <rect x="10" y="65" width="25" height="25" fill="none" stroke="#003399" stroke-width="5"/>
-                <rect x="17.5" y="72.5" width="10" height="10" fill="#003399"/>
-                <rect x="42" y="15" width="6" height="15" fill="#003399"/>
-                <rect x="42" y="38" width="16" height="6" fill="#003399"/>
-                <rect x="15" y="42" width="15" height="6" fill="#003399"/>
-                <rect x="68" y="42" width="18" height="6" fill="#003399"/>
-                <rect x="42" y="55" width="10" height="18" fill="#003399"/>
-                <rect x="60" y="60" width="12" height="12" fill="#003399"/>
-                <rect x="78" y="75" width="12" height="15" fill="#003399"/>
-              </svg>
+              <a class="constituency-qr-link" href="${conVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Scan to verify ${(spec.constituencyName || "").toUpperCase()} Constituency Executive Roll (${conVerifyUrl})">
+                ${conSlotQrSvg}
+              </a>
             </div>
             <div class="cert-text">
               <div class="cert-title">CONSTITUENCY AUDIT QR</div>
               <div class="cert-sub">${(spec.constituencyName || "").toUpperCase()} · CAPITAL: ${spec.constituencyCapital || ""}</div>
               <div class="cert-count">${spec.totalConstituencyExecutives || spec.cards.length} EXECUTIVES · OFFICIAL REGISTER</div>
+              <div class="cert-url" title="${conVerifyUrl}">${formatDisplayVerifyUrl(conVerifyUrl)}</div>
             </div>
           </div>
           `;
@@ -4352,7 +4659,7 @@ function generateAlbumHtml(
       }
 
       return `
-      <div class="album-page">
+      <div id="album-page-${pageNum}" data-page-number="${pageNum}" data-constituency="${effectivePageCon}" class="album-page${targetPage === pageNum ? " verified-target-page" : ""}">
         <header class="page-header">
           <div class="header-content">
             ${logoDataUri ? `<img class="npp-logo header-npp-logo" src="${logoDataUri}" alt="NPP" />` : `<div class="party-seal-mini">NPP</div>`}
@@ -4360,6 +4667,14 @@ function generateAlbumHtml(
               <h1>NEW PATRIOTIC PARTY</h1>
               <h2>${spec.headerSubTitle}</h2>
             </div>
+            <a class="page-audit-qr-link" href="${pageVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Page ${pageNum} Security Check QR · ${pageVerifyUrl}">
+              <div class="page-audit-qr-meta">
+                <span class="page-audit-qr-title">PAGE ${pageNum} QR</span>
+                <span class="page-audit-qr-sub">${effectivePageCon ? `${effectivePageCon.toUpperCase()} · ` : ""}${spec.cards.length} VOTER${spec.cards.length === 1 ? "" : "S"}</span>
+                <span class="page-audit-qr-url">${formatDisplayVerifyUrl(pageVerifyUrl)}</span>
+              </div>
+              <div class="page-audit-qr-box">${pageQrSvg}</div>
+            </a>
           </div>
           <div class="header-rule"></div>
         </header>
@@ -4381,6 +4696,302 @@ function generateAlbumHtml(
     `;
     })
     .join("\n");
+
+  const escapeHtmlText = (val: unknown): string =>
+    String(val ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+  interface SecurityRosterPageEntry {
+    page: number;
+    title: string;
+    constituency: string;
+    capital: string;
+    totalConstituencyExecutives: number;
+    voters: {
+      slot: number;
+      name: string;
+      position: string;
+      level: string;
+      constituency: string;
+      region: string;
+      institution: string;
+      voterId: string;
+    }[];
+  }
+
+  const securityRosterPages: SecurityRosterPageEntry[] = [
+    {
+      page: 1,
+      title: "OFFICIAL CERTIFICATION & PROCLAMATION (COVER PAGE)",
+      constituency: "",
+      capital: "",
+      totalConstituencyExecutives: 0,
+      voters: [],
+    },
+    {
+      page: 2,
+      title: "EXECUTIVE SUMMARY & ELECTORATE METRICS",
+      constituency: "",
+      capital: "",
+      totalConstituencyExecutives: 0,
+      voters: [],
+    },
+    ...cardPages.map((spec, idx) => {
+      const pNum = idx + 3;
+      const uniqueCons = Array.from(
+        new Set(
+          spec.cards
+            .map((c) => String(c.constituency || "").trim())
+            .filter(Boolean)
+        )
+      );
+      const effCon =
+        spec.constituencyName || (uniqueCons.length === 1 ? uniqueCons[0] : "");
+      return {
+        page: pNum,
+        title: spec.headerSubTitle,
+        constituency: effCon,
+        capital: spec.constituencyCapital || "",
+        totalConstituencyExecutives:
+          spec.totalConstituencyExecutives || spec.cards.length,
+        voters: spec.cards.map((c, cIdx) => ({
+          slot: cIdx + 1,
+          name: String(c.executive_name || "Unknown"),
+          position: String(c.canonical_position || c.position || "Delegate"),
+          level: String(c.executive_level || ""),
+          constituency: String(c.constituency || effCon || ""),
+          region: String(c.region || ""),
+          institution: String(c.institution || ""),
+          voterId: String(c.voter_id || "VERIFIED"),
+        })),
+      };
+    }),
+    {
+      page: totalPages,
+      title: levelAudit
+        ? String(levelAudit.tableTitle || "REGIONAL DISTRIBUTION & AUDIT SIGN-OFF")
+        : "REGIONAL DISTRIBUTION & AUDIT SIGN-OFF",
+      constituency: "",
+      capital: "",
+      totalConstituencyExecutives: 0,
+      voters: [],
+    },
+  ];
+
+  const initialInspectPage =
+    targetPage ||
+    (targetConstituency
+      ? securityRosterPages.find(
+          (p) => p.constituency.toLowerCase() === targetConstituency.toLowerCase()
+        )?.page
+      : undefined) ||
+    (cardPages.length > 0 ? 3 : 1);
+
+  const activeSecurityPage =
+    securityRosterPages.find((p) => p.page === initialInspectPage) ||
+    securityRosterPages[0];
+
+  const securityRosterJson = JSON.stringify(securityRosterPages).replace(
+    /</g,
+    "\\u003c"
+  );
+
+  const readOnlySecurityPanelHtml = readOnlyMode
+    ? `
+  <section id="nec-security-check-panel" class="security-verify-panel no-print" aria-label="NEC Page &amp; Constituency Security Verification">
+    <div class="security-panel-header">
+      <div class="security-panel-title-wrap">
+        <span class="security-badge-live">NEC SECURITY CHECK VERIFIED</span>
+        <div>
+          <div class="security-panel-main-title">
+            PAGE &amp; CONSTITUENCY SECURITY AUDIT ROSTER
+            ${targetConstituency ? ` · ${escapeHtmlText(targetConstituency.toUpperCase())}` : ""}
+          </div>
+          <div class="security-panel-sub" id="security-panel-subtitle">
+            Page ${activeSecurityPage.page} of ${totalPages} · ${escapeHtmlText(activeSecurityPage.title)} (${activeSecurityPage.voters.length} Certified Voter${activeSecurityPage.voters.length === 1 ? "" : "s"} on this Page)
+          </div>
+        </div>
+      </div>
+      <div class="security-panel-controls">
+        <label for="security-page-select" class="security-select-label">Verify Page Roster:</label>
+        <select id="security-page-select" class="security-page-select" onchange="window.selectSecurityVerifyPage(Number(this.value))">
+          ${securityRosterPages
+            .map(
+              (p) =>
+                `<option value="${p.page}" ${p.page === activeSecurityPage.page ? "selected" : ""}>Page ${p.page}: ${escapeHtmlText(p.title)} (${p.voters.length} voter${p.voters.length === 1 ? "" : "s"})</option>`
+            )
+            .join("")}
+        </select>
+        <button type="button" class="security-jump-btn" onclick="window.jumpToVerifiedPage()">Jump to Page</button>
+      </div>
+    </div>
+    <div id="security-roster-container" class="security-roster-container">
+      ${
+        activeSecurityPage.voters.length > 0
+          ? `
+        <table class="security-roster-table">
+          <thead>
+            <tr>
+              <th>Slot</th>
+              <th>Photo</th>
+              <th>Certified Delegate Name</th>
+              <th>Portfolio / Position</th>
+              <th>Level &amp; Jurisdiction</th>
+              <th>Biometric Voter ID</th>
+              <th>Security Status</th>
+            </tr>
+          </thead>
+          <tbody id="security-roster-tbody">
+            ${activeSecurityPage.voters
+              .map((v) => {
+                const cardObj = cardPages[activeSecurityPage.page - 3]?.cards?.[v.slot - 1];
+                const thumbSrc = cardObj ? (cardObj.webp_base64 || cardObj.avatar_svg || "") : "";
+                const fallbackSrc = cardObj?.avatar_svg || "";
+                return `
+              <tr>
+                <td><span class="slot-pill">#${v.slot}</span></td>
+                <td>${
+                  thumbSrc
+                    ? `<img src="${thumbSrc}" alt="${escapeHtmlText(v.name)}" style="width:28px;height:34px;object-fit:cover;border-radius:4px;border:1px solid #CBD5E1;display:block;" onerror="this.onerror=null;${fallbackSrc ? `this.src='${fallbackSrc}';` : ""}" />`
+                    : "—"
+                }</td>
+                <td><strong>${escapeHtmlText(v.name)}</strong></td>
+                <td>${escapeHtmlText(v.position)}</td>
+                <td>${escapeHtmlText(
+                  [v.level, v.constituency || v.institution || v.region]
+                    .filter(Boolean)
+                    .join(" · ")
+                )}</td>
+                <td class="mono-id">${escapeHtmlText(v.voterId)}</td>
+                <td><span class="verified-tag">AUTHENTICATED ON PAGE ${activeSecurityPage.page}</span></td>
+              </tr>`;
+              })
+              .join("")}
+          </tbody>
+        </table>`
+          : `<div id="security-roster-tbody" class="security-empty-note">Page ${activeSecurityPage.page} (${escapeHtmlText(activeSecurityPage.title)}) is an official administrative/statistical page with 0 individual voter cards. Use the selector above to inspect any voter card page (Pages 3–${Math.max(3, totalPages - 1)}).</div>`
+      }
+    </div>
+  </section>`
+    : "";
+
+  const readOnlyGuardScript = readOnlyMode
+    ? `
+(function() {
+  var ROSTER_PAGES = ${securityRosterJson};
+  var INITIAL_TARGET_PAGE = ${targetPage ? Number(targetPage) : "null"};
+
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  window.selectSecurityVerifyPage = function(pageNum) {
+    var entry = null;
+    for (var i = 0; i < ROSTER_PAGES.length; i++) {
+      if (ROSTER_PAGES[i].page === pageNum) {
+        entry = ROSTER_PAGES[i];
+        break;
+      }
+    }
+    if (!entry) return;
+    var subEl = document.getElementById("security-panel-subtitle");
+    if (subEl) {
+      subEl.textContent = "Page " + entry.page + " of " + ROSTER_PAGES.length + " · " + entry.title + " (" + entry.voters.length + " Certified Voter" + (entry.voters.length === 1 ? "" : "s") + " on this Page)";
+    }
+    var container = document.getElementById("security-roster-container");
+    if (container) {
+      if (entry.voters.length === 0) {
+        container.innerHTML = '<div id="security-roster-tbody" class="security-empty-note">Page ' + entry.page + ' (' + escapeHtml(entry.title) + ') is an official administrative/statistical page with 0 individual voter cards.</div>';
+      } else {
+        var pageImgs = document.querySelectorAll('#album-page-' + entry.page + ' .voter-card .voter-img');
+        var rowsHtml = entry.voters.map(function(v, idx) {
+          var jur = [v.level, v.constituency || v.institution || v.region].filter(Boolean).join(" · ");
+          var imgEl = pageImgs[idx];
+          var thumbSrc = imgEl ? (imgEl.getAttribute('src') || '') : '';
+          var thumbHtml = thumbSrc
+            ? '<img src="' + escapeHtml(thumbSrc) + '" alt="' + escapeHtml(v.name) + '" style="width:28px;height:34px;object-fit:cover;border-radius:4px;border:1px solid #CBD5E1;display:block;" />'
+            : '—';
+          return '<tr>' +
+            '<td><span class="slot-pill">#' + v.slot + '</span></td>' +
+            '<td>' + thumbHtml + '</td>' +
+            '<td><strong>' + escapeHtml(v.name) + '</strong></td>' +
+            '<td>' + escapeHtml(v.position) + '</td>' +
+            '<td>' + escapeHtml(jur) + '</td>' +
+            '<td class="mono-id">' + escapeHtml(v.voterId) + '</td>' +
+            '<td><span class="verified-tag">AUTHENTICATED ON PAGE ' + entry.page + '</span></td>' +
+          '</tr>';
+        }).join("");
+        container.innerHTML = '<table class="security-roster-table"><thead><tr><th>Slot</th><th>Photo</th><th>Certified Delegate Name</th><th>Portfolio / Position</th><th>Level &amp; Jurisdiction</th><th>Biometric Voter ID</th><th>Security Status</th></tr></thead><tbody id="security-roster-tbody">' + rowsHtml + '</tbody></table>';
+      }
+    }
+    var allPages = document.querySelectorAll(".album-page");
+    for (var j = 0; j < allPages.length; j++) {
+      allPages[j].classList.remove("verified-target-page");
+    }
+    var targetEl = document.getElementById("album-page-" + entry.page);
+    if (targetEl) {
+      targetEl.classList.add("verified-target-page");
+    }
+  };
+
+  window.jumpToVerifiedPage = function() {
+    var sel = document.getElementById("security-page-select");
+    var pageNum = sel ? Number(sel.value) : (INITIAL_TARGET_PAGE || 1);
+    var targetEl = document.getElementById("album-page-" + pageNum);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  // Block printing and downloading
+  window.print = function() { return false; };
+  window.printAlbum = function() { return false; };
+
+  // Block copy, cut, contextmenu, text selection, and dragging
+  var blockedEvents = ["copy", "cut", "paste", "contextmenu", "selectstart", "dragstart"];
+  for (var k = 0; k < blockedEvents.length; k++) {
+    document.addEventListener(blockedEvents[k], function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }, true);
+  }
+
+  document.addEventListener("keydown", function(e) {
+    var key = (e.key || "").toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && (key === "c" || key === "s" || key === "p" || key === "u" || key === "a" || key === "x")) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+    if (e.key === "PrintScreen" || e.key === "F12" || (e.ctrlKey && e.shiftKey && (key === "i" || key === "j" || key === "c"))) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  }, true);
+
+  window.addEventListener("DOMContentLoaded", function() {
+    if (INITIAL_TARGET_PAGE && INITIAL_TARGET_PAGE >= 1) {
+      var targetEl = document.getElementById("album-page-" + INITIAL_TARGET_PAGE);
+      if (targetEl) {
+        setTimeout(function() {
+          targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 150);
+      }
+    }
+  });
+})();`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -4424,6 +5035,31 @@ function generateAlbumHtml(
       }
       .album-page:last-child { page-break-after: auto !important; break-after: auto !important; }
     }
+    ${
+      readOnlyMode
+        ? `
+    /* Read-Only Verification Mode Protections: No Copy, No Select, No Print/Download */
+    html, body, .album-page, .album-page * {
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+      -webkit-touch-callout: none !important;
+    }
+    .album-page img {
+      -webkit-user-drag: none !important;
+      user-drag: none !important;
+      pointer-events: none !important;
+    }
+    @media print {
+      html, body {
+        display: none !important;
+        visibility: hidden !important;
+      }
+    }
+    `
+        : ""
+    }
     .web-nav {
       position: sticky; top: 0; z-index: 1000;
       background: #003399; color: white;
@@ -4434,6 +5070,161 @@ function generateAlbumHtml(
     .print-btn {
       background: #DC2626; color: white; border: none;
       padding: 7px 18px; border-radius: 6px; font-weight: 800; cursor: pointer;
+    }
+    .readonly-lock-pill {
+      background: #0F172A;
+      color: #F8FAFC;
+      border: 1px solid #38BDF8;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .security-verify-panel {
+      max-width: 210mm;
+      margin: 12px auto 4px auto;
+      background: #0F172A;
+      color: #F8FAFC;
+      border: 2px solid #003399;
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+    .security-panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid #1E293B;
+      padding-bottom: 8px;
+    }
+    .security-panel-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .security-badge-live {
+      background: #059669;
+      color: #FFFFFF;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 4px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.6px;
+      white-space: nowrap;
+    }
+    .security-panel-main-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: 0.4px;
+    }
+    .security-panel-sub {
+      font-size: 11px;
+      color: #93C5FD;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .security-panel-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .security-select-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #CBD5E1;
+    }
+    .security-page-select {
+      background: #1E293B;
+      color: #FFFFFF;
+      border: 1px solid #475569;
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      max-width: 280px;
+    }
+    .security-jump-btn {
+      background: #2563EB;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .security-roster-container {
+      max-height: 220px;
+      overflow-y: auto;
+      background: #FFFFFF;
+      color: #0F172A;
+      border-radius: 6px;
+      border: 1px solid #CBD5E1;
+    }
+    .security-roster-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .security-roster-table th {
+      background: #003399;
+      color: #FFFFFF;
+      padding: 6px 8px;
+      text-align: left;
+      font-weight: 800;
+      font-size: 10px;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0;
+    }
+    .security-roster-table td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #E2E8F0;
+      font-size: 11px;
+    }
+    .security-roster-table tr:nth-child(even) {
+      background: #F8FAFC;
+    }
+    .slot-pill {
+      background: #EFF6FF;
+      color: #003399;
+      border: 1px solid #BFDBFE;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-weight: 800;
+      font-size: 10px;
+    }
+    .mono-id {
+      font-family: monospace;
+      font-weight: 700;
+      color: #1E293B;
+    }
+    .verified-tag {
+      background: #DCFCE7;
+      color: #166534;
+      border: 1px solid #86EFAC;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 9.5px;
+      font-weight: 800;
+    }
+    .security-empty-note {
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+    }
+    .verified-target-page {
+      outline: 3.5px solid #F59E0B !important;
+      box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.28), 0 8px 24px rgba(0, 0, 0, 0.45) !important;
     }
     .album-page {
       width: 210mm; height: 285mm; max-height: 297mm;
@@ -4592,10 +5383,79 @@ function generateAlbumHtml(
       align-items: center;
       justify-content: space-between;
       padding: 2px 8px 0 8px;
+      gap: 10px;
     }
 
     .seal-container {
       flex-shrink: 0;
+    }
+
+    .cover-qr-verification {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 8px;
+      border: 1.5px solid #003399;
+      border-radius: 6px;
+      background: #FFFFFF;
+      text-decoration: none;
+      color: inherit;
+      max-height: 80px;
+      flex-shrink: 0;
+    }
+
+    .cover-qr-frame {
+      width: 74px;
+      height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #FFFFFF;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .cover-qr-caption {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5px;
+      text-align: left;
+    }
+
+    .cover-qr-badge {
+      font-size: 6.4pt;
+      font-weight: 900;
+      color: #003399;
+      letter-spacing: 0.4px;
+      line-height: 1.1;
+    }
+
+    .cover-qr-sub {
+      font-size: 5.8pt;
+      font-weight: 800;
+      color: #1E293B;
+      line-height: 1.1;
+    }
+
+    .cover-qr-lock {
+      font-size: 5.3pt;
+      font-weight: 800;
+      color: #DC2626;
+      letter-spacing: 0.25px;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+
+    .cover-qr-url {
+      font-size: 5pt;
+      font-weight: 700;
+      font-family: monospace;
+      color: #003399;
+      line-height: 1.1;
+      max-width: 155px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .sig-block {
@@ -4636,8 +5496,9 @@ function generateAlbumHtml(
 
     /* Page 2 & 3: Metrics & Directory */
     .metrics-page { padding: 5mm 10mm 4mm 10mm; }
+    .metrics-header-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .page-title { font-size: 14pt; font-weight: 900; color: #003399; margin-bottom: 2px; }
-    .page-sub { font-size: 8.5pt; font-weight: 700; color: #64748B; margin-bottom: 8px; }
+    .page-sub { font-size: 8.5pt; font-weight: 700; color: #64748B; margin-bottom: 4px; }
     .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
     .kpi-card { background: #F8FAFC; border: 1px solid #CBD5E1; padding: 8px 6px; border-radius: 6px; text-align: center; }
     .kpi-num { font-size: 16pt; font-weight: 900; color: #003399; }
@@ -4710,8 +5571,8 @@ function generateAlbumHtml(
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      padding: 4px 12px;
+      gap: 10px;
+      padding: 4px 10px;
       height: 42.5mm;
       max-height: 42.5mm;
       box-sizing: border-box;
@@ -4724,10 +5585,23 @@ function generateAlbumHtml(
       align-items: center;
       justify-content: center;
     }
+    .constituency-qr-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      border: 1px solid #CBD5E1;
+      border-radius: 4px;
+      padding: 2px;
+      background: #FFFFFF;
+      flex-shrink: 0;
+    }
     .cert-text {
       display: flex;
       flex-direction: column;
       gap: 2px;
+      flex: 1;
+      min-width: 0;
     }
     .cert-title {
       font-size: 10pt;
@@ -4749,6 +5623,16 @@ function generateAlbumHtml(
       letter-spacing: 0.3px;
       line-height: 1.15;
     }
+    .cert-url {
+      font-size: 5.2pt;
+      font-weight: 700;
+      font-family: monospace;
+      color: #003399;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .official-qr-card {
       border: 2px solid #003399;
     }
@@ -4758,8 +5642,61 @@ function generateAlbumHtml(
     .header-content { display: flex; align-items: center; gap: 8px; }
     .header-npp-logo { width: auto; height: 28px; max-width: 38px; object-fit: contain; }
     .party-seal-mini { background: #003399; color: white; font-size: 9pt; font-weight: 900; padding: 2px 5px; border-radius: 3px; }
+    .header-text { flex: 1; min-width: 0; }
     .header-text h1 { font-size: 12pt; font-weight: 900; color: #003399; line-height: 1.1; letter-spacing: 0.5px; }
-    .header-text h2 { font-size: 8pt; font-weight: 800; color: #1E293B; line-height: 1.1; letter-spacing: 0.2px; }
+    .header-text h2 { font-size: 8pt; font-weight: 800; color: #1E293B; line-height: 1.1; letter-spacing: 0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .page-audit-qr-link {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      color: inherit;
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 4px;
+      padding: 1px 4px;
+      flex-shrink: 0;
+    }
+    .page-audit-qr-meta {
+      display: flex;
+      flex-direction: column;
+      text-align: right;
+      line-height: 1.05;
+    }
+    .page-audit-qr-title {
+      font-size: 5.5pt;
+      font-weight: 900;
+      color: #003399;
+      letter-spacing: 0.3px;
+    }
+    .page-audit-qr-sub {
+      font-size: 5pt;
+      font-weight: 800;
+      color: #475569;
+      max-width: 115px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .page-audit-qr-url {
+      font-size: 4.5pt;
+      font-weight: 700;
+      font-family: monospace;
+      color: #003399;
+      max-width: 115px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .page-audit-qr-box {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #FFFFFF;
+    }
     .header-rule { height: 1.5px; background: #003399; margin-top: 2px; }
     .page-footer {
       flex: 0 0 7mm;
@@ -4820,16 +5757,22 @@ function generateAlbumHtml(
     }
   </style>
 </head>
-<body>
+<body${readOnlyMode ? ' oncontextmenu="return false;" onselectstart="return false;" oncopy="return false;" oncut="return false;" ondragstart="return false;"' : ""}>
 
   <div class="web-nav no-print">
     <span>NPP · ${contest.toUpperCase()} ${isFinalAlbum ? "FINAL CERTIFIED" : "PROVISIONAL"} ELECTION ALBUM (${totalPages} PAGES · ${delegates.length} VOTERS)</span>
-    <button id="album-print" class="print-btn" disabled onclick="window.printAlbum()">PREPARING IMAGES…</button>
+    ${
+      readOnlyMode
+        ? `<span class="readonly-lock-pill" role="status">READ-ONLY VERIFIED VIEW · COPY &amp; DOWNLOAD DISABLED</span>`
+        : `<button id="album-print" class="print-btn" disabled onclick="window.printAlbum()">PREPARING IMAGES…</button>`
+    }
     ${delegates.some((d) => d.photo_unavailable) ? `<span role="status">${delegates.filter((d) => d.photo_unavailable).length} portrait(s) unavailable; initials shown. Reload to retry unavailable photos.</span>` : ""}
   </div>
 
-  <!-- PAGE 1: COVER (Elephant Emblem Seal & Frederick Opare-Ansah) -->
-  <div class="album-page cover-page">
+  ${readOnlySecurityPanelHtml}
+
+  <!-- PAGE 1: COVER (Elephant Emblem Seal, Official Verification QR & Frederick Opare-Ansah) -->
+  <div id="album-page-1" data-page-number="1" class="album-page cover-page${targetPage === 1 ? " verified-target-page" : ""}">
     <div class="cover-inner-border">
       <div class="cover-header">
         <div class="cover-logo-center">
@@ -4895,6 +5838,15 @@ function generateAlbumHtml(
               <text x="60" y="77" fill="#003399" font-size="7" font-weight="900" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif" letter-spacing="0.8" text-anchor="middle">CERTIFIED</text>
             </svg>
           </div>
+          <a class="cover-qr-verification" href="${coverVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Scan or click to open Official ${isFinalAlbum ? "Final Certified" : "Provisional"} Album in Read-Only Verification Mode">
+            <div class="cover-qr-frame">${coverQrSvg}</div>
+            <div class="cover-qr-caption">
+              <span class="cover-qr-badge">${isFinalAlbum ? "OFFICIAL ALBUM QR" : "PROVISIONAL ALBUM QR"}</span>
+              <span class="cover-qr-sub">Scan to Verify Album Online</span>
+              <span class="cover-qr-lock">Read-Only · No Copy · No Download</span>
+              <span class="cover-qr-url">${formatDisplayVerifyUrl(coverVerifyUrl)}</span>
+            </div>
+          </a>
           <div class="sig-block">
             <div class="sig-line-img">
               <div class="signature-line"></div>
@@ -4918,10 +5870,22 @@ function generateAlbumHtml(
   </div>
 
   <!-- PAGE 2: EXECUTIVE SUMMARY & METRICS -->
-  <div class="album-page metrics-page">
+  <div id="album-page-2" data-page-number="2" class="album-page metrics-page${targetPage === 2 ? " verified-target-page" : ""}">
     <header class="page-header">
-      <h1 class="page-title">EXECUTIVE SUMMARY &amp; ELECTORATE METRICS</h1>
-      <h2 class="page-sub">Comprehensive Electoral Statistics · ${contest} Contest</h2>
+      <div class="metrics-header-row">
+        <div>
+          <h1 class="page-title">EXECUTIVE SUMMARY &amp; ELECTORATE METRICS</h1>
+          <h2 class="page-sub">Comprehensive Electoral Statistics · ${contest} Contest</h2>
+        </div>
+        <a class="page-audit-qr-link" href="${page2VerifyUrl}" target="_blank" rel="noopener noreferrer" title="Page 2 Security Check QR">
+          <div class="page-audit-qr-meta">
+            <span class="page-audit-qr-title">PAGE 2 QR</span>
+            <span class="page-audit-qr-sub">METRICS AUDIT</span>
+            <span class="page-audit-qr-url">${formatDisplayVerifyUrl(page2VerifyUrl)}</span>
+          </div>
+          <div class="page-audit-qr-box">${page2QrSvg}</div>
+        </a>
+      </div>
       <div class="header-rule"></div>
     </header>
 
@@ -4969,10 +5933,22 @@ function generateAlbumHtml(
   ${delegatePagesHtml}
 
   <!-- FINAL PAGE: DEEP DIVE REGIONAL STATS -->
-  <div class="album-page metrics-page">
+  <div id="album-page-${totalPages}" data-page-number="${totalPages}" class="album-page metrics-page${targetPage === totalPages ? " verified-target-page" : ""}">
     <header class="page-header">
-      <h1 class="page-title">${levelAudit ? levelAudit.tableTitle : "REGIONAL DISTRIBUTION &amp; AUDIT SIGN-OFF"}</h1>
-      <h2 class="page-sub">${levelAudit ? levelAudit.tableSub : `Jurisdictional Breakdown &amp; Gazette Closure · ${contest}`}</h2>
+      <div class="metrics-header-row">
+        <div>
+          <h1 class="page-title">${levelAudit ? levelAudit.tableTitle : "REGIONAL DISTRIBUTION &amp; AUDIT SIGN-OFF"}</h1>
+          <h2 class="page-sub">${levelAudit ? levelAudit.tableSub : `Jurisdictional Breakdown &amp; Gazette Closure · ${contest}`}</h2>
+        </div>
+        <a class="page-audit-qr-link" href="${finalPageVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Page ${totalPages} Security Check QR">
+          <div class="page-audit-qr-meta">
+            <span class="page-audit-qr-title">PAGE ${totalPages} QR</span>
+            <span class="page-audit-qr-sub">AUDIT SIGN-OFF</span>
+            <span class="page-audit-qr-url">${formatDisplayVerifyUrl(finalPageVerifyUrl)}</span>
+          </div>
+          <div class="page-audit-qr-box">${finalPageQrSvg}</div>
+        </a>
+      </div>
       <div class="header-rule"></div>
     </header>
 
@@ -5022,7 +5998,7 @@ function generateAlbumHtml(
     </footer>
   </div>
 
-<script>${ALBUM_PRINT_SCRIPT}</script>
+<script>${readOnlyMode ? readOnlyGuardScript : ALBUM_PRINT_SCRIPT}</script>
 </body>
 </html>`;
 }

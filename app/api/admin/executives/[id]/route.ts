@@ -242,12 +242,19 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     const effConstituency = normalizedConstituency !== undefined ? normalizedConstituency : previousRow.constituency;
     const effVoterId = voterId !== undefined ? voterId : previousRow.voterId;
     const computedImageUrl = getVoterPhotoUrl(effRegion, effConstituency, effVoterId);
+    const prevUrl = previousRow.imageUrl ? String(previousRow.imageUrl).trim() : null;
+    const isPrevValidNonLegacy = Boolean(
+      prevUrl && !/app\.newpatrioticparty\.org/i.test(prevUrl)
+    );
 
     const hasExplicitImage = uploadedImageUrl !== null || body.imageUrl !== undefined || body.image_url !== undefined;
     const explicitImageUrl = uploadedImageUrl || (body.imageUrl !== undefined ? body.imageUrl : body.image_url);
+    const trimmedExplicit = explicitImageUrl && String(explicitImageUrl).trim() ? String(explicitImageUrl).trim() : null;
     const finalImageUrl = hasExplicitImage
-      ? (explicitImageUrl && String(explicitImageUrl).trim() ? String(explicitImageUrl).trim() : null)
-      : (computedImageUrl || previousRow.imageUrl || null);
+      ? (trimmedExplicit && /app\.newpatrioticparty\.org/i.test(trimmedExplicit) && isPrevValidNonLegacy
+          ? prevUrl
+          : trimmedExplicit)
+      : (isPrevValidNonLegacy ? prevUrl : (prevUrl || computedImageUrl || null));
 
     const updatedRow = await withEcSql(async (sql) => {
       const res = await sql`

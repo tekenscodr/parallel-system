@@ -11,6 +11,8 @@ import {
   compareNationalAlbumDelegates,
 } from "./album-hierarchy.ts";
 import { ALBUM_PRINT_SCRIPT } from "./album-print.ts";
+import { renderQrCodeSvg } from "./qr-svg.ts";
+import { buildAlbumVerificationUrl } from "./album-verification.ts";
 
 export const GHANA_REGIONS_ORDER = [
   "Ahafo",
@@ -716,29 +718,33 @@ export function generateAlbumHtml(
           </div>
           `;
         } else {
+          const conSlotVerifyUrl = buildAlbumVerificationUrl(
+            "",
+            {
+              position: contest,
+              region,
+              album_type: albumType,
+            },
+            {
+              page: pageNum,
+              pageConstituency: spec.constituencyName || "",
+            }
+          );
+          const conSlotQrSvg = renderQrCodeSvg(conSlotVerifyUrl, {
+            size: 64,
+            margin: 2,
+            color: "#003399",
+            bgColor: "#FFFFFF",
+          });
           slot10Html = `
           <div class="cert-card official-qr-card">
-            <div class="cert-shield">
-              <svg width="42" height="42" viewBox="0 0 100 100" fill="#003399">
-                <rect x="10" y="10" width="25" height="25" fill="none" stroke="#003399" stroke-width="5"/>
-                <rect x="17.5" y="17.5" width="10" height="10" fill="#003399"/>
-                <rect x="65" y="10" width="25" height="25" fill="none" stroke="#003399" stroke-width="5"/>
-                <rect x="72.5" y="17.5" width="10" height="10" fill="#003399"/>
-                <rect x="10" y="65" width="25" height="25" fill="none" stroke="#003399" stroke-width="5"/>
-                <rect x="17.5" y="72.5" width="10" height="10" fill="#003399"/>
-                <rect x="42" y="15" width="6" height="15" fill="#003399"/>
-                <rect x="42" y="38" width="16" height="6" fill="#003399"/>
-                <rect x="15" y="42" width="15" height="6" fill="#003399"/>
-                <rect x="68" y="42" width="18" height="6" fill="#003399"/>
-                <rect x="42" y="55" width="10" height="18" fill="#003399"/>
-                <rect x="60" y="60" width="12" height="12" fill="#003399"/>
-                <rect x="78" y="75" width="12" height="15" fill="#003399"/>
-              </svg>
-            </div>
+            <a class="cert-shield constituency-qr-link" href="${conSlotVerifyUrl}" target="_blank" rel="noopener noreferrer" title="Scan or click to verify ${spec.constituencyName || ""} Constituency Album Page ${pageNum}">
+              ${conSlotQrSvg}
+            </a>
             <div class="cert-text">
               <div class="cert-title">CONSTITUENCY AUDIT QR</div>
               <div class="cert-sub">${(spec.constituencyName || "").toUpperCase()} · CAPITAL: ${spec.constituencyCapital || ""}</div>
-              <div class="cert-count">${spec.totalConstituencyExecutives || spec.cards.length} EXECUTIVES · OFFICIAL REGISTER</div>
+              <div class="cert-count">${spec.totalConstituencyExecutives || spec.cards.length} EXECUTIVES · SCAN TO VERIFY</div>
             </div>
           </div>
           `;

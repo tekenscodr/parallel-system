@@ -9,17 +9,17 @@ import {
 } from "../lib/tescon-institutions.ts";
 import { getTesconInstitution } from "../lib/album-hierarchy.ts";
 
-test("TESCON Statutory Directory has exactly 251 accredited tertiary institutions nationwide", () => {
-  assert.equal(TOTAL_CANONICAL_TESCON_INSTITUTIONS, 251);
+test("TESCON Statutory Directory has exactly 253 accredited tertiary institutions nationwide", () => {
+  assert.equal(TOTAL_CANONICAL_TESCON_INSTITUTIONS, 253);
 
   const sumQuotas = Object.values(CANONICAL_TESCON_QUOTAS_BY_REGION).reduce((acc, q) => acc + q, 0);
-  assert.equal(sumQuotas, 251, "Sum of all 16 regional quotas must equal 251");
+  assert.equal(sumQuotas, 253, "Sum of all 16 regional quotas must equal 253");
 
-  assert.equal(getCanonicalTesconQuota("all"), 251);
+  assert.equal(getCanonicalTesconQuota("all"), 253);
   assert.equal(getCanonicalTesconQuota("Ashanti"), 49);
-  assert.equal(getCanonicalTesconQuota("Greater Accra"), 35);
+  assert.equal(getCanonicalTesconQuota("Greater Accra"), 36);
   assert.equal(getCanonicalTesconQuota("Ahafo"), 8);
-  assert.equal(getCanonicalTesconQuota("Bono"), 15);
+  assert.equal(getCanonicalTesconQuota("Bono"), 16);
   assert.equal(getCanonicalTesconQuota("Bono East"), 8);
   assert.equal(getCanonicalTesconQuota("Central"), 15);
   assert.equal(getCanonicalTesconQuota("Eastern"), 24);
@@ -34,7 +34,7 @@ test("TESCON Statutory Directory has exactly 251 accredited tertiary institution
   assert.equal(getCanonicalTesconQuota("Western North"), 6);
 });
 
-test("Normalizes all 741 certified TESCON delegates into exactly 251 canonical institutions (435 -> 251)", () => {
+test("Normalizes all 741 certified TESCON delegates into exactly 253 canonical institutions (435 -> 253)", () => {
   const delegates = JSON.parse(fs.readFileSync("scratch/all_tescon_741_delegates.json", "utf8"));
   assert.equal(delegates.length, 741, "Must contain all 741 certified voting delegates");
 
@@ -63,9 +63,15 @@ test("Normalizes all 741 certified TESCON delegates into exactly 251 canonical i
   assert.equal(unmapped.length, 0, "All 741 delegates must resolve to a valid canonical institution");
   assert.equal(
     nationwideInstitutions.size,
-    251,
-    `Nationwide unique institutions must be exactly 251, got ${nationwideInstitutions.size} (previously inflated to 435)`
+    253,
+    `Nationwide unique institutions must be exactly 253, got ${nationwideInstitutions.size} (previously inflated to 435)`
   );
+  assert.ok(nationwideInstitutions.has("Methodist University Ghana (Wenchi Campus)"));
+  assert.ok(nationwideInstitutions.has("Methodist University Ghana (Ofuman Campus)"));
+  assert.ok(!nationwideInstitutions.has("Methodist University Ghana (Wenchi & Ofuman Campus)"));
+  assert.ok(nationwideInstitutions.has("Methodist University Ghana (Dansoman Campus)"));
+  assert.ok(nationwideInstitutions.has("Methodist University Ghana (Tema Campus)"));
+  assert.ok(!nationwideInstitutions.has("Methodist University Ghana"));
 
   // Verify single-officer contests (e.g. 250 Presidents)
   const presidents = delegates.filter((d) => d.pos === "TESCON President");
@@ -82,8 +88,8 @@ test("Normalizes all 741 certified TESCON delegates into exactly 251 canonical i
   );
   assert.equal(
     presidentInstitutions.size,
-    245,
-    "Presidents map to 245 unique institutions (5 institutions have multiple campus/president entries)"
+    247,
+    "Presidents map to 247 unique institutions (with Wenchi & Ofuman and Dansoman & Tema separated into distinct campuses)"
   );
 });
 
@@ -131,7 +137,7 @@ test("Regional canonical institution quotas evaluate accurately", () => {
         })
       )
   );
-  assert.equal(gaInstitutions.size, 35, "Greater Accra must have exactly 35 institutions");
+  assert.equal(gaInstitutions.size, 36, "Greater Accra must have exactly 36 institutions");
 
   const northernInstitutions = new Set(
     delegates

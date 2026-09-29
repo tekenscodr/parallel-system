@@ -69,7 +69,8 @@ export const CANONICAL_TESCON_INSTITUTIONS_BY_REGION: Record<string, string[]> =
     "Berekum Nursing and Midwifery Training College",
     "Catholic University of Ghana, Fiapre",
     "Krobo Nursing Training College",
-    "Methodist University Ghana (Wenchi & Ofuman Campus)",
+    "Methodist University Ghana (Ofuman Campus)",
+    "Methodist University Ghana (Wenchi Campus)",
     "Presbyterian Nursing and Midwifery Training College, Dormaa",
     "Sampa Nursing and Midwifery Training College",
     "Seikwa Nursing and Midwifery Training College",
@@ -154,7 +155,8 @@ export const CANONICAL_TESCON_INSTITUTIONS_BY_REGION: Record<string, string[]> =
     "Kings University College",
     "Knutsford University College",
     "Korle-Bu Nursing and Midwifery Training College",
-    "Methodist University Ghana",
+    "Methodist University Ghana (Dansoman Campus)",
+    "Methodist University Ghana (Tema Campus)",
     "MountCrest University College",
     "Narh-Bita College",
     "Pantang Nursing and Midwifery Training College",
@@ -601,11 +603,15 @@ export const CANONICAL_TO_RAW_STATIONS_BY_REGION: Record<string, Record<string, 
     "Krobo Nursing Training College": [
       "Valley View University (Techiman Campus) / Krobo Health College"
     ],
-    "Methodist University Ghana (Wenchi & Ofuman Campus)": [
+    "Methodist University Ghana (Ofuman Campus)": [
       "Methodist University (Ofuman Campus)",
-      "Methodist University (Wenchi Campus)",
       "Methodist University Ofuman Campus",
-      "Methodist University Wenchi"
+      "Methodist University Ghana (Ofuman Campus)"
+    ],
+    "Methodist University Ghana (Wenchi Campus)": [
+      "Methodist University (Wenchi Campus)",
+      "Methodist University Wenchi",
+      "Methodist University Ghana (Wenchi Campus)"
     ],
     "Presbyterian Nursing and Midwifery Training College, Dormaa": [
       "Dormaa Presbyterian Nursing Training College",
@@ -929,14 +935,17 @@ export const CANONICAL_TO_RAW_STATIONS_BY_REGION: Record<string, Record<string, 
       "KORLE BU NMTC",
       "Nursing and Midwifery Training College, Korle Bu"
     ],
-    "Methodist University Ghana": [
-      "METHODIST UNIVERSITY, TEMA",
+    "Methodist University Ghana (Dansoman Campus)": [
       "Methodist University (Dansoman)",
-      "Methodist University (Tema Campus)",
       "Methodist University Dansoman",
+      "Methodist university Ghana",
+      "Methodist University Ghana (Dansoman Campus)"
+    ],
+    "Methodist University Ghana (Tema Campus)": [
+      "METHODIST UNIVERSITY, TEMA",
+      "Methodist University (Tema Campus)",
       "Methodist University Ghana (Tema Campus)",
-      "Methodist University Ghana, Tema Campus",
-      "Methodist university Ghana"
+      "Methodist University Ghana, Tema Campus"
     ],
     "MountCrest University College": [
       "MountCrest University",

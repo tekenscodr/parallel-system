@@ -56,9 +56,9 @@ export function getEcSql(): ReturnType<typeof postgres> {
 
     client = postgres(url, {
       ssl,
-      max: 10,
+      max: 15,
       idle_timeout: 30,
-      connect_timeout: 10,
+      connect_timeout: 45,
       max_lifetime: 60 * 30,
       transform: {
         undefined: null,
@@ -81,9 +81,9 @@ export function getEcSql(): ReturnType<typeof postgres> {
       username: process.env.PGUSER || "postgres",
       password,
       ssl: "prefer",
-      max: 10,
+      max: 15,
       idle_timeout: 30,
-      connect_timeout: 10,
+      connect_timeout: 45,
       max_lifetime: 60 * 30,
       transform: {
         undefined: null,
@@ -95,16 +95,59 @@ export function getEcSql(): ReturnType<typeof postgres> {
   return client;
 }
 
+function isTransientDbError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { code?: string; message?: string };
+  const code = String(e.code || "").toUpperCase();
+  const msg = String(e.message || "");
+  if (code === "ENETUNREACH" || code === "EHOSTUNREACH" || /ENETUNREACH|EHOSTUNREACH/i.test(msg)) {
+    return false;
+  }
+  return (
+    code === "CONNECT_TIMEOUT" ||
+    code === "CONNECTION_CLOSED" ||
+    code === "CONNECTION_DESTROYED" ||
+    code === "ECONNRESET" ||
+    code === "ETIMEDOUT" ||
+    code === "EPIPE" ||
+    /CONNECT_TIMEOUT|ECONNRESET|ETIMEDOUT|EPIPE|Connection terminated|socket|closed/i.test(msg)
+  );
+}
+
 /**
  * Execute queries within the shared PostgreSQL client pool.
  * Uses a persistent connection pool to eliminate socket churn,
- * ephemeral port exhaustion, and command-in-progress race conditions.
+ * ephemeral port exhaustion, and command-in-progress race conditions,
+ * with automatic retry on transient connection/socket drops.
  */
 export async function withEcSql<T>(
   fn: (sql: ReturnType<typeof postgres>) => Promise<T>
 ): Promise<T> {
-  const sql = getEcSql();
-  return await fn(sql);
+  const maxAttempts = 3;
+  let lastErr: unknown;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const sql = getEcSql();
+      return await fn(sql);
+    } catch (err) {
+      lastErr = err;
+      if (attempt < maxAttempts && isTransientDbError(err)) {
+        try {
+          if (globalThis._ecSql) {
+            void globalThis._ecSql.end({ timeout: 1 }).catch(() => {});
+            globalThis._ecSql = undefined;
+          }
+        } catch {
+          globalThis._ecSql = undefined;
+        }
+        await new Promise((r) => setTimeout(r, 300 * attempt));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr;
 }
 
 /**

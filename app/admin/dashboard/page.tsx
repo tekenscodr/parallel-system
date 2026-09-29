@@ -747,24 +747,47 @@ export default function NationalAdminDashboard() {
 
   // Auth check & Overview data fetch
   useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem("admin_cached_user");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.email) {
+          setCurrentUser(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     const headers = getAuthHeaders();
     fetch("/api/admin/auth/me", {
       credentials: "include",
       headers,
     })
-      .then((res) => {
-        if (!res.ok) {
+      .then(async (res) => {
+        if (res.status === 401 || res.status === 403) {
           logoutAndRedirect("expired");
+          return null;
+        }
+        if (!res.ok) {
           return null;
         }
         return res.json();
       })
       .then((data) => {
-        if (!data || !data.authenticated) {
+        if (!data) return;
+        if (!data.authenticated) {
           logoutAndRedirect("expired");
           return;
         }
         setCurrentUser(data.user);
+        try {
+          if (data.user) {
+            sessionStorage.setItem("admin_cached_user", JSON.stringify(data.user));
+          }
+        } catch {
+          // ignore
+        }
         if (data.expiresAt && typeof window !== "undefined") {
           saveClientSession(localStorage.getItem(SESSION_TOKEN_KEY) || "", data.expiresAt, data.user?.role);
         }
@@ -773,7 +796,7 @@ export default function NationalAdminDashboard() {
         }
       })
       .catch(() => {
-        logoutAndRedirect("expired");
+        // Network error — keep cached session if present
       });
   }, []);
 
@@ -1486,7 +1509,10 @@ export default function NationalAdminDashboard() {
             constituency: v.constituency || prev.constituency,
             electoralArea: v.electoralArea || prev.electoralArea,
             pollingStation: v.pollingStation || prev.pollingStation,
-            imageUrl: v.imageUrl || prev.imageUrl || null,
+            imageUrl:
+              prev.imageUrl && !/app\.newpatrioticparty\.org/i.test(prev.imageUrl) && (!v.imageUrl || /app\.newpatrioticparty\.org/i.test(v.imageUrl))
+                ? prev.imageUrl
+                : (v.imageUrl || prev.imageUrl || null),
           };
         });
 
@@ -2842,7 +2868,7 @@ export default function NationalAdminDashboard() {
                       <option value="">
                         {selectedRegion
                           ? `🏛️ All ${selectedRegion} Institutions (${tesconInstitutions.length})`
-                          : `🏛️ All Nationwide Institutions (${tesconInstitutions.length || 251})`}
+                          : `🏛️ All Nationwide Institutions (${tesconInstitutions.length || 253})`}
                       </option>
                       {tesconInstitutions.map((inst) => (
                         <option key={inst} value={inst}>{inst}</option>

@@ -101,7 +101,7 @@ const REGION_OPTIONS = [
 type Delegate = {
   id: string; executive_name: string; executive_level: string; region: string;
   constituency: string; canonical_position: string; voter_id: string; phone: string;
-  gender: string; age: number | null; is_under_40?: boolean; image_url: string; avatar_svg: string;
+  gender: string; age: number | null; is_under_40?: boolean; image_url: string; webp_image_url?: string | null; avatar_svg: string;
 };
 
 type ConstituencyAuditItem = {
@@ -161,7 +161,7 @@ export default function PositionAlbumsPage() {
   const [under40, setUnder40] = useState<boolean>(false);
   const [scope, setScope] = useState("all_voters");
   const [selectedPositions, setSelectedPositions] = useState<string[]>(() =>
-    getDefaultPositionIdsForContest("Women Organiser")
+    getDefaultPositionIdsForContest("Women Organiser", "all_voters")
   );
   const [selectedLevels, setSelectedLevels] = useState<string[]>([
     "National",
@@ -524,7 +524,7 @@ export default function PositionAlbumsPage() {
 
   const resetAllFilters = () => {
     setContest("Women Organiser");
-    setSelectedPositions(getDefaultPositionIdsForContest("Women Organiser"));
+    setSelectedPositions(getDefaultPositionIdsForContest("Women Organiser", "all_voters"));
     setRegion("all");
     setConstituency("all");
     setSelectedRegions([...ALL_JURISDICTION_IDS]);
@@ -2878,7 +2878,7 @@ export default function PositionAlbumsPage() {
                           <div className="flex min-w-48 items-center gap-3">
                             <Avatar className="size-8">
                               <AvatarImage
-                                src={selectedDetails.includes("photo") ? (d.image_url || d.avatar_svg) : d.avatar_svg}
+                                src={selectedDetails.includes("photo") ? (d.webp_image_url || d.image_url || d.avatar_svg) : d.avatar_svg}
                                 alt=""
                                 className="object-cover"
                               />

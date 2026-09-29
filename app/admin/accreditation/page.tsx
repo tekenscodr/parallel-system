@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AdminShell } from "@/app/admin/components/AdminShell";
 import { getClientHeaders } from "@/lib/client-device";
 import { logoutAndRedirect } from "@/lib/client-session";
+import { renderQrCodeSvg } from "@/lib/qr-svg";
 import {
   Award,
   Search,
@@ -845,9 +846,24 @@ export default function AdminAccreditationPage() {
                       </div>
                     </div>
 
-                    <div className="w-16 h-16 bg-slate-900 rounded-lg p-1.5 flex flex-col items-center justify-center text-white">
-                      <QrCode className="w-full h-full text-white" />
-                    </div>
+                    <a
+                      href={`${typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:3000" : "https://paratrooper-navy.vercel.app"}/verify/album?code=${encodeURIComponent(badgeModalItem.accreditationCode)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-16 h-16 bg-white border border-slate-300 rounded-lg p-0.5 flex flex-col items-center justify-center"
+                      title={`Verify Pass ${badgeModalItem.accreditationCode}`}
+                      dangerouslySetInnerHTML={{
+                        __html: renderQrCodeSvg(
+                          `${typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:3000" : "https://paratrooper-navy.vercel.app"}/verify/album?code=${encodeURIComponent(badgeModalItem.accreditationCode)}`,
+                          {
+                            size: 60,
+                            margin: 2,
+                            color: "#003399",
+                            bgColor: "#FFFFFF",
+                          }
+                        ),
+                      }}
+                    />
                   </div>
                 </div>
 

@@ -1,3 +1,4 @@
+import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -6,7 +7,98 @@ import sharp from "sharp";
 const cacheDir = path.join(process.cwd(), ".cache", "albums", "webp");
 const pending = new Map<string, Promise<Buffer | null>>();
 
+let _indexesLoaded = false;
+const syncUrlByVoterId = new Map<string, string>();
+const ahafoBase64ByVoterId = new Map<string, string>();
+const localFileByVoterId = new Map<string, string>();
+const localFileByFilename = new Map<string, string>();
+
+function extractVoterIdFromText(text: string): string | null {
+  const m = text.match(/(?:^|[^0-9])(\d{8,10})(?:[^0-9]|$)/);
+  return m ? m[1] : null;
+}
+
+function indexDirectorySync(dir: string) {
+  if (!fsSync.existsSync(dir)) return;
+  try {
+    const entries = fsSync.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        indexDirectorySync(fullPath);
+      } else if (/\.(webp|jpg|jpeg|png)$/i.test(entry.name)) {
+        localFileByFilename.set(entry.name.toLowerCase(), fullPath);
+        const vid = extractVoterIdFromText(entry.name);
+        if (vid) {
+          localFileByVoterId.set(vid, fullPath);
+          localFileByVoterId.set(vid.replace(/^0+/, ""), fullPath);
+        }
+      }
+    }
+  } catch {
+    // Non-fatal
+  }
+}
+
+function ensureAuxiliaryIndexes() {
+  if (_indexesLoaded) return;
+  _indexesLoaded = true;
+
+  indexDirectorySync(path.join(process.cwd(), "public", "cdn"));
+  indexDirectorySync(path.join(process.cwd(), "outputs", "wocom_2026", "portraits"));
+
+  try {
+    const syncPath = path.join(process.cwd(), "scratch", "sync_progress.json");
+    if (fsSync.existsSync(syncPath)) {
+      const data = JSON.parse(fsSync.readFileSync(syncPath, "utf8"));
+      for (const [rawVid, url] of Object.entries(data)) {
+        if (typeof url === "string" && url.startsWith("http")) {
+          const cleanVid = String(rawVid).trim();
+          syncUrlByVoterId.set(cleanVid, url.trim());
+          syncUrlByVoterId.set(cleanVid.replace(/^0+/, ""), url.trim());
+          if (cleanVid.length < 10) {
+            syncUrlByVoterId.set(cleanVid.padStart(10, "0"), url.trim());
+          }
+        }
+      }
+    }
+  } catch {
+    // Non-fatal
+  }
+
+  try {
+    const candidatePaths = [
+      path.join(process.cwd(), "exports/albums/ahafo_album_data.json"),
+      path.join(process.cwd(), "public/exports/ahafo_album_data.json"),
+      path.join(process.cwd(), "outputs/albums/ahafo_album_data.json"),
+    ];
+    const ahafoPath = candidatePaths.find((p) => fsSync.existsSync(p));
+    if (ahafoPath) {
+      const ahafoData = JSON.parse(fsSync.readFileSync(ahafoPath, "utf8"));
+      const indexItem = (d: any) => {
+        if (d?.photo_base64 && typeof d.photo_base64 === "string" && d.photo_base64.startsWith("data:image/")) {
+          const vid = d.voter_id ? String(d.voter_id).trim() : "";
+          if (vid.length > 3) {
+            ahafoBase64ByVoterId.set(vid, d.photo_base64);
+            ahafoBase64ByVoterId.set(vid.replace(/^0+/, ""), d.photo_base64);
+          }
+        }
+      };
+      if (Array.isArray(ahafoData.regionalExecutives)) ahafoData.regionalExecutives.forEach(indexItem);
+      if (Array.isArray(ahafoData.constituencies)) {
+        ahafoData.constituencies.forEach((c: any) => {
+          if (Array.isArray(c.executives)) c.executives.forEach(indexItem);
+        });
+      }
+    }
+  } catch {
+    // Non-fatal
+  }
+}
+
 async function readSource(url: string): Promise<Buffer | null> {
+  ensureAuxiliaryIndexes();
+
   if (url.startsWith("data:image/")) {
     const comma = url.indexOf(",");
     if (comma < 0) return null;
@@ -15,10 +107,14 @@ async function readSource(url: string): Promise<Buffer | null> {
       : Buffer.from(decodeURIComponent(url.slice(comma + 1)));
   }
 
-  // Check if this URL corresponds to a local file in public/ before hitting the network
+  // Check if this URL corresponds to a local file in public/ or outputs/ before hitting the network
   const pathname = decodeURIComponent(url.split(/[?#]/, 1)[0]);
   const filename = path.basename(pathname);
   if (filename && filename.length > 3) {
+    const indexedPath = localFileByFilename.get(filename.toLowerCase());
+    if (indexedPath) {
+      try { return await fs.readFile(indexedPath); } catch { /* continue */ }
+    }
     const publicRoot = path.join(process.cwd(), "public");
     const candidateLocalPaths = [
       path.join(publicRoot, "cdn", "executives", "volta", filename),
@@ -30,8 +126,44 @@ async function readSource(url: string): Promise<Buffer | null> {
     }
   }
 
+  // Check if a voter ID is embedded in the URL and matches a local file or Ahafo base64 or cached sync_progress URL
+  const embeddedVid = extractVoterIdFromText(pathname);
+  if (embeddedVid) {
+    const localByVid = localFileByVoterId.get(embeddedVid) || localFileByVoterId.get(embeddedVid.replace(/^0+/, ""));
+    if (localByVid) {
+      try { return await fs.readFile(localByVid); } catch { /* continue */ }
+    }
+    const ahafoB64 = ahafoBase64ByVoterId.get(embeddedVid) || ahafoBase64ByVoterId.get(embeddedVid.replace(/^0+/, ""));
+    if (ahafoB64) {
+      const comma = ahafoB64.indexOf(",");
+      if (comma >= 0) return Buffer.from(ahafoB64.slice(comma + 1), "base64");
+    }
+    const syncAltUrl = syncUrlByVoterId.get(embeddedVid) || syncUrlByVoterId.get(embeddedVid.replace(/^0+/, ""));
+    if (syncAltUrl) {
+      const syncKey = crypto.createHash("sha256").update(`v2_${syncAltUrl}_240_300_80`).digest("hex");
+      try { return await fs.readFile(path.join(cacheDir, `${syncKey}.webp`)); } catch { /* continue */ }
+    }
+  }
+
   if (/^https?:\/\//i.test(url)) {
-    if (/app\.newpatrioticparty\.org/i.test(url)) return null;
+    if (/app\.newpatrioticparty\.org/i.test(url)) {
+      // Before giving up on legacy app.newpatrioticparty.org URL, check if sync_progress has a valid CMS URL for this voter ID
+      if (embeddedVid) {
+        const altUrl = syncUrlByVoterId.get(embeddedVid) || syncUrlByVoterId.get(embeddedVid.replace(/^0+/, ""));
+        if (altUrl && !/app\.newpatrioticparty\.org/i.test(altUrl)) {
+          const altKey = crypto.createHash("sha256").update(`v2_${altUrl}_240_300_80`).digest("hex");
+          try {
+            return await fs.readFile(path.join(cacheDir, `${altKey}.webp`));
+          } catch {
+            url = altUrl;
+          }
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    }
     for (let attempt = 0; attempt < 3; attempt++) {
       const controller = new AbortController();
       // Keep the timeout active until the response body finishes downloading.
@@ -43,13 +175,21 @@ async function readSource(url: string): Promise<Buffer | null> {
         });
         if (response.ok) return Buffer.from(await response.arrayBuffer());
         await response.body?.cancel();
-        if (response.status !== 408 && response.status !== 429 && response.status < 500) return null;
+        if (response.status !== 408 && response.status !== 429 && response.status < 500) break;
       } catch {
         // Retry temporary connection failures and incomplete downloads.
       } finally {
         clearTimeout(timeout);
       }
       if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+    }
+    // If network fetch failed, check if sync_progress has an alternative cached URL for the same voter ID
+    if (embeddedVid) {
+      const altUrl = syncUrlByVoterId.get(embeddedVid) || syncUrlByVoterId.get(embeddedVid.replace(/^0+/, ""));
+      if (altUrl && altUrl !== url) {
+        const altKey = crypto.createHash("sha256").update(`v2_${altUrl}_240_300_80`).digest("hex");
+        try { return await fs.readFile(path.join(cacheDir, `${altKey}.webp`)); } catch { /* ignore */ }
+      }
     }
     return null;
   }
@@ -113,3 +253,4 @@ export async function resolveAlbumImage(
   pending.set(key, conversion);
   try { return await conversion; } finally { pending.delete(key); }
 }
+

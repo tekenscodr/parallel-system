@@ -16,7 +16,7 @@ export interface RateLimitConfig {
 }
 
 export const CLIENT_RATE_LIMITS: Record<RateLimitCategory, RateLimitConfig> = {
-  LOGIN: { maxRequests: 5, windowMs: 60000, cooldownMs: 2000 },
+  LOGIN: { maxRequests: 25, windowMs: 60000, cooldownMs: 500 },
   LOOKUP: { maxRequests: 15, windowMs: 60000, cooldownMs: 600 },
   EXPORT: { maxRequests: 3, windowMs: 60000, cooldownMs: 5000 },
   MUTATION: { maxRequests: 15, windowMs: 60000, cooldownMs: 1200 },

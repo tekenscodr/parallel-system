@@ -18,8 +18,8 @@ export interface RateLimitResult {
 }
 
 export const ROUTE_RATE_LIMITS: Record<string, RateLimitConfig> = {
-  "/api/admin/auth/login": { maxRequests: 5, windowSeconds: 60 },
-  "/api/admin/auth/change-password": { maxRequests: 5, windowSeconds: 60 },
+  "/api/admin/auth/login": { maxRequests: 25, windowSeconds: 60 },
+  "/api/admin/auth/change-password": { maxRequests: 25, windowSeconds: 60 },
   "/api/admin/export": { maxRequests: 3, windowSeconds: 60 },
   "/api/admin/voters/lookup": { maxRequests: 15, windowSeconds: 60 },
   "/api/admin/executives": { maxRequests: 35, windowSeconds: 60 },

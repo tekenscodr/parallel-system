@@ -129,7 +129,7 @@ export async function GET(req: Request) {
       }
 
       if (missingImages) {
-        conditions.push(sql`(image_url IS NULL OR trim(image_url) = '' OR image_url ILIKE 'https://app.newpatrioticparty.org%' OR image_url NOT ILIKE 'https://%')`);
+        conditions.push(sql`(image_url IS NULL OR trim(image_url) = '' OR image_url ILIKE 'https://app.newpatrioticparty.org%' OR (image_url NOT ILIKE 'https://%' AND image_url NOT ILIKE '/cdn/%' AND image_url NOT ILIKE 'data:image/%'))`);
       }
 
       const whereClause = conditions.length > 0

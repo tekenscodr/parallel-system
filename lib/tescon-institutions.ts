@@ -1,7 +1,7 @@
 /**
  * Canonical TESCON Accredited Tertiary Institutions Directory & Normalizer
  *
- * Statutory Total: 251 Accredited Tertiary Institutions nationwide across 16 Regions
+ * Statutory Total: 253 Accredited Tertiary Institutions nationwide across 16 Regions
  * Statutory Delegate Composition:
  *   - National Chairperson & General Officers: 1 per campus (Presidents) = 250 voting delegates
  *   - Youth Organiser: 3 per campus (Presidents, WOCOMs, Nasara Coordinators) = 741 voting delegates
@@ -9,11 +9,11 @@
  * Regional Statutory Allocation:
  *   Ahafo: 8
  *   Ashanti: 49
- *   Bono: 15
+ *   Bono: 16
  *   Bono East: 8
  *   Central: 15
  *   Eastern: 24
- *   Greater Accra: 35
+ *   Greater Accra: 36
  *   North East: 4
  *   Northern: 20
  *   Oti: 3
@@ -23,17 +23,17 @@
  *   Volta: 17
  *   Western: 14
  *   Western North: 6
- *   TOTAL: 251
+ *   TOTAL: 253
  */
 
 export const CANONICAL_TESCON_QUOTAS_BY_REGION: Record<string, number> = {
   Ahafo: 8,
   Ashanti: 49,
-  Bono: 15,
+  Bono: 16,
   "Bono East": 8,
   Central: 15,
   Eastern: 24,
-  "Greater Accra": 35,
+  "Greater Accra": 36,
   "North East": 4,
   Northern: 20,
   Oti: 3,
@@ -45,7 +45,7 @@ export const CANONICAL_TESCON_QUOTAS_BY_REGION: Record<string, number> = {
   "Western North": 6,
 };
 
-export const TOTAL_CANONICAL_TESCON_INSTITUTIONS = 251;
+export const TOTAL_CANONICAL_TESCON_INSTITUTIONS = 253;
 
 /**
  * Normalizes any raw, user-entered polling station or institution string into
@@ -420,7 +420,7 @@ export function normalizeTesconInstitution(
     if (s.includes("KOMENDA")) return "Komenda College of Education";
   }
 
-  // 12. BONO (15 institutions)
+  // 12. BONO (16 institutions)
   if (
     reg === "Bono" ||
     s.includes("SUNYANI") ||
@@ -429,7 +429,8 @@ export function normalizeTesconInstitution(
     s.includes("DORMAA") ||
     s.includes("SAMPA") ||
     s.includes("DROBO") ||
-    s.includes("WENCHI")
+    s.includes("WENCHI") ||
+    s.includes("OFUMAN")
   ) {
     if (s.includes("SUNYANI TECHNICAL") || s.includes("STU")) return "Sunyani Technical University";
     if (s.includes("BEREKUM COLLEGE OF EDUCATION")) return "Berekum College of Education";
@@ -457,8 +458,11 @@ export function normalizeTesconInstitution(
     if (s.includes("AL FARUQ") || s.includes("AL-FARUQ") || s.includes("AL- FARUQ")) {
       return "Al-Faruq College of Education, Wenchi";
     }
-    if (s.includes("OFUMAN") || (s.includes("METHODIST") && s.includes("WENCHI"))) {
-      return "Methodist University Ghana (Wenchi & Ofuman Campus)";
+    if (s.includes("OFUMAN")) {
+      return "Methodist University Ghana (Ofuman Campus)";
+    }
+    if (s.includes("METHODIST") && s.includes("WENCHI")) {
+      return "Methodist University Ghana (Wenchi Campus)";
     }
     if (s.includes("WENCHI") && s.includes("AGRIC")) return "Wenchi Agricultural College";
     if (s.includes("VALLEY VIEW") || s.includes("KROBO")) return "Valley View University, Techiman Campus";
@@ -574,7 +578,7 @@ export function normalizeTesconInstitution(
     if (s.includes("GHANA") && s.includes("MAIN CAMPUS")) return "University of Ghana (Main Campus - Legon)";
   }
 
-  // 15. GREATER ACCRA (35 institutions)
+  // 15. GREATER ACCRA (36 institutions)
   if (
     reg === "Greater Accra" ||
     s.includes("ACCRA") ||
@@ -582,7 +586,8 @@ export function normalizeTesconInstitution(
     s.includes("LEGON") ||
     s.includes("UPSA") ||
     s.includes("PANTANG") ||
-    s.includes("TEMA")
+    s.includes("TEMA") ||
+    s.includes("DANSOMAN")
   ) {
     if (s.includes("ADA COLLEGE") || s.includes("ADA COLLAGE")) return "Ada College of Education";
     if (s.includes("ACCRA BUSINESS")) return "Accra Business School";
@@ -614,7 +619,10 @@ export function normalizeTesconInstitution(
       return "Korle-Bu Nursing and Midwifery Training College";
     }
     if (s.includes("METHODIST")) {
-      return "Methodist University Ghana";
+      if (s.includes("TEMA") || con === "TEMA CENTRAL") {
+        return "Methodist University Ghana (Tema Campus)";
+      }
+      return "Methodist University Ghana (Dansoman Campus)";
     }
     if (s.includes("MOUNTCREST") || s.includes("MOUNT CREST")) return "MountCrest University College";
     if (s.includes("NARH BITA") || s.includes("NARHBITA")) return "Narh-Bita College";

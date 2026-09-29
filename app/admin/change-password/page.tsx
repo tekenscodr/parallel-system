@@ -30,19 +30,37 @@ export default function AdminChangePasswordPage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem("admin_cached_user");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.email) {
+          setEmail(parsed.email);
+          setCheckingAuth(false);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     fetch("/api/admin/auth/me", {
       credentials: "include",
       headers: getClientHeaders(),
     })
       .then((res) => {
-        if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
           logoutAndRedirect("expired");
+          return null;
+        }
+        if (!res.ok) {
+          setCheckingAuth(false);
           return null;
         }
         return res.json();
       })
       .then((data) => {
-        if (!data || !data.authenticated) {
+        if (!data) return;
+        if (!data.authenticated) {
           logoutAndRedirect("expired");
           return;
         }
@@ -68,7 +86,7 @@ export default function AdminChangePasswordPage() {
         setCheckingAuth(false);
       })
       .catch(() => {
-        window.location.href = "/admin/login";
+        setCheckingAuth(false);
       });
   }, []);
 
