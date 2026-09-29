@@ -12,9 +12,9 @@ import VerifyAlbumGuard from "./VerifyAlbumGuard";
 
 export const dynamic = "force-dynamic";
 
-type SearchParamsInput =
-  | Promise<Record<string, string | string[] | undefined>>
-  | Record<string, string | string[] | undefined>;
+type SearchParamsInput = Promise<
+  Record<string, string | string[] | undefined>
+>;
 
 function pickParam(
   params: Record<string, string | string[] | undefined>,
@@ -38,7 +38,7 @@ export default async function VerifyAlbumPage({
 }: {
   searchParams: SearchParamsInput;
 }) {
-  const resolvedParams = await Promise.resolve(searchParams);
+  const resolvedParams = (await searchParams) || {};
 
   const rawPosition = pickParam(
     resolvedParams,
