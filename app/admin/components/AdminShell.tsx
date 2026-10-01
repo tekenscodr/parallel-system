@@ -21,6 +21,7 @@ import {
   EyeOff,
   ArrowRight,
   Award,
+  Camera,
   GitPullRequest,
 } from "lucide-react";
 import { initClientIpDetection } from "@/lib/client-device";
@@ -248,6 +249,12 @@ export function AdminShell({
       label: "Accreditation & Badges",
       icon: Award,
       description: "Media, Security & Protocol credentials & pass printing",
+    },
+    {
+      href: "/admin/media-accreditation",
+      label: "Media Accreditation Data",
+      icon: Camera,
+      description: "Complete media registry, exports & bulk image downloads",
     },
     {
       href: "/admin/update-requests",
@@ -545,7 +552,7 @@ export function AdminShell({
                       {currentUser?.name || "National Admin"}
                     </div>
                     <div style={{ fontSize: "10px", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {currentUser?.email || "admin@ec-data.gov.gh"}
+                      {currentUser?.email || "admin@npp.org.gh"}
                     </div>
                   </div>
                 </div>
@@ -678,18 +685,6 @@ export function AdminShell({
                   }}
                 >
                   Admin_national Privileges
-                </span>
-                <span
-                  style={{
-                    background: "rgba(56, 189, 248, 0.1)",
-                    color: "#38bdf8",
-                    border: "1px solid rgba(56, 189, 248, 0.25)",
-                    borderRadius: "999px",
-                    padding: "3px 10px",
-                    fontSize: "11px",
-                  }}
-                >
-                  ec-data PostgreSQL
                 </span>
                 {isPasswordLocked ? (
                   <div
@@ -879,7 +874,7 @@ export function AdminShell({
                   {currentUser?.name || (isC1 ? "All Women Officer" : "National Officer")}
                 </div>
                 <div style={{ fontSize: "10px", color: "#64748b" }}>
-                  {currentUser?.email || (isC1 ? "all_women@ec-data.gov.gh" : "officer@ec-data.gov.gh")}
+                  {currentUser?.email || (isC1 ? "all_women@npp.org.gh" : "officer@npp.org.gh")}
                 </div>
               </div>
               <button

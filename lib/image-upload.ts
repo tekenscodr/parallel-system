@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
-import sharp from "sharp";
+import { getSafeSharp } from "./safe-sharp";
 
 const UPLOAD_DIR = path.resolve(process.cwd(), "public", "cdn", "executives");
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
@@ -250,21 +250,34 @@ export async function saveUploadedExecutiveImage(
   const rawBuffer = Buffer.from(await file.arrayBuffer());
   verifyImageSignature(rawBuffer, extension);
 
-  // Convert image to optimized WebP, respecting EXIF orientation
-  const webpBuffer = await sharp(rawBuffer)
-    .rotate()
-    .webp({ quality: 85, effort: 4 })
-    .toBuffer();
+  // Convert image to optimized WebP if sharp is available, respecting EXIF orientation
+  const sharp = await getSafeSharp();
+  let finalBuffer = rawBuffer;
+  let finalExt = extension;
+  let finalMime = file.type || (extension === "png" ? "image/png" : "image/jpeg");
 
-  const filename = buildFilename(voterId, "webp", prefix);
-  const fileSize = webpBuffer.byteLength;
+  if (sharp) {
+    try {
+      finalBuffer = await sharp(rawBuffer)
+        .rotate()
+        .webp({ quality: 85, effort: 4 })
+        .toBuffer();
+      finalExt = "webp";
+      finalMime = "image/webp";
+    } catch {
+      finalBuffer = rawBuffer;
+    }
+  }
+
+  const filename = buildFilename(voterId, finalExt, prefix);
+  const fileSize = finalBuffer.byteLength;
 
   if (process.env.EXECUTIVE_IMAGE_STORAGE?.toLowerCase() === "local") {
     if (process.env.VERCEL) {
       throw new Error("Local executive image storage cannot be used on Vercel. Configure Party CDN storage instead.");
     }
-    return saveLocally(webpBuffer, filename, fileSize);
+    return saveLocally(finalBuffer, filename, fileSize);
   }
 
-  return uploadToWordPress(webpBuffer, filename, "image/webp", fileSize);
+  return uploadToWordPress(finalBuffer, filename, finalMime, fileSize);
 }

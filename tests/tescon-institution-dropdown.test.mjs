@@ -12,25 +12,35 @@ import {
 test("getTesconInstitutionsForRegion returns exact statutory institutions per region", () => {
   assert.equal(getTesconInstitutionsForRegion("Ahafo").length, 8);
   assert.equal(getTesconInstitutionsForRegion("Ashanti").length, 49);
-  assert.equal(getTesconInstitutionsForRegion("Bono").length, 17);
+  assert.equal(getTesconInstitutionsForRegion("Bono").length, 16);
   assert.equal(getTesconInstitutionsForRegion("Bono East").length, 8);
   assert.equal(getTesconInstitutionsForRegion("Central").length, 16);
   assert.equal(getTesconInstitutionsForRegion("Eastern").length, 23);
-  assert.equal(getTesconInstitutionsForRegion("Greater Accra").length, 36);
+  assert.equal(getTesconInstitutionsForRegion("Greater Accra").length, 35);
   assert.equal(getTesconInstitutionsForRegion("North East").length, 4);
   assert.equal(getTesconInstitutionsForRegion("Northern").length, 20);
   assert.equal(getTesconInstitutionsForRegion("Oti").length, 3);
   assert.equal(getTesconInstitutionsForRegion("Savannah").length, 7);
-  assert.equal(getTesconInstitutionsForRegion("Upper East").length, 13);
+  assert.equal(getTesconInstitutionsForRegion("Upper East").length, 10);
   assert.equal(getTesconInstitutionsForRegion("Upper West").length, 13);
-  assert.equal(getTesconInstitutionsForRegion("Volta").length, 17);
-  assert.equal(getTesconInstitutionsForRegion("Western").length, 14);
+  assert.equal(getTesconInstitutionsForRegion("Volta").length, 16);
+  assert.equal(getTesconInstitutionsForRegion("Western").length, 13);
   assert.equal(getTesconInstitutionsForRegion("Western North").length, 6);
 
   // Eastern must not include Central or Greater Accra institutions
   const easternInsts = getTesconInstitutionsForRegion("Eastern");
   assert.ok(!easternInsts.includes("University of Education, Winneba (Ajumako Campus)"));
   assert.ok(!easternInsts.includes("University of Ghana (Main Campus - Legon)"));
+
+  // Empty institutions must be excluded
+  assert.ok(!getTesconInstitutionsForRegion("Bono").includes("Krobo Nursing Training College"));
+  assert.ok(getTesconInstitutionsForRegion("Bono East").includes("Krobo Nursing Training College"));
+  assert.ok(!getTesconInstitutionsForRegion("Greater Accra").includes("Accra Business School"));
+  assert.ok(!getTesconInstitutionsForRegion("Upper East").includes("Faith Institute of Journalism, Bolgatanga"));
+  assert.ok(!getTesconInstitutionsForRegion("Upper East").includes("Millar Institute for Transdisciplinary and Development Studies"));
+  assert.ok(!getTesconInstitutionsForRegion("Upper East").includes("Navrongo Community Development Institute"));
+  assert.ok(!getTesconInstitutionsForRegion("Volta").includes("Princefield University College, Ho"));
+  assert.ok(!getTesconInstitutionsForRegion("Western").includes("Takoradi Technical University (TTU - Sekondi/Adagya Campus)"));
 
   // Bono must separate Methodist University Wenchi and Ofuman campuses
   const bonoInsts = getTesconInstitutionsForRegion("Bono");
@@ -45,10 +55,10 @@ test("getTesconInstitutionsForRegion returns exact statutory institutions per re
   assert.ok(!gaInsts.includes("Methodist University Ghana"));
 
   // All regions / empty / null
-  assert.equal(getTesconInstitutionsForRegion("all").length, 253);
-  assert.equal(getTesconInstitutionsForRegion("").length, 253);
-  assert.equal(getTesconInstitutionsForRegion(null).length, 253);
-  assert.equal(ALL_CANONICAL_TESCON_INSTITUTIONS.length, 253);
+  assert.equal(getTesconInstitutionsForRegion("all").length, 247);
+  assert.equal(getTesconInstitutionsForRegion("").length, 247);
+  assert.equal(getTesconInstitutionsForRegion(null).length, 247);
+  assert.equal(ALL_CANONICAL_TESCON_INSTITUTIONS.length, 247);
 });
 
 test("Ashanti TESCON institutions include key colleges and universities", () => {

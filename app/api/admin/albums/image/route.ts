@@ -13,25 +13,29 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const imageUrl = searchParams.get("url")?.trim() || "";
     const voterId = searchParams.get("vid")?.trim() || "";
+    const execIdStr = searchParams.get("id")?.trim() || "";
+    const execId = execIdStr ? parseInt(execIdStr, 10) : null;
+    const name = searchParams.get("name")?.trim() || "";
     const width = parseInt(searchParams.get("w") || "240", 10);
     const height = parseInt(searchParams.get("h") || "300", 10);
     const quality = parseInt(searchParams.get("q") || "80", 10);
 
-    const effectiveTarget =
-      imageUrl.length >= 5
-        ? imageUrl
-        : voterId.length >= 5
-        ? `voter_${voterId}.webp`
-        : "";
+    const hints = {
+      voterId: voterId || null,
+      execId: Number.isFinite(execId) ? execId : null,
+      name: name || null,
+    };
 
-    if (!effectiveTarget) {
-      return new NextResponse("Missing or invalid image URL", { status: 400 });
+    if (!imageUrl && !voterId && !execId && !name) {
+      return new NextResponse("Missing or invalid image target", { status: 400 });
     }
 
-    let webpBuffer = await resolveAlbumImage(effectiveTarget, width, height, quality);
-    if (!webpBuffer && voterId && voterId.length >= 5 && effectiveTarget !== `voter_${voterId}.webp`) {
-      webpBuffer = await resolveAlbumImage(`voter_${voterId}.webp`, width, height, quality);
+    let webpBuffer = await resolveAlbumImage(imageUrl || null, width, height, quality, hints);
+    if (!webpBuffer && (voterId || execId || name)) {
+      // Secondary attempt with hints directly if the initial imageUrl failed
+      webpBuffer = await resolveAlbumImage(null, width, height, quality, hints);
     }
+
     if (!webpBuffer) {
       return new NextResponse("Image could not be retrieved", { status: 404 });
     }

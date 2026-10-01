@@ -353,7 +353,16 @@ export default function AdminAccreditationPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/admin/media-accreditation")}
+              className="border-amber-500/40 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20"
+            >
+              <ExternalLink className="w-4 h-4 mr-2 text-amber-400" />
+              Media Data &amp; Photo Downloads
+            </Button>
             <Button
               variant="outline"
               size="sm"

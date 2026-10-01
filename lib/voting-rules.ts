@@ -15,6 +15,10 @@ function isRegionalTescon(r: VotingSource): boolean {
   const ps = String(r.polling_station || "").trim().toLowerCase();
   const lvl = String(r.executive_level || "").trim().toLowerCase();
 
+  if ((lvl === "national" || pos.includes("national tescon")) && !pos.includes("regional") && !ps.includes("regional")) {
+    return false;
+  }
+
   if ((lvl === "region" || lvl === "regional") && /tescon/i.test(pos)) return true;
   if (
     !pos.includes("nasara") &&
@@ -190,7 +194,7 @@ export function buildVotingReport(source: VotingSource[]) {
     const core = rows.some(r=>['constituency','region','regional','national'].includes(getRowLevel(r)));
     const tescon = rows.filter(r=>norm(r.executive_level)==='tescon' && !/patron/i.test(clean(r.position)));
     const eligibleTesconYouth = tescon;
-    const hasYouthPortfolio = rows.some(r => /youth\s*organi[sz]er/i.test(clean(r.position)) && !/former/i.test(clean(r.position)));
+    const hasYouthPortfolio = rows.some(r => (/youth\s*organi[sz]er/i.test(clean(r.position)) || (norm(r.executive_level) === 'national' && /tescon/i.test(clean(r.position)))) && !/former/i.test(clean(r.position)));
     const isUnder40 = rows.some(r => isUnder40AsOf3MonthsAgo(r.date_of_birth, r.age));
     if (core && age === null && !hasYouthPortfolio) issues.push('DOB missing, invalid or conflicting: youth eligibility unresolved');
     if (core && !gender) issues.push('Gender missing or conflicting: women eligibility unresolved');

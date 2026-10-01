@@ -186,7 +186,7 @@ export default function AuditLogsPage() {
               <Activity size={18} color="#60a5fa" />
             </div>
             <div style={{ fontSize: "24px", fontWeight: "800", color: "#f8fafc", marginTop: "8px" }}>{totalCount.toLocaleString()}</div>
-            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>Immutable events in PostgreSQL ec-data</div>
+            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>Immutable system audit events</div>
           </div>
 
           <div style={{ background: "#0F172A", border: "1px solid rgba(255, 255, 255, 0.08)", borderRadius: "12px", padding: "18px" }}>
@@ -328,7 +328,7 @@ export default function AuditLogsPage() {
                   <td colSpan={6} style={{ padding: "40px", textAlign: "center", color: "#94a3b8" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
                       <Loader2 className="animate-spin" size={20} />
-                      <span>Loading audit records from PostgreSQL ec-data…</span>
+                      <span>Loading audit records…</span>
                     </div>
                   </td>
                 </tr>

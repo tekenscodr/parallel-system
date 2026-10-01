@@ -155,20 +155,6 @@ export default function AdminLoginPage() {
           <p style={{ fontSize: "13px", color: "#94a3b8", margin: 0 }}>
             National Executive Command &amp; Electoral Directory
           </p>
-          <div
-            style={{
-              marginTop: "8px",
-              display: "inline-block",
-              fontSize: "11px",
-              padding: "3px 10px",
-              borderRadius: "999px",
-              background: "rgba(16, 185, 129, 0.12)",
-              color: "#34d399",
-              border: "1px solid rgba(16, 185, 129, 0.25)",
-            }}
-          >
-            ec-data PostgreSQL Backend
-          </div>
         </div>
 
         {notice && (

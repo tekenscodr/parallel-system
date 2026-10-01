@@ -77,6 +77,11 @@ import {
   OFFICIAL_CONSTITUENCIES_BY_REGION,
 } from "@/lib/constituency-normalizer";
 import { getTesconInstitutionsForRegion } from "@/lib/tescon-institutions";
+import {
+  POLLING_STATION_GROUPINGS,
+  getPollingStationGrouping,
+  type PollingStationGrouping,
+} from "@/lib/polling-stations";
 
 const REGION_OPTIONS = [
   { value: "all", label: "All Ghana · Nationwide Roll" },
@@ -103,6 +108,14 @@ type Delegate = {
   id: string; executive_name: string; executive_level: string; region: string;
   constituency: string; institution?: string; polling_station?: string; canonical_position: string; voter_id: string; phone: string;
   gender: string; age: number | null; is_under_40?: boolean; image_url: string; webp_image_url?: string | null; avatar_svg: string;
+  is_proxy_record?: boolean;
+  proxy_name?: string | null;
+  proxy_voter_id?: string | null;
+  proxy_phone?: string | null;
+  proxy_position?: string | null;
+  proxy_level?: string | null;
+  proxy_region?: string | null;
+  proxy_constituency?: string | null;
 };
 
 type ConstituencyAuditItem = {
@@ -128,6 +141,10 @@ type AlbumData = {
   levelAudit?: any;
   metrics: {
     contest: string;
+    pollingStation?: string;
+    stationLabel?: string;
+    stationCode?: string;
+    stationDescription?: string;
     actualFigures: number; expectedFigures: number; complianceRate: string;
     quorumRequirement: number; levelBreakdown: Record<string, number>;
     regionalQuota?: number;
@@ -158,9 +175,11 @@ export default function PositionAlbumsPage() {
   const [constituency, setConstituency] = useState("all");
   const [tesconInstitution, setTesconInstitution] = useState("all");
   const [selectedRegions, setSelectedRegions] = useState<string[]>([...ALL_JURISDICTION_IDS]);
+  const [pollingStation, setPollingStation] = useState<string>("none");
   const [albumType, setAlbumType] = useState<"provisional" | "final">("provisional");
   const [gender, setGender] = useState<"all" | "male" | "female">("all");
   const [under40, setUnder40] = useState<boolean>(false);
+  const [proxyOnly, setProxyOnly] = useState<boolean>(false);
   const [scope, setScope] = useState("all_voters");
   const [selectedPositions, setSelectedPositions] = useState<string[]>(() =>
     getDefaultPositionIdsForContest("Women Organiser", "all_voters")
@@ -206,10 +225,17 @@ export default function PositionAlbumsPage() {
   const iframe = useRef<HTMLIFrameElement>(null);
 
   const isCustom = contest === "Custom";
+  const isProxyContest =
+    contest === "Proxy Voters" ||
+    contest === "Proxy for Youth" ||
+    contest === "Proxy for Women" ||
+    contest === "Proxy for Nasara";
+
   const isWingContest =
     !isCustom &&
     contest !== "All Men" &&
     contest !== "All Women" &&
+    !isProxyContest &&
     (WING_PORTFOLIOS.includes(contest as any) ||
       contest === "Youth Organiser" ||
       contest === "Women Organiser" ||
@@ -218,14 +244,19 @@ export default function PositionAlbumsPage() {
   const isYouthContest =
     contest === "Youth Organiser" ||
     contest === "Youth Organisers & Deputies" ||
+    contest === "Proxy for Youth" ||
     contest.toLowerCase().includes("youth");
 
   const effectiveScope =
     contest === "Women Organiser" ||
     contest === "Women Organisers & Deputies" ||
     contest === "All Women" ||
-    contest === "All Men"
+    contest === "All Men" ||
+    contest === "Proxy Voters" ||
+    contest === "Proxy for Nasara"
       ? "all_voters"
+      : contest === "Proxy for Youth" || contest === "Proxy for Women"
+      ? (scope === "organisers_only" ? "organisers_only" : "all_voters")
       : WING_PORTFOLIOS.includes(contest as any)
       ? (scope === "all_voters" ? "all_voters" : "organisers_only")
       : (scope === "organisers_only" ? "organisers_only" : "all_voters");
@@ -269,6 +300,7 @@ export default function PositionAlbumsPage() {
     : "";
   const genderQuery = gender !== "all" ? `&gender=${encodeURIComponent(gender)}` : "";
   const under40Query = under40 ? "&under40=true" : "";
+  const proxyQuery = proxyOnly ? "&proxy=true" : "";
   const regionsQuery =
     selectedRegions.length > 0 && selectedRegions.length < ALL_JURISDICTION_IDS.length
       ? `&regions=${encodeURIComponent(selectedRegions.join(","))}`
@@ -278,10 +310,15 @@ export default function PositionAlbumsPage() {
   const institutionQuery =
     tesconInstitution !== "all" ? `&institution=${encodeURIComponent(tesconInstitution)}` : "";
   const albumTypeQuery = albumType === "final" ? "&album_type=final" : "";
-  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${constituencyQuery}${institutionQuery}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}${detailsQuery}${genderQuery}${under40Query}${regionsQuery}${albumTypeQuery}`;
+  const pollingStationQuery =
+    pollingStation !== "none" ? `&polling_station=${encodeURIComponent(pollingStation)}` : "";
+  const query = `position=${encodeURIComponent(contest)}&region=${encodeURIComponent(region)}${constituencyQuery}${institutionQuery}${effectiveScope === "organisers_only" ? "&scope=organisers_only" : ""}${positionsQuery}${levelsQuery}${detailsQuery}${genderQuery}${under40Query}${proxyQuery}${regionsQuery}${albumTypeQuery}${pollingStationQuery}`;
   const requestKey = `${query}&revision=${retry}`;
   const previewUrl = `/api/admin/albums/election?${requestKey}&format=html`;
   const excelDownloadUrl = `/api/admin/albums/election?${query}&format=excel&download=1`;
+  const activeStationObj = pollingStation !== "none" ? getPollingStationGrouping(pollingStation) : null;
+  const safeStationFilename = activeStationObj ? activeStationObj.code.replace(/[\s&()]+/g, "_") : "";
+  const pdfDownloadUrl = `/api/admin/albums/election?${query}&format=pdf&download=1`;
   const data = result?.key === requestKey ? result.data : null;
   const error = failure?.key === requestKey ? failure.message : "";
   const loading = !data && !error;
@@ -298,6 +335,7 @@ export default function PositionAlbumsPage() {
     constituency !== "all"
       ? `${constituency.replace(/\s+/g, "_")}_${region.replace(/\s+/g, "_")}`
       : region.replace(/\s+/g, "_");
+  const pdfFilename = `NPP_${safeContestFilename}_${safeStationFilename || safeScopeFilename}_Album_2026.pdf`;
 
   const togglePosition = (id: string) => {
     setSelectedPositions((prev) => {
@@ -356,6 +394,16 @@ export default function PositionAlbumsPage() {
       } else {
         setGender("female");
       }
+    } else if (
+      val === "Proxy Voters" ||
+      val === "Proxy for Youth" ||
+      val === "Proxy for Women" ||
+      val === "Proxy for Nasara"
+    ) {
+      targetScope = "all_voters";
+      setScope("all_voters");
+      setGender("all");
+      setProxyOnly(false);
     } else if (WING_PORTFOLIOS.includes(val as any)) {
       targetScope = "organisers_only";
       setScope("organisers_only");
@@ -371,7 +419,12 @@ export default function PositionAlbumsPage() {
     } else {
       setSelectedPositions(getDefaultPositionIdsForContest(val, targetScope));
     }
-    if (val === "Youth Organiser" || val === "Youth Organisers & Deputies" || String(val).toLowerCase().includes("youth")) {
+    if (
+      val === "Youth Organiser" ||
+      val === "Youth Organisers & Deputies" ||
+      val === "Proxy for Youth" ||
+      String(val).toLowerCase().includes("youth")
+    ) {
       setSelectedDetails((prev) => (prev.includes("demographics") ? prev : [...prev, "demographics"]));
     }
     setPage(1);
@@ -481,6 +534,7 @@ export default function PositionAlbumsPage() {
   };
 
   const toggleRegion = (id: string) => {
+    setPollingStation("none");
     setSelectedRegions((prev) => {
       const exists = prev.includes(id);
       const next = exists ? prev.filter((r) => r !== id) : [...prev, id];
@@ -503,6 +557,7 @@ export default function PositionAlbumsPage() {
   };
 
   const selectAllRegions = () => {
+    setPollingStation("none");
     setSelectedRegions([...ALL_JURISDICTION_IDS]);
     setRegion("all");
     setConstituency("all");
@@ -511,6 +566,7 @@ export default function PositionAlbumsPage() {
   };
 
   const clearAllRegions = () => {
+    setPollingStation("none");
     setSelectedRegions([]);
     setConstituency("all");
     setTesconInstitution("all");
@@ -518,11 +574,13 @@ export default function PositionAlbumsPage() {
   };
 
   const applyJurisdictionPreset = (presetKey: JurisdictionPresetKey) => {
+    setPollingStation("none");
     const ids = [...JURISDICTION_PRESETS[presetKey].ids];
     setSelectedRegions(ids);
     setConstituency("all");
     setTesconInstitution("all");
     if (ids.length === ALL_JURISDICTION_IDS.length) {
+      setRegion("all");
       setRegion("all");
     } else if (ids.length === 1) {
       setRegion(ids[0]);
@@ -532,7 +590,37 @@ export default function PositionAlbumsPage() {
     setPage(1);
   };
 
+  const selectPollingStation = (stationId: string) => {
+    setPollingStation(stationId);
+    if (stationId === "none") {
+      return;
+    }
+    const grouping = getPollingStationGrouping(stationId);
+    if (!grouping) return;
+
+    if (grouping.splitRegion) {
+      setRegion(grouping.splitRegion);
+      setSelectedRegions([grouping.splitRegion]);
+      setConstituency("all");
+    } else if (grouping.regions.length === 1) {
+      setRegion(grouping.regions[0]);
+      setSelectedRegions([grouping.regions[0]]);
+      setConstituency("all");
+    } else {
+      setRegion("all");
+      setSelectedRegions([...grouping.regions]);
+      setConstituency("all");
+    }
+
+    if (grouping.recommendedContest && contest !== "Custom") {
+      setContest(grouping.recommendedContest as ContestType);
+      setSelectedPositions(getDefaultPositionIdsForContest(grouping.recommendedContest, effectiveScope));
+    }
+    setPage(1);
+  };
+
   const resetAllFilters = () => {
+    setPollingStation("none");
     setContest("Women Organiser");
     setSelectedPositions(getDefaultPositionIdsForContest("Women Organiser", "all_voters"));
     setRegion("all");
@@ -541,6 +629,7 @@ export default function PositionAlbumsPage() {
     setSelectedRegions([...ALL_JURISDICTION_IDS]);
     setGender("all");
     setUnder40(false);
+    setProxyOnly(false);
     setScope("all_voters");
     setLevel("all");
     setSelectedLevels(ALL_CUSTOMIZABLE_LEVELS.map((l) => l.id));
@@ -563,6 +652,7 @@ export default function PositionAlbumsPage() {
     setLevel("Constituency");
     setGender("all");
     setUnder40(false);
+    setProxyOnly(false);
     setPage(1);
   };
 
@@ -634,7 +724,7 @@ export default function PositionAlbumsPage() {
       matchesRegion &&
       matchesConstituency &&
       matchesInstitution &&
-      [d.executive_name, d.voter_id, d.constituency, d.region, d.canonical_position, d.institution, d.polling_station].some((value) =>
+      [d.executive_name, d.voter_id, d.constituency, d.region, d.canonical_position, d.institution, d.polling_station, d.proxy_name, d.proxy_voter_id, d.proxy_constituency].some((value) =>
         String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())
       )
     );
@@ -754,6 +844,11 @@ export default function PositionAlbumsPage() {
                 <Table2 className="size-4" /> Regional &amp; Wings Audit Stats (.xlsx)
               </a>
             </Button>
+            <Button asChild className="gap-1.5 bg-red-600 hover:bg-red-700 text-white shadow-sm" disabled={!data || !delegates.length}>
+              <a href={pdfDownloadUrl} download={pdfFilename} title="Download on-server generated PDF album file">
+                <Download className="size-4" /> Download PDF (.pdf)
+              </a>
+            </Button>
             <Button asChild variant="outline" disabled={!data || !delegates.length}>
               <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${safeScopeFilename}_Voter_Directory_2026.xlsx`}>
                 <Download className="size-4" /> Download Excel (.xlsx)
@@ -770,7 +865,7 @@ export default function PositionAlbumsPage() {
           const excludedRegLabel = excludedJurisdiction ? excludedJurisdiction.shortName : "1 region";
 
           const isAllJurisdictions = selectedRegions.length === ALL_JURISDICTION_IDS.length && constituency === "all";
-          const isJurisdictionsActive = !isAllJurisdictions;
+          const isJurisdictionsActive = !isAllJurisdictions || pollingStation !== "none";
 
           const excludedLevel = ALL_CUSTOMIZABLE_LEVELS.find((l) => !selectedLevels.includes(l.id));
           const excludedLevelLabel = excludedLevel ? excludedLevel.shortLabel : "1 level";
@@ -780,7 +875,8 @@ export default function PositionAlbumsPage() {
           const isEditionActive = albumType === "final";
           const isGenderActive = gender !== "all";
           const isUnder40Active = under40;
-          const isPortfolioActive = isCustom || isWingContest || contest === "All Men" || contest === "All Women";
+          const isProxyActive = isProxyContest || proxyOnly;
+          const isPortfolioActive = isCustom || isWingContest || contest === "All Men" || contest === "All Women" || isProxyContest;
           const isDetailsActive = isCustomDetails;
 
           const totalActiveFilters =
@@ -790,6 +886,7 @@ export default function PositionAlbumsPage() {
             (isEditionActive ? 1 : 0) +
             (isGenderActive ? 1 : 0) +
             (isUnder40Active ? 1 : 0) +
+            (proxyOnly ? 1 : 0) +
             (isDetailsActive ? 1 : 0);
 
           return (
@@ -822,6 +919,11 @@ export default function PositionAlbumsPage() {
                           <Sparkles className="size-3 text-emerald-600" /> Under 40 (Youth)
                         </Badge>
                       )}
+                      {isProxyActive && (
+                        <Badge variant="secondary" className="gap-1 bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950 dark:text-purple-200">
+                          <Users className="size-3 text-purple-600" /> {isProxyContest ? contest : "Proxy Voters Only"}
+                        </Badge>
+                      )}
                       {isCustom && (
                         <Badge variant="secondary" className="gap-1 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300">
                           <Sparkles className="size-3 text-blue-600" /> Customise Mode
@@ -839,6 +941,23 @@ export default function PositionAlbumsPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant={isProxyActive ? "default" : "outline"}
+                      size="sm"
+                      className={`h-8 text-xs gap-1.5 ${isProxyActive ? "bg-purple-600 hover:bg-purple-700 text-white" : "border-purple-500/40 text-purple-700 dark:text-purple-300"}`}
+                      onClick={() => {
+                        if (isProxyContest) {
+                          handleContestSelect("Women Organiser");
+                        } else {
+                          setProxyOnly(!proxyOnly);
+                          setPage(1);
+                        }
+                      }}
+                      title="Filter album to Assigned Proxy Voters only"
+                    >
+                      <Users className="size-3.5" /> {isProxyActive ? "Proxy Voters: Active" : "Filter Proxy Voters"}
+                    </Button>
                     <Button
                       type="button"
                       variant={under40 ? "default" : "outline"}
@@ -1046,7 +1165,7 @@ export default function PositionAlbumsPage() {
                             Elective Portfolio & Wing Scope
                           </h3>
                           <p className="text-xs text-muted-foreground">
-                            Choose portfolio, wing extractions (Youth, Women, Nasara), or custom positions
+                            Choose portfolio, wing extractions (Youth, Women, Nasara), proxy voter rolls, or custom positions
                           </p>
                         </div>
                       </div>
@@ -1061,6 +1180,14 @@ export default function PositionAlbumsPage() {
                               ? "Active: Male Roll"
                               : contest === "All Women"
                               ? "Active: Female Roll"
+                              : contest === "Proxy Voters"
+                              ? "Active: Proxy Voters Roll (339)"
+                              : contest === "Proxy for Youth"
+                              ? "Active: Proxy for Youth"
+                              : contest === "Proxy for Women"
+                              ? "Active: Proxy for Women"
+                              : contest === "Proxy for Nasara"
+                              ? "Active: Proxy for Nasara"
                               : `Active: ${contest}`}
                           </Badge>
                         ) : (
@@ -1159,6 +1286,50 @@ export default function PositionAlbumsPage() {
                           </Button>
                           <Button
                             type="button"
+                            variant={contest === "Proxy Voters" ? "default" : "outline"}
+                            size="sm"
+                            className={`h-7 text-xs ${contest === "Proxy Voters" ? "bg-purple-600 hover:bg-purple-700 text-white" : "border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300"}`}
+                            onClick={() => {
+                              handleContestSelect("Proxy Voters");
+                            }}
+                          >
+                            🔁 Proxy Voters (339)
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={contest === "Proxy for Youth" ? "default" : "outline"}
+                            size="sm"
+                            className={`h-7 text-xs ${contest === "Proxy for Youth" ? "bg-purple-600 hover:bg-purple-700 text-white" : "border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300"}`}
+                            onClick={() => {
+                              handleContestSelect("Proxy for Youth");
+                            }}
+                          >
+                            🔁 Proxy for Youth
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={contest === "Proxy for Women" ? "default" : "outline"}
+                            size="sm"
+                            className={`h-7 text-xs ${contest === "Proxy for Women" ? "bg-purple-600 hover:bg-purple-700 text-white" : "border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300"}`}
+                            onClick={() => {
+                              handleContestSelect("Proxy for Women");
+                            }}
+                          >
+                            🔁 Proxy for Women
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={contest === "Proxy for Nasara" ? "default" : "outline"}
+                            size="sm"
+                            className={`h-7 text-xs ${contest === "Proxy for Nasara" ? "bg-purple-600 hover:bg-purple-700 text-white" : "border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300"}`}
+                            onClick={() => {
+                              handleContestSelect("Proxy for Nasara");
+                            }}
+                          >
+                            🔁 Proxy for Nasara
+                          </Button>
+                          <Button
+                            type="button"
                             variant={contest === "National Directors" ? "default" : "outline"}
                             size="sm"
                             className="h-7 text-xs"
@@ -1219,6 +1390,12 @@ export default function PositionAlbumsPage() {
                               <optgroup label="Custom Multi-Position Extraction">
                                 <option value="Custom">✨ Custom Selection (Select Specific Positions…)</option>
                               </optgroup>
+                              <optgroup label="🔁 Assigned Proxy Voters Rolls (Full & Wing-Specific)">
+                                <option value="Proxy Voters">🔁 Proxy Voters (All Assigned Proxies · 339)</option>
+                                <option value="Proxy for Youth">🔁 Proxy for Youth (Youth Wing &amp; Under-40 Proxies)</option>
+                                <option value="Proxy for Women">🔁 Proxy for Women (Women Wing &amp; Female College Proxies)</option>
+                                <option value="Proxy for Nasara">🔁 Proxy for Nasara (Nasara Coordinators &amp; Deputies Proxies)</option>
+                              </optgroup>
                               <optgroup label="Wing Organisers & Deputies (Exclusive Extraction)">
                                 {WING_PORTFOLIOS.map((item) => (
                                   <option key={item} value={item}>
@@ -1229,7 +1406,13 @@ export default function PositionAlbumsPage() {
                                 ))}
                               </optgroup>
                               <optgroup label="General Election Contests & Full Rolls">
-                                {GENERAL_CONTEST_LIST.map((item) => (
+                                {GENERAL_CONTEST_LIST.filter(
+                                  (item) =>
+                                    item !== "Proxy Voters" &&
+                                    item !== "Proxy for Youth" &&
+                                    item !== "Proxy for Women" &&
+                                    item !== "Proxy for Nasara"
+                                ).map((item) => (
                                   <option key={item} value={item}>
                                     {item === "Women Organiser"
                                       ? "Women Organiser (All Female Electoral College)"
@@ -1244,7 +1427,7 @@ export default function PositionAlbumsPage() {
                             </NativeSelect>
                           </div>
 
-                          {isWingContest && (
+                          {(isWingContest || contest === "Proxy for Youth" || contest === "Proxy for Women") && (
                             <div className="space-y-1.5">
                               <label htmlFor="scope" className="text-xs font-semibold text-foreground uppercase tracking-wider block">
                                 Electorate filter
@@ -1253,17 +1436,27 @@ export default function PositionAlbumsPage() {
                                 id="scope"
                                 value={effectiveScope}
                                 onChange={(e) => {
-                                  setScope(e.target.value);
+                                  const nextScope = e.target.value;
+                                  setScope(nextScope);
+                                  setSelectedPositions(getDefaultPositionIdsForContest(contest, nextScope));
                                   setPage(1);
                                 }}
                               >
                                 <option value="all_voters">
-                                  {contest === "Women Organiser" || contest === "Women Organisers & Deputies"
+                                  {contest === "Women Organiser" || contest === "Women Organisers & Deputies" || contest === "Proxy for Women"
                                     ? "All Females in Electoral College (All Eligible Women)"
+                                    : contest === "Proxy for Youth"
+                                    ? "Full Youth Voting College (Youth Organisers, Deputies & Under 40s)"
                                     : "Full Voting College (All Eligible Voters)"}
                                 </option>
                                 {contest !== "Women Organiser" && contest !== "Women Organisers & Deputies" && (
-                                  <option value="organisers_only">Organisers & Deputies Only (Wing Executives)</option>
+                                  <option value="organisers_only">
+                                    {contest === "Proxy for Women"
+                                      ? "Women Organisers & Deputies Only (33 Wing Executives)"
+                                      : contest === "Proxy for Youth"
+                                      ? "Youth Organisers & Deputies Only (30 Wing Executives)"
+                                      : "Organisers & Deputies Only (Wing Executives)"}
+                                  </option>
                                 )}
                               </NativeSelect>
                             </div>
@@ -1272,7 +1465,7 @@ export default function PositionAlbumsPage() {
 
                         {/* Wing Notice */}
                         {isWingContest && (
-                          <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-3 text-xs text-blue-950 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200">
+                          <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-3 text-xs text-blue-950 dark:border-blue-900/60 dark:bg-blue-950/30 dark:bg-blue-200">
                             💡 <strong>Wing Mode Active:</strong> You can independently deselect administrative tiers (e.g. exclude TESCON or External Branches in <strong>Column 3</strong>) and/or deselect specific regions (in <strong>Column 2</strong>) to extract your exact wing sub-album.
                           </div>
                         )}
@@ -1384,7 +1577,7 @@ export default function PositionAlbumsPage() {
                           </div>
                         )}
 
-                        {/* Women Wing Position Picker (Organisers & Deputies) */}
+                        {/* Women Wing Position Picker (Organisers, Deputies & Female MPs) */}
                         {contest === "Women Organisers & Deputies" && (
                           <div className="rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50/70 dark:bg-rose-950/40 p-4 space-y-3.5 shadow-2xs">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
@@ -1394,7 +1587,7 @@ export default function PositionAlbumsPage() {
                                   <span>Pick Women Wing Position(s) for Album:</span>
                                 </h4>
                                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                                  Choose whether your album extracts substantive Women Organisers, Deputies, TESCON WOCOM, or all.
+                                  Choose whether your album extracts substantive Women Organisers, Deputies, TESCON WOCOM, Female MPs, or all.
                                 </p>
                               </div>
                               <div className="flex flex-wrap items-center gap-1.5">
@@ -1404,7 +1597,7 @@ export default function PositionAlbumsPage() {
                                   variant={selectedPositions.includes("women_organiser") && selectedPositions.includes("deputy_women_organiser") ? "default" : "outline"}
                                   className={selectedPositions.includes("women_organiser") && selectedPositions.includes("deputy_women_organiser") ? "h-7 text-xs bg-rose-600 hover:bg-rose-700 text-white" : "h-7 text-xs border-rose-300 dark:border-rose-800"}
                                   onClick={() => {
-                                    setSelectedPositions(["women_organiser", "deputy_women_organiser", "tescon_wocom"]);
+                                    setSelectedPositions(["women_organiser", "deputy_women_organiser", "tescon_wocom", "member_of_parliament"]);
                                     setPage(1);
                                   }}
                                 >
@@ -1470,6 +1663,16 @@ export default function PositionAlbumsPage() {
                                   onChange={() => togglePosition("tescon_wocom")}
                                 />
                                 <span>TESCON WOCOM</span>
+                              </label>
+
+                              <label className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer text-foreground">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-rose-400 text-rose-600 focus:ring-rose-500 size-3.5"
+                                  checked={selectedPositions.includes("member_of_parliament")}
+                                  onChange={() => togglePosition("member_of_parliament")}
+                                />
+                                <span>Female Members of Parliament (MPs)</span>
                               </label>
 
                               {excludedInAlbum.length > 0 && (
@@ -1776,18 +1979,25 @@ export default function PositionAlbumsPage() {
                           2
                         </div>
                         <div>
-                          <h3 className="font-semibold text-sm text-foreground">
-                            Regional Jurisdictions (Multi-Region Selection)
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-sm text-foreground">
+                              Regional Jurisdictions &amp; Polling Stations
+                            </h3>
+                            <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800">
+                              Rules 1 &amp; 2
+                            </Badge>
+                          </div>
                           <p className="text-xs text-muted-foreground">
-                            Select all 18 regions, leave one region out (e.g. uncheck Ashanti), or pick specific belts
+                            Official Polling Stations (Ashanti A/B/C, Merged Regions, Wings), or customize the 18 jurisdictions
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {isJurisdictionsActive ? (
                           <Badge className="bg-amber-600 text-white text-xs">
-                            {selectedRegions.length === ALL_JURISDICTION_IDS.length - 1
+                            {pollingStation !== "none"
+                              ? `Station: ${activeStationObj?.shortLabel || pollingStation}`
+                              : selectedRegions.length === ALL_JURISDICTION_IDS.length - 1
                               ? `Active: 17/18 Regions (${excludedRegLabel} left out)`
                               : selectedRegions.length === 0
                               ? "Active: 0 Regions"
@@ -1804,6 +2014,219 @@ export default function PositionAlbumsPage() {
 
                     {openAccordions.jurisdictions && (
                       <div className="px-4 pb-4 pt-1 border-t border-amber-100 dark:border-amber-950 space-y-3.5">
+                        {/* Official Polling Station & Merge Grouping Control */}
+                        <div className="rounded-xl border border-red-200 dark:border-red-900/60 bg-gradient-to-r from-red-50/70 via-amber-50/40 to-blue-50/50 dark:from-red-950/20 dark:via-amber-950/10 dark:to-blue-950/20 p-3.5 space-y-3 mt-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-xs text-foreground uppercase tracking-wide flex items-center gap-1.5">
+                                  <Sparkles className="size-3.5 text-red-600" /> Official Polling Station &amp; Merged Album Filter (Rules 1 &amp; 2)
+                                </span>
+                                {pollingStation !== "none" && (
+                                  <Badge className="bg-red-600 text-white text-[10px] uppercase font-bold tracking-wider px-2 py-0.5">
+                                    Active: {activeStationObj?.code.toUpperCase()}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">
+                                Automatically filters delegates, split constituencies (Ashanti A/B/C, etc.), merged regions, and applies Rule 1 ordering on-server.
+                              </p>
+                            </div>
+                            {pollingStation !== "none" && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-950/50"
+                                onClick={() => selectPollingStation("none")}
+                              >
+                                <RotateCcw className="size-3 mr-1" /> Reset to Standard Roll
+                              </Button>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 items-center">
+                            <div className="md:col-span-2">
+                              <NativeSelect
+                                id="polling-station-select"
+                                value={pollingStation}
+                                onChange={(e) => selectPollingStation(e.target.value)}
+                                className="w-full text-xs font-medium border-red-300 dark:border-red-800 bg-white dark:bg-slate-900"
+                              >
+                                <option value="none">-- Standard Electoral Roll (All / Manual Multi-Region) --</option>
+                                <optgroup label="Rule 1: Split Regional Polling Stations (A / B / C)">
+                                  {POLLING_STATION_GROUPINGS.filter((g) => g.category === "split_region").map((g) => (
+                                    <option key={g.id} value={g.id}>
+                                      {g.label} ({g.code.toUpperCase()})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="Rule 2: Merged Regions & National Polling Stations">
+                                  {POLLING_STATION_GROUPINGS.filter((g) => g.category === "merged_region").map((g) => (
+                                    <option key={g.id} value={g.id}>
+                                      {g.label} ({g.code.toUpperCase()})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="Standalone Single Region Stations">
+                                  {POLLING_STATION_GROUPINGS.filter((g) => g.category === "single_region").map((g) => (
+                                    <option key={g.id} value={g.id}>
+                                      {g.label} ({g.code.toUpperCase()})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="Wing Polling Stations (Youth Wing PS 1–5)">
+                                  {POLLING_STATION_GROUPINGS.filter((g) => g.category === "youth_wing").map((g) => (
+                                    <option key={g.id} value={g.id}>
+                                      {g.label}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="Wing Polling Stations (Women Organiser PS 1–3)">
+                                  {POLLING_STATION_GROUPINGS.filter((g) => g.category === "wocom_wing").map((g) => (
+                                    <option key={g.id} value={g.id}>
+                                      {g.label}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="Wing Polling Stations (Nasara Wing PS 1–2)">
+                                  {POLLING_STATION_GROUPINGS.filter((g) => g.category === "nasara_wing").map((g) => (
+                                    <option key={g.id} value={g.id}>
+                                      {g.label}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              </NativeSelect>
+                            </div>
+
+                            {/* Quick action preset chips for immediate selection */}
+                            <div className="flex flex-wrap items-center gap-1">
+                              <span className="text-[10px] uppercase font-bold text-muted-foreground mr-1">Quick:</span>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={pollingStation === "ashanti_a" ? "default" : "outline"}
+                                className="h-6 text-[11px] px-2 py-0"
+                                onClick={() => selectPollingStation("ashanti_a")}
+                              >
+                                Ashanti A (12)
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={pollingStation === "ashanti_b" ? "default" : "outline"}
+                                className="h-6 text-[11px] px-2 py-0"
+                                onClick={() => selectPollingStation("ashanti_b")}
+                              >
+                                Ashanti B (15)
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={pollingStation === "ashanti_c" ? "default" : "outline"}
+                                className="h-6 text-[11px] px-2 py-0"
+                                onClick={() => selectPollingStation("ashanti_c")}
+                              >
+                                Ashanti C (20)
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={pollingStation === "western_savannah" ? "default" : "outline"}
+                                className="h-6 text-[11px] px-2 py-0"
+                                onClick={() => selectPollingStation("western_savannah")}
+                              >
+                                West &amp; Sav
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={pollingStation === "oti_ahafo" ? "default" : "outline"}
+                                className="h-6 text-[11px] px-2 py-0"
+                                onClick={() => selectPollingStation("oti_ahafo")}
+                              >
+                                Oti &amp; Ahafo
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={pollingStation === "upper_west_north_east" ? "default" : "outline"}
+                                className="h-6 text-[11px] px-2 py-0"
+                                onClick={() => selectPollingStation("upper_west_north_east")}
+                              >
+                                UW &amp; NE
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={pollingStation === "bono_east_national" ? "default" : "outline"}
+                                className="h-6 text-[11px] px-2 py-0"
+                                onClick={() => selectPollingStation("bono_east_national")}
+                              >
+                                Bono E + Nat
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={pollingStation === "wocom_ps_1" ? "default" : "outline"}
+                                className="h-6 text-[11px] px-2 py-0"
+                                onClick={() => selectPollingStation("wocom_ps_1")}
+                              >
+                                Women PS 1
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={pollingStation === "wocom_ps_2" ? "default" : "outline"}
+                                className="h-6 text-[11px] px-2 py-0"
+                                onClick={() => selectPollingStation("wocom_ps_2")}
+                              >
+                                Women PS 2
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={pollingStation === "wocom_ps_3" ? "default" : "outline"}
+                                className="h-6 text-[11px] px-2 py-0"
+                                onClick={() => selectPollingStation("wocom_ps_3")}
+                              >
+                                Women PS 3
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Active Polling Station Details Card */}
+                          {activeStationObj && (
+                            <div className="rounded-lg border border-red-300/80 bg-white/90 dark:bg-slate-900/90 p-2.5 text-xs text-foreground shadow-xs">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <div className="font-semibold text-red-700 dark:text-red-400 flex items-center gap-1.5">
+                                    <CheckCircle2 className="size-3.5" /> {activeStationObj.label}
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                                    {activeStationObj.description}
+                                  </p>
+                                </div>
+                                <Badge variant="outline" className="text-[10px] font-mono shrink-0">
+                                  Code: {activeStationObj.code.toUpperCase()}
+                                </Badge>
+                              </div>
+
+                              {activeStationObj.constituencies && activeStationObj.constituencies.length > 0 && (
+                                <div className="mt-2 pt-2 border-t text-[11px] text-muted-foreground">
+                                  <span className="font-medium text-foreground">
+                                    {activeStationObj.isCatchAllSplit ? "Excluded Constituencies: " : "Included Constituencies (Exact Official Order): "}
+                                  </span>
+                                  <span className="italic">
+                                    {activeStationObj.constituencies.slice(0, 15).join(", ")}
+                                    {activeStationObj.constituencies.length > 15 ? ` + ${activeStationObj.constituencies.length - 15} more` : ""}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
                         {/* Preset Buttons */}
                         <div className="flex flex-wrap items-center gap-1.5 pt-2">
                           <span className="text-xs font-medium text-muted-foreground mr-1">Jurisdiction Presets:</span>
@@ -2790,16 +3213,21 @@ export default function PositionAlbumsPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <Button variant="outline" size="icon" aria-label="Zoom out" disabled={zoom === 50} onClick={() => setZoom((z) => Math.max(50, z - 10))}><Minus /></Button>
                       <Button variant="ghost" className="w-16 tabular-nums" aria-label="Reset zoom to 100 percent" onClick={() => setZoom(100)}>{zoom}%</Button>
+                      <Button asChild className="gap-1.5 bg-red-600 hover:bg-red-700 text-white shadow-sm" disabled={!data || !delegates.length}>
+                        <a href={pdfDownloadUrl} download={pdfFilename} title="Download on-server generated PDF album file">
+                          <Download className="size-3.5" /> Download PDF (.pdf)
+                        </a>
+                      </Button>
                       <Button variant="default" size="sm" onClick={handlePrintPdf} className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5" title="Open print dialog to save as PDF">
                         <Printer className="size-3.5" /> Print / Save PDF
                       </Button>
                       <Button asChild variant="outline"><a href={previewUrl} target="_blank" rel="noreferrer" title="Open full album in separate tab"><ExternalLink /> Open album</a></Button>
                       <Button asChild variant="outline">
-                        <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${region}_Voter_Directory_2026.xlsx`}>
+                        <a href={excelDownloadUrl} download={`NPP_${safeContestFilename}_${safeStationFilename || safeScopeFilename}_Voter_Directory_2026.xlsx`}>
                           <Download /> Download Excel (.xlsx)
                         </a>
                       </Button>
-                      <Button asChild variant="outline"><a href={`${previewUrl}&download=1`} download={`NPP_${safeContestFilename}_${region}_Album_2026.html`}><Download /> Download HTML (WebP)</a></Button>
+                      <Button asChild variant="outline"><a href={`${previewUrl}&download=1`} download={`NPP_${safeContestFilename}_${safeStationFilename || safeScopeFilename}_Album_2026.html`}><Download /> Download HTML (WebP)</a></Button>
                     </div>
                   </CardHeader>
                   <CardContent className="overflow-auto bg-muted/30 p-4 sm:p-6">
@@ -2815,6 +3243,43 @@ export default function PositionAlbumsPage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" /><Input aria-label="Search delegates" placeholder="Search name, voter ID, position…" className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} /></div>
                       <div className="flex flex-wrap items-center gap-2">
+                        <NativeSelect
+                          aria-label="Filter by Proxy Roll"
+                          className={`sm:w-52 ${isProxyContest || proxyOnly ? "border-purple-500 bg-purple-50/60 text-purple-900 dark:bg-purple-950/40 dark:text-purple-200 font-medium" : "border-purple-500/40 text-purple-700 dark:text-purple-300"}`}
+                          value={
+                            isProxyContest
+                              ? contest
+                              : proxyOnly
+                              ? "proxy_only"
+                              : "none"
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === "none") {
+                              setProxyOnly(false);
+                              if (isProxyContest) {
+                                handleContestSelect("Women Organiser");
+                              }
+                            } else if (val === "proxy_only") {
+                              if (isProxyContest) {
+                                handleContestSelect("Women Organiser");
+                              }
+                              setProxyOnly(true);
+                            } else {
+                              handleContestSelect(val as typeof contest);
+                            }
+                            setPage(1);
+                          }}
+                        >
+                          <option value="none">🔁 Proxy Filter: Off (All Voters)</option>
+                          <option value="Proxy Voters">🔁 All Proxy Voters (339)</option>
+                          <option value="Proxy for Youth">🔁 Proxy for Youth</option>
+                          <option value="Proxy for Women">🔁 Proxy for Women</option>
+                          <option value="Proxy for Nasara">🔁 Proxy for Nasara</option>
+                          {!isProxyContest && (
+                            <option value="proxy_only">🔁 Current Portfolio: Proxies Only</option>
+                          )}
+                        </NativeSelect>
                         <Button
                           type="button"
                           variant={under40 ? "default" : "outline"}
@@ -2842,10 +3307,10 @@ export default function PositionAlbumsPage() {
                             <option value="all">All Positions ({availablePositions.length})</option>
                             {availablePositions.some((p) => /director|relations officer|legal committee|council|elder|patron|foundation/i.test(p)) ? (
                               <>
-                                {availablePositions.some((p) => /director|relations officer|legal committee/i.test(p)) && (
+                                {availablePositions.some((p) => /director|relations officer|legal committee|national tescon|tescon coordinator/i.test(p)) && (
                                   <optgroup label="⭐ Directors & Directorate">
                                     {availablePositions
-                                      .filter((p) => /director|relations officer|legal committee/i.test(p))
+                                      .filter((p) => /director|relations officer|legal committee|national tescon|tescon coordinator/i.test(p))
                                       .map((item) => (
                                         <option key={item} value={item}>{item}</option>
                                       ))}
@@ -2862,7 +3327,7 @@ export default function PositionAlbumsPage() {
                                 )}
                                 <optgroup label="General Positions & Officers">
                                   {availablePositions
-                                    .filter((p) => !/director|relations officer|legal committee|council|elder|patron|foundation/i.test(p))
+                                    .filter((p) => !/director|relations officer|legal committee|national tescon|tescon coordinator|council|elder|patron|foundation/i.test(p))
                                     .map((item) => (
                                       <option key={item} value={item}>{item}</option>
                                     ))}
@@ -2957,9 +3422,16 @@ export default function PositionAlbumsPage() {
                                 {d.executive_name.split(" ").map((part) => part[0]).slice(0, 2).join("")}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="font-medium">
-                              {selectedDetails.includes("name") ? d.executive_name : <span className="text-xs font-mono text-muted-foreground">[Name Hidden]</span>}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {selectedDetails.includes("name") ? d.executive_name : <span className="text-xs font-mono text-muted-foreground">[Name Hidden]</span>}
+                              </span>
+                              {d.is_proxy_record && d.proxy_name && (
+                                <span className="text-[11px] font-semibold text-purple-700 dark:text-purple-300">
+                                  🔁 Proxy: {d.proxy_name} ({d.proxy_voter_id || "—"} · {d.proxy_constituency || d.proxy_region || "—"})
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                         {selectedDetails.includes("level") && <TableCell><Badge variant="secondary">{d.executive_level}</Badge></TableCell>}

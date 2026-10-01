@@ -71,6 +71,7 @@ type OverviewData = {
     under_40?: number;
     missing_photos?: number;
     verified_photos?: number;
+    proxy_count?: number;
   };
   tiers: Array<{ level: string; count: number; women: number }>;
   genderDistribution: Array<{ label: string; count: number }>;
@@ -302,6 +303,8 @@ const POSITIONS_BY_LEVEL: Record<string, string[]> = {
     "Deputy Director of Protocol",
     "Chairman of The Legal Committee",
     "Director of Legal Affairs",
+    "National TESCON Coordinator",
+    "Deputy National TESCON Coordinator",
     "National Council Representative",
     "Former National Chairman",
     "Past National Chairman",
@@ -540,6 +543,24 @@ export default function NationalAdminDashboard() {
     } else {
       setFilterUnder40(true);
     }
+    setPage(1);
+  };
+
+  // Proxy Voters filter & directory modal state
+  const [filterProxyVoters, setFilterProxyVoters] = useState<boolean>(false);
+  const [proxyWingFilter, setProxyWingFilter] = useState<string>("");
+  const [proxyDirectoryOpen, setProxyDirectoryOpen] = useState<boolean>(false);
+  const [proxyDirectoryRows, setProxyDirectoryRows] = useState<any[]>([]);
+  const [loadingProxyDirectory, setLoadingProxyDirectory] = useState<boolean>(false);
+  const [proxyDirectorySearch, setProxyDirectorySearch] = useState<string>("");
+  const [proxyDirectoryRegion, setProxyDirectoryRegion] = useState<string>("");
+  const [proxyDirectoryWing, setProxyDirectoryWing] = useState<string>("");
+
+  const handleToggleProxyVoters = () => {
+    setFilterProxyVoters((prev) => {
+      if (prev) setProxyWingFilter("");
+      return !prev;
+    });
     setPage(1);
   };
 
@@ -947,6 +968,7 @@ export default function NationalAdminDashboard() {
     if (debouncedSearch) params.set("search", debouncedSearch);
     if (filterMissingImages) params.set("missingImages", "true");
     if (filterUnder40 || selectedCohort === "under_40") params.set("under40", "true");
+    if (filterProxyVoters) params.set("proxyFilter", proxyWingFilter || "assigned");
     if (forceFresh) params.set("_t", String(Date.now()));
 
     return fetch(`/api/admin/executives?${params.toString()}`, {
@@ -971,7 +993,7 @@ export default function NationalAdminDashboard() {
         setLoadingRows(false);
         throw err;
       });
-  }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedInstitution, selectedPosition, selectedCohort, selectedSlot, debouncedSearch, filterMissingImages, filterUnder40]);
+  }, [page, limit, selectedLevel, selectedRegion, selectedConstituency, selectedInstitution, selectedPosition, selectedCohort, selectedSlot, debouncedSearch, filterMissingImages, filterUnder40, filterProxyVoters, proxyWingFilter]);
 
   useEffect(() => {
     if (currentUser) {
@@ -1264,7 +1286,7 @@ export default function NationalAdminDashboard() {
         throw new Error(data.error || "Update failed.");
       }
 
-      setModalSuccess("Executive record updated successfully in ec-data database.");
+      setModalSuccess("Executive record updated successfully.");
       setModalSaving(false);
 
       // Optimistically update row in table
@@ -2183,11 +2205,45 @@ export default function NationalAdminDashboard() {
     }
   };
 
+  const fetchProxyDirectory = useCallback(async (searchVal?: string, regionVal?: string, wingVal?: string) => {
+    setLoadingProxyDirectory(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchVal && searchVal.trim()) params.set("search", searchVal.trim());
+      if (regionVal && regionVal.trim()) params.set("region", regionVal.trim());
+      if (wingVal && wingVal.trim()) params.set("wing", wingVal.trim());
+      const res = await fetch(`/api/admin/proxies?${params.toString()}`, {
+        credentials: "include",
+        headers: getAuthHeaders(),
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProxyDirectoryRows(Array.isArray(data.items) ? data.items : []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingProxyDirectory(false);
+    }
+  }, []);
+
+  const handleOpenProxyDirectory = (initialWing?: string) => {
+    const w = initialWing !== undefined ? initialWing : proxyDirectoryWing;
+    if (initialWing !== undefined) {
+      setProxyDirectoryWing(initialWing);
+    }
+    setProxyDirectoryOpen(true);
+    fetchProxyDirectory(proxyDirectorySearch, proxyDirectoryRegion, w);
+  };
+
+  const proxyCsvExportUrl = `/api/admin/proxies?format=csv${proxyDirectorySearch.trim() ? `&search=${encodeURIComponent(proxyDirectorySearch.trim())}` : ""}${proxyDirectoryRegion ? `&region=${encodeURIComponent(proxyDirectoryRegion)}` : ""}${proxyDirectoryWing ? `&wing=${encodeURIComponent(proxyDirectoryWing)}` : ""}`;
+
   const visibleTiers = isC1
     ? TIERS.filter((t) => t.id !== "Electoral Area" && t.id !== "Polling Station")
     : TIERS;
 
-  const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&position=${encodeURIComponent(selectedPosition)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}${filterMissingImages ? "&missingImages=true" : ""}${isUnder40Active ? "&under40=true" : ""}${selectedLevel === "TESCON" && selectedInstitution ? `&institution=${encodeURIComponent(selectedInstitution)}` : ""}`;
+  const exportUrl = `/api/admin/export?level=${encodeURIComponent(selectedLevel)}&region=${encodeURIComponent(selectedRegion)}&constituency=${encodeURIComponent(selectedConstituency)}&position=${encodeURIComponent(selectedPosition)}&cohort=${encodeURIComponent(selectedCohort)}&slot=${encodeURIComponent(selectedSlot)}&search=${encodeURIComponent(debouncedSearch)}${filterMissingImages ? "&missingImages=true" : ""}${isUnder40Active ? "&under40=true" : ""}${filterProxyVoters ? `&proxyFilter=${encodeURIComponent(proxyWingFilter || "assigned")}` : ""}${selectedLevel === "TESCON" && selectedInstitution ? `&institution=${encodeURIComponent(selectedInstitution)}` : ""}`;
 
   const handleExportClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (exportCooldownSec > 0) {
@@ -3224,6 +3280,145 @@ export default function NationalAdminDashboard() {
                 )}
               </button>
 
+              {/* Toggle to Filter Proxy Voters */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={filterProxyVoters}
+                onClick={handleToggleProxyVoters}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "9px 13px",
+                  borderRadius: "8px",
+                  background: filterProxyVoters
+                    ? isC1 ? "#f3e8ff" : "rgba(168, 85, 247, 0.2)"
+                    : isC1 ? "#f8fafc" : "rgba(15, 23, 42, 0.8)",
+                  border: filterProxyVoters
+                    ? isC1 ? "1px solid #9333ea" : "1px solid rgba(192, 132, 252, 0.55)"
+                    : isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                  color: filterProxyVoters ? (isC1 ? "#6b21a8" : "#e9d5ff") : (isC1 ? "#334155" : "#cbd5e1"),
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  boxShadow: filterProxyVoters ? "0 0 10px rgba(168, 85, 247, 0.25)" : "none",
+                }}
+                title={
+                  filterProxyVoters
+                    ? "Proxy Voters filter active. Click to show all executives."
+                    : "Toggle to filter executives who have an assigned proxy voter"
+                }
+              >
+                <div
+                  style={{
+                    width: "26px",
+                    height: "15px",
+                    borderRadius: "10px",
+                    background: filterProxyVoters ? "#9333ea" : isC1 ? "#cbd5e1" : "rgba(255, 255, 255, 0.2)",
+                    position: "relative",
+                    transition: "background 0.2s ease",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "11px",
+                      height: "11px",
+                      borderRadius: "50%",
+                      background: "#ffffff",
+                      position: "absolute",
+                      top: "2px",
+                      left: filterProxyVoters ? "13px" : "2px",
+                      transition: "left 0.2s ease",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+                    }}
+                  />
+                </div>
+                <UserCheck size={14} color={filterProxyVoters ? (isC1 ? "#7e22ce" : "#c084fc") : "#64748b"} />
+                <span>Proxy Voters</span>
+                {overview?.totals?.proxy_count != null && (
+                  <span
+                    style={{
+                      padding: "1px 6px",
+                      borderRadius: "10px",
+                      background: filterProxyVoters ? "#7e22ce" : isC1 ? "#e2e8f0" : "rgba(255, 255, 255, 0.1)",
+                      color: filterProxyVoters ? "#ffffff" : isC1 ? "#475569" : "#94a3b8",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {overview.totals.proxy_count.toLocaleString()}
+                  </span>
+                )}
+              </button>
+
+              {/* Proxy Wing Quick Filter (All, Youth, Women, Nasara) */}
+              <select
+                aria-label="Filter Proxy by Wing"
+                value={filterProxyVoters ? proxyWingFilter || "all" : ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (!val) {
+                    setFilterProxyVoters(false);
+                    setProxyWingFilter("");
+                  } else if (val === "all") {
+                    setFilterProxyVoters(true);
+                    setProxyWingFilter("");
+                  } else {
+                    setFilterProxyVoters(true);
+                    setProxyWingFilter(val);
+                  }
+                  setPage(1);
+                }}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  background: filterProxyVoters
+                    ? isC1 ? "#f3e8ff" : "rgba(168, 85, 247, 0.2)"
+                    : isC1 ? "#f8fafc" : "rgba(15, 23, 42, 0.8)",
+                  border: filterProxyVoters
+                    ? isC1 ? "1px solid #9333ea" : "1px solid rgba(192, 132, 252, 0.55)"
+                    : isC1 ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
+                  color: filterProxyVoters ? (isC1 ? "#6b21a8" : "#e9d5ff") : (isC1 ? "#334155" : "#cbd5e1"),
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                <option value="">🔁 Proxy Wing Filter (Off)</option>
+                <option value="all">🔁 All Proxy Voters (339)</option>
+                <option value="youth">🔁 Proxy for Youth</option>
+                <option value="women">🔁 Proxy for Women</option>
+                <option value="nasara">🔁 Proxy for Nasara</option>
+              </select>
+
+              {/* Proxy Directory & CSV Export Button */}
+              <button
+                type="button"
+                onClick={() => handleOpenProxyDirectory()}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "7px",
+                  padding: "9px 14px",
+                  borderRadius: "8px",
+                  background: isC1 ? "#faf5ff" : "rgba(147, 51, 234, 0.16)",
+                  border: isC1 ? "1px solid #d8b4fe" : "1px solid rgba(168, 85, 247, 0.4)",
+                  color: isC1 ? "#6b21a8" : "#e9d5ff",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                title="Open the complete Proxy Voters Directory & Export Proxy List CSV"
+              >
+                <Users size={14} color={isC1 ? "#7e22ce" : "#c084fc"} />
+                <span>Proxy List / CSV</span>
+              </button>
+
               {/* Reload Full Data Button */}
               <button
                 type="button"
@@ -3773,7 +3968,7 @@ export default function NationalAdminDashboard() {
                       <div style={{ display: "flex", justifyContent: "center", marginBottom: "10px" }}>
                         <Loader2 size={24} color={isC1 ? "#64748b" : "#94a3b8"} style={{ animation: "spin 1s linear infinite" }} />
                       </div>
-                      Querying ec-data PostgreSQL database…
+                      Loading executive records…
                     </TableCell>
                   </TableRow>
                 ) : rows.length === 0 ? (
@@ -4323,7 +4518,7 @@ export default function NationalAdminDashboard() {
                     )}
                   </div>
                   <p style={{ fontSize: "12px", color: "#94a3b8", margin: "4px 0 0 0" }}>
-                    View and update complete executive record in PostgreSQL <code>ec-data</code>
+                    View and update complete executive record
                   </p>
                 </div>
               </div>
@@ -4355,7 +4550,7 @@ export default function NationalAdminDashboard() {
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
                     <Loader2 size={26} color="#94a3b8" style={{ animation: "spin 1s linear infinite" }} />
                   </div>
-                  Fetching complete executive profile from ec-data…
+                  Fetching complete executive profile…
                 </div>
               ) : modalError && !activeExecutive ? (
                 <div
@@ -8648,6 +8843,376 @@ export default function NationalAdminDashboard() {
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ALL PROXY VOTERS DIRECTORY & CSV EXPORT MODAL */}
+      {proxyDirectoryOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9998,
+            background: "rgba(2, 6, 23, 0.82)",
+            backdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setProxyDirectoryOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "1180px",
+              maxHeight: "90vh",
+              background: "#0f172a",
+              border: "1px solid rgba(168, 85, 247, 0.35)",
+              borderRadius: "16px",
+              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.65)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              color: "#f8fafc",
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                padding: "18px 24px",
+                background: "linear-gradient(135deg, rgba(88, 28, 135, 0.45) 0%, rgba(15, 23, 42, 0.95) 100%)",
+                borderBottom: "1px solid rgba(168, 85, 247, 0.25)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "14px",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "10px",
+                    background: "rgba(168, 85, 247, 0.2)",
+                    border: "1px solid rgba(192, 132, 252, 0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <UserCheck size={20} color="#c084fc" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 700, color: "#f8fafc" }}>
+                    Assigned Proxy Voters Directory — {proxyDirectoryWing === "youth" ? "Proxy for Youth" : proxyDirectoryWing === "women" ? "Proxy for Women" : proxyDirectoryWing === "nasara" ? "Proxy for Nasara" : "All Proxies"} ({proxyDirectoryRows.length.toLocaleString()})
+                  </h3>
+                  <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#cbd5e1" }}>
+                    Complete registry of principal voters and their designated proxy voters (filterable by Youth, Women &amp; Nasara Wings)
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                <a
+                  href={proxyCsvExportUrl}
+                  download
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    padding: "8px 14px",
+                    borderRadius: "8px",
+                    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                    color: "#ffffff",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)",
+                  }}
+                >
+                  <Download size={14} color="#ffffff" />
+                  <span>
+                    Export {proxyDirectoryWing === "youth" ? "Proxy for Youth" : proxyDirectoryWing === "women" ? "Proxy for Women" : proxyDirectoryWing === "nasara" ? "Proxy for Nasara" : "Proxy List"} CSV
+                  </span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setProxyDirectoryOpen(false)}
+                  style={{
+                    width: "34px",
+                    height: "34px",
+                    borderRadius: "8px",
+                    background: "rgba(255, 255, 255, 0.08)",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    color: "#cbd5e1",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Wing Filter Pills */}
+            <div
+              style={{
+                padding: "10px 24px",
+                background: "rgba(30, 41, 59, 0.7)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "#94a3b8", marginRight: "4px" }}>
+                Wing Category:
+              </span>
+              {[
+                { id: "", label: "All Proxy Voters (339)" },
+                { id: "youth", label: "Proxy for Youth" },
+                { id: "women", label: "Proxy for Women" },
+                { id: "nasara", label: "Proxy for Nasara" },
+              ].map((tabItem) => {
+                const isActive = proxyDirectoryWing === tabItem.id;
+                return (
+                  <button
+                    key={tabItem.id || "all"}
+                    type="button"
+                    onClick={() => {
+                      setProxyDirectoryWing(tabItem.id);
+                      fetchProxyDirectory(proxyDirectorySearch, proxyDirectoryRegion, tabItem.id);
+                    }}
+                    style={{
+                      padding: "6px 13px",
+                      borderRadius: "999px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      background: isActive ? "rgba(168, 85, 247, 0.3)" : "rgba(15, 23, 42, 0.7)",
+                      border: isActive ? "1px solid #c084fc" : "1px solid rgba(255, 255, 255, 0.12)",
+                      color: isActive ? "#f3e8ff" : "#cbd5e1",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {tabItem.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div
+              style={{
+                padding: "14px 24px",
+                background: "rgba(15, 23, 42, 0.9)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ flex: "1 1 280px", position: "relative", display: "flex", alignItems: "center" }}>
+                <Search size={15} color="#94a3b8" style={{ position: "absolute", left: "12px" }} />
+                <input
+                  type="text"
+                  value={proxyDirectorySearch}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setProxyDirectorySearch(val);
+                    fetchProxyDirectory(val, proxyDirectoryRegion, proxyDirectoryWing);
+                  }}
+                  placeholder="Search by Principal or Proxy name, Voter ID, phone, or country/constituency..."
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px 9px 36px",
+                    borderRadius: "8px",
+                    background: "rgba(30, 41, 59, 0.9)",
+                    border: "1px solid rgba(255, 255, 255, 0.14)",
+                    color: "#f8fafc",
+                    fontSize: "13px",
+                    outline: "none",
+                  }}
+                />
+              </div>
+
+              <select
+                value={proxyDirectoryRegion}
+                onChange={(e) => {
+                  const reg = e.target.value;
+                  setProxyDirectoryRegion(reg);
+                  fetchProxyDirectory(proxyDirectorySearch, reg, proxyDirectoryWing);
+                }}
+                style={{
+                  padding: "9px 12px",
+                  borderRadius: "8px",
+                  background: "rgba(30, 41, 59, 0.9)",
+                  border: "1px solid rgba(255, 255, 255, 0.14)",
+                  color: "#f8fafc",
+                  fontSize: "13px",
+                  outline: "none",
+                }}
+              >
+                <option value="">All Regions & External Branches</option>
+                {REGIONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                type="button"
+                onClick={() => fetchProxyDirectory(proxyDirectorySearch, proxyDirectoryRegion, proxyDirectoryWing)}
+                style={{
+                  padding: "9px 13px",
+                  borderRadius: "8px",
+                  background: "rgba(168, 85, 247, 0.15)",
+                  border: "1px solid rgba(168, 85, 247, 0.35)",
+                  color: "#e9d5ff",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <RotateCw size={13} />
+                <span>Refresh</span>
+              </button>
+            </div>
+
+            {/* Table Body */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "0" }}>
+              {loadingProxyDirectory ? (
+                <div style={{ padding: "48px", textAlign: "center", color: "#94a3b8", fontSize: "14px" }}>
+                  Loading proxy voter assignments...
+                </div>
+              ) : proxyDirectoryRows.length === 0 ? (
+                <div style={{ padding: "48px", textAlign: "center", color: "#94a3b8", fontSize: "14px" }}>
+                  No proxy voter assignments match your current filter.
+                </div>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                  <thead>
+                    <tr
+                      style={{
+                        background: "rgba(30, 41, 59, 0.95)",
+                        borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                        textAlign: "left",
+                        color: "#cbd5e1",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 2,
+                      }}
+                    >
+                      <th style={{ padding: "12px 14px", width: "48px" }}>#</th>
+                      <th style={{ padding: "12px 14px" }}>Principal Voter (Original Delegate)</th>
+                      <th style={{ padding: "12px 14px" }}>Principal Region / Branch</th>
+                      <th style={{ padding: "12px 14px" }}>Assigned Proxy Voter</th>
+                      <th style={{ padding: "12px 14px" }}>Proxy Voter ID & Phone</th>
+                      <th style={{ padding: "12px 14px" }}>Proxy Location</th>
+                      <th style={{ padding: "12px 14px" }}>Assigned By</th>
+                      <th style={{ padding: "12px 14px", textAlign: "right" }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {proxyDirectoryRows.map((item, idx) => (
+                      <tr
+                        key={item.id}
+                        style={{
+                          borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+                          background: idx % 2 === 0 ? "transparent" : "rgba(255, 255, 255, 0.02)",
+                        }}
+                      >
+                        <td style={{ padding: "11px 14px", color: "#64748b", fontWeight: 600 }}>{idx + 1}</td>
+                        <td style={{ padding: "11px 14px" }}>
+                          <div style={{ fontWeight: 700, color: "#f8fafc" }}>{item.principal_name || "—"}</div>
+                          <div style={{ fontSize: "11px", color: "#94a3b8" }}>
+                            {item.principal_position || "—"} • {item.principal_level || "—"}
+                          </div>
+                        </td>
+                        <td style={{ padding: "11px 14px", color: "#cbd5e1" }}>
+                          <div>{item.principal_region || "—"}</div>
+                          <div style={{ fontSize: "11px", color: "#94a3b8" }}>{item.principal_constituency || "—"}</div>
+                        </td>
+                        <td style={{ padding: "11px 14px" }}>
+                          <div style={{ fontWeight: 700, color: "#e9d5ff" }}>{item.proxy_name || "—"}</div>
+                          <div style={{ fontSize: "11px", color: "#a5b4fc" }}>
+                            {item.proxy_position || "—"} • {item.proxy_level || "—"}
+                          </div>
+                        </td>
+                        <td style={{ padding: "11px 14px" }}>
+                          <div style={{ fontFamily: "monospace", color: "#34d399", fontWeight: 600 }}>
+                            {item.proxy_voter_id || "—"}
+                          </div>
+                          <div style={{ fontSize: "11px", color: "#94a3b8" }}>{item.proxy_phone || "—"}</div>
+                        </td>
+                        <td style={{ padding: "11px 14px", color: "#cbd5e1" }}>
+                          <div>{item.proxy_region || "—"}</div>
+                          <div style={{ fontSize: "11px", color: "#94a3b8" }}>{item.proxy_constituency || "—"}</div>
+                        </td>
+                        <td style={{ padding: "11px 14px", fontSize: "12px", color: "#94a3b8" }}>
+                          {item.assigned_by_name || item.assigned_by_email || "—"}
+                        </td>
+                        <td style={{ padding: "11px 14px", textAlign: "right" }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setProxyDirectoryOpen(false);
+                              handleOpenProxyModal({
+                                id: Number(item.principal_executive_id),
+                                executiveName: String(item.principal_name || ""),
+                                position: String(item.principal_position || ""),
+                                executiveLevel: String(item.principal_level || ""),
+                                slotStatus: "Elected",
+                                region: String(item.principal_region || ""),
+                                constituency: String(item.principal_constituency || ""),
+                                electoralArea: "",
+                                pollingStation: "",
+                                gender: "",
+                                phone: String(item.principal_phone || ""),
+                                email: "",
+                                ghanaCard: "",
+                                voterId: String(item.principal_voter_id || ""),
+                                membershipId: "",
+                                dateOfBirth: "",
+                                age: null,
+                                status: "Active",
+                                imageUrl: null,
+                              });
+                            }}
+                            style={{
+                              padding: "6px 11px",
+                              borderRadius: "6px",
+                              background: "rgba(168, 85, 247, 0.18)",
+                              border: "1px solid rgba(192, 132, 252, 0.4)",
+                              color: "#e9d5ff",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Manage
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>

@@ -7,10 +7,10 @@ const nextConfig: NextConfig = {
     "/api/admin/albums/election": ["./exports/albums/ahafo_album_data.json", "./public/cdn/**/*", "./public/npp-logo.png"],
     "/api/admin/albums/image": ["./public/cdn/**/*"],
   },
-  serverExternalPackages: ["cloudflare:workers"],
+  serverExternalPackages: ["cloudflare:workers", "sharp"],
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals = [...(config.externals || []), "cloudflare:workers"];
+      config.externals = [...(config.externals || []), "cloudflare:workers", "sharp"];
     }
     return config;
   },

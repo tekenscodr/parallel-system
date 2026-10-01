@@ -376,13 +376,14 @@ export function generateAlbumHtml(
     }
 
     for (const regionName of presentRegions) {
-      // 1. Regional executives for this region
-      const regExecs = delegates.filter(
-        (d) =>
-          (String(d.executive_level || "").toLowerCase().trim() === "regional" ||
-            String(d.executive_level || "").toLowerCase().trim() === "region") &&
+      // 1. Regional leadership (Regional Executives, National Council Reps, Foundation Members) for this region
+      const regExecs = delegates.filter((d) => {
+        const rank = getRegionalSectionRank(d);
+        return (
+          (rank === 1 || rank === 2 || rank === 3) &&
           String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
-      );
+        );
+      });
       if (regExecs.length > 0) {
         const chunk = regExecs.slice(0, 10);
         chunk.forEach((d) => {
@@ -396,10 +397,38 @@ export function generateAlbumHtml(
         currentCardPageNum++;
       }
 
+      // 1b. Members of Parliament (MPs) for this region
+      const mpExecs = delegates.filter(
+        (d) =>
+          getRegionalSectionRank(d) === 4 &&
+          String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
+      );
+      if (mpExecs.length > 0) {
+        mpExecs.sort((a, b) => {
+          const cComp = String(a.constituency || "").localeCompare(String(b.constituency || ""));
+          if (cComp !== 0) return cComp;
+          return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+        });
+        for (let i = 0; i < mpExecs.length; i += 10) {
+          const chunk = mpExecs.slice(i, i + 10);
+          const partIdx = Math.floor(i / 10) + 1;
+          chunk.forEach((d) => {
+            d.page_number = currentCardPageNum;
+          });
+          cardPages.push({
+            headerSubTitle: `${regionName.toUpperCase()} REGION · MEMBERS OF PARLIAMENT (PART ${partIdx})`,
+            footerLabel: `${regionName.toUpperCase()} MEMBERS OF PARLIAMENT`,
+            cards: chunk,
+          });
+          currentCardPageNum++;
+        }
+      }
+
       // 2. Constituency executives for this region
       const regConstituencyDelegates = delegates.filter(
         (d) =>
           String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
+          getRegionalSectionRank(d) === 5 &&
           String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
       );
 

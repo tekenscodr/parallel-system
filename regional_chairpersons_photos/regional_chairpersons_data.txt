@@ -1,0 +1,403 @@
+========================================================================================
+NPP REGIONAL CHAIRPERSONS — COMPLETE PERSONNEL DATA & PHOTO DIRECTORY
+========================================================================================
+Generated At             : 2026-09-30T02:28:19.236Z
+Total Regional Chairs    : 16
+Photos Saved             : 16
+========================================================================================
+
+SUMMARY BY REGION:
+----------------------------------------------------------------------------------------
+   1. Ahafo                        : ROBERT SARFO-MENSAH                  [ROBERT SARFO-MENSAH.jpg]
+   2. Ashanti                      : APPIAH, ODENEHO KWAKU                [APPIAH, ODENEHO KWAKU.jpg]
+   3. Bono                         : BAFFOE, KWAME                        [BAFFOE, KWAME.jpg]
+   4. Bono East                    : IBRAHIM BABA BUKARI                  [IBRAHIM BABA BUKARI.jpg]
+   5. Central                      : ESSIBU, JOSEPH KOBINA                [ESSIBU, JOSEPH KOBINA.jpg]
+   6. Eastern                      : JEFFREY KONADU ADDO                  [JEFFREY KONADU ADDO.jpg]
+   7. Greater Accra                : BOYE, BERNARD OKOE                   [BOYE, BERNARD OKOE.jpg]
+   8. North East                   : FUSEINI, NURUDEEN                    [FUSEINI, NURUDEEN.jpg]
+   9. Northern                     : ADAM BAANTIMA MOHAMMED               [ADAM BAANTIMA MOHAMMED.jpg]
+  10. Oti                          : YIRENKYI, FRANK                      [YIRENKYI, FRANK.jpg]
+  11. Savannah                     : SULEMANA IDDRISU                     [SULEMANA IDDRISU.jpg]
+  12. Upper East                   : AWONEKAI, ELVIS ATIA                 [AWONEKAI, ELVIS ATIA.jpg]
+  13. Upper West                   : ABDUL-AZIZ ABDUL-RAHMAN              [ABDUL-AZIZ ABDUL-RAHMAN.jpg]
+  14. Volta                        : WOANYAH, MAKAFUI KOFI                [WOANYAH, MAKAFUI KOFI.jpg]
+  15. Western                      : AFRIFA, IGNATIUS  KWASI              [AFRIFA, IGNATIUS KWASI.jpg]
+  16. Western North                : ABAKAH, VINCENT PIOUS                [ABAKAH, VINCENT PIOUS.jpg]
+
+========================================================================================
+DETAILED REGIONAL CHAIRPERSON RECORDS
+========================================================================================
+
+[#1] ROBERT SARFO-MENSAH (Ahafo)
+----------------------------------------------------------------------------------------
+  Full Name            : ROBERT SARFO-MENSAH
+  Image File           : ROBERT SARFO-MENSAH.jpg
+  Region               : Ahafo
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : ASUNAFO NORTH
+  Electoral Area       : AIRPORT QUARTERS
+  Polling Station      : SHS. MIM 1
+  Phone Number         : 0241484864
+  Email Address        : N/A
+  Voter ID             : 1806003705
+  Ghana Card           : AG1714092
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1970-04-01
+  Age                  : 56
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_1806003705_1789582412328.webp
+
+[#2] APPIAH, ODENEHO KWAKU (Ashanti)
+----------------------------------------------------------------------------------------
+  Full Name            : APPIAH, ODENEHO KWAKU
+  Image File           : APPIAH, ODENEHO KWAKU.jpg
+  Region               : Ashanti
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : AFIGYA KWABRE SOUTH
+  Electoral Area       : N/A
+  Polling Station      : R/C PRIM SCH HEMANG
+  Phone Number         : 0208251411
+  Email Address        : N/A
+  Voter ID             : 4893002473
+  Ghana Card           : AG4037804
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1971-06-23
+  Age                  : 55
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_4893002473_1789583418073.webp
+
+[#3] BAFFOE, KWAME (Bono)
+----------------------------------------------------------------------------------------
+  Full Name            : BAFFOE, KWAME
+  Image File           : BAFFOE, KWAME.jpg
+  Region               : Bono
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : SUNYANI WEST
+  Electoral Area       : N/A
+  Polling Station      : FIRST STAR PREP SCH AWUAH DOMASE  1
+  Phone Number         : 0208081484
+  Email Address        : N/A
+  Voter ID             : 1920016876
+  Ghana Card           : AF5515980
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1981-05-05
+  Age                  : 45
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_1920016876_1789583552476.webp
+
+[#4] IBRAHIM BABA BUKARI (Bono East)
+----------------------------------------------------------------------------------------
+  Full Name            : IBRAHIM BABA BUKARI
+  Image File           : IBRAHIM BABA BUKARI.jpg
+  Region               : Bono East
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : TECHIMAN SOUTH
+  Electoral Area       : WANGARALINE
+  Polling Station      : TEMP STRUCTURE  WANGARA-LINE
+  Phone Number         : 0244447641
+  Email Address        : N/A
+  Voter ID             : 2043018949
+  Ghana Card           : AC1293700
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1978-08-18
+  Age                  : 48
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_2043018949_1789583624113.webp
+
+[#5] ESSIBU, JOSEPH KOBINA (Central)
+----------------------------------------------------------------------------------------
+  Full Name            : ESSIBU, JOSEPH KOBINA
+  Image File           : ESSIBU, JOSEPH KOBINA.jpg
+  Region               : Central
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : AWUTU SENYA WEST
+  Electoral Area       : N/A
+  Polling Station      : C&J KORLE BU SENYA
+  Phone Number         : 0264275830
+  Email Address        : N/A
+  Voter ID             : 8226015881
+  Ghana Card           : AN5659741
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1972-01-03
+  Age                  : 54
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_8226015881_1789583709847.webp
+
+[#6] JEFFREY KONADU ADDO (Eastern)
+----------------------------------------------------------------------------------------
+  Full Name            : JEFFREY KONADU ADDO
+  Image File           : JEFFREY KONADU ADDO.jpg
+  Region               : Eastern
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : AFRAM PLAINS SOUTH
+  Electoral Area       : OLD FORI FORI
+  Polling Station      : D A PRIM SCH PITIKO
+  Phone Number         : 0243275486
+  Email Address        : N/A
+  Voter ID             : 8280005557
+  Ghana Card           : G1667930
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1967-05-24
+  Age                  : 59
+  Status               : Vacant
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_8280005557_1789583809400.webp
+
+[#7] BOYE, BERNARD OKOE (Greater Accra)
+----------------------------------------------------------------------------------------
+  Full Name            : BOYE, BERNARD OKOE
+  Image File           : BOYE, BERNARD OKOE.jpg
+  Region               : Greater Accra
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : LEDZOKUKU
+  Electoral Area       : N/A
+  Polling Station      : LASCALA CINEMA
+  Phone Number         : 0243052285
+  Email Address        : N/A
+  Voter ID             : 4617039127
+  Ghana Card           : AO003290
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1982-01-25
+  Age                  : 44
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_4617039127_1789583894385.webp
+
+[#8] FUSEINI, NURUDEEN (North East)
+----------------------------------------------------------------------------------------
+  Full Name            : FUSEINI, NURUDEEN
+  Image File           : FUSEINI, NURUDEEN.jpg
+  Region               : North East
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : NALERIGU/GAMBAGA
+  Electoral Area       : N/A
+  Polling Station      : ALSALIA E/A PRIM SCH.LANGBINSI
+  Phone Number         : 0244207141
+  Email Address        : N/A
+  Voter ID             : 3704031381
+  Ghana Card           : G1657346
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1980-02-20
+  Age                  : 46
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_3704031381_1789584016062.webp
+
+[#9] ADAM BAANTIMA MOHAMMED (Northern)
+----------------------------------------------------------------------------------------
+  Full Name            : ADAM BAANTIMA MOHAMMED
+  Image File           : ADAM BAANTIMA MOHAMMED.jpg
+  Region               : Northern
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : TAMALE NORTH
+  Electoral Area       : KANVILLI
+  Polling Station      : NURIYA E/A PRIM. SCH.
+  Phone Number         : 0244440970
+  Email Address        : N/A
+  Voter ID             : 4132018326
+  Ghana Card           : AJ5549370
+  Membership ID        : NRT-TMLN-1669642345
+  Gender               : Male
+  Date of Birth        : 1978-10-11
+  Age                  : 48
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_4132018326_1789584057707.webp
+
+[#10] YIRENKYI, FRANK (Oti)
+----------------------------------------------------------------------------------------
+  Full Name            : YIRENKYI, FRANK
+  Image File           : YIRENKYI, FRANK.jpg
+  Region               : Oti
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : BIAKOYE
+  Electoral Area       : N/A
+  Polling Station      : E P PRIMARY SCHOOL WORAWORA
+  Phone Number         : 0201171320
+  Email Address        : N/A
+  Voter ID             : 7134006847
+  Ghana Card           : AD3361303
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1966-08-11
+  Age                  : 60
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_7134006847_1789584110409.webp
+
+[#11] SULEMANA IDDRISU (Savannah)
+----------------------------------------------------------------------------------------
+  Full Name            : SULEMANA IDDRISU
+  Image File           : SULEMANA IDDRISU.jpg
+  Region               : Savannah
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : DABOYA/MANKARIGU
+  Electoral Area       : DABOYA EAST
+  Polling Station      : CENTRAL MOSQUE. DABOYA
+  Phone Number         : 0244967210
+  Email Address        : N/A
+  Voter ID             : 3914003371
+  Ghana Card           : G1669977
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1970-10-25
+  Age                  : 56
+  Status               : Vacant
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_3914003371_1789584199631.webp
+
+[#12] AWONEKAI, ELVIS ATIA (Upper East)
+----------------------------------------------------------------------------------------
+  Full Name            : AWONEKAI, ELVIS ATIA
+  Image File           : AWONEKAI, ELVIS ATIA.jpg
+  Region               : Upper East
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : BOLGATANGA CENTRAL
+  Electoral Area       : N/A
+  Polling Station      : J.S.Q. TANZUI
+  Phone Number         : 0249305057
+  Email Address        : N/A
+  Voter ID             : 7247002026
+  Ghana Card           : AD9177498
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1980-06-01
+  Age                  : 46
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_7247002026_1789584232657.webp
+
+[#13] ABDUL-AZIZ ABDUL-RAHMAN (Upper West)
+----------------------------------------------------------------------------------------
+  Full Name            : ABDUL-AZIZ ABDUL-RAHMAN
+  Image File           : ABDUL-AZIZ ABDUL-RAHMAN.jpg
+  Region               : Upper West
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : WA CENTRAL
+  Electoral Area       : NAYIRI/ LIMANYIRI
+  Polling Station      : COMMUNITY BORE - HOLE TAMARIMUNI
+  Phone Number         : 0243826023
+  Email Address        : N/A
+  Voter ID             : 3766005274
+  Ghana Card           : AG3879308
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1980-11-29
+  Age                  : 46
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_3766005274_1789584294959.webp
+
+[#14] WOANYAH, MAKAFUI KOFI (Volta)
+----------------------------------------------------------------------------------------
+  Full Name            : WOANYAH, MAKAFUI KOFI
+  Image File           : WOANYAH, MAKAFUI KOFI.jpg
+  Region               : Volta
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : ANLO
+  Electoral Area       : N/A
+  Polling Station      : R C PRIM SCH ANLOGA
+  Phone Number         : 0244928853
+  Email Address        : N/A
+  Voter ID             : 2300022713
+  Ghana Card           : AD0765467
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1969-11-14
+  Age                  : 57
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/volta_2300022713_1789652176778.webp
+
+[#15] AFRIFA, IGNATIUS  KWASI (Western)
+----------------------------------------------------------------------------------------
+  Full Name            : AFRIFA, IGNATIUS  KWASI
+  Image File           : AFRIFA, IGNATIUS KWASI.jpg
+  Region               : Western
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : AMENFI WEST
+  Electoral Area       : N/A
+  Polling Station      : METHODIST JHS ASANKRAGWA
+  Phone Number         : 0244311613
+  Email Address        : N/A
+  Voter ID             : 3510004431
+  Ghana Card           : G1501438
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1970-11-02
+  Age                  : 56
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_3510004431_1789584351793.webp
+
+[#16] ABAKAH, VINCENT PIOUS (Western North)
+----------------------------------------------------------------------------------------
+  Full Name            : ABAKAH, VINCENT PIOUS
+  Image File           : ABAKAH, VINCENT PIOUS.jpg
+  Region               : Western North
+  Position             : Chairperson
+  Executive Level      : Region
+  Slot Status          : Elected
+  Constituency         : SEFWI WIAWSO
+  Electoral Area       : N/A
+  Polling Station      : METH PRIM ASAWINSO N03 2
+  Phone Number         : 0244282605
+  Email Address        : N/A
+  Voter ID             : 1713010458
+  Ghana Card           : AG7768864
+  Membership ID        : N/A
+  Gender               : Male
+  Date of Birth        : 1974-09-09
+  Age                  : 52
+  Status               : Active
+  Photo Source URL     : https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_1713010458_1789584388757.webp
+
+========================================================================================
+TAB-SEPARATED DATA TABLE (FOR SPREADSHEET IMPORT)
+========================================================================================
+No	Full Name	Image Filename	Region	Position	Executive Level	Slot Status	Constituency	Electoral Area	Polling Station	Phone	Email	Voter ID	Ghana Card	Membership ID	Gender	Date of Birth	Age	Status	Photo Source URL
+1	ROBERT SARFO-MENSAH	ROBERT SARFO-MENSAH.jpg	Ahafo	Chairperson	Region	Elected	ASUNAFO NORTH	AIRPORT QUARTERS	SHS. MIM 1	0241484864		1806003705	AG1714092		Male	1970-04-01	56	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_1806003705_1789582412328.webp
+2	APPIAH, ODENEHO KWAKU	APPIAH, ODENEHO KWAKU.jpg	Ashanti	Chairperson	Region	Elected	AFIGYA KWABRE SOUTH		R/C PRIM SCH HEMANG	0208251411		4893002473	AG4037804		Male	1971-06-23	55	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_4893002473_1789583418073.webp
+3	BAFFOE, KWAME	BAFFOE, KWAME.jpg	Bono	Chairperson	Region	Elected	SUNYANI WEST		FIRST STAR PREP SCH AWUAH DOMASE  1	0208081484		1920016876	AF5515980		Male	1981-05-05	45	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_1920016876_1789583552476.webp
+4	IBRAHIM BABA BUKARI	IBRAHIM BABA BUKARI.jpg	Bono East	Chairperson	Region	Elected	TECHIMAN SOUTH	WANGARALINE	TEMP STRUCTURE  WANGARA-LINE	0244447641		2043018949	AC1293700		Male	1978-08-18	48	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_2043018949_1789583624113.webp
+5	ESSIBU, JOSEPH KOBINA	ESSIBU, JOSEPH KOBINA.jpg	Central	Chairperson	Region	Elected	AWUTU SENYA WEST		C&J KORLE BU SENYA	0264275830		8226015881	AN5659741		Male	1972-01-03	54	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_8226015881_1789583709847.webp
+6	JEFFREY KONADU ADDO	JEFFREY KONADU ADDO.jpg	Eastern	Chairperson	Region	Elected	AFRAM PLAINS SOUTH	OLD FORI FORI	D A PRIM SCH PITIKO	0243275486		8280005557	G1667930		Male	1967-05-24	59	Vacant	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_8280005557_1789583809400.webp
+7	BOYE, BERNARD OKOE	BOYE, BERNARD OKOE.jpg	Greater Accra	Chairperson	Region	Elected	LEDZOKUKU		LASCALA CINEMA	0243052285		4617039127	AO003290		Male	1982-01-25	44	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_4617039127_1789583894385.webp
+8	FUSEINI, NURUDEEN	FUSEINI, NURUDEEN.jpg	North East	Chairperson	Region	Elected	NALERIGU/GAMBAGA		ALSALIA E/A PRIM SCH.LANGBINSI	0244207141		3704031381	G1657346		Male	1980-02-20	46	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_3704031381_1789584016062.webp
+9	ADAM BAANTIMA MOHAMMED	ADAM BAANTIMA MOHAMMED.jpg	Northern	Chairperson	Region	Elected	TAMALE NORTH	KANVILLI	NURIYA E/A PRIM. SCH.	0244440970		4132018326	AJ5549370	NRT-TMLN-1669642345	Male	1978-10-11	48	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_4132018326_1789584057707.webp
+10	YIRENKYI, FRANK	YIRENKYI, FRANK.jpg	Oti	Chairperson	Region	Elected	BIAKOYE		E P PRIMARY SCHOOL WORAWORA	0201171320		7134006847	AD3361303		Male	1966-08-11	60	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_7134006847_1789584110409.webp
+11	SULEMANA IDDRISU	SULEMANA IDDRISU.jpg	Savannah	Chairperson	Region	Elected	DABOYA/MANKARIGU	DABOYA EAST	CENTRAL MOSQUE. DABOYA	0244967210		3914003371	G1669977		Male	1970-10-25	56	Vacant	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_3914003371_1789584199631.webp
+12	AWONEKAI, ELVIS ATIA	AWONEKAI, ELVIS ATIA.jpg	Upper East	Chairperson	Region	Elected	BOLGATANGA CENTRAL		J.S.Q. TANZUI	0249305057		7247002026	AD9177498		Male	1980-06-01	46	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_7247002026_1789584232657.webp
+13	ABDUL-AZIZ ABDUL-RAHMAN	ABDUL-AZIZ ABDUL-RAHMAN.jpg	Upper West	Chairperson	Region	Elected	WA CENTRAL	NAYIRI/ LIMANYIRI	COMMUNITY BORE - HOLE TAMARIMUNI	0243826023		3766005274	AG3879308		Male	1980-11-29	46	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_3766005274_1789584294959.webp
+14	WOANYAH, MAKAFUI KOFI	WOANYAH, MAKAFUI KOFI.jpg	Volta	Chairperson	Region	Elected	ANLO		R C PRIM SCH ANLOGA	0244928853		2300022713	AD0765467		Male	1969-11-14	57	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/volta_2300022713_1789652176778.webp
+15	AFRIFA, IGNATIUS  KWASI	AFRIFA, IGNATIUS KWASI.jpg	Western	Chairperson	Region	Elected	AMENFI WEST		METHODIST JHS ASANKRAGWA	0244311613		3510004431	G1501438		Male	1970-11-02	56	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_3510004431_1789584351793.webp
+16	ABAKAH, VINCENT PIOUS	ABAKAH, VINCENT PIOUS.jpg	Western North	Chairperson	Region	Elected	SEFWI WIAWSO		METH PRIM ASAWINSO N03 2	0244282605		1713010458	AG7768864		Male	1974-09-09	52	Active	https://cms.newpatrioticparty.org/wp-content/uploads/2026/09/voter_1713010458_1789584388757.webp

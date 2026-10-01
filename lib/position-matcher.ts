@@ -13,6 +13,15 @@ export function normalizePosition(raw?: string | null, level?: string | null): s
   p = p.replace(/\bregional\s+/gi, "");
 
   const lower = p.toLowerCase();
+  const lvlLower = String(level || "").trim().toLowerCase();
+
+  if (
+    (lvlLower === "national" || /national.*tescon/i.test(raw)) &&
+    /tescon/i.test(p) &&
+    !/regional/i.test(raw)
+  ) {
+    return /deputy/i.test(p) ? "Deputy National TESCON Coordinator" : "National TESCON Coordinator";
+  }
 
   // Regional TESCON Coordinator typos/caps
   if (
@@ -304,6 +313,12 @@ export function buildPositionCondition(sql: any, position: string) {
   if (/legal affairs/i.test(p) || /legal committee/i.test(p)) {
     variants.add("Director of Legal Affairs");
     variants.add("Chairman of The Legal Committee");
+  }
+  if (/national tescon|tescon coordinator/i.test(p)) {
+    variants.add("National TESCON Coordinator");
+    variants.add("Deputy National TESCON Coordinator");
+    variants.add("TESCON Coordinator");
+    variants.add("TESCON COORDINATOR");
   }
 
   // 12. Speaker of Parliament

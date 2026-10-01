@@ -34,13 +34,13 @@ test("Wing album (Nasara, Women, Youth) groups by region starting on new pages a
 
   assert.ok(
     code.includes("for (const regionName of presentRegions) {") &&
-      code.includes("const regionList = [...regExecs, ...constExecs, ...tesconExecs];"),
-    "Within each region, regional executives must be followed by constituencies and tescon"
+      code.includes("if (isWingAlbum) {"),
+    "Within each region, executives must be grouped and paginated for wing albums"
   );
 
   assert.ok(
-    code.includes("headerSubTitle: `${regionName.toUpperCase()} REGION · ${contest.toUpperCase()} (PART ${partIdx})`"),
-    "Region pages must have header with region name, contest name, and part index"
+    code.includes("headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART ${partIdx})`"),
+    "Constituency pages in wing albums must have header with region prefix and constituency name"
   );
 });
 

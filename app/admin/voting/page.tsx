@@ -52,7 +52,7 @@ export default function VotingPage() {
       <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse'}}><thead><tr>{['Name','Region','Constituency / scope','Position','Eligibility reason','Review'].map(h=><th key={h} style={cell}>{h}</th>)}</tr></thead><tbody>{people.slice((page-1)*50,page*50).map(p=><tr key={p.key}><td style={cell}>{p.name}</td><td style={cell}>{p.region}</td><td style={cell}>{p.constituency}</td><td style={cell}>{p.positions}</td><td style={cell}>{p.reasons[contest]}</td><td style={cell}>{p.issues.join('; ')||'—'}</td></tr>)}</tbody></table></div>
       <p><button style={control} disabled={page===1} onClick={()=>setPage(page-1)}>Previous</button> Page {page} of {Math.max(1,Math.ceil(people.length/50))} <button style={control} disabled={page*50>=people.length} onClick={()=>setPage(page+1)}>Next</button></p>
       <details><summary>Records requiring review ({data.totals.review})</summary><div style={{overflowX:'auto',maxHeight:450}}><table><thead><tr><th style={cell}>Name</th><th style={cell}>Source record IDs</th><th style={cell}>Issue</th></tr></thead><tbody>{data.people.filter(p=>p.issues.length&&(!region||p.region===region)).map(p=><tr key={p.key}><td style={cell}>{p.name}</td><td style={cell}>{p.recordIds}</td><td style={cell}>{p.issues.join('; ')}</td></tr>)}</tbody></table></div></details>
-      <p>Source: ec-data executive registry, retrieved {new Date(data.generatedAt).toLocaleString()}. National and regional officers are shown in their own scope rows.</p>
+      <p>Source: National Executive Registry, retrieved {new Date(data.generatedAt).toLocaleString()}. National and regional officers are shown in their own scope rows.</p>
     </>}
   </main></AdminShell>;
 }

@@ -57,7 +57,13 @@ export function normalizeTesconInstitution(
   constituency?: string | null,
   recordId?: number | string | null
 ): string {
+  const conClean = (constituency || "").toUpperCase().replace(/[^A-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  const idNum = Number(recordId) || 0;
+
   if (!rawStation || typeof rawStation !== "string") {
+    if (conClean === "BONGO" || idNum === 265273) {
+      return "Regentropfen University College, Bongo";
+    }
     return "Accredited Tertiary Institution";
   }
 
@@ -67,7 +73,12 @@ export function normalizeTesconInstitution(
     .replace(/\s+/g, " ")
     .trim();
 
-  if (!s) return "Accredited Tertiary Institution";
+  if (!s) {
+    if (conClean === "BONGO" || idNum === 265273) {
+      return "Regentropfen University College, Bongo";
+    }
+    return "Accredited Tertiary Institution";
+  }
 
   const regRaw = (region || "").trim().toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ");
   const regMap: Record<string, string> = {

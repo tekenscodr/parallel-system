@@ -68,7 +68,6 @@ export const CANONICAL_TESCON_INSTITUTIONS_BY_REGION: Record<string, string[]> =
     "Berekum College of Education",
     "Berekum Nursing and Midwifery Training College",
     "Catholic University of Ghana, Fiapre",
-    "Krobo Nursing Training College",
     "Methodist University Ghana (Ofuman Campus)",
     "Methodist University Ghana (Wenchi Campus)",
     "Presbyterian Nursing and Midwifery Training College, Dormaa",
@@ -136,7 +135,6 @@ export const CANONICAL_TESCON_INSTITUTIONS_BY_REGION: Record<string, string[]> =
     "University of Environment and Sustainable Development (UESD)"
   ],
   "Greater Accra": [
-    "Accra Business School",
     "Accra College of Education",
     "Accra Technical University (ATU)",
     "Ada College of Education",
@@ -221,10 +219,7 @@ export const CANONICAL_TESCON_INSTITUTIONS_BY_REGION: Record<string, string[]> =
     "Bolgatanga Technical University",
     "C.K. Tedam University of Technology and Applied Sciences (CKT-UTAS)",
     "Community Health Nursing Training College, Navrongo",
-    "Faith Institute of Journalism, Bolgatanga",
     "Gbewaa College of Education, Pusiga",
-    "Millar Institute for Transdisciplinary and Development Studies",
-    "Navrongo Community Development Institute",
     "Presbyterian Nursing and Midwifery Training College, Bawku",
     "Regentropfen University College, Bongo",
     "St. John Bosco College of Education, Navrongo",
@@ -257,7 +252,6 @@ export const CANONICAL_TESCON_INSTITUTIONS_BY_REGION: Record<string, string[]> =
     "Keta Nursing and Midwifery Training College",
     "Ohawu Agricultural College",
     "Peki College of Education",
-    "Princefield University College, Ho",
     "School of Hygiene, Ho",
     "St. Francis College of Education, Hohoe",
     "St. Teresa's College of Education, Hohoe",
@@ -275,7 +269,6 @@ export const CANONICAL_TESCON_INSTITUTIONS_BY_REGION: Record<string, string[]> =
     "Sekondi Nursing and Midwifery Training College",
     "Takoradi Technical University (TTU - Business Campus)",
     "Takoradi Technical University (TTU - Main Campus)",
-    "Takoradi Technical University (TTU - Sekondi/Adagya Campus)",
     "Tarkwa Nursing and Midwifery Training College",
     "University of Mines and Technology (UMaT - SRID Campus)",
     "University of Mines and Technology (UMaT - Tarkwa Main)"
@@ -598,9 +591,6 @@ export const CANONICAL_TO_RAW_STATIONS_BY_REGION: Record<string, Record<string, 
       "Catholic University Of Ghana, Sunyani",
       "Catholic University of Ghana, Sunyani"
     ],
-    "Krobo Nursing Training College": [
-      "Valley View University (Techiman Campus) / Krobo Health College"
-    ],
     "Methodist University Ghana (Ofuman Campus)": [
       "Methodist University (Ofuman Campus)",
       "Methodist University Ofuman Campus",
@@ -855,10 +845,6 @@ export const CANONICAL_TO_RAW_STATIONS_BY_REGION: Record<string, Record<string, 
     ]
   },
   "Greater Accra": {
-    "Accra Business School": [
-      "Accra Business School",
-      "Accra Business Sschool"
-    ],
     "Accra College of Education": [
       "Accra College Of Education",
       "Accra College of Education"
@@ -1172,18 +1158,9 @@ export const CANONICAL_TO_RAW_STATIONS_BY_REGION: Record<string, Record<string, 
       "COMMUNITY HEALTH NURSING TRAINING COLLEGE",
       "Community Health Nursing Training College Navrongo"
     ],
-    "Faith Institute of Journalism, Bolgatanga": [
-      "Faith Institute Of Journalism"
-    ],
     "Gbewaa College of Education, Pusiga": [
       "Gbewaa College Of Education",
       "Gbewaa College of Education"
-    ],
-    "Millar Institute for Transdisciplinary and Development Studies": [
-      "MILLAR INSTITUTE"
-    ],
-    "Navrongo Community Development Institute": [
-      "NAVRONGO COMMUNIYT DEVELOPMENT"
     ],
     "Presbyterian Nursing and Midwifery Training College, Bawku": [
       "BAWKU PNTC",
@@ -1300,9 +1277,6 @@ export const CANONICAL_TO_RAW_STATIONS_BY_REGION: Record<string, Record<string, 
       "Peki College Of Education",
       "Peki College of Education"
     ],
-    "Princefield University College, Ho": [
-      "Sports Stadium Office Ho Ahoe.2"
-    ],
     "School of Hygiene, Ho": [
       "SCHOOL OF HYGIENE"
     ],
@@ -1359,9 +1333,6 @@ export const CANONICAL_TO_RAW_STATIONS_BY_REGION: Record<string, Record<string, 
     ],
     "Takoradi Technical University (TTU - Main Campus)": [
       "Takoradi Technical University (TTU)"
-    ],
-    "Takoradi Technical University (TTU - Sekondi/Adagya Campus)": [
-      "Takoradi Technical University (Sekondi / Adagya Campus)"
     ],
     "Tarkwa Nursing and Midwifery Training College": [
       "NMTC Tarkwa",

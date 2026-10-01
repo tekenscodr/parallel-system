@@ -2,7 +2,7 @@ import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
-import sharp from "sharp";
+import { getSafeSharp } from "./safe-sharp";
 
 const cacheDir = path.join(process.cwd(), ".cache", "albums", "webp");
 const pending = new Map<string, Promise<Buffer | null>>();
@@ -10,12 +10,34 @@ const pending = new Map<string, Promise<Buffer | null>>();
 let _indexesLoaded = false;
 const syncUrlByVoterId = new Map<string, string>();
 const ahafoBase64ByVoterId = new Map<string, string>();
+const ahafoBase64ByName = new Map<string, string>();
 const localFileByVoterId = new Map<string, string>();
+const localFileByExecId = new Map<number, string>();
+const localFileByName = new Map<string, string>();
 const localFileByFilename = new Map<string, string>();
+const wocomUrlByExecId = new Map<number, string>();
+const altUrlByVoterId = new Map<string, string>();
+const altUrlByName = new Map<string, string>();
+
+export function normalizeNameForPhotoMatch(name: string): string {
+  return String(name || "")
+    .trim()
+    .toUpperCase()
+    .replace(/^(MR|MRS|MS|HON|DR|ALHAJI|HAJIA|MADAM)\.?\s+/i, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/[^A-Z\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function extractVoterIdFromText(text: string): string | null {
   const m = text.match(/(?:^|[^0-9])(\d{8,10})(?:[^0-9]|$)/);
   return m ? m[1] : null;
+}
+
+function extractExecutiveIdFromText(text: string): number | null {
+  const m = text.match(/^wocom-(\d+)/i) || text.match(/^(\d{5,7})[_-]/);
+  return m ? Number(m[1]) : null;
 }
 
 function indexDirectorySync(dir: string) {
@@ -27,11 +49,35 @@ function indexDirectorySync(dir: string) {
       if (entry.isDirectory()) {
         indexDirectorySync(fullPath);
       } else if (/\.(webp|jpg|jpeg|png)$/i.test(entry.name)) {
+        const ext = path.extname(entry.name);
+        const base = path.basename(entry.name, ext);
         localFileByFilename.set(entry.name.toLowerCase(), fullPath);
-        const vid = extractVoterIdFromText(entry.name);
+
+        const execId = extractExecutiveIdFromText(base);
+        if (execId) {
+          localFileByExecId.set(execId, fullPath);
+        }
+
+        const vid = extractVoterIdFromText(base);
         if (vid) {
           localFileByVoterId.set(vid, fullPath);
           localFileByVoterId.set(vid.replace(/^0+/, ""), fullPath);
+          if (vid.length < 10) {
+            localFileByVoterId.set(vid.padStart(10, "0"), fullPath);
+          }
+        }
+
+        const cleanName = base
+          .replace(/^wocom-\d+-?/i, "")
+          .replace(/^\d+_/i, "")
+          .replace(/_page\d+$/i, "")
+          .replace(/_GHA_.*$/i, "")
+          .replace(/_\d{8,10}$/i, "")
+          .replace(/[_-]+/g, " ")
+          .trim();
+        const normName = normalizeNameForPhotoMatch(cleanName);
+        if (normName.length > 5) {
+          localFileByName.set(normName, fullPath);
         }
       }
     }
@@ -44,9 +90,27 @@ function ensureAuxiliaryIndexes() {
   if (_indexesLoaded) return;
   _indexesLoaded = true;
 
+  // 1. Index local files
   indexDirectorySync(path.join(process.cwd(), "public", "cdn"));
   indexDirectorySync(path.join(process.cwd(), "outputs", "wocom_2026", "portraits"));
 
+  // 2. WOCOM manifest (maps wocom-<id> to local URL)
+  try {
+    const wocomManifestPath = path.join(process.cwd(), "public", "cdn", "delegates", "manifest.json");
+    if (fsSync.existsSync(wocomManifestPath)) {
+      const manifest = JSON.parse(fsSync.readFileSync(wocomManifestPath, "utf8"));
+      for (const [key, val] of Object.entries(manifest)) {
+        const idMatch = key.match(/\d+/);
+        if (idMatch && val && typeof val === "object" && (val as any).url) {
+          wocomUrlByExecId.set(Number(idMatch[0]), String((val as any).url).trim());
+        }
+      }
+    }
+  } catch {
+    // Non-fatal
+  }
+
+  // 3. Sync progress CDN URLs
   try {
     const syncPath = path.join(process.cwd(), "scratch", "sync_progress.json");
     if (fsSync.existsSync(syncPath)) {
@@ -66,6 +130,44 @@ function ensureAuxiliaryIndexes() {
     // Non-fatal
   }
 
+  // 4. Scratch extracted executive JSON files with live CDN URLs
+  const scratchCandidateFiles = [
+    "scratch/greater_accra_wocom_executives.json",
+    "scratch/national_executives.json",
+    "scratch/greater_accra_tescon_presidents.json",
+    "scratch/tescon_nasara_executives.json",
+  ];
+  for (const rel of scratchCandidateFiles) {
+    try {
+      const full = path.join(process.cwd(), rel);
+      if (fsSync.existsSync(full)) {
+        const items = JSON.parse(fsSync.readFileSync(full, "utf8"));
+        if (Array.isArray(items)) {
+          for (const item of items) {
+            const cdnUrl = item.cdnImageUrl ? String(item.cdnImageUrl).trim() : null;
+            if (cdnUrl && /^https?:\/\//i.test(cdnUrl)) {
+              const vId = item.voterId ? String(item.voterId).trim() : "";
+              if (vId.length >= 6) {
+                altUrlByVoterId.set(vId, cdnUrl);
+                altUrlByVoterId.set(vId.replace(/^0+/, ""), cdnUrl);
+              }
+              const name = item.fullName ? String(item.fullName).trim() : "";
+              if (name) {
+                const normName = normalizeNameForPhotoMatch(name);
+                if (normName.length > 5) {
+                  altUrlByName.set(normName, cdnUrl);
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  // 5. Ahafo album base64 portraits
   try {
     const candidatePaths = [
       path.join(process.cwd(), "exports/albums/ahafo_album_data.json"),
@@ -82,6 +184,13 @@ function ensureAuxiliaryIndexes() {
             ahafoBase64ByVoterId.set(vid, d.photo_base64);
             ahafoBase64ByVoterId.set(vid.replace(/^0+/, ""), d.photo_base64);
           }
+          const name = d.executive_name ? String(d.executive_name).trim() : "";
+          if (name) {
+            const normName = normalizeNameForPhotoMatch(name);
+            if (normName.length > 5) {
+              ahafoBase64ByName.set(normName, d.photo_base64);
+            }
+          }
         }
       };
       if (Array.isArray(ahafoData.regionalExecutives)) ahafoData.regionalExecutives.forEach(indexItem);
@@ -96,113 +205,195 @@ function ensureAuxiliaryIndexes() {
   }
 }
 
-async function readSource(url: string): Promise<Buffer | null> {
+function parseDataUri(uri: string): Buffer | null {
+  const comma = uri.indexOf(",");
+  if (comma < 0) return null;
+  return /;base64/i.test(uri.slice(0, comma))
+    ? Buffer.from(uri.slice(comma + 1), "base64")
+    : Buffer.from(decodeURIComponent(uri.slice(comma + 1)));
+}
+
+async function readSource(
+  url: string,
+  hints?: { voterId?: string | null; execId?: number | null; name?: string | null }
+): Promise<Buffer | null> {
   ensureAuxiliaryIndexes();
 
-  if (url.startsWith("data:image/")) {
-    const comma = url.indexOf(",");
-    if (comma < 0) return null;
-    return /;base64/i.test(url.slice(0, comma))
-      ? Buffer.from(url.slice(comma + 1), "base64")
-      : Buffer.from(decodeURIComponent(url.slice(comma + 1)));
+  if (url && url.startsWith("data:image/")) {
+    return parseDataUri(url);
   }
 
-  // Check if this URL corresponds to a local file in public/ or outputs/ before hitting the network
-  const pathname = decodeURIComponent(url.split(/[?#]/, 1)[0]);
-  const filename = path.basename(pathname);
-  if (filename && filename.length > 3) {
-    const indexedPath = localFileByFilename.get(filename.toLowerCase());
-    if (indexedPath) {
-      try { return await fs.readFile(indexedPath); } catch { /* continue */ }
+  // 1. Executive ID lookups
+  const execId = hints?.execId != null ? Number(hints.execId) : null;
+  if (execId) {
+    const localById = localFileByExecId.get(execId);
+    if (localById) {
+      try { return await fs.readFile(localById); } catch { /* continue */ }
     }
-    const publicRoot = path.join(process.cwd(), "public");
-    const candidateLocalPaths = [
-      path.join(publicRoot, "cdn", "executives", "volta", filename),
-      path.join(publicRoot, "cdn", "executives", filename),
-      path.join(publicRoot, "cdn", "delegates", filename),
-    ];
-    for (const candidate of candidateLocalPaths) {
-      try { return await fs.readFile(candidate); } catch { /* try next candidate */ }
+    const wocomUrl = wocomUrlByExecId.get(execId);
+    if (wocomUrl) {
+      const publicPath = path.join(process.cwd(), "public", wocomUrl.replace(/^\/+/, ""));
+      try { return await fs.readFile(publicPath); } catch { /* continue */ }
     }
   }
 
-  // Check if a voter ID is embedded in the URL and matches a local file or Ahafo base64 or cached sync_progress URL
-  const embeddedVid = extractVoterIdFromText(pathname);
-  if (embeddedVid) {
-    const localByVid = localFileByVoterId.get(embeddedVid) || localFileByVoterId.get(embeddedVid.replace(/^0+/, ""));
+  // 2. Voter ID lookups
+  const voterId = hints?.voterId && hints.voterId !== "—" ? hints.voterId.trim() : null;
+  if (voterId) {
+    const vNoZero = voterId.replace(/^0+/, "");
+    const localByVid = localFileByVoterId.get(voterId) || localFileByVoterId.get(vNoZero);
     if (localByVid) {
       try { return await fs.readFile(localByVid); } catch { /* continue */ }
     }
-    const ahafoB64 = ahafoBase64ByVoterId.get(embeddedVid) || ahafoBase64ByVoterId.get(embeddedVid.replace(/^0+/, ""));
+    const ahafoB64 = ahafoBase64ByVoterId.get(voterId) || ahafoBase64ByVoterId.get(vNoZero);
     if (ahafoB64) {
-      const comma = ahafoB64.indexOf(",");
-      if (comma >= 0) return Buffer.from(ahafoB64.slice(comma + 1), "base64");
+      const buf = parseDataUri(ahafoB64);
+      if (buf) return buf;
     }
-    const syncAltUrl = syncUrlByVoterId.get(embeddedVid) || syncUrlByVoterId.get(embeddedVid.replace(/^0+/, ""));
+    const syncAltUrl = syncUrlByVoterId.get(voterId) || syncUrlByVoterId.get(vNoZero) || altUrlByVoterId.get(voterId) || altUrlByVoterId.get(vNoZero);
     if (syncAltUrl) {
       const syncKey = crypto.createHash("sha256").update(`v2_${syncAltUrl}_240_300_80`).digest("hex");
-      try { return await fs.readFile(path.join(cacheDir, `${syncKey}.webp`)); } catch { /* continue */ }
+      try {
+        const cached = await fs.readFile(path.join(cacheDir, `${syncKey}.webp`));
+        if (cached) return cached;
+      } catch { /* proceed to fetch below */ }
     }
   }
 
-  if (/^https?:\/\//i.test(url)) {
-    if (/app\.newpatrioticparty\.org/i.test(url)) {
-      // Before giving up on legacy app.newpatrioticparty.org URL, check if sync_progress has a valid CMS URL for this voter ID
-      if (embeddedVid) {
-        const altUrl = syncUrlByVoterId.get(embeddedVid) || syncUrlByVoterId.get(embeddedVid.replace(/^0+/, ""));
-        if (altUrl && !/app\.newpatrioticparty\.org/i.test(altUrl)) {
-          const altKey = crypto.createHash("sha256").update(`v2_${altUrl}_240_300_80`).digest("hex");
-          try {
-            return await fs.readFile(path.join(cacheDir, `${altKey}.webp`));
-          } catch {
+  // 3. Name lookups
+  const name = hints?.name?.trim() ? normalizeNameForPhotoMatch(hints.name) : null;
+  if (name && name.length > 5) {
+    const localByName = localFileByName.get(name);
+    if (localByName) {
+      try { return await fs.readFile(localByName); } catch { /* continue */ }
+    }
+    const ahafoByName = ahafoBase64ByName.get(name);
+    if (ahafoByName) {
+      const buf = parseDataUri(ahafoByName);
+      if (buf) return buf;
+    }
+    const altByName = altUrlByName.get(name);
+    if (altByName) {
+      const altKey = crypto.createHash("sha256").update(`v2_${altByName}_240_300_80`).digest("hex");
+      try {
+        const cached = await fs.readFile(path.join(cacheDir, `${altKey}.webp`));
+        if (cached) return cached;
+      } catch { /* continue */ }
+    }
+  }
+
+  // 4. URL filename / local file checks
+  if (url) {
+    const pathname = decodeURIComponent(url.split(/[?#]/, 1)[0]);
+    const filename = path.basename(pathname);
+    if (filename && filename.length > 3) {
+      const indexedPath = localFileByFilename.get(filename.toLowerCase());
+      if (indexedPath) {
+        try { return await fs.readFile(indexedPath); } catch { /* continue */ }
+      }
+      const publicRoot = path.join(process.cwd(), "public");
+      const candidateLocalPaths = [
+        path.join(publicRoot, "cdn", "delegates", filename),
+        path.join(publicRoot, "cdn", "executives", "volta", filename),
+        path.join(publicRoot, "cdn", "executives", filename),
+      ];
+      for (const candidate of candidateLocalPaths) {
+        try { return await fs.readFile(candidate); } catch { /* try next */ }
+      }
+    }
+
+    // Check if voter ID is embedded in pathname
+    const embeddedVid = extractVoterIdFromText(pathname);
+    if (embeddedVid) {
+      const localByVid = localFileByVoterId.get(embeddedVid) || localFileByVoterId.get(embeddedVid.replace(/^0+/, ""));
+      if (localByVid) {
+        try { return await fs.readFile(localByVid); } catch { /* continue */ }
+      }
+      const ahafoB64 = ahafoBase64ByVoterId.get(embeddedVid) || ahafoBase64ByVoterId.get(embeddedVid.replace(/^0+/, ""));
+      if (ahafoB64) {
+        const buf = parseDataUri(ahafoB64);
+        if (buf) return buf;
+      }
+    }
+
+    // Check if executive ID is embedded in pathname
+    const embeddedExecId = extractExecutiveIdFromText(filename);
+    if (embeddedExecId) {
+      const localById = localFileByExecId.get(embeddedExecId);
+      if (localById) {
+        try { return await fs.readFile(localById); } catch { /* continue */ }
+      }
+    }
+
+    // Remote HTTP / HTTPS fetches
+    if (/^https?:\/\//i.test(url)) {
+      // Legacy app.newpatrioticparty.org host is offline. Do NOT attempt network fetch!
+      if (/app\.newpatrioticparty\.org/i.test(url)) {
+        if (embeddedVid) {
+          const altUrl = syncUrlByVoterId.get(embeddedVid) || syncUrlByVoterId.get(embeddedVid.replace(/^0+/, ""));
+          if (altUrl && !/app\.newpatrioticparty\.org/i.test(altUrl)) {
             url = altUrl;
+          } else {
+            return null;
           }
         } else {
           return null;
         }
-      } else {
-        return null;
       }
+
+      // Live host fetch (e.g. cms.newpatrioticparty.org)
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        try {
+          const response = await fetch(url, {
+            signal: controller.signal,
+            headers: { "User-Agent": "Mozilla/5.0", Accept: "image/*" },
+          });
+          if (response.ok) return Buffer.from(await response.arrayBuffer());
+          await response.body?.cancel();
+          if (response.status !== 408 && response.status !== 429 && response.status < 500) break;
+        } catch {
+          // Retry temporary failure
+        } finally {
+          clearTimeout(timeout);
+        }
+        if (attempt < 1) await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+      return null;
     }
-    for (let attempt = 0; attempt < 3; attempt++) {
+
+    // Local file paths in public or cwd
+    const publicRoot = path.join(process.cwd(), "public");
+    const relative = pathname.replace(/^\/+/, "");
+    const roots = pathname.startsWith("/") ? [publicRoot] : [publicRoot, process.cwd()];
+    for (const root of roots) {
+      const filenamePath = path.resolve(root, relative);
+      if (!filenamePath.startsWith(root + path.sep)) continue;
+      try { return await fs.readFile(filenamePath); } catch { /* next */ }
+    }
+  }
+
+  // 5. Final fallback to live sync progress URL if we had hints
+  const fallbackSyncUrl = voterId ? (syncUrlByVoterId.get(voterId) || syncUrlByVoterId.get(voterId.replace(/^0+/, "")) || altUrlByVoterId.get(voterId)) : (name ? altUrlByName.get(name) : null);
+  if (fallbackSyncUrl && fallbackSyncUrl !== url && !/app\.newpatrioticparty\.org/i.test(fallbackSyncUrl)) {
+    try {
       const controller = new AbortController();
-      // Keep the timeout active until the response body finishes downloading.
-      const timeout = setTimeout(() => controller.abort(), 12000);
+      const timeout = setTimeout(() => controller.abort(), 8000);
       try {
-        const response = await fetch(url, {
+        const res = await fetch(fallbackSyncUrl, {
           signal: controller.signal,
           headers: { "User-Agent": "Mozilla/5.0", Accept: "image/*" },
         });
-        if (response.ok) return Buffer.from(await response.arrayBuffer());
-        await response.body?.cancel();
-        if (response.status !== 408 && response.status !== 429 && response.status < 500) break;
-      } catch {
-        // Retry temporary connection failures and incomplete downloads.
+        if (res.ok) return Buffer.from(await res.arrayBuffer());
       } finally {
         clearTimeout(timeout);
       }
-      if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+    } catch {
+      // ignore
     }
-    // If network fetch failed, check if sync_progress has an alternative cached URL for the same voter ID
-    if (embeddedVid) {
-      const altUrl = syncUrlByVoterId.get(embeddedVid) || syncUrlByVoterId.get(embeddedVid.replace(/^0+/, ""));
-      if (altUrl && altUrl !== url) {
-        const altKey = crypto.createHash("sha256").update(`v2_${altUrl}_240_300_80`).digest("hex");
-        try { return await fs.readFile(path.join(cacheDir, `${altKey}.webp`)); } catch { /* ignore */ }
-      }
-    }
-    return null;
   }
 
-  // Public URLs may contain escaped spaces, cache-busting queries or fragments.
-  const publicRoot = path.join(process.cwd(), "public");
-  const relative = pathname.replace(/^\/+/, "");
-  const roots = pathname.startsWith("/") ? [publicRoot] : [publicRoot, process.cwd()];
-  for (const root of roots) {
-    const filenamePath = path.resolve(root, relative);
-    if (!filenamePath.startsWith(root + path.sep)) continue;
-    try { return await fs.readFile(filenamePath); } catch { /* try the next local source */ }
-  }
   return null;
 }
 
@@ -211,12 +402,20 @@ export async function resolveAlbumImage(
   width = 240,
   height = 300,
   quality = 80,
+  hints?: { voterId?: string | null; execId?: number | null; name?: string | null }
 ): Promise<Buffer | null> {
-  const url = imageUrl?.trim();
-  if (!url) return null;
+  const url = imageUrl?.trim() || "";
+  const cleanVid = hints?.voterId && hints.voterId !== "—" ? hints.voterId.trim() : "";
+  const cleanId = hints?.execId != null ? String(hints.execId) : "";
+  const cleanName = hints?.name?.trim() ? normalizeNameForPhotoMatch(hints.name) : "";
+
+  const cacheTarget = url || `vid_${cleanVid}_id_${cleanId}_name_${cleanName}`;
+  if (!cacheTarget || cacheTarget === "vid__id__name_") return null;
+
   if (![width, height, quality].every(Number.isFinite) || width < 1 || height < 1 || width > 2000 || height > 2000) return null;
   quality = Math.min(100, Math.max(20, quality));
-  const key = crypto.createHash("sha256").update(`v2_${url}_${width}_${height}_${quality}`).digest("hex");
+
+  const key = crypto.createHash("sha256").update(`v3_${cacheTarget}_${width}_${height}_${quality}`).digest("hex");
   const existing = pending.get(key);
   if (existing) return existing;
 
@@ -224,19 +423,26 @@ export async function resolveAlbumImage(
     const filename = path.join(cacheDir, `${key}.webp`);
     try {
       const cached = await fs.readFile(filename);
-      // Fully decode the cache: metadata alone does not detect truncated pixels.
-      await sharp(cached).raw().toBuffer();
+      const sharp = await getSafeSharp();
+      if (sharp) {
+        await sharp(cached).raw().toBuffer();
+      }
       return cached;
-    } catch { /* Missing or corrupt cache: rebuild from the source. */ }
+    } catch { /* Rebuild */ }
+
     try {
-      const input = await readSource(url);
+      const input = await readSource(url, hints);
       if (!input?.length) return null;
+      const sharp = await getSafeSharp();
+      if (!sharp) {
+        return input;
+      }
       const output = await sharp(input)
         .rotate()
         .resize(width, height, { fit: "cover", position: "top" })
         .webp({ quality, effort: 4 })
         .toBuffer();
-      // Atomic replacement prevents concurrent requests from seeing partial files.
+
       const temporary = `${filename}.${crypto.randomUUID()}.tmp`;
       try {
         await fs.mkdir(cacheDir, { recursive: true });
@@ -250,7 +456,7 @@ export async function resolveAlbumImage(
       return null;
     }
   })();
+
   pending.set(key, conversion);
   try { return await conversion; } finally { pending.delete(key); }
 }
-

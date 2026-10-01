@@ -34,10 +34,15 @@ export async function GET(req: Request) {
     const slot = url.searchParams.get("slot")?.trim() || "";
     const under40 = url.searchParams.get("under40")?.trim() || "";
     const missingImages = url.searchParams.get("missingImages") === "true" || url.searchParams.get("missingPhotos") === "true";
+    const proxyFilter = url.searchParams.get("proxyFilter")?.trim().toLowerCase() || "";
 
     const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
     const limit = Math.min(100, Math.max(10, parseInt(url.searchParams.get("limit") || "25", 10)));
     const offset = (page - 1) * limit;
+
+    if (proxyFilter) {
+      await ensureProxyAssignmentsTableExists();
+    }
 
     const result = await withEcSql(async (sql) => {
       const conditions = [];
@@ -131,6 +136,28 @@ export async function GET(req: Request) {
 
       if (missingImages) {
         conditions.push(sql`(image_url IS NULL OR trim(image_url) = '' OR image_url ILIKE 'https://app.newpatrioticparty.org%' OR (image_url NOT ILIKE 'https://%' AND image_url NOT ILIKE '/cdn/%' AND image_url NOT ILIKE 'data:image/%'))`);
+      }
+
+      if (proxyFilter === "true" || proxyFilter === "assigned" || proxyFilter === "principals") {
+        conditions.push(sql`id IN (SELECT principal_executive_id FROM proxy_voter_assignments)`);
+      } else if (proxyFilter === "youth" || proxyFilter === "proxy_youth") {
+        conditions.push(
+          sql`(id IN (SELECT principal_executive_id FROM proxy_voter_assignments) AND (position ILIKE '%youth%' OR position ILIKE '%tescon%'))`
+        );
+      } else if (proxyFilter === "women" || proxyFilter === "proxy_women") {
+        conditions.push(
+          sql`(id IN (SELECT principal_executive_id FROM proxy_voter_assignments) AND (position ILIKE '%women%' OR position ILIKE '%wocom%'))`
+        );
+      } else if (proxyFilter === "nasara" || proxyFilter === "proxy_nasara") {
+        conditions.push(
+          sql`(id IN (SELECT principal_executive_id FROM proxy_voter_assignments) AND position ILIKE '%nasara%')`
+        );
+      } else if (proxyFilter === "holders") {
+        conditions.push(sql`id IN (SELECT proxy_executive_id FROM proxy_voter_assignments)`);
+      } else if (proxyFilter === "both" || proxyFilter === "any") {
+        conditions.push(
+          sql`id IN (SELECT principal_executive_id FROM proxy_voter_assignments UNION SELECT proxy_executive_id FROM proxy_voter_assignments)`
+        );
       }
 
       const whereClause = conditions.length > 0

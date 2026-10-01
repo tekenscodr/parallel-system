@@ -29,6 +29,14 @@ export function normalizePositionRank(position: string | null): number {
   if (value.includes("flagbearer") || (value.includes("vice president") && !value.includes("running mate"))) return 0.2;
   if (value.includes("running mate")) return 0.25;
   if (value.includes("president") && !value.includes("tescon")) return 0.3;
+  if (
+    value.includes("member of parliament") ||
+    value === "mp" ||
+    /\bmp\b/i.test(value) ||
+    value.includes("parliamentarian")
+  ) {
+    return 0.5;
+  }
   if (value.includes("chairperson") || value.includes("chairman")) {
     if (value.includes("1st") || value.includes("first")) return 2;
     if (value.includes("2nd") || value.includes("second")) return 3;
@@ -151,7 +159,8 @@ export function getNationalSectionInfo(delegate: {
     s.includes("director") ||
     s.includes("external relations") ||
     s.includes("legal committee") ||
-    (s.includes("research officer") && !s.includes("region"));
+    (s.includes("research officer") && !s.includes("region")) ||
+    s.includes("tescon");
 
   const isNationalExecutive =
     (s.includes("national chairperson") || s.includes("national chairman") || (s.includes("chairperson") && !s.includes("legal") && !s.includes("council") && !s.includes("past") && !s.includes("former"))) ||
@@ -213,6 +222,7 @@ export function getNationalSectionInfo(delegate: {
       else if (s.includes("external") && !s.includes("deputy")) sub = 31;
       else if (s.includes("external") && s.includes("deputy")) sub = 32;
       else if (s.includes("research officer")) sub = 33;
+      else if (s.includes("tescon")) sub = s.includes("deputy") ? 34.5 : 34;
       else sub = 35;
     }
 
@@ -351,6 +361,15 @@ export function compareAlbumDelegates(a: AlbumHierarchyDelegate, b: AlbumHierarc
     if (regionComparison !== 0) return regionComparison;
   }
 
+  // Within each region's constituency tier, MPs (section rank 4) appear before Constituency Executives (section rank 5)
+  if (a.level_rank === CANONICAL_LEVEL_ORDER.constituency) {
+    const secRankA = getRegionalSectionRank(a as any);
+    const secRankB = getRegionalSectionRank(b as any);
+    if (secRankA !== secRankB && (secRankA === 4 || secRankB === 4)) {
+      return secRankA - secRankB;
+    }
+  }
+
   // Domestic and diaspora constituency units are alphabetical within region.
   if (a.level_rank === CANONICAL_LEVEL_ORDER.constituency || a.level_rank === CANONICAL_LEVEL_ORDER["external branch"]) {
     const constituencyComparison = a.constituency.localeCompare(b.constituency);
@@ -379,6 +398,16 @@ export function isRegionalTescon(delegate: {
   const canon = String(delegate.canonical_position || "").trim().toLowerCase();
   const ps = String(delegate.polling_station || "").trim().toLowerCase();
   const lvl = String(delegate.executive_level || "").trim().toLowerCase();
+
+  // National TESCON Coordinator (National Directorate) is NEVER a Regional TESCON Coordinator
+  if (
+    (lvl === "national" || pos.includes("national tescon") || canon.includes("national tescon")) &&
+    !pos.includes("regional") &&
+    !canon.includes("regional") &&
+    !ps.includes("regional")
+  ) {
+    return false;
+  }
 
   if ((lvl === "region" || lvl === "regional") && (/tescon/i.test(pos) || /tescon/i.test(canon))) {
     return true;

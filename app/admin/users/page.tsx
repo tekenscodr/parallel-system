@@ -330,7 +330,7 @@ export default function UsersManagementPage() {
               <Users size={18} color="#60a5fa" />
             </div>
             <div style={{ fontSize: "24px", fontWeight: "800", color: "#f8fafc", marginTop: "8px" }}>{totalUsers}</div>
-            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>Configured in PostgreSQL ec-data</div>
+            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>Registered system accounts</div>
           </div>
 
           <div style={{ background: "#0F172A", border: "1px solid rgba(255, 255, 255, 0.08)", borderRadius: "12px", padding: "18px" }}>
@@ -499,7 +499,7 @@ export default function UsersManagementPage() {
                   <td colSpan={7} style={{ padding: "40px", textAlign: "center", color: "#94a3b8" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
                       <Loader2 className="animate-spin" size={20} />
-                      <span>Loading user accounts from ec-data…</span>
+                      <span>Loading user accounts…</span>
                     </div>
                   </td>
                 </tr>
@@ -830,7 +830,7 @@ export default function UsersManagementPage() {
                     <input
                       type="email"
                       required
-                      placeholder="e.g. kwame.mensah@ec-data.gov.gh"
+                      placeholder="e.g. kwame.mensah@npp.org.gh"
                       value={createEmail}
                       onChange={(e) => setCreateEmail(e.target.value)}
                       style={{

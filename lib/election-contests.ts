@@ -4,6 +4,13 @@ export const WING_PORTFOLIOS = [
   "Nasara Coordinators & Deputies",
 ] as const;
 
+export const PROXY_PORTFOLIOS = [
+  "Proxy Voters",
+  "Proxy for Youth",
+  "Proxy for Women",
+  "Proxy for Nasara",
+] as const;
+
 export const GENERAL_CONTEST_LIST = [
   "National Chairperson & General Officers",
   "National Directors",
@@ -20,6 +27,10 @@ export const GENERAL_CONTEST_LIST = [
   "Nasara Organiser",
   "All Men",
   "All Women",
+  "Proxy Voters",
+  "Proxy for Youth",
+  "Proxy for Women",
+  "Proxy for Nasara",
 ] as const;
 
 export const CUSTOM_CONTEST = "Custom" as const;
@@ -136,6 +147,7 @@ export const CUSTOM_POSITION_CATEGORIES: PositionCategoryGroup[] = [
       { id: "deputy_comm_director", label: "Deputy Communication Director", canonicalName: "Deputy Communication Director", synonyms: ["deputy communication director", "deputy communications director"] },
       { id: "external_relations_officer", label: "External Relations Officer", canonicalName: "External Relations Officer", synonyms: ["external relations officer"] },
       { id: "deputy_external_relations_officer", label: "Deputy External Relations Officer", canonicalName: "Deputy External Relations Officer", synonyms: ["deputy external relations officer"] },
+      { id: "national_tescon_coordinator", label: "National TESCON Coordinator", canonicalName: "National TESCON Coordinator", synonyms: ["national tescon coordinator", "tescon coordinator", "national tescon", "deputy national tescon coordinator"] },
     ],
   },
   {
@@ -365,6 +377,7 @@ export const POSITION_PRESETS = {
       "deputy_comm_director",
       "external_relations_officer",
       "deputy_external_relations_officer",
+      "national_tescon_coordinator",
     ],
   },
   national_council: {
@@ -451,6 +464,7 @@ export const FULL_EXECUTIVE_POSITION_IDS: string[] = [
   "member_of_parliament",
   "national_council_rep",
   "foundation_member",
+  "national_tescon_coordinator",
 ];
 
 export function getDefaultPositionIdsForContest(
@@ -470,6 +484,7 @@ export function getDefaultPositionIdsForContest(
       "tescon_president",
       "tescon_wocom",
       "tescon_nasara",
+      "national_tescon_coordinator",
     ];
   }
 
@@ -504,52 +519,25 @@ export function getDefaultPositionIdsForContest(
       "member_of_parliament",
       "national_council_rep",
       "foundation_member",
+      "national_tescon_coordinator",
     ];
   }
 
-  // 3. Women Wing (Organisers & Deputies)
+  // 3. Women Wing (Organisers & Deputies + Female MPs)
   if (
     normContest === "women organisers & deputies" ||
     (normContest.includes("women") && scope === "organisers_only")
   ) {
-    return ["women_organiser", "deputy_women_organiser", "tescon_wocom"];
+    return ["women_organiser", "deputy_women_organiser", "tescon_wocom", "member_of_parliament"];
   }
 
-  // 4. Women Organiser (National Contest - All eligible female executives)
+  // 4. Women Organiser (National Contest - All eligible female executives including Female MPs)
   if (
     normContest === "women organiser" ||
     normContest === "all women" ||
     normContest.includes("women")
   ) {
-    return [
-      "chairperson",
-      "1st_vice",
-      "2nd_vice",
-      "secretary",
-      "deputy_secretary",
-      "treasurer",
-      "financial_secretary",
-      "organiser",
-      "deputy_organiser",
-      "women_organiser",
-      "deputy_women_organiser",
-      "youth_organiser",
-      "deputy_youth_organiser",
-      "nasara_coordinator",
-      "deputy_nasara_coordinator",
-      "communication_officer",
-      "electoral_affairs",
-      "research_officer",
-      "pwd_officer",
-      "special_duties",
-      "legal_officer",
-      "tescon_wocom",
-      "tescon_president",
-      "tescon_nasara",
-      "member_of_parliament",
-      "national_council_rep",
-      "foundation_member",
-    ];
+    return ALL_CUSTOMIZABLE_POSITIONS.map((p) => p.id);
   }
 
   // 5. Nasara Coordinators & Deputies
@@ -566,7 +554,38 @@ export function getDefaultPositionIdsForContest(
     return [...POSITION_PRESETS.constituency_slate.ids];
   }
 
-  // 7. General Contests / National Chairperson / All Men
+  // 7. National Directors / Council / Leadership
+  if (normContest.includes("national director") || normContest === "directors") {
+    return [...POSITION_PRESETS.national_directors.ids];
+  }
+  if (normContest.includes("national council") || normContest.includes("council of elders")) {
+    return [...POSITION_PRESETS.national_council.ids];
+  }
+  if (normContest.includes("national leadership") || normContest.includes("flagbearer")) {
+    return [...POSITION_PRESETS.national_leadership.ids];
+  }
+
+  // 8. Proxy Voters (All, Youth, Women, Nasara)
+  if (normContest === "proxy for youth" || (normContest.includes("proxy") && normContest.includes("youth"))) {
+    if (scope === "organisers_only") {
+      return ["youth_organiser", "deputy_youth_organiser", "tescon_president", "tescon_wocom", "tescon_nasara", "national_tescon_coordinator"];
+    }
+    return ALL_CUSTOMIZABLE_POSITIONS.map((p) => p.id);
+  }
+  if (normContest === "proxy for women" || (normContest.includes("proxy") && normContest.includes("women"))) {
+    if (scope === "organisers_only") {
+      return ["women_organiser", "deputy_women_organiser", "tescon_wocom", "member_of_parliament"];
+    }
+    return ALL_CUSTOMIZABLE_POSITIONS.map((p) => p.id);
+  }
+  if (normContest === "proxy for nasara" || (normContest.includes("proxy") && normContest.includes("nasara"))) {
+    return ["nasara_coordinator", "deputy_nasara_coordinator", "tescon_nasara"];
+  }
+  if (normContest.includes("proxy")) {
+    return ALL_CUSTOMIZABLE_POSITIONS.map((p) => p.id);
+  }
+
+  // 9. General Contests / National Chairperson / All Men
   return [...FULL_EXECUTIVE_POSITION_IDS];
 }
 
@@ -579,6 +598,15 @@ export function isRegionalTescon(r: {
   const pos = String(r.position || "").trim().toLowerCase();
   const ps = String(r.polling_station || "").trim().toLowerCase();
   const lvl = String(r.executive_level || "").trim().toLowerCase();
+
+  // National level TESCON Coordinator is a National Directorate officer, NOT Regional TESCON
+  if (
+    (lvl === "national" || pos.includes("national tescon")) &&
+    !pos.includes("regional") &&
+    !ps.includes("regional")
+  ) {
+    return false;
+  }
 
   // Regional level never has TESCON officers in the electoral college
   if ((lvl === "region" || lvl === "regional") && /tescon/i.test(pos)) {
@@ -748,6 +776,9 @@ export function normalizeCanonicalPosition(pos: string | null, level: string | n
   if (s.includes("external relations")) {
     return "External Relations Officer";
   }
+  if ((lvl === "national" || s.includes("national tescon")) && s.includes("tescon") && !s.includes("regional")) {
+    return s.includes("deputy") ? "Deputy National TESCON Coordinator" : "National TESCON Coordinator";
+  }
 
   // 4. Campus Institutions (TESCON)
   // Evaluated before general wings so TESCON Nasara, WOCOM, and Presidents are strictly distinguished
@@ -881,6 +912,7 @@ export function getCanonicalPositionsForSelection(selected: string[]): {
     deputy_comm_director: ["Deputy Communication Director"],
     external_relations_officer: ["External Relations Officer"],
     deputy_external_relations_officer: ["Deputy External Relations Officer"],
+    national_tescon_coordinator: ["National TESCON Coordinator", "Deputy National TESCON Coordinator", "TESCON Coordinator"],
     former_president: ["Former President"],
     flagbearer_vp: ["Current Flagbearer / Former Vice President"],
     former_running_mate: ["Former Running Mate"],

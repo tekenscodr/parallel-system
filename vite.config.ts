@@ -52,6 +52,12 @@ export default defineConfig(async () => {
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
       : undefined,
+    optimizeDeps: {
+      exclude: ["sharp"],
+    },
+    ssr: {
+      external: ["sharp"],
+    },
     plugins: [
       vinext(),
       sites(),

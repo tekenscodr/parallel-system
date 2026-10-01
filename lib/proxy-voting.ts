@@ -588,3 +588,15 @@ export async function removeProxyAssignment(
     return mapProxyRow(deleted[0]);
   });
 }
+
+export async function removeAllProxyAssignments(): Promise<number> {
+  await ensureProxyAssignmentsTableExists();
+  return withEcSql(async (sql) => {
+    const deleted = await sql`
+      DELETE FROM proxy_voter_assignments
+      RETURNING id
+    `;
+    return deleted.length;
+  });
+}
+

@@ -16,7 +16,7 @@ function extractClientIp(req: NextRequest): string {
   return "127.0.0.1";
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   // Legacy album links must pass through authentication even if a generator
   // accidentally recreates a file in public/exports.
@@ -94,6 +94,9 @@ export function middleware(req: NextRequest) {
   response.headers.set("X-Content-Type-Options", "nosniff");
   return response;
 }
+
+export default proxy;
+export const middleware = proxy;
 
 export const config = {
   matcher: ["/api/admin/:path*", "/admin/:path*", "/exports/:path*", "/cdn/cache/webp/:path*"],

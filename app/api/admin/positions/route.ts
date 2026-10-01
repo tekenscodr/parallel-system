@@ -62,6 +62,8 @@ const BASELINE_POSITIONS: Record<string, string[]> = {
     "Deputy Director of Protocol",
     "Chairman of The Legal Committee",
     "Director of Legal Affairs",
+    "National TESCON Coordinator",
+    "Deputy National TESCON Coordinator",
     "National Council Representative",
     "Former National Chairman",
     "Past National Chairman",

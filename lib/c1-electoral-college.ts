@@ -19,7 +19,7 @@ export function getC1SqlCondition(sql: postgres.Sql) {
     AND (
       (
         LOWER(TRIM(executive_level)) IN ('national', 'region', 'regional', 'constituency', 'external branch')
-        AND position NOT ILIKE '%tescon%'
+        AND (LOWER(TRIM(executive_level)) = 'national' OR position NOT ILIKE '%tescon%')
       )
       OR (
         LOWER(TRIM(executive_level)) = 'tescon'
@@ -55,6 +55,10 @@ function isRegionalTescon(r: CandidateDelegate | null | undefined): boolean {
   const pos = String(r.position || "").trim().toLowerCase();
   const ps = String((r as any).polling_station || "").trim().toLowerCase();
   const lvl = String(r.executive_level || "").trim().toLowerCase();
+
+  if ((lvl === "national" || pos.includes("national tescon")) && !pos.includes("regional") && !ps.includes("regional")) {
+    return false;
+  }
 
   if ((lvl === "region" || lvl === "regional") && /tescon/i.test(pos)) return true;
   if (

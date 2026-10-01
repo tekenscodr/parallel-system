@@ -50,6 +50,10 @@ const POSITION_TO_SHORT_CODE: Record<string, string> = {
   "Nasara Organiser": "ng",
   "All Men": "am",
   "All Women": "aw",
+  "Proxy Voters": "px",
+  "Proxy for Youth": "py",
+  "Proxy for Women": "pw",
+  "Proxy for Nasara": "pn",
   Custom: "cu",
 };
 
@@ -101,6 +105,7 @@ const CANONICAL_POSITION_IDS = [
   "deputy_comm_director",
   "external_relations_officer",
   "deputy_external_relations_officer",
+  "national_tescon_coordinator",
   "former_president",
   "flagbearer_vp",
   "former_running_mate",
@@ -339,6 +344,7 @@ export interface AlbumVerifyParams {
   under40?: string;
   positions?: string;
   album_type?: string;
+  polling_station?: string;
 }
 
 function canonicalizeAlbumParams(params: AlbumVerifyParams): string {
@@ -371,6 +377,9 @@ function canonicalizeAlbumParams(params: AlbumVerifyParams): string {
     ["positions", fullPositions],
     ["album_type", albumTypeNorm],
   ];
+  if (params.polling_station) {
+    entries.push(["polling_station", String(params.polling_station).trim()]);
+  }
   return entries.map(([k, v]) => `${k}=${v}`).join("&");
 }
 
@@ -438,6 +447,9 @@ export function buildAlbumVerificationUrl(
   }
   if (params.album_type && params.album_type !== "final") {
     search.set("t", params.album_type === "provisional" ? "p" : params.album_type);
+  }
+  if (params.polling_station) {
+    search.set("st", params.polling_station);
   }
   if (pageOptions?.page !== undefined && pageOptions.page > 1) {
     search.set("pg", String(pageOptions.page));

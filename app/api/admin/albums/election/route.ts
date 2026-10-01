@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
-import sharp from "sharp";
+import { execSync } from "child_process";
+import { getSafeSharp } from "@/lib/safe-sharp";
 import ExcelJS from "exceljs";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
@@ -31,12 +32,19 @@ import {
   verifyAlbumVerificationSignature,
   type AlbumVerifyParams,
 } from "@/lib/album-verification";
+import {
+  getPollingStationGrouping,
+  doesConstituencyMatchSplitGrouping,
+  getPollingStationConstituencyOrder,
+  type PollingStationGrouping,
+} from "@/lib/polling-stations";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 let _cachedRawRows: any[] | null = null;
 let _cachedRawRowsTime = 0;
+let _cachedProxyRows: any[] | null = null;
 
 import {
   CONTEST_LIST,
@@ -69,10 +77,22 @@ const ahafoPhotosByName = new Map<string, string>();
 const syncPhotoUrlByVoterId = new Map<string, string>();
 const wocomPhotoUrlById = new Map<number, string>();
 
-// Local disk photo index: voter_id -> full file path, and filename -> full file path
+// Local disk photo index: voter_id -> full file path, exec_id -> full file path, name -> full file path, and filename -> full file path
 const localPhotosByVoterId = new Map<string, string>();
+const localPhotosByExecId = new Map<number, string>();
+const localPhotosByName = new Map<string, string>();
 const localPhotosByFilename = new Map<string, string>();
 const base64PhotoCache = new Map<string, string>();
+
+function normalizeNameForPhotoMatch(name: string): string {
+  return String(name || "")
+    .trim()
+    .toUpperCase()
+    .replace(/^(MR|MRS|MS|HON|DR|ALHAJI|HAJIA|MADAM)\.?\s+/i, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function extractVoterIdDigits(text: string): string | null {
   const m = text.match(/(?:^|[^0-9])(\d{8,10})(?:[^0-9]|$)/);
@@ -91,6 +111,14 @@ function indexLocalPhotos(dir: string) {
         const ext = path.extname(entry.name);
         const base = path.basename(entry.name, ext);
         localPhotosByFilename.set(entry.name.toLowerCase(), fullPath);
+
+        // 1. Executive ID (e.g. wocom-262076-owusu-sandra.jpg or 262076_...)
+        const idMatch = base.match(/^wocom-(\d+)/i) || base.match(/^(\d{5,7})[_-]/);
+        if (idMatch) {
+          localPhotosByExecId.set(Number(idMatch[1]), fullPath);
+        }
+
+        // 2. Voter ID (8-10 digits)
         const digits = extractVoterIdDigits(base);
         if (digits) {
           localPhotosByVoterId.set(digits, fullPath);
@@ -98,6 +126,20 @@ function indexLocalPhotos(dir: string) {
           if (digits.length < 10) {
             localPhotosByVoterId.set(digits.padStart(10, "0"), fullPath);
           }
+        }
+
+        // 3. Name matching (e.g. 008_VANESSA_ASAMOAH_NYARKO_page2 or wocom-262076-owusu-sandra)
+        const cleanNamePart = base
+          .replace(/^wocom-\d+-?/i, "")
+          .replace(/^\d+_/i, "")
+          .replace(/_page\d+$/i, "")
+          .replace(/_GHA_.*$/i, "")
+          .replace(/_\d{8,10}$/i, "")
+          .replace(/[_-]+/g, " ")
+          .trim();
+        const normBaseName = normalizeNameForPhotoMatch(cleanNamePart);
+        if (normBaseName.length > 5) {
+          localPhotosByName.set(normBaseName, fullPath);
         }
       }
     }
@@ -385,15 +427,20 @@ async function getLogoWebpDataUri(): Promise<string> {
     const filePath = fs.existsSync(logoPath) ? logoPath : fs.existsSync(altLogoPath) ? altLogoPath : null;
     if (filePath) {
       const rawBuf = fs.readFileSync(filePath);
-      const webpBuf = await sharp(rawBuf)
-        .resize(240, 240, {
-          fit: "inside",
-          withoutEnlargement: true,
-          background: { r: 255, g: 255, b: 255, alpha: 0 },
-        })
-        .webp({ quality: 95, alphaQuality: 100 })
-        .toBuffer();
-      LOGO_WEBP_DATA_URI = "data:image/webp;base64," + webpBuf.toString("base64");
+      const sharp = await getSafeSharp();
+      if (sharp) {
+        const webpBuf = await sharp(rawBuf)
+          .resize(240, 240, {
+            fit: "inside",
+            withoutEnlargement: true,
+            background: { r: 255, g: 255, b: 255, alpha: 0 },
+          })
+          .webp({ quality: 95, alphaQuality: 100 })
+          .toBuffer();
+        LOGO_WEBP_DATA_URI = "data:image/webp;base64," + webpBuf.toString("base64");
+      } else {
+        LOGO_WEBP_DATA_URI = "data:image/png;base64," + rawBuf.toString("base64");
+      }
     }
   } catch {
     // fallback if file read or conversion fails
@@ -430,15 +477,20 @@ async function getElephantSealDataUri(): Promise<string> {
     const filePath = candidatePaths.find((p) => fs.existsSync(p));
     if (filePath) {
       const rawBuf = fs.readFileSync(filePath);
-      const pngBuf = await sharp(rawBuf)
-        .resize(160, 160, {
-          fit: "inside",
-          withoutEnlargement: true,
-          background: { r: 255, g: 255, b: 255, alpha: 0 },
-        })
-        .png({ quality: 95 })
-        .toBuffer();
-      ELEPHANT_SEAL_DATA_URI = "data:image/png;base64," + pngBuf.toString("base64");
+      const sharp = await getSafeSharp();
+      if (sharp) {
+        const pngBuf = await sharp(rawBuf)
+          .resize(160, 160, {
+            fit: "inside",
+            withoutEnlargement: true,
+            background: { r: 255, g: 255, b: 255, alpha: 0 },
+          })
+          .png({ quality: 95 })
+          .toBuffer();
+        ELEPHANT_SEAL_DATA_URI = "data:image/png;base64," + pngBuf.toString("base64");
+      } else {
+        ELEPHANT_SEAL_DATA_URI = "data:image/png;base64," + rawBuf.toString("base64");
+      }
     }
   } catch {
     return getElephantSealDataUriSync();
@@ -587,14 +639,22 @@ async function resolveLocalPhotoAsWebpDataUri(localPath: string): Promise<string
       return dataUri;
     } else {
       const buf = await fs.promises.readFile(localPath);
-      const webpBuf = await sharp(buf)
-        .rotate()
-        .resize(240, 300, { fit: "cover", position: "top" })
-        .webp({ quality: 80, effort: 4 })
-        .toBuffer();
-      const dataUri = "data:image/webp;base64," + webpBuf.toString("base64");
-      base64PhotoCache.set(localPath, dataUri);
-      return dataUri;
+      const sharp = await getSafeSharp();
+      if (sharp) {
+        const webpBuf = await sharp(buf)
+          .rotate()
+          .resize(240, 300, { fit: "cover", position: "top" })
+          .webp({ quality: 80, effort: 4 })
+          .toBuffer();
+        const dataUri = "data:image/webp;base64," + webpBuf.toString("base64");
+        base64PhotoCache.set(localPath, dataUri);
+        return dataUri;
+      } else {
+        const mime = ext === ".png" ? "image/png" : "image/jpeg";
+        const dataUri = `data:${mime};base64,` + buf.toString("base64");
+        base64PhotoCache.set(localPath, dataUri);
+        return dataUri;
+      }
     }
   } catch {
     return null;
@@ -633,7 +693,14 @@ async function resolveDelegateWebpImage(
     return imageUrl;
   }
 
-  // 3. Local disk lookup by Voter ID (e.g. public/cdn/executives/volta/<voter_id>.webp or outputs/wocom_2026/portraits)
+  // 3. Local disk lookup by Executive ID (e.g. wocom-262076-owusu-sandra.jpg)
+  if (execId && localPhotosByExecId.has(Number(execId))) {
+    const localPath = localPhotosByExecId.get(Number(execId))!;
+    const dataUri = await resolveLocalPhotoAsWebpDataUri(localPath);
+    if (dataUri) return dataUri;
+  }
+
+  // 3b. Local disk lookup by Voter ID (e.g. public/cdn/executives/volta/<voter_id>.webp or outputs/wocom_2026/portraits)
   if (cleanVoterId) {
     const localPath =
       localPhotosByVoterId.get(cleanVoterId) ||
@@ -644,11 +711,21 @@ async function resolveDelegateWebpImage(
     }
   }
 
-  // 3b. WOCOM manifest lookup by executive ID
+  // 3c. Local disk lookup by Executive Name (e.g. 008_VANESSA_ASAMOAH_NYARKO_page2.jpg)
+  if (name) {
+    const normName = normalizeNameForPhotoMatch(name);
+    const localPath = localPhotosByName.get(normName);
+    if (localPath) {
+      const dataUri = await resolveLocalPhotoAsWebpDataUri(localPath);
+      if (dataUri) return dataUri;
+    }
+  }
+
+  // 3d. WOCOM manifest lookup by executive ID
   if (execId && wocomPhotoUrlById.has(Number(execId))) {
     const wocomUrl = wocomPhotoUrlById.get(Number(execId))!;
     try {
-      const buffer = await resolveAlbumImage(wocomUrl);
+      const buffer = await resolveAlbumImage(wocomUrl, 240, 300, 80, { voterId: cleanVoterId, execId, name });
       if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
     } catch {
       // continue
@@ -701,7 +778,7 @@ async function resolveDelegateWebpImage(
     // Local file portrait (e.g. in public/ directory)
     if (!/^https?:\/\//i.test(cleanUrl)) {
       try {
-        const buffer = await resolveAlbumImage(cleanUrl);
+        const buffer = await resolveAlbumImage(cleanUrl, 240, 300, 80, { voterId: cleanVoterId, execId, name });
         if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
       } catch {
         // ignore local file read failure
@@ -712,7 +789,7 @@ async function resolveDelegateWebpImage(
     // Skip unreachable legacy domain unless resolveAlbumImage can recover it via voter ID
     if (/app\.newpatrioticparty\.org/i.test(cleanUrl)) {
       try {
-        const buffer = await resolveAlbumImage(cleanUrl);
+        const buffer = await resolveAlbumImage(cleanUrl, 240, 300, 80, { voterId: cleanVoterId, execId, name });
         if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
       } catch {
         // ignore
@@ -722,7 +799,7 @@ async function resolveDelegateWebpImage(
 
     // Resolve remote URL through resolveAlbumImage
     try {
-      const buffer = await resolveAlbumImage(cleanUrl);
+      const buffer = await resolveAlbumImage(cleanUrl, 240, 300, 80, { voterId: cleanVoterId, execId, name });
       if (buffer) return "data:image/webp;base64," + buffer.toString("base64");
     } catch {
       // ignore
@@ -763,20 +840,35 @@ async function convertDelegatesImagesToWebp(delegates: any[]): Promise<void> {
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const rawPositionParam = searchParams.get("position") || searchParams.get("p");
+  const rawPositionParam =
+    searchParams.get("position") ||
+    searchParams.get("contest") ||
+    searchParams.get("p");
   const positionQuery = expandShortPositionCode((rawPositionParam || "Youth Organisers & Deputies").trim());
   const positionsParam = expandShortPositionsCode((searchParams.get("positions") || searchParams.get("ps") || "").trim());
   const excludedPositionsParam = (searchParams.get("excluded_positions") || searchParams.get("exclude_positions") || "").trim();
   const regionQuery = expandShortRegionCode((searchParams.get("region") || searchParams.get("r") || "all").trim());
   const regionsParam = expandShortRegionCode((searchParams.get("regions") || searchParams.get("region") || searchParams.get("r") || "all").trim());
+  const pollingStationParam = (
+    searchParams.get("polling_station") ||
+    searchParams.get("ps_group") ||
+    searchParams.get("station") ||
+    searchParams.get("st") ||
+    ""
+  ).trim();
+  const activePollingStation = getPollingStationGrouping(pollingStationParam);
+
   const rawRegionsList =
     regionsParam.toLowerCase() !== "all" && regionsParam !== ""
       ? regionsParam.split(",").map((s) => s.trim()).filter(Boolean)
+      : activePollingStation
+      ? [...activePollingStation.regions]
       : [];
   const isAllRegions =
-    rawRegionsList.length === 0 ||
-    rawRegionsList.length >= 18 ||
-    rawRegionsList.some((r) => r.toLowerCase() === "all");
+    !activePollingStation &&
+    (rawRegionsList.length === 0 ||
+      rawRegionsList.length >= 18 ||
+      rawRegionsList.some((r) => r.toLowerCase() === "all"));
   const constituencyQuery = (searchParams.get("constituency") || searchParams.get("c") || "").trim();
   const constituenciesParam = (searchParams.get("constituencies") || searchParams.get("constituency") || searchParams.get("c") || "").trim();
   const rawConstituenciesList =
@@ -812,6 +904,7 @@ export async function GET(req: NextRequest) {
     under40: (searchParams.get("under40") || searchParams.get("u") || "").trim(),
     positions: positionsParam,
     album_type: albumType,
+    polling_station: activePollingStation ? activePollingStation.id : (pollingStationParam || undefined),
   };
 
   const hasValidVerifySig =
@@ -854,6 +947,9 @@ export async function GET(req: NextRequest) {
   const under40Query = (searchParams.get("under40") || searchParams.get("cohort") || searchParams.get("age") || "").trim().toLowerCase();
   const filterUnder40 = under40Query === "true" || under40Query === "1" || under40Query === "under_40" || under40Query === "youth";
 
+  const proxyQuery = (searchParams.get("proxy") || "").trim().toLowerCase();
+  const filterProxy = proxyQuery === "true" || proxyQuery === "1" || proxyQuery === "only" || proxyQuery === "proxy";
+
   const levelsParam = (searchParams.get("levels") || searchParams.get("level") || "all").trim();
   const selectedLevels =
     levelsParam.toLowerCase() !== "all" && levelsParam !== ""
@@ -879,7 +975,7 @@ export async function GET(req: NextRequest) {
 
   const isNamedContest = CONTEST_LIST.some(
     (c) => c !== "Custom" && c.toLowerCase() === normalizedPositionQuery
-  ) || /youth|women|nasara|men|chairperson|general|organiser|treasurer|secretary|communication/i.test(normalizedPositionQuery);
+  ) || /youth|women|nasara|men|proxy|chairperson|general|organiser|treasurer|secretary|communication/i.test(normalizedPositionQuery);
 
   const isCustomContest =
     normalizedPositionQuery === "custom" ||
@@ -902,6 +998,14 @@ export async function GET(req: NextRequest) {
   let matchedContest: ContestType = "Youth Organisers & Deputies";
   if (isCustomContest) {
     matchedContest = "Custom";
+  } else if (/proxy.*youth|youth.*proxy/i.test(normalizedPositionQuery)) {
+    matchedContest = "Proxy for Youth";
+  } else if (/proxy.*women|women.*proxy/i.test(normalizedPositionQuery)) {
+    matchedContest = "Proxy for Women";
+  } else if (/proxy.*nasara|nasara.*proxy/i.test(normalizedPositionQuery)) {
+    matchedContest = "Proxy for Nasara";
+  } else if (/^proxy|proxy\s*voters?/i.test(normalizedPositionQuery)) {
+    matchedContest = "Proxy Voters";
   } else if (/^all\s+men|^men\b|^male\b/i.test(normalizedPositionQuery)) {
     matchedContest = "All Men";
   } else if (/^all\s+women/i.test(normalizedPositionQuery)) {
@@ -932,8 +1036,29 @@ export async function GET(req: NextRequest) {
       "Youth Organisers & Deputies";
   }
 
+  const isProxyContest =
+    matchedContest === "Proxy Voters" ||
+    matchedContest === "Proxy for Youth" ||
+    matchedContest === "Proxy for Women" ||
+    matchedContest === "Proxy for Nasara" ||
+    filterProxy;
+
   let effectiveContestName: string = matchedContest;
-  if (matchedContest === "All Men") {
+  if (matchedContest === "Proxy Voters") {
+    effectiveContestName = "Assigned Proxy Voters Roll";
+  } else if (matchedContest === "Proxy for Youth") {
+    effectiveContestName =
+      scopeQuery === "organisers_only"
+        ? "Proxy Voters Roll · Youth Organisers & Deputies"
+        : "Proxy Voters Roll · Youth Electorate";
+  } else if (matchedContest === "Proxy for Women") {
+    effectiveContestName =
+      scopeQuery === "organisers_only"
+        ? "Proxy Voters Roll · Women Organisers & Deputies"
+        : "Proxy Voters Roll · Women Electorate";
+  } else if (matchedContest === "Proxy for Nasara") {
+    effectiveContestName = "Proxy Voters Roll · Nasara Coordinators & Deputies";
+  } else if (matchedContest === "All Men") {
     effectiveContestName = "National Electoral College · All Men";
   } else if (matchedContest === "All Women") {
     effectiveContestName = "National Electoral College · All Women";
@@ -994,7 +1119,7 @@ export async function GET(req: NextRequest) {
 
   if (filterGender === "male" && !/all men|male/i.test(effectiveContestName)) {
     effectiveContestName = `${effectiveContestName} (All Men)`;
-  } else if (filterGender === "female" && !/all women|female|women organiser/i.test(effectiveContestName)) {
+  } else if (filterGender === "female" && !/all women|female|women/i.test(effectiveContestName)) {
     effectiveContestName = `${effectiveContestName} (All Women)`;
   }
 
@@ -1002,8 +1127,16 @@ export async function GET(req: NextRequest) {
     effectiveContestName = `${effectiveContestName} (Under 40)`;
   }
 
+  if (filterProxy && !/proxy/i.test(effectiveContestName)) {
+    effectiveContestName = `${effectiveContestName} (Proxy Voters)`;
+  }
+
   const isWingOrganisers =
     !isCustomContest &&
+    matchedContest !== "Proxy Voters" &&
+    matchedContest !== "Proxy for Youth" &&
+    matchedContest !== "Proxy for Women" &&
+    matchedContest !== "Proxy for Nasara" &&
     matchedContest !== "All Men" &&
     matchedContest !== "All Women" &&
     matchedContest !== "Women Organiser" &&
@@ -1017,8 +1150,10 @@ export async function GET(req: NextRequest) {
     // 1. Fetch certified pool (with short in-memory cache to support rapid batch generation)
     const now = Date.now();
     let rawRows: any[];
-    if (_cachedRawRows && now - _cachedRawRowsTime < 5_000) {
+    let proxyRows: any[];
+    if (_cachedRawRows && _cachedProxyRows && now - _cachedRawRowsTime < 5_000) {
       rawRows = _cachedRawRows;
+      proxyRows = _cachedProxyRows;
     } else {
       rawRows = await sql`
         SELECT
@@ -1039,8 +1174,43 @@ export async function GET(req: NextRequest) {
         WHERE lower(trim(executive_level)) IN ('national', 'region', 'regional', 'constituency', 'tescon', 'external branch')
         ORDER BY id
       `;
+      proxyRows = await sql`
+        SELECT
+          id AS proxy_assignment_id,
+          principal_executive_id,
+          principal_name,
+          principal_voter_id,
+          principal_phone,
+          principal_position,
+          principal_level,
+          principal_region,
+          principal_constituency,
+          proxy_executive_id,
+          proxy_name,
+          proxy_voter_id,
+          proxy_phone,
+          proxy_position,
+          proxy_level,
+          proxy_region,
+          proxy_constituency
+        FROM proxy_voter_assignments
+        ORDER BY id
+      `;
       _cachedRawRows = rawRows;
+      _cachedProxyRows = proxyRows;
       _cachedRawRowsTime = now;
+    }
+
+    const rawRowById = new Map<number, any>();
+    for (const r of rawRows) {
+      if (r.id != null) rawRowById.set(Number(r.id), r);
+    }
+
+    const proxyByPrincipalId = new Map<number, any>();
+    for (const p of proxyRows) {
+      if (p.principal_executive_id != null) {
+        proxyByPrincipalId.set(Number(p.principal_executive_id), p);
+      }
     }
 
     // 2. Filter valid (non-vacant)
@@ -1098,6 +1268,58 @@ export async function GET(req: NextRequest) {
         return isDelegateInPositionSelection(r, canonPos, posLower, lvl);
       };
 
+      // Universal Proxy Filter (when proxy=true or any Proxy contest is selected)
+      if (isProxyContest && !proxyByPrincipalId.has(Number(r.id))) {
+        return false;
+      }
+
+      if (matchedContest === "Proxy Voters") {
+        if (filterGender && g !== filterGender) {
+          return false;
+        }
+        if (filterUnder40 && !isUnder40AsOfCutoff(r.date_of_birth, r.age)) {
+          return false;
+        }
+        return checkPositionConstraint();
+      }
+
+      if (matchedContest === "Proxy for Youth") {
+        if (filterGender && g !== filterGender) return false;
+        if (posLower.includes("former") || posLower.includes("patron")) return false;
+        if (scopeQuery === "organisers_only") {
+          const isYouthPortfolio =
+            posLower.includes("youth") ||
+            (lvl === "national" && posLower.includes("tescon")) ||
+            lvl === "tescon";
+          return isYouthPortfolio && checkPositionConstraint();
+        }
+        const isYouthEligible =
+          posLower.includes("youth") ||
+          (lvl === "national" && posLower.includes("tescon")) ||
+          lvl === "tescon" ||
+          isUnder40AsOfCutoff(r.date_of_birth, r.age);
+        return isYouthEligible && checkPositionConstraint();
+      }
+
+      if (matchedContest === "Proxy for Women") {
+        if (posLower.includes("patron")) return false;
+        if (scopeQuery === "organisers_only") {
+          const isWomenPortfolio = /women|wocom/i.test(posLower);
+          return isWomenPortfolio && checkPositionConstraint();
+        }
+        const isFemaleElectorate = g === "female" || /women|wocom/i.test(posLower);
+        return isFemaleElectorate && checkPositionConstraint();
+      }
+
+      if (matchedContest === "Proxy for Nasara") {
+        if (filterGender && g !== filterGender) return false;
+        const isNasaraPortfolio =
+          posLower.includes("nasara") &&
+          !posLower.includes("former") &&
+          !posLower.includes("patron");
+        return isNasaraPortfolio && checkPositionConstraint();
+      }
+
       // Rule: Regional TESCON / Regional TESCON Coordinator is NOT part of the Electoral College
       if (isRegionalTescon(r)) {
         return false;
@@ -1151,13 +1373,14 @@ export async function GET(req: NextRequest) {
             return checkPositionConstraint();
           }
 
-          // Core & External Levels: Youth Organisers and Deputies
+          // Core & External Levels: Youth Organisers and Deputies (plus National TESCON Coordinator)
           const matches =
             (posLower.includes("youth organiser") ||
               posLower.includes("youth organizer") ||
               posLower === "youth" ||
               posLower.includes("deputy youth") ||
-              posLower.includes("assistant youth")) &&
+              posLower.includes("assistant youth") ||
+              (lvl === "national" && posLower.includes("tescon"))) &&
             !posLower.includes("former") &&
             !posLower.includes("patron");
           return matches && checkPositionConstraint();
@@ -1165,6 +1388,9 @@ export async function GET(req: NextRequest) {
 
         if (matchedContest === "Women Organisers & Deputies") {
           if (g !== "female") return false;
+          if (getRegionalSectionRank(r) === 4) {
+            return !(excludedResolved && excludedResolved.canonicalSet.has("Member of Parliament"));
+          }
           if (
             ["national", "region", "regional", "constituency"].includes(lvl) ||
             rawLvl === "external branch" ||
@@ -1217,7 +1443,9 @@ export async function GET(req: NextRequest) {
       if (matchedContest === "National Directors") {
         const isDirector =
           /director|relations officer|legal committee/i.test(pos) ||
-          /director|relations officer|legal committee/i.test(canonPos);
+          /director|relations officer|legal committee/i.test(canonPos) ||
+          (lvl === "national" && /tescon/i.test(pos)) ||
+          /national tescon/i.test(canonPos);
         return isDirector && checkPositionConstraint();
       }
 
@@ -1252,8 +1480,8 @@ export async function GET(req: NextRequest) {
         if (isCoreOrExt) {
           // Former officers are excluded
           if (posLower.includes("former")) return false;
-          // Youth organisers & deputies vote ex-officio (regardless of age)
-          if (/youth/i.test(posLower)) return checkPositionConstraint();
+          // Youth organisers & deputies (and National TESCON Coordinator) vote ex-officio (regardless of age)
+          if (/youth/i.test(posLower) || (lvl === "national" && /tescon/i.test(posLower))) return checkPositionConstraint();
           // Anyone under 40 (all those who were not 40 as at 21st August 2026)
           if (isUnder40AsOfCutoff(r.date_of_birth, r.age)) return checkPositionConstraint();
         }
@@ -1293,6 +1521,11 @@ export async function GET(req: NextRequest) {
         // For women organiser position we strictly only want all females across the electoral college
         if (g !== "female") {
           return false;
+        }
+
+        // Female Members of Parliament (MPs) are always included in their respective regions unless explicitly excluded
+        if (getRegionalSectionRank(r) === 4) {
+          return !(excludedResolved && excludedResolved.canonicalSet.has("Member of Parliament"));
         }
 
         // All females in National, Regional, Constituency, and External Branch levels
@@ -1368,21 +1601,109 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Optional Region / Multi-Region & Jurisdiction Filter
-      if (!isAllRegions && rawRegionsList.length > 0) {
-        const rowRegion = String(r.region || "").toLowerCase().trim();
-        const isRowExternal = rawLvl.includes("external") || rowRegion.includes("external");
-        const isRowNational = rawLvl === "national" || rowRegion.includes("national");
+      // Optional Polling Station Grouping Filter (Split Regions, Merged Regions, Wing Polling Stations)
+      const proxyAssigned = proxyByPrincipalId.get(Number(r.id));
+      const rowLvl = (isProxyContest && proxyAssigned?.proxy_level)
+        ? String(proxyAssigned.proxy_level).toLowerCase().trim()
+        : String(r.executive_level || "").toLowerCase().trim();
+      const rowReg = (isProxyContest && proxyAssigned?.proxy_region)
+        ? String(proxyAssigned.proxy_region).toLowerCase().trim()
+        : String(r.region || "").toLowerCase().trim();
+      const rowCon = (isProxyContest && proxyAssigned?.proxy_constituency)
+        ? String(proxyAssigned.proxy_constituency).trim()
+        : String(r.constituency || "").trim();
+      const isRowExternal = (isProxyContest && proxyAssigned?.proxy_region)
+        ? rowReg.includes("external")
+        : (rawLvl.includes("external") || rowReg.includes("external"));
+      const isRowNational = (isProxyContest && proxyAssigned?.proxy_region)
+        ? (rowReg.includes("national") || rowLvl === "national")
+        : (rawLvl === "national" || rowReg.includes("national"));
 
+      if (activePollingStation) {
+        // 1. National officers
+        if (isRowNational) {
+          if (!activePollingStation.includeNationalOfficers) {
+            return false;
+          }
+        }
+
+        // 2. External Branches
+        if (isRowExternal) {
+          if (!activePollingStation.includeExternalBranches && activePollingStation.splitRegion !== "External Branch") {
+            return false;
+          }
+          if (activePollingStation.splitRegion === "External Branch") {
+            if (!doesConstituencyMatchSplitGrouping(activePollingStation, rowCon)) {
+              return false;
+            }
+          }
+        }
+
+        // 3. Station Region Match
+        if (!isRowNational && !isRowExternal) {
+          const inStationRegions = activePollingStation.regions.some(
+            (reg) => reg.toLowerCase().trim() === rowReg
+          );
+          if (!inStationRegions) {
+            return false;
+          }
+        }
+
+        // 4. Split Region Handling (e.g. Ashanti A/B/C, Central A/B, Eastern A/B, Greater Accra A/B, Northern A/B)
+        if (
+          activePollingStation.splitRegion &&
+          rowReg === activePollingStation.splitRegion.toLowerCase().trim() &&
+          !isRowNational
+        ) {
+          if (isProxyContest) {
+            if (rowCon) {
+              if (!doesConstituencyMatchSplitGrouping(activePollingStation, rowCon)) {
+                return false;
+              }
+            } else {
+              if (!activePollingStation.isCatchAllSplit && !activePollingStation.includeRegionalLeadership) {
+                return false;
+              }
+            }
+          } else {
+            const rank = getRegionalSectionRank(r);
+            // Regional leadership (ranks 1, 2, 3)
+            if (rank === 1 || rank === 2 || rank === 3) {
+              if (!activePollingStation.includeRegionalLeadership) {
+                return false;
+              }
+            }
+            // Constituency level (rank 5)
+            if (rank === 5 || rowLvl === "constituency") {
+              if (!doesConstituencyMatchSplitGrouping(activePollingStation, rowCon)) {
+                return false;
+              }
+            }
+            // TESCON
+            if (rowLvl === "tescon") {
+              if (rowCon && !doesConstituencyMatchSplitGrouping(activePollingStation, rowCon)) {
+                return false;
+              }
+            }
+          }
+        }
+      } else if (!isAllRegions && rawRegionsList.length > 0) {
         const matchesRegion = rawRegionsList.some((target) => {
           const tLower = target.toLowerCase().trim();
           if (tLower === "external branch" || tLower === "external" || tLower === "diaspora") {
             return isRowExternal;
           }
           if (tLower === "national headquarters" || tLower === "national" || tLower === "hq") {
-            return isRowNational && (!rowRegion || rowRegion === "national" || rowRegion === "hq" || !GHANA_REGIONS_ORDER.map(g => g.toLowerCase()).includes(rowRegion));
+            return (
+              isRowNational &&
+              (!rowReg ||
+                rowReg === "national" ||
+                rowReg === "hq" ||
+                getNationalSectionInfo(r).rank <= 5 ||
+                !GHANA_REGIONS_ORDER.map((g) => g.toLowerCase()).includes(rowReg))
+            );
           }
-          if (!isRowExternal && rowRegion === tLower) {
+          if (!isRowExternal && rowReg === tLower) {
             return true;
           }
           return false;
@@ -1392,18 +1713,15 @@ export async function GET(req: NextRequest) {
           return false;
         }
       } else if (regionQuery !== "all" && regionQuery !== "") {
-        const rowRegion = String(r.region || "").toLowerCase().trim();
         const isQueryExternal = regionQuery.toLowerCase().includes("external");
         const isQueryNational = regionQuery.toLowerCase().includes("national") || regionQuery.toLowerCase() === "hq";
-        const isRowExternal = rawLvl.includes("external") || rowRegion.includes("external");
-        const isRowNational = rawLvl === "national" || rowRegion.includes("national");
 
         if (isQueryExternal) {
           if (!isRowExternal) return false;
         } else if (isQueryNational) {
           if (!isRowNational) return false;
         } else {
-          if (isRowExternal || rowRegion !== regionQuery.toLowerCase()) {
+          if (isRowExternal || rowReg !== regionQuery.toLowerCase()) {
             return false;
           }
         }
@@ -1411,7 +1729,6 @@ export async function GET(req: NextRequest) {
 
       // Optional Constituency / Multi-Constituency Filter
       if (rawConstituenciesList.length > 0) {
-        const rowCon = String(r.constituency || "").trim();
         if (!rowCon) return false;
         const normRowCon = normalizeConstituency(rowCon).toLowerCase().trim();
         const matchesConstituency = rawConstituenciesList.some((target) => {
@@ -1507,7 +1824,6 @@ export async function GET(req: NextRequest) {
         const conName = isExternal || lvl === "tescon" ? rawConTrimmed : (normalizeConstituency(rawConTrimmed) || rawConTrimmed);
         const age = calculateAgeIn2026(r.date_of_birth, r.age);
         const cleanVid = r.voter_id ? String(r.voter_id).trim() : "";
-        const hasVoterId = Boolean(cleanVid && cleanVid.length === 10);
         const isTescon = lvl === "tescon";
         const institution = isTescon ? getTesconInstitution(r as any) : "";
         const cleanExecName = String(r.executive_name).trim().toUpperCase();
@@ -1515,8 +1831,11 @@ export async function GET(req: NextRequest) {
         let photoUrl = r.image_url && String(r.image_url).trim().length > 5 ? r.image_url.trim() : null;
         if (!photoUrl || /app\.newpatrioticparty\.org/i.test(photoUrl)) {
           const vidNoZero = cleanVid.replace(/^0+/, "");
+          const normName = normalizeNameForPhotoMatch(cleanExecName);
           const recoveredUrl =
-            (r.id && wocomPhotoUrlById.get(Number(r.id))) ||
+            (r.id && (localPhotosByExecId.get(Number(r.id)) || wocomPhotoUrlById.get(Number(r.id)))) ||
+            (cleanVid && (localPhotosByVoterId.get(cleanVid) || localPhotosByVoterId.get(vidNoZero))) ||
+            (normName && localPhotosByName.get(normName)) ||
             (cleanVid && (validRowUrlByVoterId.get(cleanVid) || validRowUrlByVoterId.get(vidNoZero))) ||
             (cleanVid && (syncPhotoUrlByVoterId.get(cleanVid) || syncPhotoUrlByVoterId.get(vidNoZero))) ||
             (cleanVid && (ahafoPhotosByVoterId.get(cleanVid) || ahafoPhotosByVoterId.get(vidNoZero))) ||
@@ -1524,40 +1843,289 @@ export async function GET(req: NextRequest) {
             null;
           if (recoveredUrl) {
             photoUrl = recoveredUrl;
+          } else {
+            photoUrl = null;
           }
         }
 
-        const avatarSvg = generateSvgAvatar(r.executive_name, canonPos);
+        const proxyInfo = proxyByPrincipalId.get(Number(r.id));
+        const proxyExec =
+          proxyInfo?.proxy_executive_id != null
+            ? rawRowById.get(Number(proxyInfo.proxy_executive_id))
+            : null;
+        const proxyCleanVid = proxyInfo
+          ? String(proxyInfo.proxy_voter_id || proxyExec?.voter_id || "").trim()
+          : "";
+        const proxyCleanPhone = proxyInfo
+          ? String(proxyInfo.proxy_phone || proxyExec?.phone || "").trim()
+          : "";
+        const proxyCleanName = proxyInfo
+          ? String(proxyInfo.proxy_name || proxyExec?.executive_name || "").trim().toUpperCase()
+          : "";
+
+        let proxyPhotoUrl: string | null = null;
+        if (proxyExec?.image_url && String(proxyExec.image_url).trim().length > 5) {
+          proxyPhotoUrl = String(proxyExec.image_url).trim();
+        }
+        if (proxyInfo && (!proxyPhotoUrl || /app\.newpatrioticparty\.org/i.test(proxyPhotoUrl))) {
+          const pVidNoZero = proxyCleanVid.replace(/^0+/, "");
+          const pId = proxyInfo.proxy_executive_id ? Number(proxyInfo.proxy_executive_id) : null;
+          const pNormName = normalizeNameForPhotoMatch(proxyCleanName);
+          const pReg = String(proxyInfo.proxy_region || proxyExec?.region || "").trim().toLowerCase();
+          const pRecovered =
+            (pId && (localPhotosByExecId.get(pId) || wocomPhotoUrlById.get(pId))) ||
+            (proxyCleanVid && (localPhotosByVoterId.get(proxyCleanVid) || localPhotosByVoterId.get(pVidNoZero))) ||
+            (pNormName && localPhotosByName.get(pNormName)) ||
+            (proxyCleanVid && (validRowUrlByVoterId.get(proxyCleanVid) || validRowUrlByVoterId.get(pVidNoZero))) ||
+            (proxyCleanVid && (syncPhotoUrlByVoterId.get(proxyCleanVid) || syncPhotoUrlByVoterId.get(pVidNoZero))) ||
+            (proxyCleanVid && (ahafoPhotosByVoterId.get(proxyCleanVid) || ahafoPhotosByVoterId.get(pVidNoZero))) ||
+            (pReg === "ahafo" && proxyCleanName ? ahafoPhotosByName.get(proxyCleanName) : null) ||
+            null;
+          if (pRecovered) {
+            proxyPhotoUrl = pRecovered;
+          } else {
+            proxyPhotoUrl = null;
+          }
+        }
+
+        const effectivePhotoUrl = isProxyContest ? (proxyPhotoUrl || photoUrl) : (photoUrl || proxyPhotoUrl);
+        const effectiveVid = isProxyContest && proxyCleanVid ? proxyCleanVid : (cleanVid || proxyCleanVid);
+        const hasVoterId = Boolean(effectiveVid && effectiveVid.length === 10);
+        const rawPhone = r.phone && String(r.phone).trim() !== "None" ? String(r.phone).trim() : "";
+        const effectivePhone =
+          isProxyContest && proxyCleanPhone && proxyCleanPhone !== "None"
+            ? proxyCleanPhone
+            : (rawPhone || (proxyCleanPhone && proxyCleanPhone !== "None" ? proxyCleanPhone : "") || "—");
+
+        const avatarSvg = generateSvgAvatar(
+          isProxyContest && proxyCleanName ? proxyCleanName : r.executive_name,
+          canonPos
+        );
+
+        const effectiveReg = isProxyContest && proxyInfo?.proxy_region
+          ? proxyInfo.proxy_region
+          : regName;
+        const effectiveCon = isProxyContest && proxyInfo?.proxy_constituency
+          ? proxyInfo.proxy_constituency
+          : conName;
+        const effectiveLevel = isProxyContest && proxyInfo?.proxy_level
+          ? proxyInfo.proxy_level
+          : (isProxyContest ? (effectiveReg.toLowerCase().includes("external") ? "External Branch" : "Constituency") : levelGroup);
 
         return {
           id: r.id,
           executive_name: cleanExecName,
           position: r.position,
           canonical_position: canonPos,
-          executive_level: levelGroup,
-          region: regName,
-          constituency: conName,
+          executive_level: effectiveLevel,
+          region: effectiveReg,
+          constituency: effectiveCon,
           institution,
           polling_station: r.polling_station ? String(r.polling_station).trim() : "",
-          voter_id: cleanVid || "—",
+          voter_id: effectiveVid || "—",
           has_voter_id: hasVoterId,
-          phone: r.phone && String(r.phone).trim() !== "None" ? String(r.phone).trim() : "—",
+          phone: effectivePhone,
           gender: r.gender ? String(r.gender).trim() : "Unknown",
           age,
           date_of_birth: r.date_of_birth ? String(r.date_of_birth).trim() : null,
           is_under_40: isUnder40AsOfCutoff(r.date_of_birth, r.age),
-          image_url: photoUrl,
-          webp_image_url: photoUrl
-            ? photoUrl.startsWith("data:image/")
-              ? photoUrl
-              : `/api/admin/albums/image?url=${encodeURIComponent(photoUrl)}&w=240&h=300`
+          image_url: effectivePhotoUrl,
+          webp_image_url: effectivePhotoUrl
+            ? effectivePhotoUrl.startsWith("data:image/")
+              ? effectivePhotoUrl
+              : `/api/admin/albums/image?url=${encodeURIComponent(effectivePhotoUrl)}&vid=${encodeURIComponent(effectiveVid || "")}&id=${r.id || ""}&name=${encodeURIComponent(cleanExecName)}&w=240&h=300`
             : null,
           avatar_svg: avatarSvg,
           level_rank: levelRank,
           position_rank: posRank,
+          is_proxy_record: Boolean(proxyInfo),
+          principal_name: cleanExecName,
+          principal_voter_id: cleanVid || "—",
+          principal_phone: rawPhone || "—",
+          proxy_executive_id: proxyInfo?.proxy_executive_id ? Number(proxyInfo.proxy_executive_id) : null,
+          proxy_name: proxyCleanName || null,
+          proxy_voter_id: proxyCleanVid || null,
+          proxy_phone: proxyCleanPhone && proxyCleanPhone !== "None" ? proxyCleanPhone : null,
+          proxy_position: proxyInfo ? String(proxyInfo.proxy_position || proxyExec?.position || "").trim() : null,
+          proxy_level: proxyInfo ? String(proxyInfo.proxy_level || proxyExec?.executive_level || "").trim() : null,
+          proxy_region: proxyInfo ? String(proxyInfo.proxy_region || proxyExec?.region || "").trim() : null,
+          proxy_constituency: proxyInfo ? String(proxyInfo.proxy_constituency || proxyExec?.constituency || "").trim() : null,
         };
       })
       .sort(isSingleRegion ? compareRegionalAlbumDelegates : compareAlbumDelegates);
+
+    // Gather and append assigned proxies for each region in the album (Rule 1)
+    if (!isProxyContest && proxyRows && proxyRows.length > 0) {
+      const existingProxyAssignIds = new Set(
+        delegates.filter((d) => d.is_proxy_record).map((d) => String(d.id))
+      );
+      const existingPrincipalIds = new Set(
+        delegates.map((d) => Number(d.id)).filter(Boolean)
+      );
+
+      for (const p of proxyRows) {
+        const pReg = String(p.proxy_region || p.principal_region || "").trim();
+        const pCon = String(p.proxy_constituency || p.principal_constituency || "").trim();
+        const pPos = String(p.principal_position || p.proxy_position || "").toLowerCase();
+
+        // If Wing Portfolio: filter proxy by wing position
+        const isYouthWing =
+          matchedContest === "Youth Organiser" ||
+          matchedContest === "Youth Organisers & Deputies" ||
+          matchedContest === "Proxy for Youth";
+        const isWomenWing =
+          matchedContest === "Women Organiser" ||
+          matchedContest === "Women Organisers & Deputies" ||
+          matchedContest === "Proxy for Women";
+        const isNasaraWing =
+          matchedContest === "Nasara Organiser" ||
+          matchedContest === "Nasara Coordinators & Deputies" ||
+          matchedContest === "Proxy for Nasara";
+
+        if (isYouthWing) {
+          if (!/youth/i.test(pPos)) continue;
+        } else if (isWomenWing) {
+          if (!/women|wocom/i.test(pPos)) continue;
+        } else if (isNasaraWing) {
+          if (!/nasara/i.test(pPos)) continue;
+        }
+
+        // Check Polling Station / Regional match
+        if (activePollingStation) {
+          const isProxyNational = pReg.toLowerCase().includes("national");
+          const isProxyExternal = pReg.toLowerCase().includes("external");
+
+          if (isProxyNational && !activePollingStation.includeNationalOfficers) continue;
+          if (isProxyExternal) {
+            if (!activePollingStation.includeExternalBranches && activePollingStation.splitRegion !== "External Branch") {
+              continue;
+            }
+            if (activePollingStation.splitRegion === "External Branch") {
+              const chapter = String(p.proxy_constituency || pCon || "").trim();
+              if (!doesConstituencyMatchSplitGrouping(activePollingStation, chapter)) continue;
+            }
+          }
+
+          if (!isProxyNational && !isProxyExternal) {
+            const inStation = activePollingStation.regions.some(
+              (reg) => reg.toLowerCase().trim() === pReg.toLowerCase().trim()
+            );
+            if (!inStation) continue;
+          }
+
+          if (activePollingStation.splitRegion && pReg.toLowerCase() === activePollingStation.splitRegion.toLowerCase()) {
+            if (pCon) {
+              if (!doesConstituencyMatchSplitGrouping(activePollingStation, pCon)) {
+                continue;
+              }
+            } else {
+              if (!activePollingStation.isCatchAllSplit && !activePollingStation.includeRegionalLeadership) {
+                continue;
+              }
+            }
+          }
+        } else {
+          // Standard region filter
+          if (!isAllRegions && rawRegionsList.length > 0) {
+            const matchesReg = rawRegionsList.some(
+              (reg) => reg.toLowerCase().trim() === pReg.toLowerCase().trim()
+            );
+            if (!matchesReg) continue;
+          } else if (regionQuery !== "all" && regionQuery !== "") {
+            if (pReg.toLowerCase() !== regionQuery.toLowerCase()) continue;
+          }
+          if (rawConstituenciesList.length > 0) {
+            const matchesCon = rawConstituenciesList.some(
+              (con) => con.toLowerCase().trim() === pCon.toLowerCase().trim()
+            );
+            if (!matchesCon) continue;
+          }
+        }
+
+        const assignId = `proxy-assign-${p.proxy_assignment_id}`;
+        if (existingProxyAssignIds.has(assignId)) continue;
+        if (p.principal_executive_id && existingPrincipalIds.has(Number(p.principal_executive_id))) {
+          continue;
+        }
+        existingProxyAssignIds.add(assignId);
+        if (p.principal_executive_id) {
+          existingPrincipalIds.add(Number(p.principal_executive_id));
+        }
+
+        const canonicalReg =
+          GHANA_REGIONS_ORDER.find((gr) => gr.toLowerCase() === pReg.toLowerCase()) || pReg;
+        const principalCleanName = String(p.principal_name || "").trim().toUpperCase();
+        const proxyCleanName = String(p.proxy_name || "").trim().toUpperCase();
+        const proxyVid = p.proxy_voter_id ? String(p.proxy_voter_id).trim() : "—";
+        const proxyPhone =
+          p.proxy_phone && String(p.proxy_phone).trim() !== "None" ? String(p.proxy_phone).trim() : "—";
+        const canonPos = normalizeCanonicalPosition(
+          p.principal_position || p.proxy_position,
+          p.principal_level || p.proxy_level
+        );
+        const posRank = normalizePositionRank(p.principal_position || p.proxy_position);
+        const avatarSvg = generateSvgAvatar(proxyCleanName || principalCleanName, canonPos);
+
+        const proxyIdNum = p.proxy_executive_id ? Number(p.proxy_executive_id) : null;
+        const pNormName = normalizeNameForPhotoMatch(proxyCleanName);
+        const princNormName = normalizeNameForPhotoMatch(principalCleanName);
+        const proxyPhotoUrl =
+          (proxyIdNum && (localPhotosByExecId.get(proxyIdNum) || wocomPhotoUrlById.get(proxyIdNum))) ||
+          (p.proxy_voter_id &&
+            (localPhotosByVoterId.get(p.proxy_voter_id) ||
+              validRowUrlByVoterId.get(p.proxy_voter_id) ||
+              syncPhotoUrlByVoterId.get(p.proxy_voter_id) ||
+              ahafoPhotosByVoterId.get(p.proxy_voter_id))) ||
+          (pNormName && localPhotosByName.get(pNormName)) ||
+          (p.principal_voter_id &&
+            (localPhotosByVoterId.get(p.principal_voter_id) ||
+              validRowUrlByVoterId.get(p.principal_voter_id) ||
+              syncPhotoUrlByVoterId.get(p.principal_voter_id) ||
+              ahafoPhotosByVoterId.get(p.principal_voter_id))) ||
+          (princNormName && localPhotosByName.get(princNormName)) ||
+          null;
+
+        delegates.push({
+          id: assignId,
+          executive_name: principalCleanName,
+          position: p.principal_position || "Proxy Principal",
+          canonical_position: canonPos,
+          executive_level: p.proxy_level || (pReg.toLowerCase().includes("external") ? "External Branch" : "Constituency"),
+          region: canonicalReg,
+          constituency: pCon,
+          institution: "",
+          polling_station: "",
+          voter_id: proxyVid,
+          has_voter_id: proxyVid.length === 10,
+          phone: proxyPhone,
+          gender: p.proxy_gender || "Unknown",
+          age: p.proxy_age || null,
+          date_of_birth: p.proxy_date_of_birth || null,
+          is_under_40: false,
+          image_url: proxyPhotoUrl,
+          webp_image_url: proxyPhotoUrl
+            ? proxyPhotoUrl.startsWith("data:")
+              ? proxyPhotoUrl
+              : `/api/admin/albums/image?url=${encodeURIComponent(proxyPhotoUrl)}&vid=${encodeURIComponent(proxyVid || "")}&id=${p.proxy_executive_id || ""}&name=${encodeURIComponent(proxyCleanName)}&w=240&h=300`
+            : null,
+          avatar_svg: avatarSvg,
+          level_rank: 95,
+          position_rank: posRank,
+          is_proxy_record: true,
+          principal_name: principalCleanName,
+          principal_voter_id: p.principal_voter_id || "—",
+          principal_phone: p.principal_phone || "—",
+          proxy_executive_id: p.proxy_executive_id ? Number(p.proxy_executive_id) : null,
+          proxy_name: proxyCleanName,
+          proxy_voter_id: proxyVid,
+          proxy_phone: proxyPhone,
+          proxy_position: p.proxy_position || "Assigned Proxy Voter",
+          proxy_level: p.proxy_level || "Constituency",
+          proxy_region: p.proxy_region || canonicalReg,
+          proxy_constituency: p.proxy_constituency || pCon,
+        });
+      }
+    }
 
     // 5. Compute Comprehensive Metrics
     const isCustom = isCustomContest && customPositionKeys.length > 0;
@@ -1621,7 +2189,9 @@ export async function GET(req: NextRequest) {
       ? 1
       : constituencyTargetPerUnit;
 
-    if (rawConstituenciesList.length > 0) {
+    if (isProxyContest) {
+      expectedCount = totalActual;
+    } else if (rawConstituenciesList.length > 0) {
       const conUnits = rawConstituenciesList.length;
       if (
         matchedContest === "Women Organiser" ||
@@ -2035,7 +2605,9 @@ export async function GET(req: NextRequest) {
 
     // Authoritative Position National Benchmark (Full Electoral College Baseline)
     let positionNationalExpected = 0;
-    if (isWingOrganisers) {
+    if (isProxyContest) {
+      positionNationalExpected = positionNationwideRows.length;
+    } else if (isWingOrganisers) {
       if (
         matchedContest === "Youth Organisers & Deputies" ||
         matchedContest === "Youth Organiser"
@@ -2184,7 +2756,9 @@ export async function GET(req: NextRequest) {
         ? regionQuery
         : inferredRegionFromDelegates
       : "";
-    const regionDisplayName = isSingleConstituency
+    const regionDisplayName = activePollingStation
+      ? activePollingStation.label.toUpperCase()
+      : isSingleConstituency
       ? `${selectedConstituency.toUpperCase()} CONSTITUENCY`
       : isExternalScope
       ? "EXTERNAL BRANCHES"
@@ -2326,7 +2900,155 @@ export async function GET(req: NextRequest) {
       auditRows: any[];
     } | null = null;
 
-    if (isSingleRegion) {
+    if (isProxyContest) {
+      const proxyGroups = new Map<string, { label: string; level: string; chapters: Set<string>; count: number; verified: number }>();
+      for (const d of delegates) {
+        const isExt = String(d.executive_level || "").toLowerCase().trim() === "external branch" || String(d.region || "").toLowerCase().includes("external");
+        const isNat = String(d.executive_level || "").toLowerCase().trim() === "national";
+        const isTes = String(d.executive_level || "").toLowerCase().trim() === "tescon";
+        const groupKey = isExternalScope
+          ? `EXT:${d.constituency || "Unassigned"}`
+          : isExt
+          ? `EXT:${d.constituency || "External Branch"}`
+          : isNat
+          ? "NAT:National Headquarters"
+          : isTes
+          ? `TES:${d.region} (${d.institution || d.constituency || "TESCON"})`
+          : `REG:${d.region} Region`;
+        const groupLabel = isExternalScope
+          ? `${d.constituency || "Unassigned"} External Branch`
+          : isExt
+          ? `External Branch — ${d.constituency || "Diaspora"}`
+          : isNat
+          ? "National Headquarters (Council of Elders)"
+          : isTes
+          ? `TESCON — ${d.institution || d.constituency} (${d.region})`
+          : `${d.region} Region (${d.constituency || d.executive_level})`;
+        const groupLevel = isExt
+          ? "External Branch"
+          : isNat
+          ? "National"
+          : isTes
+          ? "TESCON"
+          : d.executive_level;
+
+        if (!proxyGroups.has(groupKey)) {
+          proxyGroups.set(groupKey, {
+            label: isExt || isExternalScope ? groupLabel : isNat ? groupLabel : isTes ? groupLabel : `${d.region} Region`,
+            level: groupLevel,
+            chapters: new Set(),
+            count: 0,
+            verified: 0,
+          });
+        }
+        const entry = proxyGroups.get(groupKey)!;
+        entry.count++;
+        if (d.has_voter_id) entry.verified++;
+        if (d.constituency) entry.chapters.add(d.constituency);
+      }
+
+      const pRows = Array.from(proxyGroups.values()).map((g, idx) => ({
+        idx: idx + 1,
+        label: g.label,
+        level: g.level,
+        chaptersCount: g.chapters.size || 1,
+        confirmed: g.count,
+        verified: g.verified,
+      }));
+
+      const renderProxyTable = (subset: typeof pRows) => `
+        <table class="stats-table compact">
+          <thead>
+            <tr>
+              <th style="width: 7%; text-align: center;">#</th>
+              <th style="width: 47%;">Jurisdiction / Branch</th>
+              <th style="width: 18%; text-align: center;">Tier</th>
+              <th style="width: 14%; text-align: center;">Proxies</th>
+              <th style="width: 14%; text-align: center;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${subset
+              .map(
+                (r) => `
+              <tr>
+                <td style="text-align: center;">${r.idx}</td>
+                <td><strong>${r.label}</strong></td>
+                <td style="text-align: center;">${r.level}</td>
+                <td style="text-align: center;"><strong>${r.confirmed.toLocaleString()}</strong></td>
+                <td style="text-align: center; color: #166534; font-weight: 700;">Verified</td>
+              </tr>
+            `
+              )
+              .join("\n")}
+          </tbody>
+        </table>
+      `;
+
+      const midPoint = Math.ceil(pRows.length / 2);
+      const col1 = pRows.slice(0, midPoint);
+      const col2 = pRows.slice(midPoint);
+      const proxyContentHtml =
+        pRows.length > 14
+          ? `
+        <div class="two-col-audit-grid">
+          <div>${renderProxyTable(col1)}</div>
+          <div>${renderProxyTable(col2)}</div>
+        </div>
+        <table class="stats-table compact" style="margin-top: 6px;">
+          <tfoot>
+            <tr style="background: #0F172A; color: #FFFFFF; font-weight: 800;">
+              <td colspan="3" style="text-align: right; color: #FFFFFF;"><strong>TOTAL ASSIGNED PROXY VOTERS (${pRows.length} JURISDICTIONS / CHAPTERS):</strong></td>
+              <td style="width: 14%; text-align: center; color: #38BDF8;"><strong>${delegates.length.toLocaleString()}</strong></td>
+              <td style="width: 14%; text-align: center; color: #34D399;"><strong>100% Certified</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      `
+          : undefined;
+
+      levelAudit = {
+        tableTitle: "ASSIGNED PROXY VOTERS STATUTORY AUDIT & SIGN-OFF",
+        tableSub: `Official Proxy Register Distribution Across Electoral Jurisdictions & External Branches · ${effectiveContestName}`,
+        footerLabel: "PROXY VOTERS STATUTORY AUDIT",
+        headersHtml: `
+          <tr>
+            <th style="width: 6%; text-align: center;">#</th>
+            <th style="width: 44%;">Jurisdiction / External Branch</th>
+            <th style="width: 18%; text-align: center;">Administrative Tier</th>
+            <th style="width: 16%; text-align: center;">Assigned Proxies</th>
+            <th style="width: 16%; text-align: center;">Verification Status</th>
+          </tr>
+        `,
+        rowsHtml: pRows
+          .map(
+            (r) => `
+          <tr>
+            <td style="text-align: center;">${r.idx}</td>
+            <td><strong>${r.label}</strong></td>
+            <td style="text-align: center;">${r.level}</td>
+            <td style="text-align: center;"><strong>${r.confirmed.toLocaleString()}</strong></td>
+            <td style="text-align: center; color: #166534; font-weight: 700;">Certified Roll</td>
+          </tr>
+        `
+          )
+          .join("\n"),
+        footerHtml: `
+          <tr style="background: #0F172A; color: #FFFFFF; font-weight: 800;">
+            <td colspan="3" style="text-align: right; color: #FFFFFF;"><strong>TOTAL ASSIGNED PROXY VOTERS (${pRows.length} JURISDICTIONS):</strong></td>
+            <td style="text-align: center; color: #38BDF8;"><strong>${delegates.length.toLocaleString()}</strong></td>
+            <td style="text-align: center; color: #34D399;"><strong>100% Certified</strong></td>
+          </tr>
+        `,
+        contentHtml: proxyContentHtml,
+        auditRows: pRows.map((r) => ({
+          region: r.label,
+          confirmed: r.confirmed,
+          target: r.confirmed,
+          complianceRate: "100%",
+        })),
+      };
+    } else if (isSingleRegion) {
       // Build detailed constituency-level breakdown for this specific region / diaspora jurisdiction
       const conList =
         rawConstituenciesList.length > 0
@@ -3283,7 +4005,13 @@ export async function GET(req: NextRequest) {
     const metrics = {
       contest: effectiveContestName,
       selectedConstituency: selectedConstituency || undefined,
-      scope: isSingleConstituency
+      pollingStation: activePollingStation ? activePollingStation.id : undefined,
+      stationLabel: activePollingStation ? activePollingStation.label : undefined,
+      stationCode: activePollingStation ? activePollingStation.code.toUpperCase() : undefined,
+      stationDescription: activePollingStation ? activePollingStation.description : undefined,
+      scope: activePollingStation
+        ? activePollingStation.label
+        : isSingleConstituency
         ? `${selectedConstituency} Constituency (${selectedRegion || "Ghana"} Region)`
         : isExternalScope
         ? "External Branches (Diaspora Chapters)"
@@ -3529,6 +4257,7 @@ export async function GET(req: NextRequest) {
           readOnlyMode: isVerifyMode,
           targetPage: targetPageNum,
           targetConstituency: targetPageConstituency,
+          activePollingStation,
         }
       );
 
@@ -3539,11 +4268,119 @@ export async function GET(req: NextRequest) {
 
       if (isDownload && !isVerifyMode) {
         const safeContest = effectiveContestName.replace(/[\s&]+/g, "_");
+        const safeStation = activePollingStation ? `_${activePollingStation.id}` : "";
         const safeRegion = regionQuery !== "all" ? `_${regionQuery.replace(/[\s&]+/g, "_")}` : "";
-        headers["Content-Disposition"] = `attachment; filename="NPP_${safeContest}${safeRegion}_Election_Album_2026.html"`;
+        headers["Content-Disposition"] = `attachment; filename="NPP_${safeContest}${safeStation || safeRegion}_Election_Album_2026.html"`;
       }
 
       return new NextResponse(html, { headers });
+    }
+
+    if (format === "pdf") {
+      const logoDataUri = await getLogoWebpDataUri();
+      const elephantSealDataUri = await getElephantSealDataUri();
+
+      if (visibleDetails.has("photo")) {
+        await convertDelegatesImagesToWebp(delegates);
+      }
+
+      const html = generateAlbumHtml(
+        effectiveContestName,
+        effectiveRegionQuery,
+        metrics,
+        delegates,
+        regionalBreakdown,
+        logoDataUri,
+        levelAudit,
+        albumType,
+        elephantSealDataUri,
+        visibleDetails,
+        {
+          baseOrigin,
+          verifyParams,
+          readOnlyMode: isVerifyMode,
+          targetPage: targetPageNum,
+          targetConstituency: targetPageConstituency,
+          activePollingStation,
+        }
+      );
+
+      const safeContest = effectiveContestName.replace(/[\s&]+/g, "_");
+      const safeStation = activePollingStation ? `_${activePollingStation.id}` : "";
+      const safeRegion = effectiveRegionQuery !== "all" ? `_${effectiveRegionQuery.replace(/[\s&,]+/g, "_")}` : "";
+      const safeConstituency = selectedConstituency ? `_${selectedConstituency.replace(/[\s&,]+/g, "_")}` : "";
+      const baseFilename = `NPP_${safeContest}${safeStation || safeRegion}${safeConstituency}_Election_Album_2026`;
+      const pdfFilename = `${baseFilename}.pdf`;
+
+      let pdfBuffer: Buffer | null = null;
+      try {
+        const exportsDir = path.join(process.cwd(), "exports", "albums");
+        const publicDownloadsDir = path.join(process.cwd(), "public", "downloads", "albums");
+        try {
+          fs.mkdirSync(exportsDir, { recursive: true });
+          fs.mkdirSync(publicDownloadsDir, { recursive: true });
+        } catch {
+          // non-fatal
+        }
+
+        const exportPdfPath = path.join(exportsDir, pdfFilename);
+        const publicPdfPath = path.join(publicDownloadsDir, pdfFilename);
+        const tempHtmlPath = path.join(exportsDir, `${baseFilename}.html`);
+
+        try {
+          fs.writeFileSync(tempHtmlPath, html, "utf8");
+        } catch {
+          // non-fatal
+        }
+
+        const chromeBin = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+        let pdfGenerated = false;
+
+        if (fs.existsSync(chromeBin)) {
+          const profileDir = path.join(exportsDir, ".chrome-profile");
+          try {
+            fs.mkdirSync(profileDir, { recursive: true });
+            const cmd = `"${chromeBin}" --headless=new --disable-gpu --no-pdf-header-footer --disable-software-rasterizer --disable-extensions --disable-background-networking --disable-sync --disable-default-apps --no-first-run --user-data-dir="${profileDir}" --print-to-pdf="${exportPdfPath}" "${tempHtmlPath}"`;
+            execSync(cmd, { timeout: 60000 });
+          } catch (chromeErr) {
+            console.warn("Headless Chrome PDF generation attempt notice:", chromeErr);
+          }
+
+          if (fs.existsSync(exportPdfPath) && fs.statSync(exportPdfPath).size > 1000) {
+            try {
+              fs.copyFileSync(exportPdfPath, publicPdfPath);
+            } catch {
+              // non-fatal
+            }
+            pdfGenerated = true;
+          }
+        }
+
+        if (pdfGenerated && fs.existsSync(exportPdfPath)) {
+          pdfBuffer = fs.readFileSync(exportPdfPath);
+        }
+      } catch (err) {
+        console.warn("PDF generation notice, falling back to printable HTML:", err);
+      }
+
+      if (pdfBuffer) {
+        return new NextResponse(pdfBuffer as unknown as BodyInit, {
+          headers: {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename="${pdfFilename}"`,
+            "Cache-Control": "private, no-store",
+            "X-Generated-On-Server": "true",
+          },
+        });
+      }
+
+      const fallbackHeaders: Record<string, string> = {
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Disposition": `inline; filename="${baseFilename}.html"`,
+        "Cache-Control": "private, no-store",
+        "X-Fallback-Print": "true",
+      };
+      return new NextResponse(html, { headers: fallbackHeaders });
     }
 
 
@@ -3575,6 +4412,8 @@ async function generateAlbumExcel(
   albumType: string = "provisional"
 ): Promise<Buffer> {
   const isFinalAlbum = albumType === "final";
+  const hasProxyData = delegates.some((d) => d.is_proxy_record && d.proxy_name);
+  const lastColLetter = hasProxyData ? "R" : "N";
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "New Patriotic Party (NPP)";
   workbook.lastModifiedBy = "National IT Directorate";
@@ -3584,11 +4423,11 @@ async function generateAlbumExcel(
   // 1. Voter Directory Sheet
   const sheet = workbook.addWorksheet("Voter Directory", {
     views: [{ showGridLines: true }],
-    pageSetup: { paperSize: 9, orientation: "portrait" },
+    pageSetup: { paperSize: 9, orientation: hasProxyData ? "landscape" : "portrait" },
   });
 
   // Title Row 1
-  sheet.mergeCells("A1:N1");
+  sheet.mergeCells(`A1:${lastColLetter}1`);
   const titleCell = sheet.getCell("A1");
   titleCell.value = isFinalAlbum
     ? "NEW PATRIOTIC PARTY (NPP) — FINAL CERTIFIED ELECTORAL COLLEGE ALBUM & DELEGATE REGISTER"
@@ -3599,7 +4438,7 @@ async function generateAlbumExcel(
   sheet.getRow(1).height = 36;
 
   // Subtitle Row 2
-  sheet.mergeCells("A2:N2");
+  sheet.mergeCells(`A2:${lastColLetter}2`);
   const subCell = sheet.getCell("A2");
   const isMultiJurisdiction = regionQuery.includes(",");
   const scopeLabel =
@@ -3621,7 +4460,7 @@ async function generateAlbumExcel(
   const headers = [
     "#",
     "Voter ID",
-    "Executive Name",
+    "Executive Name (Principal)",
     "Executive Level",
     "Region",
     "Constituency / Jurisdiction",
@@ -3633,6 +4472,14 @@ async function generateAlbumExcel(
     "Phone Number",
     "Biometric Status",
     "Photo Available",
+    ...(hasProxyData
+      ? [
+          "Assigned Proxy Voter",
+          "Proxy Voter ID",
+          "Proxy Phone",
+          "Proxy Jurisdiction / Position",
+        ]
+      : []),
   ];
 
   const headerRow = sheet.getRow(4);
@@ -3666,6 +4513,14 @@ async function generateAlbumExcel(
     { key: "phone", width: 17 },
     { key: "biometric", width: 18 },
     { key: "photo", width: 16 },
+    ...(hasProxyData
+      ? [
+          { key: "proxy_name", width: 32 },
+          { key: "proxy_vid", width: 16 },
+          { key: "proxy_phone", width: 16 },
+          { key: "proxy_loc", width: 36 },
+        ]
+      : []),
   ];
 
   // Delegate Rows
@@ -3691,6 +4546,16 @@ async function generateAlbumExcel(
       d.phone || "—",
       d.has_voter_id ? "Verified" : "Pending",
       d.image_url ? "Yes" : "No",
+      ...(hasProxyData
+        ? [
+            d.proxy_name || "—",
+            d.proxy_voter_id || "—",
+            d.proxy_phone || "—",
+            d.proxy_name
+              ? [d.proxy_constituency || d.proxy_region, d.proxy_position].filter(Boolean).join(" · ")
+              : "—",
+          ]
+        : []),
     ]);
 
     row.height = 21;
@@ -3707,7 +4572,7 @@ async function generateAlbumExcel(
       };
 
       // Alignment
-      if ([1, 2, 4, 9, 10, 11, 12, 13, 14].includes(colNumber)) {
+      if ([1, 2, 4, 9, 10, 11, 12, 13, 14, 16, 17].includes(colNumber)) {
         cell.alignment = { horizontal: "center", vertical: "middle" };
       } else {
         cell.alignment = { horizontal: "left", vertical: "middle" };
@@ -3881,6 +4746,7 @@ interface AlbumVerificationContext {
   readOnlyMode?: boolean;
   targetPage?: number | null;
   targetConstituency?: string | null;
+  activePollingStation?: PollingStationGrouping | null;
 }
 
 function generateAlbumHtml(
@@ -3906,6 +4772,21 @@ function generateAlbumHtml(
       delegates.every((d) =>
         /(?:youth|women|nasara|wocom)/i.test(String(d.position || d.canonical_position || ""))
       ));
+
+  const isProxyAlbum =
+    /(?:proxy)/i.test(contest) ||
+    (delegates.length > 0 && delegates.every((d) => Boolean(d.is_proxy_record)));
+
+  const activePollingGrouping = verificationContext?.activePollingStation;
+  const isWomenPollingStation = Boolean(
+    activePollingGrouping &&
+    (activePollingGrouping.category === "wocom_wing" ||
+     activePollingGrouping.id.toLowerCase().includes("wocom") ||
+     activePollingGrouping.id.toLowerCase().includes("women") ||
+     /(?:women|wocom)/i.test(contest) ||
+     /(?:women|wocom)/i.test(activePollingGrouping.label || "") ||
+     /(?:women|wocom)/i.test(activePollingGrouping.recommendedContest || ""))
+  );
 
   const details = visibleDetails || new Set(DEFAULT_VOTER_DETAILS);
   const showPhoto = details.has("photo");
@@ -3951,7 +4832,7 @@ function generateAlbumHtml(
     const isConstituency = String(d.executive_level || "").toLowerCase().trim() === "constituency";
     const isExtBranch = String(d.executive_level || "").toLowerCase().trim() === "external branch";
 
-    // For Nasara, Women and Youth: constituency cards display jurisdiction beside Level; For MPs & TESCON, display constituency
+    // For Nasara, Women, Youth and Proxy: constituency cards display jurisdiction beside Level; For MPs & TESCON, display constituency
     const isMp = getRegionalSectionRank(d) === 4;
     const isNational = String(d.executive_level || "").toLowerCase().trim() === "national";
     const natSectionInfo = isNational ? getNationalSectionInfo(d) : null;
@@ -3960,7 +4841,7 @@ function generateAlbumHtml(
         ? ` · ${natSectionInfo.section}`
         : isTescon && d.constituency
         ? ` (${String(d.constituency).trim()})`
-        : ((isWingAlbum && (isConstituency || isExtBranch) && d.constituency) || (isMp && d.constituency))
+        : (((isWingAlbum || isProxyAlbum || isWomenPollingStation) && (isConstituency || isExtBranch) && d.constituency) || (isMp && d.constituency))
         ? ` (${String(d.constituency).trim()})`
         : "";
     const levelDisplay = isNational && natSectionInfo
@@ -3984,14 +4865,29 @@ function generateAlbumHtml(
       d.age !== null && d.age !== undefined ? `${d.age} yrs` : (d.is_under_40 ? "Under 40" : null),
     ].filter(Boolean).join(" · ");
 
+    const showProxyDetails = Boolean(d.is_proxy_record && d.proxy_name);
+    const proxyLocText = showProxyDetails
+      ? [d.proxy_constituency || d.proxy_region, d.proxy_position].filter(Boolean).join(" · ")
+      : "";
+
     return `
         <div class="voter-card">
           <div class="card-details">
-            ${showPosition && (d.canonical_position || d.position) ? `<div class="pos-badge">${d.canonical_position || d.position}</div>` : ""}
+            ${showPosition && (d.canonical_position || d.position) ? `<div class="pos-badge">${d.canonical_position || d.position}${showProxyDetails ? " · PROXY" : ""}</div>` : ""}
             ${showName ? `<div class="exec-name">${d.executive_name}</div>` : ""}
+            ${showProxyDetails ? `
+            <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Assigned Proxy Voter: ${d.proxy_name}">
+              <span class="lbl" style="color: #6D28D9;">Proxy Voter:</span> <span class="val" style="color: #4C1D95; font-weight: 800;">${d.proxy_name}</span>
+            </div>
+            ` : ""}
             ${showLevel ? `
             <div class="detail-line">
               <span class="lbl">Level:</span> <span class="val">${d.executive_level}${jurisdictionSuffix}</span>
+            </div>
+            ` : ""}
+            ${showProxyDetails && proxyLocText ? `
+            <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${proxyLocText}">
+              <span class="lbl">Proxy Loc:</span> <span class="val">${proxyLocText}</span>
             </div>
             ` : ""}
             ${showInstitution && isTescon && institution ? `
@@ -4001,7 +4897,7 @@ function generateAlbumHtml(
             ` : ""}
             ${showVoterId ? `
             <div class="detail-line">
-              <span class="lbl">Voter ID:</span> <span class="val mono">${d.voter_id}</span>
+              <span class="lbl">${showProxyDetails ? "Proxy ID:" : "Voter ID:"}</span> <span class="val mono">${d.voter_id}</span>
             </div>
             ` : ""}
             ${showPhone ? `
@@ -4009,17 +4905,17 @@ function generateAlbumHtml(
               <span class="lbl">Phone:</span> <span class="val">${d.phone}</span>
             </div>
             ` : ""}
-            ${isYouthAlbum ? `
+            ${isYouthAlbum && !showProxyDetails ? `
             <div class="detail-line">
               <span class="lbl">Age:</span> <span class="val" style="font-weight: 700; color: #0F172A;">${ageVal}</span>
             </div>
             ` : ""}
-            ${showDemographics && demographicText ? `
+            ${showDemographics && demographicText && !showProxyDetails ? `
             <div class="detail-line">
               <span class="lbl">${isYouthAlbum ? "Gender:" : "Demographics:"}</span> <span class="val">${isYouthAlbum && d.gender && d.gender !== "Unknown" ? d.gender : demographicText}</span>
             </div>
             ` : ""}
-            ${showPollingStation && !isTescon && d.polling_station ? `
+            ${showPollingStation && !isTescon && d.polling_station && !showProxyDetails ? `
             <div class="detail-line" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${d.polling_station}">
               <span class="lbl">Station:</span> <span class="val">${d.polling_station}</span>
             </div>
@@ -4050,7 +4946,7 @@ function generateAlbumHtml(
   const isNationalScope = region.toLowerCase().includes("national");
   const nationalDelegates = delegates.filter((d) => {
     const lvl = String(d.executive_level || "").toLowerCase().trim();
-    if (lvl !== "national") return false;
+    if (lvl !== "national" || d.is_proxy_record) return false;
     if (isNationalScope) return true;
     const rank = getRegionalSectionRank(d);
     if (rank === 2 || rank === 3 || rank === 4) {
@@ -4085,7 +4981,7 @@ function generateAlbumHtml(
   });
 
   // 1. National Level Pages (if present)
-  if (nationalDelegates.length > 0) {
+  if (nationalDelegates.length > 0 || delegates.some((d) => Boolean(d.is_proxy_record) && (String(d.executive_level || "").toLowerCase().trim() === "national" || String(d.region || "").toLowerCase().includes("national")))) {
     nationalDelegates.sort(compareNationalAlbumDelegates);
 
     const nationalSectionConfigs: {
@@ -4151,68 +5047,310 @@ function generateAlbumHtml(
         currentCardPageNum++;
       }
     }
+
+    // National Level Proxy Voters
+    const natProxies = delegates.filter((d) => {
+      const lvl = String(d.executive_level || "").toLowerCase().trim();
+      const reg = String(d.region || "").toLowerCase().trim();
+      return Boolean(d.is_proxy_record) && (lvl === "national" || reg.includes("national"));
+    });
+    if (natProxies.length > 0) {
+      for (let i = 0; i < natProxies.length; i += 10) {
+        const chunk = natProxies.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `NATIONAL LEVEL REGISTER · ASSIGNED PROXY VOTERS (PART ${partIdx})`,
+          footerLabel: "NATIONAL REGISTER · ASSIGNED PROXY VOTERS",
+          cards: chunk,
+          isLeadershipPage: false,
+        });
+        currentCardPageNum++;
+      }
+    }
   }
 
-  if (isWingAlbum) {
-    // When loading for Nasara, Women, and Youth only:
-    // After loading National, each region must start on a new page,
-    // and then followed by its constituencies!
-    const presentRegions: string[] = [];
-    for (const r of GHANA_REGIONS_ORDER) {
-      const has = delegates.some(
-        (d) =>
-          String(d.executive_level || "").toLowerCase().trim() !== "national" &&
-          String(d.region || "").toLowerCase().trim() === r.toLowerCase()
-      );
-      if (has) presentRegions.push(r);
+  // 2. Regional Level Pages per Rule 1:
+  // For each region:
+  // 1. Regional Executives
+  // 2. Foundation Members
+  // 3. National Council Representatives
+  // 4. Members of Parliament (if any)
+  // 5. Constituency Executives (ordered by polling station constituency order if split; 2 pages per constituency in general albums, 10 per page in wing albums)
+  // 6. TESCON Presidents / Executives
+  // 7. Assigned Proxy Voters in that Region
+  const presentRegions: string[] = [];
+  for (const r of GHANA_REGIONS_ORDER) {
+    const has = delegates.some(
+      (d) =>
+        String(d.executive_level || "").toLowerCase().trim() !== "national" &&
+        (!String(d.region || "").toLowerCase().includes("external") || Boolean(d.is_proxy_record)) &&
+        (String(d.region || "").toLowerCase().trim() === r.toLowerCase() ||
+          String(d.proxy_region || "").toLowerCase().trim() === r.toLowerCase())
+    );
+    if (has) presentRegions.push(r);
+  }
+  for (const d of delegates) {
+    const lvl = String(d.executive_level || "").toLowerCase().trim();
+    if (lvl === "national" || lvl === "external branch") continue;
+    const reg = String(d.region || "").trim();
+    if (
+      reg &&
+      !reg.toLowerCase().includes("external") &&
+      reg.toLowerCase() !== "national" &&
+      !presentRegions.some((r) => r.toLowerCase() === reg.toLowerCase())
+    ) {
+      presentRegions.push(reg);
     }
-    for (const d of delegates) {
-      const lvl = String(d.executive_level || "").toLowerCase().trim();
-      if (lvl === "national" || lvl === "external branch") continue;
-      const reg = String(d.region || "").trim();
-      if (
-        reg &&
-        !reg.toLowerCase().includes("external") &&
-        !presentRegions.some((r) => r.toLowerCase() === reg.toLowerCase())
-      ) {
-        presentRegions.push(reg);
+  }
+
+  for (const regionName of presentRegions) {
+    // 1. Regional Executives (Rank 1)
+    const regExecs = delegates.filter((d) => {
+      const rank = getRegionalSectionRank(d);
+      return (
+        rank === 1 &&
+        !d.is_proxy_record &&
+        String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
+      );
+    });
+    regExecs.sort(compareRegionalAlbumDelegates);
+
+    if (regExecs.length > 0) {
+      for (let i = 0; i < regExecs.length; i += 10) {
+        const chunk = regExecs.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `${regionName.toUpperCase()} REGION · REGIONAL EXECUTIVES (PART ${partIdx})`,
+          footerLabel: `${regionName.toUpperCase()} REGIONAL EXECUTIVES`,
+          cards: chunk,
+          isLeadershipPage: true,
+        });
+        currentCardPageNum++;
       }
     }
 
-    for (const regionName of presentRegions) {
-      // 1. Regional executives for this region
-      const regExecs = delegates.filter(
-        (d) =>
-          (String(d.executive_level || "").toLowerCase().trim() === "regional" ||
-            String(d.executive_level || "").toLowerCase().trim() === "region") &&
-          String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
+    // 2. Foundation Members (Rank 3)
+    const foundationMems = delegates.filter((d) => {
+      const rank = getRegionalSectionRank(d);
+      return (
+        rank === 3 &&
+        !d.is_proxy_record &&
+        String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
       );
-      regExecs.sort((a, b) => {
-        if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
-        return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
-      });
+    });
+    if (foundationMems.length > 0) {
+      for (let i = 0; i < foundationMems.length; i += 10) {
+        const chunk = foundationMems.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `${regionName.toUpperCase()} REGION · FOUNDATION MEMBERS (PART ${partIdx})`,
+          footerLabel: `${regionName.toUpperCase()} FOUNDATION MEMBERS`,
+          cards: chunk,
+        });
+        currentCardPageNum++;
+      }
+    }
 
-      // 2. Constituency executives for this region
-      const constExecs = delegates.filter(
-        (d) =>
-          String(d.executive_level || "").toLowerCase().trim() === "constituency" &&
-          String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
+    // 3. National Council Representatives (Rank 2)
+    const ncReps = delegates.filter((d) => {
+      const rank = getRegionalSectionRank(d);
+      return (
+        rank === 2 &&
+        !d.is_proxy_record &&
+        String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
       );
-      constExecs.sort((a, b) => {
+    });
+    if (ncReps.length > 0) {
+      for (let i = 0; i < ncReps.length; i += 10) {
+        const chunk = ncReps.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `${regionName.toUpperCase()} REGION · NATIONAL COUNCIL REPRESENTATIVES (PART ${partIdx})`,
+          footerLabel: `${regionName.toUpperCase()} NATIONAL COUNCIL REPS`,
+          cards: chunk,
+        });
+        currentCardPageNum++;
+      }
+    }
+
+    // 4. Members of Parliament (Rank 4)
+    const mps = delegates.filter((d) => {
+      const rank = getRegionalSectionRank(d);
+      return (
+        rank === 4 &&
+        !d.is_proxy_record &&
+        String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
+      );
+    });
+    if (mps.length > 0) {
+      mps.sort((a, b) => {
         const cA = String(a.constituency || "").trim();
         const cB = String(b.constituency || "").trim();
         const cComp = cA.localeCompare(cB);
         if (cComp !== 0) return cComp;
-        if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
         return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
       });
+      for (let i = 0; i < mps.length; i += 10) {
+        const chunk = mps.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `${regionName.toUpperCase()} REGION · MEMBERS OF PARLIAMENT (PART ${partIdx})`,
+          footerLabel: `${regionName.toUpperCase()} MEMBERS OF PARLIAMENT`,
+          cards: chunk,
+        });
+        currentCardPageNum++;
+      }
+    }
 
-      // 3. TESCON executives for this region (if any)
-      const tesconExecs = delegates.filter(
-        (d) =>
-          String(d.executive_level || "").toLowerCase().trim() === "tescon" &&
-          String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
+    // 5. Constituency Executives (Rank 5)
+    const constExecs = delegates.filter((d) => {
+      const lvl = String(d.executive_level || "").toLowerCase().trim();
+      return (
+        lvl === "constituency" &&
+        getRegionalSectionRank(d) === 5 &&
+        !d.is_proxy_record &&
+        String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
       );
+    });
+
+    if (constExecs.length > 0) {
+      const constituencyGroups = new Map<string, any[]>();
+      for (const d of constExecs) {
+        const cName = String(d.constituency || "Unassigned").trim();
+        if (!constituencyGroups.has(cName)) constituencyGroups.set(cName, []);
+        constituencyGroups.get(cName)!.push(d);
+      }
+
+      // Sort constituencies: if activePollingStation has custom constituency order, use it; else alphabetical
+      const activeGrouping = verificationContext?.activePollingStation;
+      const sortedConstituencyNames = Array.from(constituencyGroups.keys()).sort((a, b) => {
+        if (activeGrouping && activeGrouping.constituencies && activeGrouping.constituencies.length > 0) {
+          const ordA = getPollingStationConstituencyOrder(activeGrouping, a);
+          const ordB = getPollingStationConstituencyOrder(activeGrouping, b);
+          if (ordA !== ordB) return ordA - ordB;
+        }
+        return a.localeCompare(b);
+      });
+
+      if (isWomenPollingStation) {
+        // When querying women polling station, do not split according region and constituencies but split according to region.
+        // Collect all constituency executives across this region in official constituency order and pack 10 per page.
+        const allRegionConstExecs: any[] = [];
+        for (const cName of sortedConstituencyNames) {
+          const cList = constituencyGroups.get(cName)!;
+          cList.sort((a, b) => {
+            if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
+            return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+          });
+          allRegionConstExecs.push(...cList);
+        }
+
+        const regionPrefix = `${regionName.toUpperCase()} REGION · `;
+        for (let i = 0; i < allRegionConstExecs.length; i += 10) {
+          const chunk = allRegionConstExecs.slice(i, i + 10);
+          const partIdx = Math.floor(i / 10) + 1;
+          chunk.forEach((d) => {
+            d.page_number = currentCardPageNum;
+          });
+          cardPages.push({
+            headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES (PART ${partIdx})`,
+            footerLabel: `${regionName.toUpperCase()} CONSTITUENCY EXECUTIVES`,
+            cards: chunk,
+            totalConstituencyExecutives: allRegionConstExecs.length,
+          });
+          currentCardPageNum++;
+        }
+      } else {
+        for (const cName of sortedConstituencyNames) {
+          const cList = constituencyGroups.get(cName)!;
+          cList.sort((a, b) => {
+            if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
+            return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+          });
+
+          const capital = getConstituencyCapital(cName);
+          const regionPrefix = `${regionName.toUpperCase()} REGION · `;
+
+          if (isWingAlbum) {
+            // Wing albums: 10 per page
+            for (let i = 0; i < cList.length; i += 10) {
+              const chunk = cList.slice(i, i + 10);
+              const partIdx = Math.floor(i / 10) + 1;
+              chunk.forEach((d) => {
+                d.page_number = currentCardPageNum;
+              });
+              cardPages.push({
+                headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART ${partIdx})`,
+                footerLabel: `${cName.toUpperCase()}`,
+                cards: chunk,
+                constituencyName: cName,
+                constituencyCapital: capital,
+                totalConstituencyExecutives: cList.length,
+              });
+              currentCardPageNum++;
+            }
+          } else {
+            // General albums: Dedicated 2 Pages per Constituency
+            // Part 1: Up to 10 cards
+            const part1Cards = cList.slice(0, 10);
+            part1Cards.forEach((d) => {
+              d.page_number = currentCardPageNum;
+            });
+            cardPages.push({
+              headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 1)`,
+              footerLabel: `${cName.toUpperCase()}`,
+              cards: part1Cards,
+              constituencyName: cName,
+              constituencyCapital: capital,
+              totalConstituencyExecutives: cList.length,
+            });
+            currentCardPageNum++;
+
+            // Part 2: Up to 9 cards + 10th slot validation / QR code box
+            const part2Cards = cList.slice(10, 19);
+            part2Cards.forEach((d) => {
+              d.page_number = currentCardPageNum;
+            });
+            cardPages.push({
+              headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 2)`,
+              footerLabel: `${cName.toUpperCase()}`,
+              cards: part2Cards,
+              isConstituencyPart2: true,
+              constituencyName: cName,
+              constituencyCapital: capital,
+              totalConstituencyExecutives: cList.length,
+            });
+            currentCardPageNum++;
+          }
+        }
+      }
+    }
+
+    // 6. TESCON Executives for this region
+    const tesconExecs = delegates.filter((d) => {
+      const lvl = String(d.executive_level || "").toLowerCase().trim();
+      return (
+        lvl === "tescon" &&
+        !d.is_proxy_record &&
+        String(d.region || "").toLowerCase().trim() === regionName.toLowerCase()
+      );
+    });
+    if (tesconExecs.length > 0) {
       tesconExecs.sort((a, b) => {
         const instA = getTesconInstitution(a);
         const instB = getTesconInstitution(b);
@@ -4220,282 +5358,147 @@ function generateAlbumHtml(
         if (iComp !== 0) return iComp;
         return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
       });
-
-      const regionList = [...regExecs, ...constExecs, ...tesconExecs];
-      if (regionList.length === 0) continue;
-
-      // Each region starts on a new page!
-      for (let i = 0; i < regionList.length; i += 10) {
-        const chunk = regionList.slice(i, i + 10);
+      for (let i = 0; i < tesconExecs.length; i += 10) {
+        const chunk = tesconExecs.slice(i, i + 10);
         const partIdx = Math.floor(i / 10) + 1;
         chunk.forEach((d) => {
           d.page_number = currentCardPageNum;
         });
         cardPages.push({
-          headerSubTitle: `${regionName.toUpperCase()} REGION · ${contest.toUpperCase()} (PART ${partIdx})`,
-          footerLabel: `${regionName.toUpperCase()} REGION ELECTORATE`,
+          headerSubTitle: `${regionName.toUpperCase()} REGION · TESCON PRESIDENTS & EXECUTIVES (PART ${partIdx})`,
+          footerLabel: `${regionName.toUpperCase()} TESCON EXECUTIVES`,
           cards: chunk,
         });
         currentCardPageNum++;
       }
     }
 
-    // External Branches (if any)
-    const extBranchDelegates = delegates.filter(
-      (d) =>
-        String(d.executive_level || "").toLowerCase().trim() === "external branch" ||
-        String(d.region || "").toLowerCase().includes("external")
-    );
-    if (extBranchDelegates.length > 0) {
-      extBranchDelegates.sort((a, b) => {
-        const cA = String(a.constituency || "").trim();
-        const cB = String(b.constituency || "").trim();
-        const cComp = cA.localeCompare(cB);
+    // 7. Assigned Proxy Voters in this region
+    const regProxies = delegates.filter((d) => {
+      return (
+        Boolean(d.is_proxy_record) &&
+        (String(d.proxy_region || d.region || "").toLowerCase().trim() === regionName.toLowerCase() ||
+          String(d.region || "").toLowerCase().trim() === regionName.toLowerCase())
+      );
+    });
+    if (regProxies.length > 0) {
+      regProxies.sort((a, b) => {
+        const conA = String(a.proxy_constituency || a.constituency || "").trim();
+        const conB = String(b.proxy_constituency || b.constituency || "").trim();
+        const cComp = conA.localeCompare(conB);
         if (cComp !== 0) return cComp;
-        if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
-        return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+        return String(a.proxy_name || a.executive_name || "").localeCompare(
+          String(b.proxy_name || b.executive_name || "")
+        );
       });
-      for (let i = 0; i < extBranchDelegates.length; i += 10) {
-        const chunk = extBranchDelegates.slice(i, i + 10);
+      for (let i = 0; i < regProxies.length; i += 10) {
+        const chunk = regProxies.slice(i, i + 10);
         const partIdx = Math.floor(i / 10) + 1;
         chunk.forEach((d) => {
           d.page_number = currentCardPageNum;
         });
         cardPages.push({
-          headerSubTitle: `EXTERNAL BRANCHES · ${contest.toUpperCase()} (PART ${partIdx})`,
-          footerLabel: `EXTERNAL BRANCHES ELECTORATE`,
+          headerSubTitle: `${regionName.toUpperCase()} REGION · ASSIGNED PROXY VOTERS (PART ${partIdx})`,
+          footerLabel: `${regionName.toUpperCase()} ASSIGNED PROXY VOTERS`,
           cards: chunk,
         });
         currentCardPageNum++;
       }
     }
-  } else {
-    // 2. Regional Level Pages (Separated from Constituency)
-    const hasRegionalOrCouncilOrMp =
-      regionalDelegates.length > 0 ||
-      delegates.some((d) => [2, 3, 4].includes(getRegionalSectionRank(d)));
+  }
 
-    if (hasRegionalOrCouncilOrMp) {
-      const regionalGroups = new Map<string, any[]>();
-      for (const delegate of regionalDelegates) {
-        const rawReg = String(delegate.region || "Unassigned").trim();
-        const regionName =
-          GHANA_REGIONS_ORDER.find((gr) => gr.toLowerCase() === rawReg.toLowerCase()) || rawReg;
-        if (!regionalGroups.has(regionName)) regionalGroups.set(regionName, []);
-        regionalGroups.get(regionName)!.push(delegate);
+  // 3. External Branches (Diaspora Chapters)
+  const extBranchDelegates = delegates.filter((d) => {
+    const lvl = String(d.executive_level || "").toLowerCase().trim();
+    const reg = String(d.region || "").toLowerCase().trim();
+    return (lvl === "external branch" || reg.includes("external")) && !d.is_proxy_record;
+  });
+  const extProxyDelegates = delegates.filter((d) => {
+    const reg = String(d.region || "").toLowerCase().trim();
+    const pReg = String(d.proxy_region || "").toLowerCase().trim();
+    return Boolean(d.is_proxy_record) && (pReg.includes("external") || (reg.includes("external") && !pReg));
+  });
+
+  if (extBranchDelegates.length > 0 || extProxyDelegates.length > 0) {
+    const branchGroups = new Map<string, any[]>();
+    for (const d of extBranchDelegates) {
+      const bName = String(d.constituency || "Unassigned External Branch").trim();
+      if (!branchGroups.has(bName)) branchGroups.set(bName, []);
+      branchGroups.get(bName)!.push(d);
+    }
+
+    if (isWomenPollingStation) {
+      const allExtBranchExecs: any[] = [];
+      const sortedBranchNames = Array.from(branchGroups.keys()).sort((a, b) => a.localeCompare(b));
+      for (const branchName of sortedBranchNames) {
+        const bList = branchGroups.get(branchName)!;
+        bList.sort((a, b) => {
+          if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
+          return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+        });
+        allExtBranchExecs.push(...bList);
       }
-      for (const d of delegates) {
-        const rank = getRegionalSectionRank(d);
-        if (rank === 2 || rank === 3 || rank === 4) {
-          const rawReg = String(d.region || "").trim();
-          const reg =
-            GHANA_REGIONS_ORDER.find((gr) => gr.toLowerCase() === rawReg.toLowerCase()) || rawReg;
-          if (reg && !reg.toLowerCase().includes("external") && reg.toLowerCase() !== "national" && !regionalGroups.has(reg)) {
-            regionalGroups.set(reg, []);
-          }
-        }
+
+      for (let i = 0; i < allExtBranchExecs.length; i += 10) {
+        const chunk = allExtBranchExecs.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `EXTERNAL BRANCHES (DIASPORA) · EXECUTIVES (PART ${partIdx})`,
+          footerLabel: `EXTERNAL BRANCHES (DIASPORA)`,
+          cards: chunk,
+          totalConstituencyExecutives: allExtBranchExecs.length,
+        });
+        currentCardPageNum++;
       }
-      for (const [regionName, regionDelegates] of regionalGroups) {
-        // 2a. Regional Executives
-        for (let i = 0; i < regionDelegates.length; i += 10) {
-          const chunk = regionDelegates.slice(i, i + 10);
+    } else {
+      for (const [branchName, bList] of branchGroups) {
+        bList.sort((a, b) => {
+          if (a.position_rank !== b.position_rank) return a.position_rank - b.position_rank;
+          return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
+        });
+        for (let i = 0; i < bList.length; i += 10) {
+          const chunk = bList.slice(i, i + 10);
           const partIdx = Math.floor(i / 10) + 1;
           chunk.forEach((d) => {
             d.page_number = currentCardPageNum;
           });
           cardPages.push({
-            headerSubTitle: `${regionName.toUpperCase()} REGION · REGIONAL EXECUTIVES (PART ${partIdx})`,
-            footerLabel: `${regionName.toUpperCase()} REGIONAL EXECUTIVES`,
-            cards: chunk,
-          });
-          currentCardPageNum++;
-        }
-
-        // 2b. National Council Representatives in this region
-        const ncReps = delegates.filter(
-          (d) =>
-            getRegionalSectionRank(d) === 2 &&
-            String(d.region || "").toLowerCase().trim() === regionName.toLowerCase().trim()
-        );
-        if (ncReps.length > 0) {
-          for (let i = 0; i < ncReps.length; i += 10) {
-            const chunk = ncReps.slice(i, i + 10);
-            const partIdx = Math.floor(i / 10) + 1;
-            chunk.forEach((d) => {
-              d.page_number = currentCardPageNum;
-            });
-            cardPages.push({
-              headerSubTitle: `${regionName.toUpperCase()} REGION · NATIONAL COUNCIL REPRESENTATIVES (PART ${partIdx})`,
-              footerLabel: `${regionName.toUpperCase()} NATIONAL COUNCIL REPS`,
-              cards: chunk,
-            });
-            currentCardPageNum++;
-          }
-        }
-
-        // 2c. Foundation Members in this region
-        const foundationMems = delegates.filter(
-          (d) =>
-            getRegionalSectionRank(d) === 3 &&
-            String(d.region || "").toLowerCase().trim() === regionName.toLowerCase().trim()
-        );
-        if (foundationMems.length > 0) {
-          for (let i = 0; i < foundationMems.length; i += 10) {
-            const chunk = foundationMems.slice(i, i + 10);
-            const partIdx = Math.floor(i / 10) + 1;
-            chunk.forEach((d) => {
-              d.page_number = currentCardPageNum;
-            });
-            cardPages.push({
-              headerSubTitle: `${regionName.toUpperCase()} REGION · FOUNDATION MEMBERS (PART ${partIdx})`,
-              footerLabel: `${regionName.toUpperCase()} FOUNDATION MEMBERS`,
-              cards: chunk,
-            });
-            currentCardPageNum++;
-          }
-        }
-
-        // 2d. Members of Parliament (MPs) for this region
-        const mps = delegates.filter(
-          (d) =>
-            getRegionalSectionRank(d) === 4 &&
-            String(d.region || "").toLowerCase().trim() === regionName.toLowerCase().trim()
-        );
-        if (mps.length > 0) {
-          mps.sort((a, b) => {
-            const cComp = String(a.constituency || "").localeCompare(String(b.constituency || ""));
-            if (cComp !== 0) return cComp;
-            return String(a.executive_name || "").localeCompare(String(b.executive_name || ""));
-          });
-          for (let i = 0; i < mps.length; i += 10) {
-            const chunk = mps.slice(i, i + 10);
-            const partIdx = Math.floor(i / 10) + 1;
-            chunk.forEach((d) => {
-              d.page_number = currentCardPageNum;
-            });
-            cardPages.push({
-              headerSubTitle: `${regionName.toUpperCase()} REGION · MEMBERS OF PARLIAMENT (PART ${partIdx})`,
-              footerLabel: `${regionName.toUpperCase()} MEMBERS OF PARLIAMENT`,
-              cards: chunk,
-            });
-            currentCardPageNum++;
-          }
-        }
-      }
-    }
-
-    // 3. Constituency Level Pages (Dedicated 2 Pages per Constituency)
-    if (constituencyDelegates.length > 0) {
-      const constituencyMap = new Map<string, { name: string; region: string; delegates: any[] }>();
-      for (const d of constituencyDelegates) {
-        const cName = d.constituency?.trim() || "Unknown Constituency";
-        const regionName = d.region?.trim() || "Unassigned";
-        const key = `${regionName.toLowerCase()}\u0000${cName.toLowerCase()}`;
-        if (!constituencyMap.has(key)) {
-          constituencyMap.set(key, { name: cName, region: regionName, delegates: [] });
-        }
-        constituencyMap.get(key)!.delegates.push(d);
-      }
-
-      for (const { name: cName, region: constituencyRegion, delegates: cList } of constituencyMap.values()) {
-        const capital = getConstituencyCapital(cName);
-        const regLabel = constituencyRegion.toUpperCase();
-        const regionPrefix = regLabel ? `${regLabel} REGION · ` : "";
-
-        // Dedicated Page 1: Up to 10 cards
-        const part1Cards = cList.slice(0, 10);
-        part1Cards.forEach((d) => {
-          d.page_number = currentCardPageNum;
-        });
-        cardPages.push({
-          headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 1)`,
-          footerLabel: `${cName.toUpperCase()}`,
-          cards: part1Cards,
-          constituencyName: cName,
-          constituencyCapital: capital,
-          totalConstituencyExecutives: cList.length,
-        });
-        currentCardPageNum++;
-
-        // Dedicated Page 2: Up to 9 cards + 10th slot validation / QR code box
-        const part2Cards = cList.slice(10, 19);
-        part2Cards.forEach((d) => {
-          d.page_number = currentCardPageNum;
-        });
-        cardPages.push({
-          headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES · ${cName.toUpperCase()} (PART 2)`,
-          footerLabel: `${cName.toUpperCase()}`,
-          cards: part2Cards,
-          isConstituencyPart2: true,
-          constituencyName: cName,
-          constituencyCapital: capital,
-          totalConstituencyExecutives: cList.length,
-        });
-        currentCardPageNum++;
-      }
-    }
-
-    // 3b. External Branches retain constituency status and follow domestic constituencies.
-    if (otherDelegates.length > 0) {
-      const branchGroups = new Map<string, any[]>();
-      for (const delegate of otherDelegates) {
-        const branchName = String(delegate.constituency || "Unassigned External Branch").trim();
-        if (!branchGroups.has(branchName)) branchGroups.set(branchName, []);
-        branchGroups.get(branchName)!.push(delegate);
-      }
-      for (const [branchName, branchDelegates] of branchGroups) {
-        for (let i = 0; i < branchDelegates.length; i += 10) {
-          const chunk = branchDelegates.slice(i, i + 10);
-          const partIdx = Math.floor(i / 10) + 1;
-          chunk.forEach((d) => {
-            d.page_number = currentCardPageNum;
-          });
-          cardPages.push({
-            headerSubTitle: `EXTERNAL BRANCH · ${branchName.toUpperCase()} (PART ${partIdx})`,
+            headerSubTitle: `EXTERNAL BRANCH · ${branchName.toUpperCase()} · EXECUTIVES (PART ${partIdx})`,
             footerLabel: `${branchName.toUpperCase()} EXTERNAL BRANCH`,
             cards: chunk,
             constituencyName: branchName,
-            totalConstituencyExecutives: branchDelegates.length,
+            totalConstituencyExecutives: bList.length,
           });
           currentCardPageNum++;
         }
       }
     }
 
-    // 4. TESCON Level Pages (Grouped together contiguously, 10 per page, not split per school)
-    if (tesconDelegates.length > 0) {
-      const institutionGroups = new Map<string, { region: string; delegates: any[] }>();
-      for (const delegate of tesconDelegates) {
-        const regionName = String(delegate.region || "Unassigned").trim();
-        const institution = getTesconInstitution(delegate);
-        delegate.institution = institution;
-        if (!institutionGroups.has(regionName)) {
-          institutionGroups.set(regionName, { region: regionName, delegates: [] });
-        }
-        institutionGroups.get(regionName)!.delegates.push(delegate);
-      }
-      for (const { region: regionName, delegates: regTesconDelegates } of institutionGroups.values()) {
-        const regPrefix =
-          regionName && regionName.toLowerCase() !== "unassigned" && regionName.toLowerCase() !== "national"
-            ? `${regionName.toUpperCase()} REGION · `
-            : "";
-        const regFooter =
-          regionName && regionName.toLowerCase() !== "unassigned" && regionName.toLowerCase() !== "national"
-            ? `${regionName.toUpperCase()} `
-            : "";
-        for (let i = 0; i < regTesconDelegates.length; i += 10) {
-          const chunk = regTesconDelegates.slice(i, i + 10);
-          const partIdx = Math.floor(i / 10) + 1;
-          chunk.forEach((d) => {
-            d.page_number = currentCardPageNum;
-          });
-          cardPages.push({
-            headerSubTitle: `${regPrefix}TESCON EXECUTIVES (PART ${partIdx})`,
-            footerLabel: `${regFooter}TESCON EXECUTIVES`,
-            cards: chunk,
-          });
-          currentCardPageNum++;
-        }
+    if (extProxyDelegates.length > 0) {
+      extProxyDelegates.sort((a, b) => {
+        const bA = String(a.proxy_constituency || a.constituency || "").trim();
+        const bB = String(b.proxy_constituency || b.constituency || "").trim();
+        const cComp = bA.localeCompare(bB);
+        if (cComp !== 0) return cComp;
+        return String(a.proxy_name || a.executive_name || "").localeCompare(
+          String(b.proxy_name || b.executive_name || "")
+        );
+      });
+      for (let i = 0; i < extProxyDelegates.length; i += 10) {
+        const chunk = extProxyDelegates.slice(i, i + 10);
+        const partIdx = Math.floor(i / 10) + 1;
+        chunk.forEach((d) => {
+          d.page_number = currentCardPageNum;
+        });
+        cardPages.push({
+          headerSubTitle: `EXTERNAL BRANCHES · ASSIGNED PROXY VOTERS (PART ${partIdx})`,
+          footerLabel: `EXTERNAL BRANCHES PROXY ROLL`,
+          cards: chunk,
+        });
+        currentCardPageNum++;
       }
     }
   }
@@ -4573,8 +5576,11 @@ function generateAlbumHtml(
           String(d.region || "").toLowerCase().includes("external")
       ));
   const isMultiJurisdiction = region.includes(",");
+  const activeStation = verificationContext?.activePollingStation;
   const singleConLabel = metrics?.selectedConstituency ? String(metrics.selectedConstituency).toUpperCase() : "";
-  const scopeText = singleConLabel
+  const scopeText = activeStation
+    ? activeStation.label.toUpperCase()
+    : singleConLabel
     ? `${singleConLabel} CONSTITUENCY${region && region !== "all" ? ` · ${region.toUpperCase()} REGION` : ""}`
     : region === "all"
     ? (isExtScope ? "EXTERNAL BRANCHES (DIASPORA CHAPTERS)" : "NATIONWIDE ELECTORAL ROLL")
@@ -4583,7 +5589,9 @@ function generateAlbumHtml(
     : isMultiJurisdiction
     ? `${region.split(",").length} ELECTORAL JURISDICTIONS`
     : `${region.toUpperCase()} REGION`;
-  const badgeText = singleConLabel
+  const badgeText = activeStation
+    ? `${activeStation.shortLabel.toUpperCase()} · ${contest.toUpperCase()}`
+    : singleConLabel
     ? `${singleConLabel} CONSTITUENCY · ${contest.toUpperCase()}`
     : region === "all"
     ? (isExtScope ? `EXTERNAL BRANCHES · ${contest.toUpperCase()}` : `${contest.toUpperCase()} ELECTION`)
@@ -4793,7 +5801,11 @@ function generateAlbumHtml(
     targetPage ||
     (targetConstituency
       ? securityRosterPages.find(
-          (p) => p.constituency.toLowerCase() === targetConstituency.toLowerCase()
+          (p) =>
+            p.constituency.toLowerCase() === targetConstituency.toLowerCase() ||
+            p.voters.some(
+              (v) => v.constituency.toLowerCase() === targetConstituency.toLowerCase()
+            )
         )?.page
       : undefined) ||
     (cardPages.length > 0 ? 3 : 1);

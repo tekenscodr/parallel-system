@@ -185,7 +185,8 @@ export async function GET(req: Request) {
             COUNT(CASE WHEN slot_status ILIKE '%Appointed%' OR status ILIKE '%Appointed%' THEN 1 END)::int as appointed,
             COUNT(CASE WHEN slot_status NOT ILIKE '%Appointed%' AND status NOT ILIKE '%Appointed%' THEN 1 END)::int as elected,
             COUNT(CASE WHEN image_url IS NULL OR trim(image_url) = '' OR image_url ILIKE 'https://app.newpatrioticparty.org%' OR (image_url NOT ILIKE 'https://%' AND image_url NOT ILIKE '/cdn/%' AND image_url NOT ILIKE 'data:image/%') THEN 1 END)::int as missing_photos,
-            COUNT(CASE WHEN image_url ILIKE 'https://cms.newpatrioticparty.org%' OR image_url ILIKE '/cdn/%' OR image_url ILIKE 'data:image/%' THEN 1 END)::int as verified_photos
+            COUNT(CASE WHEN image_url ILIKE 'https://cms.newpatrioticparty.org%' OR image_url ILIKE '/cdn/%' OR image_url ILIKE 'data:image/%' THEN 1 END)::int as verified_photos,
+            COUNT(CASE WHEN id IN (SELECT principal_executive_id FROM proxy_voter_assignments) THEN 1 END)::int as proxy_count
           FROM executives_all
           ${whereClause}
         `,
