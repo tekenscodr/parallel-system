@@ -4347,6 +4347,14 @@ export async function GET(req: NextRequest) {
           }
 
           if (fs.existsSync(exportPdfPath) && fs.statSync(exportPdfPath).size > 1000) {
+            const compressScript = path.join(process.cwd(), "scripts", "compress_pdf.py");
+            if (fs.existsSync(compressScript)) {
+              try {
+                execSync(`python3 "${compressScript}" "${exportPdfPath}"`, { timeout: 45000 });
+              } catch (compressErr) {
+                console.warn("PDF post-compression notice:", compressErr);
+              }
+            }
             try {
               fs.copyFileSync(exportPdfPath, publicPdfPath);
             } catch {
@@ -4778,15 +4786,22 @@ function generateAlbumHtml(
     (delegates.length > 0 && delegates.every((d) => Boolean(d.is_proxy_record)));
 
   const activePollingGrouping = verificationContext?.activePollingStation;
-  const isWomenPollingStation = Boolean(
+  const isWingPollingStation = Boolean(
     activePollingGrouping &&
-    (activePollingGrouping.category === "wocom_wing" ||
-     activePollingGrouping.id.toLowerCase().includes("wocom") ||
-     activePollingGrouping.id.toLowerCase().includes("women") ||
-     /(?:women|wocom)/i.test(contest) ||
-     /(?:women|wocom)/i.test(activePollingGrouping.label || "") ||
-     /(?:women|wocom)/i.test(activePollingGrouping.recommendedContest || ""))
+    (activePollingGrouping.category === "youth_wing" ||
+     activePollingGrouping.category === "wocom_wing" ||
+     activePollingGrouping.category === "nasara_wing" ||
+     activePollingGrouping.category.endsWith("_wing") ||
+     isWingAlbum ||
+     /(?:youth|women|nasara|wocom)/i.test(contest) ||
+     /(?:youth|women|nasara|wocom)/i.test(activePollingGrouping.label || "") ||
+     /(?:youth|women|nasara|wocom)/i.test(activePollingGrouping.recommendedContest || "") ||
+     activePollingGrouping.id.toLowerCase().startsWith("youth_") ||
+     activePollingGrouping.id.toLowerCase().startsWith("wocom_") ||
+     activePollingGrouping.id.toLowerCase().startsWith("women_") ||
+     activePollingGrouping.id.toLowerCase().startsWith("nasara_"))
   );
+  const isWomenPollingStation = isWingPollingStation;
 
   const details = visibleDetails || new Set(DEFAULT_VOTER_DETAILS);
   const showPhoto = details.has("photo");
@@ -4841,7 +4856,7 @@ function generateAlbumHtml(
         ? ` · ${natSectionInfo.section}`
         : isTescon && d.constituency
         ? ` (${String(d.constituency).trim()})`
-        : (((isWingAlbum || isProxyAlbum || isWomenPollingStation) && (isConstituency || isExtBranch) && d.constituency) || (isMp && d.constituency))
+        : (((isWingAlbum || isProxyAlbum || isWingPollingStation || isWomenPollingStation) && (isConstituency || isExtBranch) && d.constituency) || (isMp && d.constituency))
         ? ` (${String(d.constituency).trim()})`
         : "";
     const levelDisplay = isNational && natSectionInfo
@@ -4851,7 +4866,9 @@ function generateAlbumHtml(
     const isYouthAlbum =
       /(?:youth)/i.test(contest) ||
       Boolean(d.canonical_position && /(?:youth)/i.test(d.canonical_position)) ||
-      Boolean(d.position && /(?:youth)/i.test(d.position));
+      Boolean(d.position && /(?:youth)/i.test(d.position)) ||
+      activePollingGrouping?.category === "youth_wing" ||
+      Boolean(activePollingGrouping?.id?.toLowerCase().startsWith("youth_"));
 
     const ageVal =
       d.age !== null && d.age !== undefined
@@ -5247,8 +5264,8 @@ function generateAlbumHtml(
         return a.localeCompare(b);
       });
 
-      if (isWomenPollingStation) {
-        // When querying women polling station, do not split according region and constituencies but split according to region.
+      if (isWingPollingStation || isWomenPollingStation) {
+        // When printing the youth and any wings using the polling stations, split according to region (do not split by constituency).
         // Collect all constituency executives across this region in official constituency order and pack 10 per page.
         const allRegionConstExecs: any[] = [];
         for (const cName of sortedConstituencyNames) {
@@ -5427,7 +5444,8 @@ function generateAlbumHtml(
       branchGroups.get(bName)!.push(d);
     }
 
-    if (isWomenPollingStation) {
+    if (isWingPollingStation || isWomenPollingStation) {
+      // For youth and any wings using polling stations (e.g. youth_ps_5, wocom_ps_2, nasara_ps_2), group all diaspora branches together 10 per page
       const allExtBranchExecs: any[] = [];
       const sortedBranchNames = Array.from(branchGroups.keys()).sort((a, b) => a.localeCompare(b));
       for (const branchName of sortedBranchNames) {

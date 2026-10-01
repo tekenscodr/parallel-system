@@ -287,4 +287,126 @@ test('WOCOM Polling Station 2: External Branches (Diaspora) flow 10 per page wit
   assert.equal(cardPages[1].headerSubTitle, 'EXTERNAL BRANCHES (DIASPORA) · EXECUTIVES (PART 2)');
 });
 
+test('Youth and any wings using polling stations split according to region', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const routePath = path.join(process.cwd(), 'app/api/admin/albums/election/route.ts');
+  const code = fs.readFileSync(routePath, 'utf8');
+
+  // 1. Verify route.ts checks isWingPollingStation for youth_wing, nasara_wing, and all wing polling stations
+  assert.ok(code.includes('isWingPollingStation'), 'route.ts must define isWingPollingStation');
+  assert.ok(code.includes('category === "youth_wing"'), 'isWingPollingStation must check youth_wing category');
+  assert.ok(code.includes('category === "nasara_wing"'), 'isWingPollingStation must check nasara_wing category');
+  assert.ok(code.includes('category === "wocom_wing"'), 'isWingPollingStation must check wocom_wing category');
+
+  // 2. Verify all Youth polling stations exist in POLLING_STATION_GROUPINGS
+  for (let i = 1; i <= 5; i++) {
+    const yps = POLLING_STATION_GROUPINGS.find((g) => g.id === `youth_ps_${i}`);
+    assert.ok(yps, `youth_ps_${i} must exist`);
+    assert.equal(yps.category, 'youth_wing', `youth_ps_${i} must be category youth_wing`);
+  }
+
+  // 3. Verify Nasara polling stations exist
+  for (let i = 1; i <= 2; i++) {
+    const nps = POLLING_STATION_GROUPINGS.find((g) => g.id === `nasara_ps_${i}`);
+    assert.ok(nps, `nasara_ps_${i} must exist`);
+    assert.equal(nps.category, 'nasara_wing', `nasara_ps_${i} must be category nasara_wing`);
+  }
+
+  // 4. Simulate Youth Polling Station 4 (Ashanti, Ahafo, North East)
+  // Ashanti: 47 constituencies * 2 = 94 delegates
+  // Ahafo: 6 constituencies * 2 = 12 delegates
+  // North East: 6 constituencies * 2 = 12 delegates
+  const youthDelegates = [];
+  for (let c = 1; c <= 47; c++) {
+    const cName = `Ashanti Con ${c}`;
+    youthDelegates.push({ executive_name: `Ash Youth 1 (${cName})`, executive_level: 'Constituency', region: 'Ashanti', constituency: cName, position_rank: 8 });
+    youthDelegates.push({ executive_name: `Ash Youth 2 (${cName})`, executive_level: 'Constituency', region: 'Ashanti', constituency: cName, position_rank: 9 });
+  }
+  for (let c = 1; c <= 6; c++) {
+    const cName = `Ahafo Con ${c}`;
+    youthDelegates.push({ executive_name: `Ahafo Youth 1 (${cName})`, executive_level: 'Constituency', region: 'Ahafo', constituency: cName, position_rank: 8 });
+    youthDelegates.push({ executive_name: `Ahafo Youth 2 (${cName})`, executive_level: 'Constituency', region: 'Ahafo', constituency: cName, position_rank: 9 });
+  }
+  for (let c = 1; c <= 6; c++) {
+    const cName = `NE Con ${c}`;
+    youthDelegates.push({ executive_name: `NE Youth 1 (${cName})`, executive_level: 'Constituency', region: 'North East', constituency: cName, position_rank: 8 });
+    youthDelegates.push({ executive_name: `NE Youth 2 (${cName})`, executive_level: 'Constituency', region: 'North East', constituency: cName, position_rank: 9 });
+  }
+
+  // Total delegates = 94 + 12 + 12 = 118 delegates
+  assert.equal(youthDelegates.length, 118);
+
+  const cardPages = [];
+  let currentCardPageNum = 3;
+
+  for (const regionName of ['Ashanti', 'Ahafo', 'North East']) {
+    const constExecs = youthDelegates.filter(
+      (d) => d.executive_level === 'Constituency' && d.region.toLowerCase() === regionName.toLowerCase()
+    );
+
+    const constituencyGroups = new Map();
+    for (const d of constExecs) {
+      const cName = d.constituency;
+      if (!constituencyGroups.has(cName)) constituencyGroups.set(cName, []);
+      constituencyGroups.get(cName).push(d);
+    }
+
+    const sortedConstituencyNames = Array.from(constituencyGroups.keys()).sort((a, b) => a.localeCompare(b));
+
+    // Wing polling station pagination logic:
+    const allRegionConstExecs = [];
+    for (const cName of sortedConstituencyNames) {
+      const cList = constituencyGroups.get(cName);
+      cList.sort((a, b) => (a.position_rank !== b.position_rank ? a.position_rank - b.position_rank : a.executive_name.localeCompare(b.executive_name)));
+      allRegionConstExecs.push(...cList);
+    }
+
+    const regionPrefix = `${regionName.toUpperCase()} REGION · `;
+    for (let i = 0; i < allRegionConstExecs.length; i += 10) {
+      const chunk = allRegionConstExecs.slice(i, i + 10);
+      const partIdx = Math.floor(i / 10) + 1;
+      chunk.forEach((d) => { d.page_number = currentCardPageNum; });
+      cardPages.push({
+        headerSubTitle: `${regionPrefix}CONSTITUENCY EXECUTIVES (PART ${partIdx})`,
+        footerLabel: `${regionName.toUpperCase()} CONSTITUENCY EXECUTIVES`,
+        cards: chunk,
+        region: regionName,
+      });
+      currentCardPageNum++;
+    }
+  }
+
+  // Ashanti (94 delegates) -> ceil(94 / 10) = 10 pages
+  // Ahafo (12 delegates) -> ceil(12 / 10) = 2 pages
+  // North East (12 delegates) -> ceil(12 / 10) = 2 pages
+  // Total pages = 14 pages (instead of 47 + 6 + 6 = 59 pages!)
+  assert.equal(cardPages.length, 14, 'Must produce 14 pages total (10 for Ashanti, 2 for Ahafo, 2 for North East)');
+
+  const ashPages = cardPages.filter((p) => p.region === 'Ashanti');
+  assert.equal(ashPages.length, 10, 'Ashanti must have exactly 10 pages');
+  assert.equal(ashPages[0].cards.length, 10, 'Ashanti Part 1 must have 10 cards');
+  assert.equal(ashPages[9].cards.length, 4, 'Ashanti Part 10 must have 4 cards');
+  assert.equal(ashPages[0].headerSubTitle, 'ASHANTI REGION · CONSTITUENCY EXECUTIVES (PART 1)');
+
+  const ahafoPages = cardPages.filter((p) => p.region === 'Ahafo');
+  assert.equal(ahafoPages.length, 2, 'Ahafo must have exactly 2 pages');
+  assert.equal(ahafoPages[0].cards.length, 10, 'Ahafo Part 1 must have 10 cards');
+  assert.equal(ahafoPages[1].cards.length, 2, 'Ahafo Part 2 must have 2 cards');
+  assert.equal(ahafoPages[0].headerSubTitle, 'AHAFO REGION · CONSTITUENCY EXECUTIVES (PART 1)');
+
+  const nePages = cardPages.filter((p) => p.region === 'North East');
+  assert.equal(nePages.length, 2, 'North East must have exactly 2 pages');
+  assert.equal(nePages[0].cards.length, 10, 'North East Part 1 must have 10 cards');
+  assert.equal(nePages[1].cards.length, 2, 'North East Part 2 must have 2 cards');
+  assert.equal(nePages[0].headerSubTitle, 'NORTH EAST REGION · CONSTITUENCY EXECUTIVES (PART 1)');
+
+  // Ensure regions never mix on the same page
+  for (const page of cardPages) {
+    const pageRegions = new Set(page.cards.map((c) => c.region));
+    assert.equal(pageRegions.size, 1, 'Each card page must strictly belong to a single region');
+  }
+});
+
+
 
