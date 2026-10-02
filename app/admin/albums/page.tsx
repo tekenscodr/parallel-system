@@ -29,6 +29,7 @@ import {
   Square,
   Table2,
   Users,
+  UserX,
   X,
 } from "lucide-react";
 import { AdminShell } from "@/app/admin/components/AdminShell";
@@ -180,6 +181,7 @@ export default function PositionAlbumsPage() {
   const [gender, setGender] = useState<"all" | "male" | "female">("all");
   const [under40, setUnder40] = useState<boolean>(false);
   const [proxyOnly, setProxyOnly] = useState<boolean>(false);
+  const [excludeProxy, setExcludeProxy] = useState<boolean>(false);
   const [scope, setScope] = useState("all_voters");
   const [selectedPositions, setSelectedPositions] = useState<string[]>(() =>
     getDefaultPositionIdsForContest("Women Organiser", "all_voters")
@@ -300,7 +302,7 @@ export default function PositionAlbumsPage() {
     : "";
   const genderQuery = gender !== "all" ? `&gender=${encodeURIComponent(gender)}` : "";
   const under40Query = under40 ? "&under40=true" : "";
-  const proxyQuery = proxyOnly ? "&proxy=true" : "";
+  const proxyQuery = proxyOnly ? "&proxy=true" : excludeProxy ? "&proxy=false" : "";
   const regionsQuery =
     selectedRegions.length > 0 && selectedRegions.length < ALL_JURISDICTION_IDS.length
       ? `&regions=${encodeURIComponent(selectedRegions.join(","))}`
@@ -924,6 +926,11 @@ export default function PositionAlbumsPage() {
                           <Users className="size-3 text-purple-600" /> {isProxyContest ? contest : "Proxy Voters Only"}
                         </Badge>
                       )}
+                      {excludeProxy && (
+                        <Badge variant="secondary" className="gap-1 bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300">
+                          <UserX className="size-3 text-amber-600" /> Without Proxy
+                        </Badge>
+                      )}
                       {isCustom && (
                         <Badge variant="secondary" className="gap-1 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300">
                           <Sparkles className="size-3 text-blue-600" /> Customise Mode
@@ -951,12 +958,27 @@ export default function PositionAlbumsPage() {
                           handleContestSelect("Women Organiser");
                         } else {
                           setProxyOnly(!proxyOnly);
+                          if (!proxyOnly) setExcludeProxy(false);
                           setPage(1);
                         }
                       }}
                       title="Filter album to Assigned Proxy Voters only"
                     >
                       <Users className="size-3.5" /> {isProxyActive ? "Proxy Voters: Active" : "Filter Proxy Voters"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={excludeProxy ? "default" : "outline"}
+                      size="sm"
+                      className={`h-8 text-xs gap-1.5 ${excludeProxy ? "bg-amber-600 hover:bg-amber-700 text-white" : "border-amber-500/40 text-amber-700 dark:text-amber-300"}`}
+                      onClick={() => {
+                        setExcludeProxy(!excludeProxy);
+                        if (!excludeProxy && proxyOnly) setProxyOnly(false);
+                        setPage(1);
+                      }}
+                      title="Load album without any proxy voters (principals only)"
+                    >
+                      <UserX className="size-3.5" /> {excludeProxy ? "Without Proxy: Active" : "Without Proxy"}
                     </Button>
                     <Button
                       type="button"
@@ -3245,33 +3267,46 @@ export default function PositionAlbumsPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         <NativeSelect
                           aria-label="Filter by Proxy Roll"
-                          className={`sm:w-52 ${isProxyContest || proxyOnly ? "border-purple-500 bg-purple-50/60 text-purple-900 dark:bg-purple-950/40 dark:text-purple-200 font-medium" : "border-purple-500/40 text-purple-700 dark:text-purple-300"}`}
+                          className={`sm:w-56 ${isProxyContest || proxyOnly ? "border-purple-500 bg-purple-50/60 text-purple-900 dark:bg-purple-950/40 dark:text-purple-200 font-medium" : excludeProxy ? "border-amber-500 bg-amber-50/60 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200 font-medium" : "border-purple-500/40 text-purple-700 dark:text-purple-300"}`}
                           value={
                             isProxyContest
                               ? contest
                               : proxyOnly
                               ? "proxy_only"
+                              : excludeProxy
+                              ? "without_proxy"
                               : "none"
                           }
                           onChange={(e) => {
                             const val = e.target.value;
                             if (val === "none") {
                               setProxyOnly(false);
+                              setExcludeProxy(false);
+                              if (isProxyContest) {
+                                handleContestSelect("Women Organiser");
+                              }
+                            } else if (val === "without_proxy") {
+                              setProxyOnly(false);
+                              setExcludeProxy(true);
                               if (isProxyContest) {
                                 handleContestSelect("Women Organiser");
                               }
                             } else if (val === "proxy_only") {
+                              setExcludeProxy(false);
                               if (isProxyContest) {
                                 handleContestSelect("Women Organiser");
                               }
                               setProxyOnly(true);
                             } else {
+                              setExcludeProxy(false);
+                              setProxyOnly(false);
                               handleContestSelect(val as typeof contest);
                             }
                             setPage(1);
                           }}
                         >
-                          <option value="none">🔁 Proxy Filter: Off (All Voters)</option>
+                          <option value="none">🔁 Default (With Proxies)</option>
+                          <option value="without_proxy">🚫 Without Proxy (Principals Only)</option>
                           <option value="Proxy Voters">🔁 All Proxy Voters (339)</option>
                           <option value="Proxy for Youth">🔁 Proxy for Youth</option>
                           <option value="Proxy for Women">🔁 Proxy for Women</option>

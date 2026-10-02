@@ -949,6 +949,14 @@ export async function GET(req: NextRequest) {
 
   const proxyQuery = (searchParams.get("proxy") || "").trim().toLowerCase();
   const filterProxy = proxyQuery === "true" || proxyQuery === "1" || proxyQuery === "only" || proxyQuery === "proxy";
+  const excludeProxy =
+    proxyQuery === "false" ||
+    proxyQuery === "0" ||
+    proxyQuery === "none" ||
+    proxyQuery === "exclude" ||
+    proxyQuery === "off" ||
+    searchParams.get("include_proxy") === "false" ||
+    searchParams.get("exclude_proxy") === "true";
 
   const levelsParam = (searchParams.get("levels") || searchParams.get("level") || "all").trim();
   const selectedLevels =
@@ -1201,15 +1209,21 @@ export async function GET(req: NextRequest) {
       _cachedRawRowsTime = now;
     }
 
+    if (excludeProxy) {
+      proxyRows = [];
+    }
+
     const rawRowById = new Map<number, any>();
     for (const r of rawRows) {
       if (r.id != null) rawRowById.set(Number(r.id), r);
     }
 
     const proxyByPrincipalId = new Map<number, any>();
-    for (const p of proxyRows) {
-      if (p.principal_executive_id != null) {
-        proxyByPrincipalId.set(Number(p.principal_executive_id), p);
+    if (!excludeProxy) {
+      for (const p of proxyRows) {
+        if (p.principal_executive_id != null) {
+          proxyByPrincipalId.set(Number(p.principal_executive_id), p);
+        }
       }
     }
 
@@ -1955,7 +1969,7 @@ export async function GET(req: NextRequest) {
       .sort(isSingleRegion ? compareRegionalAlbumDelegates : compareAlbumDelegates);
 
     // Gather and append assigned proxies for each region in the album (Rule 1)
-    if (!isProxyContest && proxyRows && proxyRows.length > 0) {
+    if (!isProxyContest && !excludeProxy && proxyRows && proxyRows.length > 0) {
       const existingProxyAssignIds = new Set(
         delegates.filter((d) => d.is_proxy_record).map((d) => String(d.id))
       );

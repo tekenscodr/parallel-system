@@ -2,10 +2,11 @@ import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
-import { getSafeSharp } from "./safe-sharp";
+import { getSafeSharp } from "./safe-sharp.ts";
 
 const cacheDir = path.join(process.cwd(), ".cache", "albums", "webp");
 const pending = new Map<string, Promise<Buffer | null>>();
+const failedRemoteUrls = new Set<string>();
 
 let _indexesLoaded = false;
 const syncUrlByVoterId = new Map<string, string>();
@@ -342,9 +343,10 @@ async function readSource(
       }
 
       // Live host fetch (e.g. cms.newpatrioticparty.org)
+      if (failedRemoteUrls.has(url)) return null;
       for (let attempt = 0; attempt < 2; attempt++) {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
+        const timeout = setTimeout(() => controller.abort(), 2500);
         try {
           const response = await fetch(url, {
             signal: controller.signal,
@@ -352,14 +354,18 @@ async function readSource(
           });
           if (response.ok) return Buffer.from(await response.arrayBuffer());
           await response.body?.cancel();
-          if (response.status !== 408 && response.status !== 429 && response.status < 500) break;
+          if (response.status !== 408 && response.status !== 429 && response.status < 500) {
+            failedRemoteUrls.add(url);
+            break;
+          }
         } catch {
           // Retry temporary failure
         } finally {
           clearTimeout(timeout);
         }
-        if (attempt < 1) await new Promise((resolve) => setTimeout(resolve, 300));
+        if (attempt < 1) await new Promise((resolve) => setTimeout(resolve, 150));
       }
+      failedRemoteUrls.add(url);
       return null;
     }
 
@@ -377,20 +383,22 @@ async function readSource(
   // 5. Final fallback to live sync progress URL if we had hints
   const fallbackSyncUrl = voterId ? (syncUrlByVoterId.get(voterId) || syncUrlByVoterId.get(voterId.replace(/^0+/, "")) || altUrlByVoterId.get(voterId)) : (name ? altUrlByName.get(name) : null);
   if (fallbackSyncUrl && fallbackSyncUrl !== url && !/app\.newpatrioticparty\.org/i.test(fallbackSyncUrl)) {
+    if (failedRemoteUrls.has(fallbackSyncUrl)) return null;
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
+      const timeout = setTimeout(() => controller.abort(), 2500);
       try {
         const res = await fetch(fallbackSyncUrl, {
           signal: controller.signal,
           headers: { "User-Agent": "Mozilla/5.0", Accept: "image/*" },
         });
         if (res.ok) return Buffer.from(await res.arrayBuffer());
+        failedRemoteUrls.add(fallbackSyncUrl);
       } finally {
         clearTimeout(timeout);
       }
     } catch {
-      // ignore
+      failedRemoteUrls.add(fallbackSyncUrl);
     }
   }
 
